@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { track } from "@/analytics";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { PARTS, paperPath, partNumeral, referenceHref, type PaperEntry } from "@/content/paper-index";
 import { parseReference } from "@/lib/paper-url";
 import { sectionLabel, type NavPaper, type NavSection } from "./nav-state";
@@ -88,11 +89,7 @@ export function Navigator({
 
   function goToSection(section: NavSection) {
     track("navigator_used", { kind: "section" });
-    leave(
-      section.id === "0"
-        ? `${paperPath(paper.id)}#paper-top`
-        : referenceHref({ paperId: paper.id, sectionId: section.id }),
-    );
+    leave(referenceHref({ paperId: paper.id, sectionId: section.id }));
   }
 
   function goToPaper(href: string) {
@@ -173,6 +170,9 @@ export function Navigator({
                   {next.title}
                 </button>
               )}
+            </div>
+            <div className="sheet-foot">
+              <ThemeToggle />
             </div>
           </div>
         ) : (

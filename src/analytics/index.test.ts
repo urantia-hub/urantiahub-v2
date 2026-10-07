@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const posthog = vi.hoisted(() => ({ init: vi.fn(), register: vi.fn(), capture: vi.fn() }));
 vi.mock("posthog-js", () => ({ default: posthog }));
+// The real idle wait has its own test. Here a zero timer keeps the "not in the same task" rule.
+vi.mock("@/lib/when-idle", () => ({ whenIdle: (work: () => void) => setTimeout(work, 0) }));
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -43,6 +45,8 @@ describe("analytics", () => {
       persistence: "memory",
       autocapture: false,
       disable_session_recording: true,
+      // No feature flags in step 1. This also stops a config request that the CSP does not permit.
+      advanced_disable_flags: true,
     });
   });
 

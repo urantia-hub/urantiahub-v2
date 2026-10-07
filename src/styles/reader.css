@@ -1,5 +1,6 @@
 .paper {
-  max-width: 34rem;
+  /* About 65 characters per line at the desktop size. */
+  max-width: 38rem;
   margin: 0 auto;
   padding: 44px 20px 150px;
   line-height: 1.72;

@@ -21,6 +21,7 @@
 }
 .prose a:not(.btn) {
   color: var(--ink);
+  text-decoration: underline;
   text-decoration-color: var(--rule);
   text-underline-offset: 4px;
 }

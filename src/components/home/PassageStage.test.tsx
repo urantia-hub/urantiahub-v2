@@ -1,9 +1,12 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Passage } from "@/content/fetchers";
 import { PassageStage, passageSize } from "./PassageStage";
 
-vi.mock("@/analytics", () => ({ track: vi.fn() }));
+const track = vi.hoisted(() => vi.fn());
+vi.mock("@/analytics", () => ({ track }));
+
+beforeEach(() => track.mockClear());
 
 const passages: Passage[] = [
   { ref: "99:1.1", paperId: "99", paperTitle: "The Social Problems of Religion", text: "First passage text." },
@@ -31,6 +34,21 @@ describe("PassageStage", () => {
     expect(cite).toHaveAttribute("href", "/papers/paper-99-the-social-problems-of-religion#99:1.1");
     expect(cite).toHaveTextContent("99:1.1");
     expect(cite).toHaveTextContent("Paper 99 · The Social Problems of Religion");
+  });
+
+  // React does not run an inline script that it inserts on the client, so the tracker must pick.
+  it("picks a passage when the inline script did not run, and reports that one", () => {
+    const { container } = render(<PassageStage passages={passages} />);
+    const pick = container.querySelector<HTMLElement>(".stage")!.dataset.pick;
+    expect(["0", "1"]).toContain(pick);
+    expect(track).toHaveBeenCalledWith("home_passage_shown", { ref: passages[Number(pick)].ref });
+  });
+
+  it("keeps the pick of the inline script when it ran", () => {
+    const { container, rerender } = render(<PassageStage passages={passages} />);
+    container.querySelector<HTMLElement>(".stage")!.dataset.pick = "1";
+    rerender(<PassageStage passages={passages} />);
+    expect(container.querySelector<HTMLElement>(".stage")!.dataset.pick).toBe("1");
   });
 
   it("includes the inline script that selects one passage", () => {

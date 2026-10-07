@@ -7,7 +7,7 @@ const get = (dev: boolean) =>
 describe("securityHeaders", () => {
   it("sets the fixed headers", () => {
     const headers = get(false);
-    expect(headers["Strict-Transport-Security"]).toBe("max-age=63072000; includeSubDomains; preload");
+    expect(headers["Strict-Transport-Security"]).toBe("max-age=63072000; includeSubDomains");
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     expect(headers["X-Frame-Options"]).toBe("DENY");

@@ -1,13 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { reportError } from "@/monitoring";
-
-export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
-  useEffect(() => {
-    reportError(error);
-  }, [error]);
-
+// The last-resort page, for an error in the root layout itself.
+export default function GlobalError() {
   return (
     <html lang="en">
       <body style={{ fontFamily: "Georgia, serif", textAlign: "center", padding: "20vh 20px" }}>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteFooter() {
   return (
@@ -9,6 +10,7 @@ export function SiteFooter() {
           For developers: <a href="https://urantia.dev">urantia.dev</a>
         </span>
         <Link href="/privacy">Privacy</Link>
+        <ThemeToggle />
       </span>
     </footer>
   );

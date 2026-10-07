@@ -28,7 +28,7 @@ test("the home button goes to the contents, which lists 197 papers", async ({ pa
   await page.goto("/");
   await page.getByRole("link", { name: "Read the Papers" }).click();
   await expect(page).toHaveURL("/papers");
-  await expect(page.locator(".contents .papers a")).toHaveCount(197);
+  await expect(page.locator(".toc .papers a")).toHaveCount(197);
 });
 
 test("About and Privacy render", async ({ page }) => {
@@ -45,12 +45,98 @@ test("an unknown address answers 404 with a way back", async ({ page }) => {
   expect((await page.goto("/papers/paper-197-nothing"))?.status()).toBe(404);
 });
 
-test("the dark theme uses the dark tokens", async ({ page }) => {
+const LIGHT = "rgb(251, 248, 242)";
+const DARK = "rgb(23, 21, 15)";
+
+test("a new visitor gets the light theme, even with a dark system setting", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/papers/paper-1-the-universal-father");
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(23, 21, 15)");
-  await page.emulateMedia({ colorScheme: "light" });
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(251, 248, 242)");
+  await expect(page.locator("body")).toHaveCSS("background-color", LIGHT);
+});
+
+test("the theme control changes the theme, and the choice stays after a reload", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("contentinfo").getByRole("button", { name: "Dark theme" }).click();
+  await expect(page.locator("body")).toHaveCSS("background-color", DARK);
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#17150f");
+
+  await page.goto("/papers/paper-1-the-universal-father");
+  await expect(page.locator("body")).toHaveCSS("background-color", DARK);
+
+  await page.getByRole("contentinfo").getByRole("button", { name: "Light theme" }).click();
+  await expect(page.locator("body")).toHaveCSS("background-color", LIGHT);
+  await page.reload();
+  await expect(page.locator("body")).toHaveCSS("background-color", LIGHT);
+});
+
+test("a reader who chose dark sees no light flash on the next page load", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("theme", "dark"));
+  // The background at the moment the document is parsed, before the app starts.
+  await page.addInitScript(() => {
+    document.addEventListener("DOMContentLoaded", () => {
+      (window as unknown as { firstBackground: string }).firstBackground = getComputedStyle(document.body).backgroundColor;
+    });
+  });
+  await page.goto("/papers/paper-1-the-universal-father");
+  expect(await page.evaluate(() => (window as unknown as { firstBackground: string }).firstBackground)).toBe(DARK);
+});
+
+test("the navigator has the theme control too", async ({ page }) => {
+  await page.goto("/papers/paper-1-the-universal-father");
+  await page.getByTestId("reading-bar").getByRole("button").click();
+  await page.getByRole("dialog", { name: "Navigator" }).getByRole("button", { name: "Dark theme" }).click();
+  await expect(page.locator("body")).toHaveCSS("background-color", DARK);
+});
+
+// A class named "contents" collided with a Tailwind utility and removed this column. Layout is tested, not assumed.
+for (const [path, selector, maxWidth] of [
+  ["/papers", ".toc", 736],
+  ["/papers/paper-1-the-universal-father", ".paper", 608],
+  ["/about", ".prose", 544],
+] as const) {
+  test(`the ${selector} column on ${path} is centered and has margins`, async ({ page }) => {
+    await page.goto(path);
+    const box = (await page.locator(selector).first().boundingBox())!;
+    const viewport = page.viewportSize()!.width;
+    expect(box.width).toBeLessThanOrEqual(maxWidth + 1);
+    expect(Math.abs(box.x - (viewport - box.x - box.width))).toBeLessThanOrEqual(2);
+    const text = (await page.locator(`${selector} :is(p, li)`).first().boundingBox())!;
+    expect(text.x).toBeGreaterThanOrEqual(16);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
+
+test("the text typeface has its optical-size axis, and italic text uses a true italic face", async ({ page }) => {
+  await page.goto("/papers/paper-1-the-universal-father");
+  await page.evaluate(() => document.fonts.ready);
+  const result = await page.evaluate(async () => {
+    const first = (selector: string) =>
+      getComputedStyle(document.querySelector(selector)!).fontFamily.split(",")[0].trim().replace(/["']/g, "");
+    const upright = first(".para");
+    const width = (opsz: number) => {
+      const span = document.createElement("span");
+      span.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;font:400 40px "${upright}";font-variation-settings:"opsz" ${opsz}`;
+      span.textContent = "The Universal Father is the God of all creation";
+      document.body.appendChild(span);
+      const w = span.getBoundingClientRect().width;
+      span.remove();
+      return w;
+    };
+    // The section headings are italic, so the page loads the italic face of the same family.
+    await document.fonts.load(`italic 20px "${upright}"`);
+    const italicFaces = [...document.fonts].filter(
+      (face) => face.family.replace(/["']/g, "") === upright && face.style === "italic" && face.status === "loaded",
+    );
+    return { small: width(7), large: width(72), italicLoaded: italicFaces.length > 0 };
+  });
+  // With no optical-size axis, both widths are equal.
+  expect(Math.abs(result.small - result.large)).toBeGreaterThan(5);
+  expect(result.italicLoaded).toBe(true);
+});
+
+test("only the upright text face is preloaded", async ({ page }) => {
+  await page.goto("/papers/paper-1-the-universal-father");
+  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(1);
 });
 
 test("every route carries the security headers, the root included", async ({ request }) => {

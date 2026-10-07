@@ -31,6 +31,8 @@ export function initAnalytics(): void {
       autocapture: false,
       capture_pageview: "history_change",
       disable_session_recording: true,
+      // Step 1 uses no feature flags. This also stops a config request to a host that the CSP does not permit.
+      advanced_disable_flags: true,
       disable_external_dependency_loading: true,
     });
     posthog.register({ app: "hub-v2" });

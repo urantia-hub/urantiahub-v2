@@ -53,6 +53,21 @@ main {
 }
 .site-footer a {
   color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.theme-toggle {
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.theme-toggle:hover {
+  color: var(--ink);
 }
 .site-footer .links {
   display: flex;

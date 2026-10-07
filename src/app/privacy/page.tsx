@@ -17,11 +17,11 @@ export default function PrivacyPage() {
         holds the page address and a label such as a paper number. It holds no text that you read or type. The site
         sets no analytics cookie and keeps no identifier in your browser.
       </p>
+      <p>PostHog processes your IP address when it receives a request from your browser.</p>
       <p>
-        Error reports. When the site has a fault, it sends a report to Sentry, our error provider. A report holds
-        technical data: the page address, the browser type, and the fault.
+        Your theme. The site keeps your theme choice in your browser, so the page opens in the theme that you chose.
+        The choice does not leave your device.
       </p>
-      <p>Both providers process your IP address when they receive a request from your browser.</p>
 
       <h2>What UrantiaHub does not collect</h2>
       <p>

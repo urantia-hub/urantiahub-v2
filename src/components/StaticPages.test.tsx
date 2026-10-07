@@ -20,14 +20,21 @@ describe("About", () => {
 });
 
 describe("Privacy", () => {
-  it("names the two providers and the contact address", () => {
-    render(<PrivacyPage />);
-    expect(screen.getByText(/PostHog/)).toBeInTheDocument();
-    expect(screen.getByText(/Sentry/)).toBeInTheDocument();
+  it("names the one provider and the contact address", () => {
+    const { container } = render(<PrivacyPage />);
+    expect(screen.getAllByText(/PostHog/).length).toBeGreaterThan(0);
+    expect(container.textContent).not.toMatch(/Sentry|error report/i);
     expect(screen.getByRole("link", { name: "team@urantiahub.com" })).toHaveAttribute(
       "href",
       "mailto:team@urantiahub.com",
     );
+  });
+});
+
+describe("Privacy and the theme choice", () => {
+  it("says that the theme choice stays in the browser", () => {
+    render(<PrivacyPage />);
+    expect(screen.getByText(/theme choice in your browser/)).toBeInTheDocument();
   });
 });
 

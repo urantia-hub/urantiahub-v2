@@ -3,7 +3,7 @@
 # urantiahub-v2
 
 The new UrantiaHub: a reader for the Urantia Papers. Step 1 is the public reader.
-Spec and plans: `docs/superpowers/`.
+Spec and plan: kept outside this public repo, in the private `urantia` workspace folder under `docs/superpowers/`.
 
 ## Commands
 
@@ -24,4 +24,9 @@ Spec and plans: `docs/superpowers/`.
 - `SITE_INDEXABLE` stays off until the cutover to www.
 - Paragraph references use the `--ref` token (darker than `--muted`), which meets WCAG AA. Kelson's rule: the design wins over a contrast score, so a change to `--ref` is a design decision, not a compliance one.
 - `CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" bun run lighthouse` on this Mac. Lighthouse does not find Chrome without it.
-- PostHog and Sentry load after the page is idle (`src/lib/when-idle.ts`). A static import of either one in client code puts about 160 KiB back on the path to the first paint and fails the Lighthouse gate.
+- PostHog loads after the page load, when the browser is idle (`src/lib/when-idle.ts`). A static import of it in client code puts it back on the path to the first paint and fails the Lighthouse gate.
+- No error-report vendor. Kelson removed Sentry on 2026-10-07: static pages, no accounts, Vercel keeps the server logs. If browser errors must be seen later, use PostHog error capture, not a second vendor.
+- The Lighthouse performance gate is 0.90, not 0.95. The text face keeps its optical-size axis (a 109 KiB file, about 57 KiB more than without it) because the headings look finer with it, and Kelson chose the design. Without the axis the paper page scores 0.96. Do not drop the axis to raise the score.
+- The theme is light by default and dark only by the reader's choice (`src/lib/theme.ts`, `data-theme` on `<html>`). The system setting does not decide. Do not add a `prefers-color-scheme` rule.
+- Do not name a CSS class after a Tailwind utility. A class named `contents` removed a whole column (`display: contents`). The browser tests check the column layout.
+- Both Literata font calls in `src/app/layout.tsx` give the family name "Literata", so the true italic is picked by the browser. Only the upright face is preloaded.

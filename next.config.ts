@@ -1,9 +1,15 @@
-import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 import { securityHeaders } from "./src/security-headers";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  experimental: {
+    // A full build asks the content API for 197 papers. A burst made the API answer 500,
+    // so the build asks for a few pages at a time and tries a failed page again.
+    // A real API outage still fails the build, and the previous deployment stays live.
+    staticGenerationMaxConcurrency: 4,
+    staticGenerationRetryCount: 2,
+  },
   // The share image reads this font file at request time, so the function bundle must hold it.
   outputFileTracingIncludes: {
     "/papers/[slug]/opengraph-image": ["./node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"],
@@ -22,12 +28,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "urantiahub",
-  project: "urantiahub-v2",
-  silent: !process.env.CI,
-  // Browser events go to our own domain, and the server forwards them.
-  tunnelRoute: "/monitoring",
-  // The maps go to Sentry and then leave the deployment. Without this they stay public.
-  sourcemaps: { deleteSourcemapsAfterUpload: true },
-});
+export default nextConfig;

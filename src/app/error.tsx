@@ -1,14 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { reportError } from "@/monitoring";
 
-export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    reportError(error);
-  }, [error]);
-
+export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="prose center">
       <h1>This page did not load</h1>

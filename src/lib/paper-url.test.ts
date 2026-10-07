@@ -62,6 +62,10 @@ describe("anchorFor", () => {
   it("returns no anchor for a paper", () => {
     expect(anchorFor({ paperId: "99" })).toBe("");
   });
+  it("sends section 0 to the top of the paper, because section 0 has no heading", () => {
+    expect(anchorFor({ paperId: "99", sectionId: "0" })).toBe("#paper-top");
+    expect(anchorFor({ paperId: "99", sectionId: "0", paragraphId: "1" })).toBe("#99:0.1");
+  });
   it("returns the section anchor", () => {
     expect(anchorFor({ paperId: "99", sectionId: "1" })).toBe("#99:1");
   });

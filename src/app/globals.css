@@ -7,7 +7,7 @@
 @import "../styles/prose.css";
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #fbf8f2;
   --ink: #26221c;
   --muted: #8b8375;
@@ -22,18 +22,18 @@
   --font-ui: var(--font-inter), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17150f;
-    --ink: #e6dfd0;
-    --muted: #8d8676;
-    --ref: #979080;
-    --rule: #2d2a21;
-    --accent: #a5b4fc;
-    --mark: #2e2a1a;
-    --raised: #24211a;
-    --shade: #00000099;
-  }
+/* Dark is the reader's choice, never the system's. See src/lib/theme.ts. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #17150f;
+  --ink: #e6dfd0;
+  --muted: #8d8676;
+  --ref: #979080;
+  --rule: #2d2a21;
+  --accent: #a5b4fc;
+  --mark: #2e2a1a;
+  --raised: #24211a;
+  --shade: #00000099;
 }
 
 @theme inline {
@@ -44,8 +44,6 @@
   --color-accent: var(--accent);
   --color-mark: var(--mark);
   --color-raised: var(--raised);
-  --font-text: var(--font-text);
-  --font-ui: var(--font-ui);
 }
 
 html {

@@ -37,8 +37,10 @@ export function parseReference(input: string): ParsedReference | null {
   return ref;
 }
 
+// Section 0 has no heading in the text, so a reference to it goes to the top of the paper.
 export function anchorFor(ref: ParsedReference): string {
   if (ref.sectionId === undefined) return "";
+  if (ref.sectionId === "0" && ref.paragraphId === undefined) return "#paper-top";
   const section = `#${ref.paperId}:${ref.sectionId}`;
   return ref.paragraphId === undefined ? section : `${section}.${ref.paragraphId}`;
 }

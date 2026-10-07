@@ -21,3 +21,8 @@ test("a paragraph link still marks its paragraph", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father#1:2.1");
   await expect(page.locator('[id="1:2.1"]')).toHaveCSS("background-color", "rgb(243, 234, 210)");
 });
+
+test("the page is light", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(251, 248, 242)");
+});
