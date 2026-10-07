@@ -1,13 +1,11 @@
 import Link from "next/link";
 import type { PaperDoc } from "@/content/fetchers";
-import { PAPERS, paperPath } from "@/content/paper-index";
+import { PAPERS, paperPath, partNumeral } from "@/content/paper-index";
 import { MissingReferenceNotice } from "./MissingReferenceNotice";
 import { ReferenceLink } from "./ReferenceLink";
 
-const ROMAN: Record<string, string> = { "1": "I", "2": "II", "3": "III", "4": "IV" };
-
 export function paperEyebrow(paper: { id: string; partId: string }): string | null {
-  return paper.id === "0" ? null : `Part ${ROMAN[paper.partId]} · Paper ${paper.id}`;
+  return paper.id === "0" ? null : `Part ${partNumeral(paper.partId)} · Paper ${paper.id}`;
 }
 
 export function PaperView({ paper }: { paper: PaperDoc }) {

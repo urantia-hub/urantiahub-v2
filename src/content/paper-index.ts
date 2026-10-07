@@ -32,3 +32,9 @@ export function paperPath(id: string): string {
 export function referenceHref(ref: ParsedReference): string {
   return `${paperPath(ref.paperId)}${anchorFor(ref)}`;
 }
+
+const NUMERALS: Record<string, string> = { "1": "I", "2": "II", "3": "III", "4": "IV" };
+
+export function partNumeral(partId: string): string {
+  return NUMERALS[partId] ?? "";
+}
