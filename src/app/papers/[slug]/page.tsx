@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PaperView } from "@/components/reader/PaperView";
 import { getPaper } from "@/content";
@@ -6,11 +7,27 @@ import type { NavPaper } from "@/components/navigation/nav-state";
 import { PAPERS, paperById, paperPath } from "@/content/paper-index";
 import { prerenderIds } from "@/content/prerender";
 import { idFromSlug } from "@/lib/paper-url";
+import { JsonLd } from "@/seo/JsonLd";
+import { describe, pageMetadata, paperHeadline, paperJsonLd } from "@/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
   return prerenderIds().map((id) => ({ slug: paperById(id)!.slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const id = idFromSlug(slug);
+  const entry = id === null ? undefined : paperById(id);
+  if (!entry || entry.slug !== slug) return {};
+  const paper = await getPaper(entry.id);
+  return pageMetadata({
+    title: paperHeadline(entry),
+    description: describe(paper.sections[0].paragraphs[0].text),
+    path: paperPath(entry.id),
+    type: "article",
+  });
 }
 
 export default async function PaperPage({ params }: Props) {
@@ -27,6 +44,7 @@ export default async function PaperPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd data={paperJsonLd(entry, describe(paper.sections[0].paragraphs[0].text))} />
       <PaperView paper={paper} />
       <ReadingNav
         paper={{ id: paper.id, title: paper.title }}

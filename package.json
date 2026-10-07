@@ -13,6 +13,7 @@
     "sync:index": "bun scripts/sync-paper-index.ts"
   },
   "dependencies": {
+    "@fontsource/literata": "^5.3.0",
     "@urantia/api": "^0.5.0",
     "next": "16.3.1",
     "react": "19.2.8",

@@ -1,4 +1,11 @@
 import Link from "next/link";
+import { pageMetadata } from "@/seo/metadata";
+
+export const metadata = pageMetadata({
+  title: "About",
+  description: "What the Urantia Papers are, and what UrantiaHub is.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

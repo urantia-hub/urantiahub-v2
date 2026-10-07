@@ -1,3 +1,11 @@
+import { pageMetadata } from "@/seo/metadata";
+
+export const metadata = pageMetadata({
+  title: "Privacy",
+  description: "What UrantiaHub collects and what it does not collect.",
+  path: "/privacy",
+});
+
 export default function PrivacyPage() {
   return (
     <div className="prose">
