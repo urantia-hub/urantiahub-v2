@@ -15,8 +15,8 @@ export function passageSize(text: string): "s" | "m" | "l" {
 export function PassageStage({ passages }: { passages: Passage[] }) {
   return (
     <div className="stage" suppressHydrationWarning>
-      {passages.map((passage) => (
-        <figure className={`passage ${passageSize(passage.text)}`} key={passage.ref}>
+      {passages.map((passage, i) => (
+        <figure className={`passage ${passageSize(passage.text)}`} key={i}>
           <blockquote>{passage.text}</blockquote>
           <figcaption>
             <a className="cite" href={referenceHref(parseReference(passage.ref)!)}>

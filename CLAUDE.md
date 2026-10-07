@@ -19,7 +19,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Only `src/content/index.ts` imports `@urantia/api`. Only `src/analytics/index.ts` imports `posthog-js`.
 - No test file under `src/app/`.
 - This repo is public. No secret or DSN in the code.
-- Text from the Papers always comes from the API. Never type a quotation.
+- Text from the Papers always comes from the API. Never type a quotation. The one place where the repo holds text is `src/content/passages.ts`: a home passage is one or more whole sentences of a paragraph, copied from the API response, and the build fails if it differs from the API by one character (`excerptPassage`).
 - The Hub's own copy makes no belief statement and no claim about the text.
 - `SITE_INDEXABLE` stays off until the cutover to www.
 - Paragraph references use the `--ref` token (darker than `--muted`), which meets WCAG AA. Kelson's rule: the design wins over a contrast score, so a change to `--ref` is a design decision, not a compliance one.

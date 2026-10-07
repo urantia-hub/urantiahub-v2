@@ -2,25 +2,45 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { HOME_PASSAGES } from "../src/content/passages";
 
-const recorded = HOME_PASSAGES.map((ref) => {
-  const file = `e2e/fixtures/paragraphs_${ref.replace(":", "_")}.json`;
-  return JSON.parse(readFileSync(file, "utf8")).data.text as string;
+const paragraphOf = (ref: string) =>
+  JSON.parse(readFileSync(`e2e/fixtures/paragraphs_${ref.replace(":", "_")}.json`, "utf8")).data.text as string;
+
+// What the page must show for each entry: the excerpt, or the whole recorded paragraph.
+const expected = HOME_PASSAGES.map(({ ref, text }) => text ?? paragraphOf(ref));
+
+test("each home passage is an exact part of its recorded API paragraph", () => {
+  HOME_PASSAGES.forEach(({ ref }, i) => expect(paragraphOf(ref)).toContain(expected[i]));
 });
 
-test("the home page shows one passage, and it is exact API text", async ({ page }) => {
+test("the home page shows one passage from the list", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "The Urantia Papers" })).toBeVisible();
   const visible = page.locator(".passage:visible blockquote");
   await expect(visible).toHaveCount(1);
-  expect(recorded).toContain(await visible.innerText());
+  expect(expected).toContain(await visible.innerText());
 });
 
-test("the home page holds all six passages, and each index can show", async ({ page }) => {
+test("the home page holds every passage, and each one can show", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".passage")).toHaveCount(6);
-  for (let i = 0; i < 6; i++) {
+  await expect(page.locator(".passage")).toHaveCount(expected.length);
+  for (let i = 0; i < expected.length; i++) {
     await page.evaluate((n) => (document.querySelector<HTMLElement>(".stage")!.dataset.pick = String(n)), i);
-    await expect(page.locator(".passage:visible blockquote")).toHaveText(recorded[i]);
+    await expect(page.locator(".passage:visible blockquote")).toHaveText(expected[i]);
+  }
+});
+
+test("no home passage is longer than five lines on a desktop", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "the line limit is a desktop rule");
+  await page.goto("/");
+  const whole = HOME_PASSAGES.map((passage, i) => (passage.text === undefined ? i : -1)).filter((i) => i !== -1);
+  for (let i = 0; i < expected.length; i++) {
+    if (whole.includes(i)) continue;
+    await page.evaluate((n) => (document.querySelector<HTMLElement>(".stage")!.dataset.pick = String(n)), i);
+    const lines = await page.locator(".passage:visible blockquote").evaluate((el) => {
+      const style = getComputedStyle(el);
+      return Math.round(el.getBoundingClientRect().height / parseFloat(style.lineHeight));
+    });
+    expect(lines, expected[i]).toBeLessThanOrEqual(5);
   }
 });
 

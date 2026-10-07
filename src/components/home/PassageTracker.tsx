@@ -13,8 +13,10 @@ export function PassageTracker({ refs }: { refs: string[] }) {
     const stage = document.querySelector<HTMLElement>(".stage");
     if (!stage) return;
     if (stage.dataset.pick === undefined) stage.dataset.pick = String(Math.floor(Math.random() * list.length));
-    const ref = list[Number(stage.dataset.pick)];
-    if (ref) track("home_passage_shown", { ref });
+    const pick = Number(stage.dataset.pick);
+    const ref = list[pick];
+    // Two passages can come from one paragraph, so the event also gives the position in the list.
+    if (ref) track("home_passage_shown", { ref, position: pick + 1 });
   }, [key]);
   return null;
 }

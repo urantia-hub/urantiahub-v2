@@ -3,7 +3,7 @@ import { whenIdle } from "@/lib/when-idle";
 // The only file that imports posthog-js. Properties are ids, counts, and labels. Never text.
 export type AnalyticsEvents = {
   paper_opened: { paper_id: string };
-  home_passage_shown: { ref: string };
+  home_passage_shown: { ref: string; position: number };
   home_read_clicked: undefined;
   reference_link_copied: { ref: string };
   navigator_opened: { paper_id: string };

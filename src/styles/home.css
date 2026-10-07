@@ -33,7 +33,9 @@
 .home .stage[data-pick="2"] .passage:nth-of-type(3),
 .home .stage[data-pick="3"] .passage:nth-of-type(4),
 .home .stage[data-pick="4"] .passage:nth-of-type(5),
-.home .stage[data-pick="5"] .passage:nth-of-type(6) {
+.home .stage[data-pick="5"] .passage:nth-of-type(6),
+.home .stage[data-pick="6"] .passage:nth-of-type(7),
+.home .stage[data-pick="7"] .passage:nth-of-type(8) {
   display: block;
 }
 .home blockquote {

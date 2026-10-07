@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ContentError, fetchPaper, fetchPassage, type ContentClient } from "./fetchers";
+import { ContentError, excerptPassage, fetchPaper, fetchPassage, type ContentClient, type Passage } from "./fetchers";
 
 const paragraph = (ref: string, sectionId: string, sectionTitle: string | null, html = `<span class="urantia-dev-pb-0">Text ${ref}</span>`) => ({
   id: `x-${ref}`,
@@ -102,5 +102,55 @@ describe("fetchPassage", () => {
 
   it("turns a request failure into a ContentError", async () => {
     await expect(fetchPassage(client({ fail: true }), "1:0.1")).rejects.toBeInstanceOf(ContentError);
+  });
+});
+
+describe("excerptPassage", () => {
+  const paragraph: Passage = {
+    ref: "9:9.9",
+    paperId: "9",
+    paperTitle: "A Paper",
+    text: "First sentence here. Second one asks why? “A quoted third.” The fourth ends it.",
+  };
+
+  it("returns the whole paragraph when no excerpt is given", () => {
+    expect(excerptPassage(paragraph, undefined)).toEqual(paragraph);
+  });
+
+  it.each([
+    "First sentence here.",
+    "Second one asks why?",
+    "First sentence here. Second one asks why?",
+    "“A quoted third.”",
+    "The fourth ends it.",
+    "“A quoted third.” The fourth ends it.",
+  ])("accepts the whole sentences %s", (text) => {
+    expect(excerptPassage(paragraph, text)).toEqual({ ...paragraph, text });
+  });
+
+  it("rejects words that are not in the paragraph", () => {
+    expect(() => excerptPassage(paragraph, "First sentence there.")).toThrow(ContentError);
+    expect(() => excerptPassage(paragraph, "First sentence here. The fourth ends it.")).toThrow(/9:9.9/);
+  });
+
+  it("rejects an excerpt that starts in the middle of a sentence", () => {
+    expect(() => excerptPassage(paragraph, "sentence here.")).toThrow(/whole sentences/);
+    expect(() => excerptPassage(paragraph, "one asks why?")).toThrow(/whole sentences/);
+  });
+
+  it("rejects an excerpt that ends in the middle of a sentence", () => {
+    expect(() => excerptPassage(paragraph, "First sentence")).toThrow(/whole sentences/);
+    expect(() => excerptPassage(paragraph, "First sentence here. Second one")).toThrow(/whole sentences/);
+  });
+
+  it("does not treat a semicolon or a dash as the end of a sentence", () => {
+    const p = { ...paragraph, text: "One part; another part — and more. Then the end." };
+    expect(() => excerptPassage(p, "One part;")).toThrow(/whole sentences/);
+    expect(() => excerptPassage(p, "another part — and more.")).toThrow(/whole sentences/);
+    expect(excerptPassage(p, "One part; another part — and more.").text).toBe("One part; another part — and more.");
+  });
+
+  it("rejects an empty excerpt", () => {
+    expect(() => excerptPassage(paragraph, "")).toThrow(ContentError);
   });
 });

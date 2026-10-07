@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PassageStage } from "@/components/home/PassageStage";
 import { ReadLink } from "@/components/home/ReadLink";
-import { getPassage } from "@/content";
+import { excerptPassage, getPassage } from "@/content";
 import { HOME_PASSAGES } from "@/content/passages";
 import { JsonLd } from "@/seo/JsonLd";
 import { pageMetadata, websiteJsonLd } from "@/seo/metadata";
@@ -14,7 +14,10 @@ export const metadata = pageMetadata({
 });
 
 export default async function HomePage() {
-  const passages = await Promise.all(HOME_PASSAGES.map((ref) => getPassage(ref)));
+  // The build fails here if a passage is not an exact run of whole sentences from its paragraph.
+  const passages = await Promise.all(
+    HOME_PASSAGES.map(async ({ ref, text }) => excerptPassage(await getPassage(ref), text)),
+  );
   return (
     <div className="home">
       <JsonLd data={websiteJsonLd()} />

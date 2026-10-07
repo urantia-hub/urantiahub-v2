@@ -8,9 +8,10 @@ vi.mock("@/analytics", () => ({ track }));
 
 beforeEach(() => track.mockClear());
 
+// Two passages can come from one paragraph.
 const passages: Passage[] = [
   { ref: "99:1.1", paperId: "99", paperTitle: "The Social Problems of Religion", text: "First passage text." },
-  { ref: "15:14.9", paperId: "15", paperTitle: "The Seven Superuniverses", text: "Second passage text." },
+  { ref: "99:1.1", paperId: "99", paperTitle: "The Social Problems of Religion", text: "Second passage text." },
 ];
 
 describe("passageSize", () => {
@@ -22,6 +23,15 @@ describe("passageSize", () => {
 });
 
 describe("PassageStage", () => {
+  it("has a display rule for each passage in the real list", async () => {
+    const { HOME_PASSAGES } = await import("@/content/passages");
+    const { readFileSync } = await import("node:fs");
+    const css = readFileSync("src/styles/home.css", "utf8");
+    HOME_PASSAGES.forEach((_, i) => {
+      expect(css).toContain(`.home .stage[data-pick="${i}"] .passage:nth-of-type(${i + 1})`);
+    });
+  });
+
   it("puts every passage in the HTML with its exact text", () => {
     const { container } = render(<PassageStage passages={passages} />);
     const quotes = [...container.querySelectorAll(".passage blockquote")].map((q) => q.textContent);
@@ -41,7 +51,8 @@ describe("PassageStage", () => {
     const { container } = render(<PassageStage passages={passages} />);
     const pick = container.querySelector<HTMLElement>(".stage")!.dataset.pick;
     expect(["0", "1"]).toContain(pick);
-    expect(track).toHaveBeenCalledWith("home_passage_shown", { ref: passages[Number(pick)].ref });
+    expect(track).toHaveBeenCalledWith("home_passage_shown", { ref: "99:1.1", position: Number(pick) + 1 });
+    expect(track).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the pick of the inline script when it ran", () => {

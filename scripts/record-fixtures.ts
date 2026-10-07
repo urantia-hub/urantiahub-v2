@@ -5,7 +5,7 @@ import { HOME_PASSAGES } from "../src/content/passages";
 const base = "https://api.urantia.dev";
 const paths = [
   ...["0", "1", "2", "99"].map((id) => `/papers/${id}`),
-  ...HOME_PASSAGES.map((ref) => `/paragraphs/${ref}`),
+  ...[...new Set(HOME_PASSAGES.map((passage) => passage.ref))].map((ref) => `/paragraphs/${ref}`),
 ];
 
 mkdirSync("e2e/fixtures", { recursive: true });

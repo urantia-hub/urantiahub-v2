@@ -1,7 +1,7 @@
 // Runs each night against the live API. It fails when the API no longer matches what the gateway expects.
 import { UrantiaAPI } from "@urantia/api";
 import { describe, expect, it } from "vitest";
-import { fetchPaper, fetchPassage, TocResponseSchema, type ContentClient } from "@/content/fetchers";
+import { excerptPassage, fetchPaper, fetchPassage, TocResponseSchema, type ContentClient } from "@/content/fetchers";
 import { PARTS } from "@/content/paper-index";
 import { HOME_PASSAGES } from "@/content/passages";
 
@@ -24,9 +24,9 @@ describe("live API contract", () => {
     expect((await fetchPaper(client, "196")).title).toBe("The Faith of Jesus");
   });
 
-  it("serves each home passage", async () => {
-    for (const ref of HOME_PASSAGES) {
-      const passage = await fetchPassage(client, ref);
+  it("still holds each home passage word for word", async () => {
+    for (const { ref, text } of HOME_PASSAGES) {
+      const passage = excerptPassage(await fetchPassage(client, ref), text);
       expect(passage.text.length).toBeGreaterThan(40);
     }
   });

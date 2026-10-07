@@ -85,6 +85,32 @@ export async function fetchPaper(client: ContentClient, id: string): Promise<Pap
   return { id: paper.id, title: paper.title, partId: paper.partId, sections };
 }
 
+const SENTENCE_END = /[.?!][”"’']?$/;
+const AFTER_SENTENCE = /[.?!][”"’']?\s+$/;
+
+// A home passage can be part of a paragraph: one or more whole sentences, exact and in order.
+// This is the check that stops a misquote. It throws when the excerpt is not in the paragraph
+// word for word, or when it starts or ends in the middle of a sentence.
+export function excerptPassage(passage: Passage, text: string | undefined): Passage {
+  if (text === undefined) return passage;
+  const full = passage.text;
+  if (text.length === 0) throw new ContentError(`Passage ${passage.ref}: the excerpt is empty`);
+
+  let found = false;
+  for (let at = full.indexOf(text); at !== -1; at = full.indexOf(text, at + 1)) {
+    found = true;
+    const end = at + text.length;
+    const startsSentence = at === 0 || AFTER_SENTENCE.test(full.slice(0, at));
+    const endsSentence = SENTENCE_END.test(text) && (end === full.length || /\s/.test(full[end]));
+    if (startsSentence && endsSentence) return { ...passage, text };
+  }
+  throw new ContentError(
+    found
+      ? `Passage ${passage.ref}: the excerpt must be whole sentences of the paragraph`
+      : `Passage ${passage.ref}: the excerpt is not in the paragraph word for word`,
+  );
+}
+
 export async function fetchPassage(client: ContentClient, ref: string): Promise<Passage> {
   let raw: unknown;
   try {
