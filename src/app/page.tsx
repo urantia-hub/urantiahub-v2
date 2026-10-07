@@ -16,7 +16,7 @@ export const metadata = pageMetadata({
 export default async function HomePage() {
   // The build fails here if a passage is not an exact run of whole sentences from its paragraph.
   const passages = await Promise.all(
-    HOME_PASSAGES.map(async ({ ref, text }) => excerptPassage(await getPassage(ref), text)),
+    HOME_PASSAGES.map(async (entry) => excerptPassage(await getPassage(entry.ref), entry)),
   );
   return (
     <div className="home">

@@ -87,11 +87,17 @@ export async function fetchPaper(client: ContentClient, id: string): Promise<Pap
 
 const SENTENCE_END = /[.?!][”"’']?$/;
 const AFTER_SENTENCE = /[.?!][”"’']?\s+$/;
+// What follows a clause in the source: a semicolon, or a space and a dash.
+const CLAUSE_BREAK = /^(?:;|\s[—–])/;
+
+export type Excerpt = { text?: string; clause?: boolean };
 
 // A home passage can be part of a paragraph: one or more whole sentences, exact and in order.
 // This is the check that stops a misquote. It throws when the excerpt is not in the paragraph
 // word for word, or when it starts or ends in the middle of a sentence.
-export function excerptPassage(passage: Passage, text: string | undefined): Passage {
+// `clause` is for a paragraph that is one long sentence: the excerpt can then end where the
+// source has a dash or a semicolon. The page shows the words only and adds no punctuation.
+export function excerptPassage(passage: Passage, { text, clause = false }: Excerpt): Passage {
   if (text === undefined) return passage;
   const full = passage.text;
   if (text.length === 0) throw new ContentError(`Passage ${passage.ref}: the excerpt is empty`);
@@ -100,9 +106,11 @@ export function excerptPassage(passage: Passage, text: string | undefined): Pass
   for (let at = full.indexOf(text); at !== -1; at = full.indexOf(text, at + 1)) {
     found = true;
     const end = at + text.length;
+    const rest = full.slice(end);
     const startsSentence = at === 0 || AFTER_SENTENCE.test(full.slice(0, at));
-    const endsSentence = SENTENCE_END.test(text) && (end === full.length || /\s/.test(full[end]));
-    if (startsSentence && endsSentence) return { ...passage, text };
+    const endsSentence = SENTENCE_END.test(text) && (rest === "" || /^\s/.test(rest));
+    const endsClause = clause && CLAUSE_BREAK.test(rest);
+    if (startsSentence && (endsSentence || endsClause)) return { ...passage, text };
   }
   throw new ContentError(
     found

@@ -25,8 +25,8 @@ describe("live API contract", () => {
   });
 
   it("still holds each home passage word for word", async () => {
-    for (const { ref, text } of HOME_PASSAGES) {
-      const passage = excerptPassage(await fetchPassage(client, ref), text);
+    for (const entry of HOME_PASSAGES) {
+      const passage = excerptPassage(await fetchPassage(client, entry.ref), entry);
       expect(passage.text.length).toBeGreaterThan(40);
     }
   });

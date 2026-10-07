@@ -114,7 +114,7 @@ describe("excerptPassage", () => {
   };
 
   it("returns the whole paragraph when no excerpt is given", () => {
-    expect(excerptPassage(paragraph, undefined)).toEqual(paragraph);
+    expect(excerptPassage(paragraph, {})).toEqual(paragraph);
   });
 
   it.each([
@@ -125,32 +125,63 @@ describe("excerptPassage", () => {
     "The fourth ends it.",
     "“A quoted third.” The fourth ends it.",
   ])("accepts the whole sentences %s", (text) => {
-    expect(excerptPassage(paragraph, text)).toEqual({ ...paragraph, text });
+    expect(excerptPassage(paragraph, { text: text })).toEqual({ ...paragraph, text });
   });
 
   it("rejects words that are not in the paragraph", () => {
-    expect(() => excerptPassage(paragraph, "First sentence there.")).toThrow(ContentError);
-    expect(() => excerptPassage(paragraph, "First sentence here. The fourth ends it.")).toThrow(/9:9.9/);
+    expect(() => excerptPassage(paragraph, { text: "First sentence there." })).toThrow(ContentError);
+    expect(() => excerptPassage(paragraph, { text: "First sentence here. The fourth ends it." })).toThrow(/9:9.9/);
   });
 
   it("rejects an excerpt that starts in the middle of a sentence", () => {
-    expect(() => excerptPassage(paragraph, "sentence here.")).toThrow(/whole sentences/);
-    expect(() => excerptPassage(paragraph, "one asks why?")).toThrow(/whole sentences/);
+    expect(() => excerptPassage(paragraph, { text: "sentence here." })).toThrow(/whole sentences/);
+    expect(() => excerptPassage(paragraph, { text: "one asks why?" })).toThrow(/whole sentences/);
   });
 
   it("rejects an excerpt that ends in the middle of a sentence", () => {
-    expect(() => excerptPassage(paragraph, "First sentence")).toThrow(/whole sentences/);
-    expect(() => excerptPassage(paragraph, "First sentence here. Second one")).toThrow(/whole sentences/);
+    expect(() => excerptPassage(paragraph, { text: "First sentence" })).toThrow(/whole sentences/);
+    expect(() => excerptPassage(paragraph, { text: "First sentence here. Second one" })).toThrow(/whole sentences/);
   });
 
   it("does not treat a semicolon or a dash as the end of a sentence", () => {
     const p = { ...paragraph, text: "One part; another part — and more. Then the end." };
-    expect(() => excerptPassage(p, "One part;")).toThrow(/whole sentences/);
-    expect(() => excerptPassage(p, "another part — and more.")).toThrow(/whole sentences/);
-    expect(excerptPassage(p, "One part; another part — and more.").text).toBe("One part; another part — and more.");
+    expect(() => excerptPassage(p, { text: "One part;" })).toThrow(/whole sentences/);
+    expect(() => excerptPassage(p, { text: "another part — and more." })).toThrow(/whole sentences/);
+    expect(excerptPassage(p, { text: "One part; another part — and more." }).text).toBe("One part; another part — and more.");
+  });
+
+  describe("a clause, for a paragraph that is one long sentence", () => {
+    const p = { ...paragraph, text: "The thesis of it — one part, more of it; another part; the last part." };
+
+    it("can end at a dash of the source, and the page adds no punctuation", () => {
+      expect(excerptPassage(p, { text: "The thesis of it", clause: true }).text).toBe("The thesis of it");
+    });
+
+    it("can end at a semicolon of the source", () => {
+      const text = "The thesis of it — one part, more of it";
+      expect(excerptPassage(p, { text, clause: true }).text).toBe(text);
+    });
+
+    it("is rejected unless the list entry says that it is a clause", () => {
+      expect(() => excerptPassage(p, { text: "The thesis of it" })).toThrow(/whole sentences/);
+    });
+
+    it("still cannot end in the middle of a clause, at a comma, or in the middle of a word", () => {
+      expect(() => excerptPassage(p, { text: "The thesis", clause: true })).toThrow(/whole sentences/);
+      expect(() => excerptPassage(p, { text: "The thesis of it — one part", clause: true })).toThrow(/whole sentences/);
+      expect(() => excerptPassage(p, { text: "The thesis of i", clause: true })).toThrow(/whole sentences/);
+    });
+
+    it("still must start at the start of a sentence", () => {
+      expect(() => excerptPassage(p, { text: "another part", clause: true })).toThrow(/whole sentences/);
+    });
+
+    it("still must be word for word", () => {
+      expect(() => excerptPassage(p, { text: "The thesis of this", clause: true })).toThrow(/word for word/);
+    });
   });
 
   it("rejects an empty excerpt", () => {
-    expect(() => excerptPassage(paragraph, "")).toThrow(ContentError);
+    expect(() => excerptPassage(paragraph, { text: "" })).toThrow(ContentError);
   });
 });

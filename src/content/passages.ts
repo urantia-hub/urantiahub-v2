@@ -2,7 +2,9 @@
 // A passage is a whole paragraph, or one or more whole sentences of it, exact and in order.
 // The build compares each text with the paragraph from the API and fails on any difference
 // (excerptPassage in fetchers.ts). To add a passage, copy the sentences from the API response.
-export type HomePassage = { ref: string; text?: string };
+// `clause: true` marks a passage that ends at a dash or a semicolon of the source, not at the
+// end of a sentence. Use it only for a paragraph that is one long sentence.
+export type HomePassage = { ref: string; text?: string; clause?: boolean };
 
 export const HOME_PASSAGES: readonly HomePassage[] = [
   {
@@ -22,5 +24,9 @@ export const HOME_PASSAGES: readonly HomePassage[] = [
     text: "The love of the Father absolutely individualizes each personality as a unique child of the Universal Father, a child without duplicate in infinity, a will creature irreplaceable in all eternity.",
   },
   { ref: "15:14.9" },
-  { ref: "111:7.1" },
+  {
+    ref: "111:7.1",
+    text: "Uncertainty with security is the essence of the Paradise adventure",
+    clause: true,
+  },
 ];
