@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:index": "bun scripts/sync-paper-index.ts"
+    "sync:index": "bun scripts/sync-paper-index.ts",
+    "indexnow": "bun scripts/indexnow-submit.ts"
   },
   "dependencies": {
     "@fontsource/literata": "^5.3.0",
