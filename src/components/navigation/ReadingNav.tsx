@@ -58,6 +58,7 @@ export function ReadingNav({ paper, sections, previous, next }: Props) {
 
   const section = sections.find((s) => s.id === current);
   const label = !section || section.id === "0" ? paper.title : sectionLabel(section);
+  const paperLabel = paper.id === "0" ? "The Urantia Papers" : `Paper ${paper.id}`;
 
   return (
     <>
@@ -77,13 +78,13 @@ export function ReadingNav({ paper, sections, previous, next }: Props) {
           type="button"
           className="where"
           aria-haspopup="dialog"
-          aria-label={`${label}. Open the navigator`}
+          aria-label={`${paperLabel} ${label}. Open the navigator`}
           onClick={() => {
             track("navigator_opened", { paper_id: paper.id });
             setOpen(true);
           }}
         >
-          <small>{paper.id === "0" ? "The Urantia Papers" : `Paper ${paper.id}`}</small>
+          <small>{paperLabel}</small>
           <span data-testid="reading-bar-label">{label}</span>
         </button>
         {next ? (

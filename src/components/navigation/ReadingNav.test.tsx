@@ -74,6 +74,15 @@ describe("ReadingNav", () => {
     expect(screen.getByTestId("reading-bar")).not.toHaveClass("away");
   });
 
+  // Speech control users say the words they see, so the accessible name must contain them.
+  it("has an accessible name that contains the words on the button", () => {
+    renderNav();
+    const button = screen.getByRole("button", { name: /Open the navigator/ });
+    expect(button).toHaveAccessibleName("Paper 1 The Universal Father. Open the navigator");
+    expect(button).toHaveTextContent("Paper 1");
+    expect(button).toHaveTextContent("The Universal Father");
+  });
+
   it("links the arrows to the previous and the next paper", () => {
     renderNav();
     expect(screen.getByRole("link", { name: "Previous: Foreword" })).toHaveAttribute("href", "/papers/foreword");

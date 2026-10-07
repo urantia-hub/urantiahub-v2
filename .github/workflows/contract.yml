@@ -1,0 +1,14 @@
+name: Contract
+on:
+  schedule:
+    # 09:17 UTC each day. Not on the hour, so it does not share a slot with other jobs.
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+jobs:
+  live-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run test:contract

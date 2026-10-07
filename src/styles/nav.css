@@ -46,7 +46,7 @@
   font: 600 10px/1 var(--font-ui);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ref);
   margin-bottom: 5px;
 }
 .reading-bar .where span {
@@ -199,7 +199,7 @@
   font: 600 10px/1 var(--font-ui);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ref);
   margin-bottom: 6px;
 }
 .navigator .part-grid .eyebrow {

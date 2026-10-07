@@ -11,6 +11,8 @@
   --bg: #fbf8f2;
   --ink: #26221c;
   --muted: #8b8375;
+  /* Paragraph references: small text, so it is darker than --muted to meet WCAG AA. */
+  --ref: #756d5f;
   --rule: #e7e0d2;
   --accent: #4f46e5;
   --mark: #f3ead2;
@@ -25,6 +27,7 @@
     --bg: #17150f;
     --ink: #e6dfd0;
     --muted: #8d8676;
+    --ref: #979080;
     --rule: #2d2a21;
     --accent: #a5b4fc;
     --mark: #2e2a1a;

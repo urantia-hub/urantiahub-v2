@@ -9,21 +9,33 @@ afterEach(() => {
   Object.values(posthog).forEach((fn) => fn.mockClear());
 });
 
+// PostHog loads after the page is idle, so a test waits for the start.
+const started = () => vi.waitFor(() => expect(posthog.init).toHaveBeenCalledTimes(1));
+
 describe("analytics", () => {
   it("does nothing with no key", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "");
     const { initAnalytics, track } = await import("./index");
     initAnalytics();
     track("paper_opened", { paper_id: "1" });
+    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(posthog.init).not.toHaveBeenCalled();
     expect(posthog.capture).not.toHaveBeenCalled();
+  });
+
+  it("does not load PostHog in the same task as the page start", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics } = await import("./index");
+    initAnalytics();
+    expect(posthog.init).not.toHaveBeenCalled();
+    await started();
   });
 
   it("starts PostHog with no cookie and no browser storage", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     const { initAnalytics } = await import("./index");
     initAnalytics();
-    expect(posthog.init).toHaveBeenCalledTimes(1);
+    await started();
     const [key, options] = posthog.init.mock.calls[0];
     expect(key).toBe("phc_test");
     expect(options).toMatchObject({
@@ -38,17 +50,30 @@ describe("analytics", () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     const { initAnalytics } = await import("./index");
     initAnalytics();
+    await started();
     expect(posthog.register).toHaveBeenCalledWith({ app: "hub-v2" });
   });
 
-  it("sends an event with its properties after the start", async () => {
+  it("keeps the events that arrive before PostHog loads, and sends them in order", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     const { initAnalytics, track } = await import("./index");
     initAnalytics();
     track("paper_opened", { paper_id: "1" });
     track("home_read_clicked");
+    expect(posthog.capture).not.toHaveBeenCalled();
+    await started();
+    await vi.waitFor(() => expect(posthog.capture).toHaveBeenCalledTimes(2));
     expect(posthog.capture).toHaveBeenNthCalledWith(1, "paper_opened", { paper_id: "1" });
     expect(posthog.capture).toHaveBeenNthCalledWith(2, "home_read_clicked", undefined);
+  });
+
+  it("sends an event at once after PostHog loads", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, track } = await import("./index");
+    initAnalytics();
+    await started();
+    track("reference_link_copied", { ref: "1:0.1" });
+    expect(posthog.capture).toHaveBeenCalledWith("reference_link_copied", { ref: "1:0.1" });
   });
 
   it("starts only one time", async () => {
@@ -56,6 +81,8 @@ describe("analytics", () => {
     const { initAnalytics } = await import("./index");
     initAnalytics();
     initAnalytics();
+    await started();
+    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(posthog.init).toHaveBeenCalledTimes(1);
   });
 });

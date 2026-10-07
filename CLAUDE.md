@@ -22,3 +22,6 @@ Spec and plans: `docs/superpowers/`.
 - Text from the Papers always comes from the API. Never type a quotation.
 - The Hub's own copy makes no belief statement and no claim about the text.
 - `SITE_INDEXABLE` stays off until the cutover to www.
+- Paragraph references use the `--ref` token (darker than `--muted`), which meets WCAG AA. Kelson's rule: the design wins over a contrast score, so a change to `--ref` is a design decision, not a compliance one.
+- `CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" bun run lighthouse` on this Mac. Lighthouse does not find Chrome without it.
+- PostHog and Sentry load after the page is idle (`src/lib/when-idle.ts`). A static import of either one in client code puts about 160 KiB back on the path to the first paint and fails the Lighthouse gate.
