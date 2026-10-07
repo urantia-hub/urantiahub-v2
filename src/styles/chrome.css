@@ -20,9 +20,22 @@
   padding: 16px 18px;
 }
 .site-header .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font: 500 20px/1 var(--font-text);
   color: var(--ink);
   text-decoration: none;
+}
+.mark {
+  flex: none;
+  display: block;
+}
+.mark-tile {
+  fill: var(--ink);
+}
+.mark-shape {
+  fill: var(--bg);
 }
 .site-header nav {
   display: flex;
