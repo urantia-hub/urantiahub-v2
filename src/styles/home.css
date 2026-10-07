@@ -1,0 +1,98 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 22px 52px;
+}
+.home h1 {
+  font-size: 1.5em;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.home .stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 24em;
+  padding: 40px 0;
+}
+.home .passage {
+  margin: 0;
+}
+/* With no JavaScript, only the first passage shows. */
+.home .stage:not([data-pick]) .passage:not(:first-of-type) {
+  display: none;
+}
+.home .stage[data-pick] .passage {
+  display: none;
+}
+.home .stage[data-pick="0"] .passage:nth-of-type(1),
+.home .stage[data-pick="1"] .passage:nth-of-type(2),
+.home .stage[data-pick="2"] .passage:nth-of-type(3),
+.home .stage[data-pick="3"] .passage:nth-of-type(4),
+.home .stage[data-pick="4"] .passage:nth-of-type(5),
+.home .stage[data-pick="5"] .passage:nth-of-type(6),
+.home .stage[data-pick="6"] .passage:nth-of-type(7),
+.home .stage[data-pick="7"] .passage:nth-of-type(8) {
+  display: block;
+}
+.home blockquote {
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+  max-width: 27em;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+.home .passage.s blockquote {
+  font-size: 1.4em;
+}
+.home .passage.m blockquote {
+  font-size: 1.22em;
+}
+.home .passage.l blockquote {
+  font-size: 1.12em;
+}
+.home .cite {
+  display: inline-block;
+  margin-top: 30px;
+  font: 500 13px/1.4 var(--font-ui);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-decoration: none;
+}
+.home .cite b {
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.5em;
+}
+.home .actions {
+  display: flex;
+  gap: 14px 28px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .home {
+    padding: 9vh 24px 9vh;
+  }
+  .home .stage {
+    min-height: 26em;
+    padding: 7vh 0;
+  }
+  .home .passage.s blockquote {
+    font-size: 1.9em;
+    max-width: 23em;
+  }
+  .home .passage.m blockquote {
+    font-size: 1.62em;
+  }
+  .home .passage.l blockquote {
+    font-size: 1.45em;
+    max-width: 29em;
+  }
+}

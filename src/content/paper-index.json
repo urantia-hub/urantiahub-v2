@@ -1,0 +1,827 @@
+{
+  "parts": [
+    {
+      "id": "0",
+      "title": "Foreword",
+      "sponsorship": null,
+      "papers": [
+        {
+          "id": "0",
+          "title": "Foreword"
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "title": "The Central and Superuniverses",
+      "sponsorship": "Sponsored by a Uversa Corps of Superuniverse Personalities acting by authority of the Orvonton Ancients of Days",
+      "papers": [
+        {
+          "id": "1",
+          "title": "The Universal Father"
+        },
+        {
+          "id": "2",
+          "title": "The Nature of God"
+        },
+        {
+          "id": "3",
+          "title": "The Attributes of God"
+        },
+        {
+          "id": "4",
+          "title": "God’s Relation to the Universe"
+        },
+        {
+          "id": "5",
+          "title": "God’s Relation to the Individual"
+        },
+        {
+          "id": "6",
+          "title": "The Eternal Son"
+        },
+        {
+          "id": "7",
+          "title": "Relation of the Eternal Son to the Universe"
+        },
+        {
+          "id": "8",
+          "title": "The Infinite Spirit"
+        },
+        {
+          "id": "9",
+          "title": "Relation of the Infinite Spirit to the Universe"
+        },
+        {
+          "id": "10",
+          "title": "The Paradise Trinity"
+        },
+        {
+          "id": "11",
+          "title": "The Eternal Isle of Paradise"
+        },
+        {
+          "id": "12",
+          "title": "The Universe of Universes"
+        },
+        {
+          "id": "13",
+          "title": "The Sacred Spheres of Paradise"
+        },
+        {
+          "id": "14",
+          "title": "The Central and Divine Universe"
+        },
+        {
+          "id": "15",
+          "title": "The Seven Superuniverses"
+        },
+        {
+          "id": "16",
+          "title": "The Seven Master Spirits"
+        },
+        {
+          "id": "17",
+          "title": "The Seven Supreme Spirit Groups"
+        },
+        {
+          "id": "18",
+          "title": "The Supreme Trinity Personalities"
+        },
+        {
+          "id": "19",
+          "title": "The Co-ordinate Trinity-Origin Beings"
+        },
+        {
+          "id": "20",
+          "title": "The Paradise Sons of God"
+        },
+        {
+          "id": "21",
+          "title": "The Paradise Creator Sons"
+        },
+        {
+          "id": "22",
+          "title": "The Trinitized Sons of God"
+        },
+        {
+          "id": "23",
+          "title": "The Solitary Messengers"
+        },
+        {
+          "id": "24",
+          "title": "Higher Personalities of the Infinite Spirit"
+        },
+        {
+          "id": "25",
+          "title": "The Messenger Hosts of Space"
+        },
+        {
+          "id": "26",
+          "title": "Ministering Spirits of the Central Universe"
+        },
+        {
+          "id": "27",
+          "title": "Ministry of the Primary Supernaphim"
+        },
+        {
+          "id": "28",
+          "title": "Ministering Spirits of the Superuniverses"
+        },
+        {
+          "id": "29",
+          "title": "The Universe Power Directors"
+        },
+        {
+          "id": "30",
+          "title": "Personalities of the Grand Universe"
+        },
+        {
+          "id": "31",
+          "title": "The Corps of the Finality"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "The Local Universe",
+      "sponsorship": "Sponsored by a Nebadon Corps of Local Universe Personalities acting by authority of Gabriel of Salvington",
+      "papers": [
+        {
+          "id": "32",
+          "title": "The Evolution of Local Universes"
+        },
+        {
+          "id": "33",
+          "title": "Administration of the Local Universe"
+        },
+        {
+          "id": "34",
+          "title": "The Local Universe Mother Spirit"
+        },
+        {
+          "id": "35",
+          "title": "The Local Universe Sons of God"
+        },
+        {
+          "id": "36",
+          "title": "The Life Carriers"
+        },
+        {
+          "id": "37",
+          "title": "Personalities of the Local Universe"
+        },
+        {
+          "id": "38",
+          "title": "Ministering Spirits of the Local Universe"
+        },
+        {
+          "id": "39",
+          "title": "The Seraphic Hosts"
+        },
+        {
+          "id": "40",
+          "title": "The Ascending Sons of God"
+        },
+        {
+          "id": "41",
+          "title": "Physical Aspects of the Local Universe"
+        },
+        {
+          "id": "42",
+          "title": "Energy—Mind and Matter"
+        },
+        {
+          "id": "43",
+          "title": "The Constellations"
+        },
+        {
+          "id": "44",
+          "title": "The Celestial Artisans"
+        },
+        {
+          "id": "45",
+          "title": "The Local System Administration"
+        },
+        {
+          "id": "46",
+          "title": "The Local System Headquarters"
+        },
+        {
+          "id": "47",
+          "title": "The Seven Mansion Worlds"
+        },
+        {
+          "id": "48",
+          "title": "The Morontia Life"
+        },
+        {
+          "id": "49",
+          "title": "The Inhabited Worlds"
+        },
+        {
+          "id": "50",
+          "title": "The Planetary Princes"
+        },
+        {
+          "id": "51",
+          "title": "The Planetary Adams"
+        },
+        {
+          "id": "52",
+          "title": "Planetary Mortal Epochs"
+        },
+        {
+          "id": "53",
+          "title": "The Lucifer Rebellion"
+        },
+        {
+          "id": "54",
+          "title": "Problems of the Lucifer Rebellion"
+        },
+        {
+          "id": "55",
+          "title": "The Spheres of Light and Life"
+        },
+        {
+          "id": "56",
+          "title": "Universal Unity"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "The History of Urantia",
+      "sponsorship": "These papers were sponsored by a Corps of Local Universe Personalities acting by authority of Gabriel of Salvington",
+      "papers": [
+        {
+          "id": "57",
+          "title": "The Origin of Urantia"
+        },
+        {
+          "id": "58",
+          "title": "Life Establishment on Urantia"
+        },
+        {
+          "id": "59",
+          "title": "The Marine-Life Era on Urantia"
+        },
+        {
+          "id": "60",
+          "title": "Urantia During the Early Land-Life Era"
+        },
+        {
+          "id": "61",
+          "title": "The Mammalian Era on Urantia"
+        },
+        {
+          "id": "62",
+          "title": "The Dawn Races of Early Man"
+        },
+        {
+          "id": "63",
+          "title": "The First Human Family"
+        },
+        {
+          "id": "64",
+          "title": "The Evolutionary Races of Color"
+        },
+        {
+          "id": "65",
+          "title": "The Overcontrol of Evolution"
+        },
+        {
+          "id": "66",
+          "title": "The Planetary Prince of Urantia"
+        },
+        {
+          "id": "67",
+          "title": "The Planetary Rebellion"
+        },
+        {
+          "id": "68",
+          "title": "The Dawn of Civilization"
+        },
+        {
+          "id": "69",
+          "title": "Primitive Human Institutions"
+        },
+        {
+          "id": "70",
+          "title": "The Evolution of Human Government"
+        },
+        {
+          "id": "71",
+          "title": "Development of the State"
+        },
+        {
+          "id": "72",
+          "title": "Government on a Neighboring Planet"
+        },
+        {
+          "id": "73",
+          "title": "The Garden of Eden"
+        },
+        {
+          "id": "74",
+          "title": "Adam and Eve"
+        },
+        {
+          "id": "75",
+          "title": "The Default of Adam and Eve"
+        },
+        {
+          "id": "76",
+          "title": "The Second Garden"
+        },
+        {
+          "id": "77",
+          "title": "The Midway Creatures"
+        },
+        {
+          "id": "78",
+          "title": "The Violet Race After the Days of Adam"
+        },
+        {
+          "id": "79",
+          "title": "Andite Expansion in the Orient"
+        },
+        {
+          "id": "80",
+          "title": "Andite Expansion in the Occident"
+        },
+        {
+          "id": "81",
+          "title": "Development of Modern Civilization"
+        },
+        {
+          "id": "82",
+          "title": "The Evolution of Marriage"
+        },
+        {
+          "id": "83",
+          "title": "The Marriage Institution"
+        },
+        {
+          "id": "84",
+          "title": "Marriage and Family Life"
+        },
+        {
+          "id": "85",
+          "title": "The Origins of Worship"
+        },
+        {
+          "id": "86",
+          "title": "Early Evolution of Religion"
+        },
+        {
+          "id": "87",
+          "title": "The Ghost Cults"
+        },
+        {
+          "id": "88",
+          "title": "Fetishes, Charms, and Magic"
+        },
+        {
+          "id": "89",
+          "title": "Sin, Sacrifice, and Atonement"
+        },
+        {
+          "id": "90",
+          "title": "Shamanism—Medicine Men and Priests"
+        },
+        {
+          "id": "91",
+          "title": "The Evolution of Prayer"
+        },
+        {
+          "id": "92",
+          "title": "The Later Evolution of Religion"
+        },
+        {
+          "id": "93",
+          "title": "Machiventa Melchizedek"
+        },
+        {
+          "id": "94",
+          "title": "The Melchizedek Teachings in the Orient"
+        },
+        {
+          "id": "95",
+          "title": "The Melchizedek Teachings in the Levant"
+        },
+        {
+          "id": "96",
+          "title": "Yahweh—God of the Hebrews"
+        },
+        {
+          "id": "97",
+          "title": "Evolution of the God Concept Among the Hebrews"
+        },
+        {
+          "id": "98",
+          "title": "The Melchizedek Teachings in the Occident"
+        },
+        {
+          "id": "99",
+          "title": "The Social Problems of Religion"
+        },
+        {
+          "id": "100",
+          "title": "Religion in Human Experience"
+        },
+        {
+          "id": "101",
+          "title": "The Real Nature of Religion"
+        },
+        {
+          "id": "102",
+          "title": "The Foundations of Religious Faith"
+        },
+        {
+          "id": "103",
+          "title": "The Reality of Religious Experience"
+        },
+        {
+          "id": "104",
+          "title": "Growth of the Trinity Concept"
+        },
+        {
+          "id": "105",
+          "title": "Deity and Reality"
+        },
+        {
+          "id": "106",
+          "title": "Universe Levels of Reality"
+        },
+        {
+          "id": "107",
+          "title": "Origin and Nature of Thought Adjusters"
+        },
+        {
+          "id": "108",
+          "title": "Mission and Ministry of Thought Adjusters"
+        },
+        {
+          "id": "109",
+          "title": "Relation of Adjusters to Universe Creatures"
+        },
+        {
+          "id": "110",
+          "title": "Relation of Adjusters to Individual Mortals"
+        },
+        {
+          "id": "111",
+          "title": "The Adjuster and the Soul"
+        },
+        {
+          "id": "112",
+          "title": "Personality Survival"
+        },
+        {
+          "id": "113",
+          "title": "Seraphic Guardians of Destiny"
+        },
+        {
+          "id": "114",
+          "title": "Seraphic Planetary Government"
+        },
+        {
+          "id": "115",
+          "title": "The Supreme Being"
+        },
+        {
+          "id": "116",
+          "title": "The Almighty Supreme"
+        },
+        {
+          "id": "117",
+          "title": "God the Supreme"
+        },
+        {
+          "id": "118",
+          "title": "Supreme and Ultimate—Time and Space"
+        },
+        {
+          "id": "119",
+          "title": "The Bestowals of Christ Michael"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "The Life and Teachings of Jesus",
+      "sponsorship": "The basis of this narrative was supplied by a secondary midwayer who was onetime assigned to the superhuman watchcare of the Apostle Andrew.",
+      "papers": [
+        {
+          "id": "120",
+          "title": "The Bestowal of Michael on Urantia"
+        },
+        {
+          "id": "121",
+          "title": "The Times of Michael’s Bestowal"
+        },
+        {
+          "id": "122",
+          "title": "Birth and Infancy of Jesus"
+        },
+        {
+          "id": "123",
+          "title": "The Early Childhood of Jesus"
+        },
+        {
+          "id": "124",
+          "title": "The Later Childhood of Jesus"
+        },
+        {
+          "id": "125",
+          "title": "Jesus at Jerusalem"
+        },
+        {
+          "id": "126",
+          "title": "The Two Crucial Years"
+        },
+        {
+          "id": "127",
+          "title": "The Adolescent Years"
+        },
+        {
+          "id": "128",
+          "title": "Jesus’ Early Manhood"
+        },
+        {
+          "id": "129",
+          "title": "The Later Adult Life of Jesus"
+        },
+        {
+          "id": "130",
+          "title": "On the Way to Rome"
+        },
+        {
+          "id": "131",
+          "title": "The World’s Religions"
+        },
+        {
+          "id": "132",
+          "title": "The Sojourn at Rome"
+        },
+        {
+          "id": "133",
+          "title": "The Return from Rome"
+        },
+        {
+          "id": "134",
+          "title": "The Transition Years"
+        },
+        {
+          "id": "135",
+          "title": "John the Baptist"
+        },
+        {
+          "id": "136",
+          "title": "Baptism and the Forty Days"
+        },
+        {
+          "id": "137",
+          "title": "Tarrying Time in Galilee"
+        },
+        {
+          "id": "138",
+          "title": "Training the Kingdom’s Messengers"
+        },
+        {
+          "id": "139",
+          "title": "The Twelve Apostles"
+        },
+        {
+          "id": "140",
+          "title": "The Ordination of the Twelve"
+        },
+        {
+          "id": "141",
+          "title": "Beginning the Public Work"
+        },
+        {
+          "id": "142",
+          "title": "The Passover at Jerusalem"
+        },
+        {
+          "id": "143",
+          "title": "Going Through Samaria"
+        },
+        {
+          "id": "144",
+          "title": "At Gilboa and in the Decapolis"
+        },
+        {
+          "id": "145",
+          "title": "Four Eventful Days at Capernaum"
+        },
+        {
+          "id": "146",
+          "title": "First Preaching Tour of Galilee"
+        },
+        {
+          "id": "147",
+          "title": "The Interlude Visit to Jerusalem"
+        },
+        {
+          "id": "148",
+          "title": "Training Evangelists at Bethsaida"
+        },
+        {
+          "id": "149",
+          "title": "The Second Preaching Tour"
+        },
+        {
+          "id": "150",
+          "title": "The Third Preaching Tour"
+        },
+        {
+          "id": "151",
+          "title": "Tarrying and Teaching by the Seaside"
+        },
+        {
+          "id": "152",
+          "title": "Events Leading up to the Capernaum Crisis"
+        },
+        {
+          "id": "153",
+          "title": "The Crisis at Capernaum"
+        },
+        {
+          "id": "154",
+          "title": "Last Days at Capernaum"
+        },
+        {
+          "id": "155",
+          "title": "Fleeing Through Northern Galilee"
+        },
+        {
+          "id": "156",
+          "title": "The Sojourn at Tyre and Sidon"
+        },
+        {
+          "id": "157",
+          "title": "At Caesarea-Philippi"
+        },
+        {
+          "id": "158",
+          "title": "The Mount of Transfiguration"
+        },
+        {
+          "id": "159",
+          "title": "The Decapolis Tour"
+        },
+        {
+          "id": "160",
+          "title": "Rodan of Alexandria"
+        },
+        {
+          "id": "161",
+          "title": "Further Discussions with Rodan"
+        },
+        {
+          "id": "162",
+          "title": "At the Feast of Tabernacles"
+        },
+        {
+          "id": "163",
+          "title": "Ordination of the Seventy at Magadan"
+        },
+        {
+          "id": "164",
+          "title": "At the Feast of Dedication"
+        },
+        {
+          "id": "165",
+          "title": "The Perean Mission Begins"
+        },
+        {
+          "id": "166",
+          "title": "Last Visit to Northern Perea"
+        },
+        {
+          "id": "167",
+          "title": "The Visit to Philadelphia"
+        },
+        {
+          "id": "168",
+          "title": "The Resurrection of Lazarus"
+        },
+        {
+          "id": "169",
+          "title": "Last Teaching at Pella"
+        },
+        {
+          "id": "170",
+          "title": "The Kingdom of Heaven"
+        },
+        {
+          "id": "171",
+          "title": "On the Way to Jerusalem"
+        },
+        {
+          "id": "172",
+          "title": "Going into Jerusalem"
+        },
+        {
+          "id": "173",
+          "title": "Monday in Jerusalem"
+        },
+        {
+          "id": "174",
+          "title": "Tuesday Morning in the Temple"
+        },
+        {
+          "id": "175",
+          "title": "The Last Temple Discourse"
+        },
+        {
+          "id": "176",
+          "title": "Tuesday Evening on Mount Olivet"
+        },
+        {
+          "id": "177",
+          "title": "Wednesday, the Rest Day"
+        },
+        {
+          "id": "178",
+          "title": "Last Day at the Camp"
+        },
+        {
+          "id": "179",
+          "title": "The Last Supper"
+        },
+        {
+          "id": "180",
+          "title": "The Farewell Discourse"
+        },
+        {
+          "id": "181",
+          "title": "Final Admonitions and Warnings"
+        },
+        {
+          "id": "182",
+          "title": "In Gethsemane"
+        },
+        {
+          "id": "183",
+          "title": "The Betrayal and Arrest of Jesus"
+        },
+        {
+          "id": "184",
+          "title": "Before the Sanhedrin Court"
+        },
+        {
+          "id": "185",
+          "title": "The Trial Before Pilate"
+        },
+        {
+          "id": "186",
+          "title": "Just Before the Crucifixion"
+        },
+        {
+          "id": "187",
+          "title": "The Crucifixion"
+        },
+        {
+          "id": "188",
+          "title": "The Time of the Tomb"
+        },
+        {
+          "id": "189",
+          "title": "The Resurrection"
+        },
+        {
+          "id": "190",
+          "title": "Morontia Appearances of Jesus"
+        },
+        {
+          "id": "191",
+          "title": "Appearances to the Apostles and Other Leaders"
+        },
+        {
+          "id": "192",
+          "title": "Appearances in Galilee"
+        },
+        {
+          "id": "193",
+          "title": "Final Appearances and Ascension"
+        },
+        {
+          "id": "194",
+          "title": "Bestowal of the Spirit of Truth"
+        },
+        {
+          "id": "195",
+          "title": "After Pentecost"
+        },
+        {
+          "id": "196",
+          "title": "The Faith of Jesus"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+name: IndexNow
+on:
+  deployment_status:
+jobs:
+  submit:
+    # Only after a successful production deploy. The script sends nothing while SITE_INDEXABLE is off.
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run indexnow
+        env:
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+          SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}

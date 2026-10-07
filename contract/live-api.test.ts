@@ -1,0 +1,50 @@
+// Runs each night against the live API. It fails when the API no longer matches what the gateway expects.
+import { UrantiaAPI } from "@urantia/api";
+import { describe, expect, it } from "vitest";
+import { excerptPassage, fetchPaper, fetchPassage, TocResponseSchema, type ContentClient } from "@/content/fetchers";
+import { PARTS } from "@/content/paper-index";
+import { HOME_PASSAGES } from "@/content/passages";
+
+const api = new UrantiaAPI();
+const client: ContentClient = {
+  papers: { get: (id) => api.papers.get(id) },
+  paragraphs: { get: (ref) => api.paragraphs.get(ref) },
+};
+
+describe("live API contract", () => {
+  it("serves a paper in the shape that the gateway validates", async () => {
+    const paper = await fetchPaper(client, "1");
+    expect(paper.title).toBe("The Universal Father");
+    expect(paper.sections[0].id).toBe("0");
+    expect(paper.sections[0].paragraphs[0].ref).toBe("1:0.1");
+  });
+
+  it("serves the Foreword and the last paper", async () => {
+    expect((await fetchPaper(client, "0")).title).toBe("Foreword");
+    expect((await fetchPaper(client, "196")).title).toBe("The Faith of Jesus");
+  });
+
+  it("still holds each home passage word for word", async () => {
+    for (const entry of HOME_PASSAGES) {
+      const passage = excerptPassage(await fetchPassage(client, entry.ref), entry);
+      expect(passage.text.length).toBeGreaterThan(40);
+    }
+  });
+
+  it("has the same table of contents as the committed paper index", async () => {
+    const toc = TocResponseSchema.parse(await api.toc.get());
+    const live = toc.data.parts.map((part) => ({
+      id: part.id,
+      title: part.title,
+      sponsorship: part.sponsorship,
+      papers: part.papers.map((p) => ({ id: p.id, title: p.title })),
+    }));
+    const committed = PARTS.map((part) => ({
+      id: part.id,
+      title: part.title,
+      sponsorship: part.sponsorship,
+      papers: part.papers.map((p) => ({ id: p.id, title: p.title })),
+    }));
+    expect(live).toEqual(committed);
+  });
+});

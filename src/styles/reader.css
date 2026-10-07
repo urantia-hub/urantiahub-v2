@@ -1,0 +1,135 @@
+.paper {
+  /* About 65 characters per line at the desktop size. */
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 44px 20px 150px;
+  line-height: 1.72;
+}
+.paper-head {
+  text-align: center;
+}
+.paper-head .eyebrow {
+  margin-bottom: 16px;
+}
+.paper h1 {
+  font-size: 1.9em;
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.8em;
+  scroll-margin-top: 24px;
+}
+.paper .sec {
+  font-size: 1.12em;
+  font-weight: 500;
+  font-style: italic;
+  text-align: center;
+  margin: 3em 0 1.4em;
+  scroll-margin-top: 24px;
+}
+.paper .sec .num {
+  font-style: normal;
+  color: var(--muted);
+  margin-right: 0.2em;
+}
+.para {
+  position: relative;
+  margin: 0 0 1.15em;
+  scroll-margin-top: 24px;
+}
+.para:target {
+  background: var(--mark);
+  box-shadow: 0 0 0 12px var(--mark);
+  border-radius: 2px;
+}
+.ref {
+  display: block;
+  margin: 0 0 5px;
+  font: 400 11.5px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--ref);
+  text-decoration: none;
+}
+.ref:hover,
+.ref:focus-visible,
+.para:target .ref {
+  color: var(--accent);
+}
+.ref-copied {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font: 500 11.5px/1 var(--font-ui);
+  color: var(--accent);
+}
+.notice {
+  font: 400 14px/1.5 var(--font-ui);
+  color: var(--muted);
+  text-align: center;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 0 0 2em;
+}
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 4.5em;
+  padding-top: 1.6em;
+  border-top: 1px solid var(--rule);
+  font: 500 14px/1.4 var(--font-ui);
+}
+.pager a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.pager a:hover {
+  color: var(--accent);
+}
+.pager small {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.pager .next {
+  text-align: right;
+  margin-left: auto;
+}
+
+/* Classes that the API puts in paragraph HTML. */
+.scaps {
+  font-variant-caps: small-caps;
+}
+.urantia-dev-blockquote,
+.urantia-dev-blockquote-last {
+  display: block;
+  padding-left: 1.4em;
+}
+
+@media (min-width: 768px) {
+  .paper {
+    padding: 84px 24px 150px;
+  }
+  .paper h1 {
+    font-size: 2.5em;
+    margin-bottom: 2.2em;
+  }
+  .ref {
+    position: absolute;
+    left: -4.6rem;
+    width: 3.6rem;
+    top: 0.62em;
+    margin: 0;
+    text-align: right;
+  }
+  .ref-copied {
+    left: -9.4rem;
+    right: auto;
+    width: 4.4rem;
+    top: 0.62em;
+    text-align: right;
+  }
+}
