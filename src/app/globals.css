@@ -2,6 +2,7 @@
 @import "../styles/chrome.css";
 @import "../styles/reader.css";
 @import "../styles/contents.css";
+@import "../styles/home.css";
 
 :root {
   color-scheme: light dark;
