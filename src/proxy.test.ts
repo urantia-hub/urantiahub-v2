@@ -34,6 +34,15 @@ describe("proxy", () => {
     expect(location.search).toBe("?utm_source=newsletter&x=1");
   });
 
+  it.each(["/papers/%E0%A4%A", "/papers/%", "/papers/paper-1%ZZ"])(
+    "sends the malformed escape %s to the not-found page (Next.js answers 500 if it reaches the route)",
+    (path) => {
+      const res = run(path);
+      expect(res.headers.get("location")).toBeNull();
+      expect(new URL(res.headers.get("x-middleware-rewrite")!).pathname).toBe("/not-found");
+    },
+  );
+
   it.each(["/papers/paper-197-x", "/papers/nothing", "/papers/the-universal-father"])(
     "does not redirect %s, so the page can answer 404",
     (path) => {

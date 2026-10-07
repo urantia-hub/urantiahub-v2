@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../styles/chrome.css";
+@import "../styles/reader.css";
 
 :root {
   color-scheme: light dark;
