@@ -7,15 +7,11 @@ export type HomePassage = { ref: string; text?: string };
 export const HOME_PASSAGES: readonly HomePassage[] = [
   {
     ref: "99:1.1",
-    text: "Mankind is on the march toward a new and unrevealed planetary destiny.",
-  },
-  {
-    ref: "99:1.1",
     text: "Mechanical inventions and the dissemination of knowledge are modifying civilization; certain economic adjustments and social changes are imperative if cultural disaster is to be avoided.",
   },
   {
     ref: "99:1.1",
-    text: "The human race must become reconciled to a procession of changes, adjustments, and readjustments.",
+    text: "The human race must become reconciled to a procession of changes, adjustments, and readjustments. Mankind is on the march toward a new and unrevealed planetary destiny.",
   },
   {
     ref: "92:7.14",
