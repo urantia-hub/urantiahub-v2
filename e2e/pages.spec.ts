@@ -187,3 +187,40 @@ test("the refresh endpoint needs the secret", async ({ request }) => {
   });
   expect(ok.status()).toBe(200);
 });
+
+test("the page links the favicon, the Apple icon, and the manifest, and each one loads", async ({ page, request }) => {
+  await page.goto("/");
+  const svgIcon = page.locator('link[rel="icon"][type="image/svg+xml"]');
+  const pngIcon = page.locator('link[rel="icon"][type="image/png"]');
+  const apple = page.locator('link[rel="apple-touch-icon"]');
+  const manifest = page.locator('link[rel="manifest"]');
+  await expect(svgIcon).toHaveCount(1);
+  await expect(pngIcon).toHaveCount(1);
+  await expect(apple).toHaveCount(1);
+  await expect(manifest).toHaveCount(1);
+
+  for (const [link, type] of [
+    [svgIcon, "image/svg+xml"],
+    [pngIcon, "image/png"],
+    [apple, "image/png"],
+    [manifest, "application/manifest+json"],
+  ] as const) {
+    const response = await request.get((await link.getAttribute("href"))!);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain(type);
+  }
+  for (const icon of ["/icon-192.png", "/icon-512.png"]) {
+    expect((await request.get(icon)).status()).toBe(200);
+  }
+});
+
+test("the header shows the bookmark mark beside the name, in the theme colors", async ({ page }) => {
+  await page.goto("/");
+  const brand = page.getByRole("banner").getByRole("link", { name: "UrantiaHub" });
+  await expect(brand.locator("svg.mark")).toBeVisible();
+  await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(38, 34, 28)");
+  await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(251, 248, 242)");
+  await page.getByRole("contentinfo").getByRole("button", { name: "Dark theme" }).click();
+  await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(230, 223, 208)");
+  await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(23, 21, 15)");
+});

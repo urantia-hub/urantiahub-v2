@@ -1,4 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#26221c" />
-  <text x="32" y="45" font-family="Georgia, serif" font-size="40" text-anchor="middle" fill="#fbf8f2">U</text>
+  <style>
+    .tile { fill: #26221c; }
+    .shape { fill: #fbf8f2; }
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #fbf8f2; }
+      .shape { fill: #26221c; }
+    }
+  </style>
+  <rect class="tile" width="64" height="64" rx="13" />
+  <path class="shape" d="M21 12h22a2 2 0 0 1 2 2v39.2a1.4 1.4 0 0 1-2.3 1.1L32 44.6 21.3 54.3A1.4 1.4 0 0 1 19 53.2V14a2 2 0 0 1 2-2z" />
 </svg>

@@ -30,3 +30,4 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - The theme is light by default and dark only by the reader's choice (`src/lib/theme.ts`, `data-theme` on `<html>`). The system setting does not decide. Do not add a `prefers-color-scheme` rule.
 - Do not name a CSS class after a Tailwind utility. A class named `contents` removed a whole column (`display: contents`). The browser tests check the column layout.
 - Both Literata font calls in `src/app/layout.tsx` give the family name "Literata", so the true italic is picked by the browser. Only the upright face is preloaded.
+- The mark is a bookmark (`src/brand/BookmarkMark.tsx`). The icon files in `src/app/` and `public/` are written by `bun run icons` from that one shape. Do not edit them by hand. No concentric circles, and no mark shared with urantia.dev.
