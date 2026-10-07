@@ -1,0 +1,39 @@
+.prose {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 44px 20px 80px;
+  line-height: 1.7;
+}
+.prose h1 {
+  font-size: 2.2em;
+  font-weight: 500;
+  line-height: 1.12;
+  margin: 0 0 1.2em;
+}
+.prose h2 {
+  font-size: 1.15em;
+  font-weight: 500;
+  font-style: italic;
+  margin: 2.4em 0 0.8em;
+}
+.prose p {
+  margin: 0 0 1.1em;
+}
+.prose a:not(.btn) {
+  color: var(--ink);
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+}
+.prose.center {
+  text-align: center;
+  padding-top: 14vh;
+}
+.prose button.btn {
+  border: 0;
+  cursor: pointer;
+}
+@media (min-width: 768px) {
+  .prose {
+    padding: 84px 24px 110px;
+  }
+}
