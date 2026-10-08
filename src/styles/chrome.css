@@ -62,6 +62,23 @@
   width: 19px;
   height: 19px;
 }
+.site-header .icon-link {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: -6px -10px -6px -6px;
+  border-radius: 50%;
+}
+.site-header .icon-link .icon {
+  display: block;
+  width: 19px;
+  height: 19px;
+}
+/* On a paper page the header has icons only. "Papers" is in the navigator, and "About" is in the footer. */
+body:has(.paper) .site-header nav a:not(.icon-link) {
+  display: none;
+}
 .site-header nav a {
   font: 500 14px/1 var(--font-ui);
   color: var(--muted);

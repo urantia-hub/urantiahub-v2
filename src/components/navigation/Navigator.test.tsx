@@ -60,7 +60,7 @@ describe("Navigator", () => {
 
   it("goes to a typed reference", async () => {
     const { navigate } = setup();
-    await userEvent.type(screen.getByLabelText("Go to a reference"), "99:1.1{Enter}");
+    await userEvent.type(screen.getByLabelText("Search, or go to a reference"), "99:1.1{Enter}");
     await waitFor(() =>
       expect(navigate).toHaveBeenCalledWith("/papers/paper-99-the-social-problems-of-religion#99:1.1", true),
     );
@@ -69,23 +69,30 @@ describe("Navigator", () => {
     expect(JSON.stringify(track.mock.calls)).not.toContain("99:1.1");
   });
 
-  it("shows a message for input that is not a reference, and does not navigate", async () => {
+  it("opens the search for text that is not a reference", async () => {
     const { navigate } = setup();
-    await userEvent.type(screen.getByLabelText("Go to a reference"), "abc{Enter}");
-    expect(screen.getByRole("alert")).toHaveTextContent("Use a form such as 99, 99:1, or 99:1.1.");
+    await userEvent.type(screen.getByRole("textbox", { name: "Search, or go to a reference" }), "thought  adjuster{Enter}");
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/search?q=thought%20adjuster", true));
+    expect(track).toHaveBeenCalledWith("search_started", { source: "navigator" });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("does nothing for an empty field", async () => {
+    const { navigate } = setup();
+    await userEvent.type(screen.getByRole("textbox", { name: "Search, or go to a reference" }), "   {Enter}");
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it("says that the papers go from 1 to 196 for a number that is too high", async () => {
     const { navigate } = setup();
-    await userEvent.type(screen.getByRole("textbox", { name: "Go to a reference" }), "197{Enter}");
+    await userEvent.type(screen.getByRole("textbox", { name: "Search, or go to a reference" }), "197{Enter}");
     expect(screen.getByRole("alert")).toHaveTextContent("The papers go from 1 to 196.");
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it("goes to the Foreword for the word foreword", async () => {
     const { navigate } = setup();
-    await userEvent.type(screen.getByRole("textbox", { name: "Go to a reference" }), "foreword{Enter}");
+    await userEvent.type(screen.getByRole("textbox", { name: "Search, or go to a reference" }), "foreword{Enter}");
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("/papers/foreword", true));
   });
 
@@ -101,11 +108,11 @@ describe("Navigator", () => {
 
   it("empties the field when it closes", async () => {
     const view = render(<Navigator open onClose={() => {}} navigate={() => {}} paper={{ id: "1", title: "The Universal Father" }} sections={sections} current="1" previous={null} next={null} />);
-    const field = screen.getByRole("textbox", { name: "Go to a reference" });
-    await userEvent.type(field, "abc{Enter}");
+    const field = screen.getByRole("textbox", { name: "Search, or go to a reference" });
+    await userEvent.type(field, "197{Enter}");
     expect(screen.getByRole("alert")).toBeInTheDocument();
     view.rerender(<Navigator open={false} onClose={() => {}} navigate={() => {}} paper={{ id: "1", title: "The Universal Father" }} sections={sections} current="1" previous={null} next={null} />);
-    expect(screen.getByRole("textbox", { name: "Go to a reference", hidden: true })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "Search, or go to a reference", hidden: true })).toHaveValue("");
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
@@ -125,7 +132,7 @@ describe("Navigator", () => {
 
   it("gives an example in the reference field", () => {
     setup();
-    expect(screen.getByRole("textbox", { name: "Go to a reference" })).toHaveAttribute("placeholder", "Go to a reference, such as 99:1.1");
+    expect(screen.getByRole("textbox", { name: "Search, or go to a reference" })).toHaveAttribute("placeholder", "Search, or go to a reference");
   });
 
   it("has no tabs, no paper grid, and no theme control", () => {
