@@ -83,29 +83,48 @@ describe("Navigator", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it("shows the title of a paper before the reader opens it", async () => {
-    const { navigate } = setup();
-    await userEvent.click(screen.getByRole("tab", { name: "All papers" }));
-    const grid = screen.getByRole("group", { name: "Part III: The History of Urantia" });
-    await userEvent.click(within(grid).getByRole("button", { name: "99" }));
-    expect(screen.getByText("The Social Problems of Religion")).toBeInTheDocument();
-    expect(navigate).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole("button", { name: "Open" }));
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/papers/paper-99-the-social-problems-of-religion", true));
-    expect(track).toHaveBeenCalledWith("navigator_used", { kind: "paper" });
-  });
-
-  it("offers all 196 numbered papers in the grid", async () => {
+  it("says which paper the reader is in, at the top", () => {
     setup();
-    await userEvent.click(screen.getByRole("tab", { name: "All papers" }));
-    const numbers = screen.getAllByRole("button").filter((b) => /^\d+$/.test(b.textContent ?? ""));
-    expect(numbers).toHaveLength(196);
+    const dialog = screen.getByRole("dialog", { name: "Navigator", hidden: true });
+    expect(within(dialog).getByRole("heading", { name: "The Universal Father" })).toBeInTheDocument();
+    expect(within(dialog).getByText("Paper 1")).toBeInTheDocument();
   });
 
-  it("goes to the previous and the next paper", async () => {
+  it("closes with an icon control that has a name", () => {
+    setup();
+    const close = screen.getByRole("button", { name: "Close" });
+    expect(close.querySelector("svg")).not.toBeNull();
+    expect(close).toHaveTextContent("");
+  });
+
+  it("gives an example in the reference field", () => {
+    setup();
+    expect(screen.getByRole("textbox", { name: "Go to a reference" })).toHaveAttribute("placeholder", "Go to a reference, such as 99:1.1");
+  });
+
+  it("has no tabs, no paper grid, and no theme control", () => {
+    setup();
+    expect(screen.queryByRole("tab")).toBeNull();
+    expect(screen.queryByRole("button", { name: "99" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /theme/i })).toBeNull();
+  });
+
+  it("goes to the contents page for all papers", async () => {
     const { navigate } = setup();
-    await userEvent.click(screen.getByRole("button", { name: /Next.*The Nature of God/ }));
+    await userEvent.click(screen.getByRole("button", { name: "All papers" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/papers", true));
+    expect(track).toHaveBeenCalledWith("navigator_used", { kind: "contents" });
+  });
+
+  it("goes to the previous and the next paper, and shows each number and full title", async () => {
+    const { navigate } = setup();
+    expect(screen.getByRole("button", { name: "Previous paper: Foreword" })).toHaveTextContent("Foreword");
+    const next = screen.getByRole("button", { name: "Next paper: Paper 2, The Nature of God" });
+    expect(next).toHaveTextContent("Paper 2");
+    expect(next).toHaveTextContent("The Nature of God");
+    await userEvent.click(next);
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("/papers/paper-2-the-nature-of-god", true));
+    expect(track).toHaveBeenCalledWith("navigator_used", { kind: "paper" });
   });
 
   // A step back in history makes the browser restore the old scroll position, which undoes a jump.

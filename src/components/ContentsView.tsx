@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PARTS, paperPath, partNumeral } from "@/content/paper-index";
+import { ContinueCard } from "./ContinueCard";
 
 export function ContentsView() {
   const parts = PARTS.filter((part) => part.id !== "0");
@@ -7,6 +8,7 @@ export function ContentsView() {
     <div className="toc">
       <h1>Papers</h1>
       <p className="lead">A foreword and 196 papers, in four parts.</p>
+      <ContinueCard />
       <nav className="jump" aria-label="Parts">
         <a href="#foreword">Foreword</a>
         {parts.map((part) => (

@@ -11,7 +11,7 @@ export type AnalyticsEvents = {
   audio_finished_paper: { paper_id: string; speed: number };
   audio_failed: { paper_id: string };
   navigator_opened: { paper_id: string };
-  navigator_used: { kind: "section" | "paper" | "reference" };
+  navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };
 
 type Args<E extends keyof AnalyticsEvents> = AnalyticsEvents[E] extends undefined ? [] : [AnalyticsEvents[E]];

@@ -135,6 +135,15 @@ describe("the reading job", () => {
   });
 });
 
+describe("the place the reader left", () => {
+  it("is kept in this browser as the paper and the section in view", async () => {
+    window.localStorage.clear();
+    renderNav();
+    await scrollTo(100);
+    expect(JSON.parse(window.localStorage.getItem("hub:last-read")!)).toEqual({ paperId: "1", sectionId: "0", label: null });
+  });
+});
+
 describe("a tap on a paragraph", () => {
   it("marks the paragraph and shows its actions", async () => {
     renderNav();

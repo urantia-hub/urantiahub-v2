@@ -15,6 +15,15 @@ describe("ThemeToggle", () => {
     expect(screen.getByRole("button", { name: "Dark theme" })).toBeInTheDocument();
   });
 
+  it("can be an icon with a name, for the header", async () => {
+    render(<ThemeToggle icon />);
+    const button = screen.getByRole("button", { name: "Dark theme" });
+    expect(button.querySelector("svg")).not.toBeNull();
+    expect(button).toHaveTextContent("");
+    await userEvent.click(button);
+    expect(screen.getByRole("button", { name: "Light theme" })).toBeInTheDocument();
+  });
+
   it("changes to dark, remembers it, and then offers light", async () => {
     render(<ThemeToggle />);
     await userEvent.click(screen.getByRole("button", { name: "Dark theme" }));

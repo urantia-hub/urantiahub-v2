@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookmarkMark } from "@/brand/BookmarkMark";
 import { site } from "@/site";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteHeader() {
   return (
@@ -12,6 +13,7 @@ export function SiteHeader() {
       <nav aria-label="Site">
         <Link href="/papers">Papers</Link>
         <Link href="/about">About</Link>
+        <ThemeToggle icon />
       </nav>
     </header>
   );

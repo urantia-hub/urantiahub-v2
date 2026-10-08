@@ -89,3 +89,56 @@
     columns: 1;
   }
 }
+
+/* The way back to the place the reader left. It shows only when this browser holds one. */
+.toc .continue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 30rem;
+  margin: 0 auto 26px;
+  padding: 14px 14px 14px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--raised);
+  box-shadow: 0 6px 20px var(--shade);
+  color: var(--ink);
+  text-decoration: none;
+}
+.toc .continue > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.toc .continue small {
+  display: block;
+  font: 600 10px/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 7px;
+}
+.toc .continue strong {
+  display: block;
+  font: 500 17px/1.25 var(--font-text);
+}
+.toc .continue em {
+  display: block;
+  font: 400 13px/1.3 var(--font-ui);
+  font-style: normal;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.toc .continue .go {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--raised);
+}
+.toc .continue .icon {
+  width: 19px;
+  height: 19px;
+}

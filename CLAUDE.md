@@ -37,3 +37,4 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Icons are family B (`src/components/icons.tsx`): tool icons are a line of 1.9 with round ends and a label below; player icons are solid. Check each new icon on one sheet with the full set, because two icons can look alike. The action for keeping a place is "Bookmark". There is no "Highlight".
 - Browser tests serve a silent MP3 file in place of each CDN audio file (`e2e/audio.ts`). No test loads audio from the CDN.
 - A change of the pill's job must call `setHidden(false)`. The page scrolls down to follow the voice, so without it a pause hides the controls.
+- The navigator lists the sections of this paper only. "All papers" goes to the contents page, which shows a "Continue" card from `src/reader/last-read.ts` (this browser only, no account). The theme control is an icon in the header and a text link in the footer, not in the navigator.

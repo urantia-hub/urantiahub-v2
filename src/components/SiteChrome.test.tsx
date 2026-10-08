@@ -13,6 +13,11 @@ describe("SiteHeader", () => {
 });
 
 describe("SiteFooter", () => {
+  it("has the theme control in the header", () => {
+    render(<SiteHeader />);
+    expect(screen.getByRole("banner").querySelector("button[aria-label='Dark theme']")).not.toBeNull();
+  });
+
   it("states that the project is independent", () => {
     render(<SiteFooter />);
     expect(
