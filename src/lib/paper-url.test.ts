@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { anchorFor, idFromSlug, parseReference, slugify } from "./paper-url";
+import { referenceProblem, anchorFor, idFromSlug, parseReference, slugify } from "./paper-url";
 
 describe("slugify", () => {
   it("names the Foreword without a number", () => {
@@ -53,7 +53,7 @@ describe("parseReference", () => {
   it.each(["(99:1.1)", " 99 : 1 . 1 ", "Paper 99:1.1", "paper 99:1.1", "99:01.01"])("accepts %s", (input) => {
     expect(parseReference(input)).toEqual({ paperId: "99", sectionId: "1", paragraphId: "1" });
   });
-  it.each(["197", "abc", "", "99:", "99:1.", "99.1.1", "99:1:1", "-1", "1e2"])("rejects %s", (input) => {
+  it.each(["197", "abc", "", "99:", "99.1.1", "99:1:1", "-1", "1e2"])("rejects %s", (input) => {
     expect(parseReference(input)).toBeNull();
   });
 });
@@ -71,5 +71,37 @@ describe("anchorFor", () => {
   });
   it("returns the paragraph anchor", () => {
     expect(anchorFor({ paperId: "99", sectionId: "1", paragraphId: "1" })).toBe("#99:1.1");
+  });
+});
+
+describe("reference forms that readers type", () => {
+  it("accepts the word foreword, in each case", () => {
+    expect(parseReference("foreword")).toEqual({ paperId: "0" });
+    expect(parseReference(" Foreword ")).toEqual({ paperId: "0" });
+  });
+  it("accepts a period at the end, as at the end of a sentence", () => {
+    expect(parseReference("99:1.1.")).toEqual({ paperId: "99", sectionId: "1", paragraphId: "1" });
+    expect(parseReference("99.")).toEqual({ paperId: "99" });
+  });
+  it("reads a section reference with a period at the end as the section", () => {
+    expect(parseReference("99:1.")).toEqual({ paperId: "99", sectionId: "1" });
+  });
+  it("still rejects a period in the middle with nothing after it", () => {
+    expect(parseReference("99:.")).toBeNull();
+  });
+});
+
+describe("referenceProblem", () => {
+  it("is nothing for a good reference", () => {
+    expect(referenceProblem("99:1.1")).toBeNull();
+    expect(referenceProblem("foreword")).toBeNull();
+  });
+  it("says that the paper number is out of range", () => {
+    expect(referenceProblem("197")).toBe("range");
+    expect(referenceProblem("Paper 250:1")).toBe("range");
+  });
+  it("says that the form is wrong for other input", () => {
+    expect(referenceProblem("hello")).toBe("format");
+    expect(referenceProblem("")).toBe("format");
   });
 });

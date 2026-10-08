@@ -55,4 +55,18 @@ describe("PaperView", () => {
     rerender(<PaperView paper={{ ...paper, id: "196", title: "The Faith of Jesus", partId: "4" }} />);
     expect(screen.queryByRole("link", { name: /Next/ })).toBeNull();
   });
+
+  it("adds no number to a section title that has its own", () => {
+    const foreword: PaperDoc = {
+      id: "0",
+      title: "Foreword",
+      partId: "0",
+      sections: [
+        { id: "0", title: null, paragraphs: [{ ref: "0:0.1", text: "a", html: "a", audio: null }] },
+        { id: "1", title: "I. Deity and Divinity", paragraphs: [{ ref: "0:1.1", text: "b", html: "b", audio: null }] },
+      ],
+    };
+    render(<PaperView paper={foreword} />);
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(/^I\. Deity and Divinity$/);
+  });
 });

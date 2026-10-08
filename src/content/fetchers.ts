@@ -86,6 +86,7 @@ export async function fetchPaper(client: ContentClient, id: string): Promise<Pap
   }
 
   const { paper, paragraphs } = parsed.data.data;
+  if (paper.id !== id) throw new ContentError(`Paper ${id}: the content API returned paper ${paper.id}`);
   const sections: Section[] = [];
   for (const p of paragraphs) {
     let section = sections.at(-1);

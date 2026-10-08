@@ -193,12 +193,17 @@ describe("the audio engine", () => {
   });
 
   // Review Focus 2: the browser refuses sound with no gesture. That is not a broken file.
-  it("goes back to idle when the browser refuses to start", async () => {
+  it("holds the paragraph, paused, when the browser refuses to start", async () => {
     const { engine, audio } = setup();
     audio.rejectWith = { name: "NotAllowedError" };
-    engine.playAt(0);
+    engine.playAt(1);
     await settle();
-    expect(engine.getState()).toMatchObject({ status: "idle", index: -1 });
+    // The place is held, so the next press, inside a gesture, starts this paragraph.
+    expect(engine.getState()).toMatchObject({ status: "paused", index: 1, time: 0 });
+    audio.rejectWith = null;
+    engine.resume();
+    expect(audio.src).toBe(tracks[1].url);
+    expect(engine.getState().status).toBe("loading");
   });
 
   it("goes back to paused when the browser refuses to resume", async () => {
@@ -226,6 +231,38 @@ describe("the audio engine", () => {
     expect(audio.src).toBe(tracks[1].url);
     audio.emit("playing");
     expect(engine.getState().status).toBe("playing");
+  });
+
+  // A late failure from an older start must not mark the newer one as failed.
+  it("ignores a late failure from a start that a newer choice replaced", async () => {
+    const { engine, audio } = setup();
+    audio.rejectWith = { name: "NotSupportedError" };
+    engine.playAt(0);
+    audio.rejectWith = null;
+    engine.playAt(1);
+    await settle();
+    expect(engine.getState()).toMatchObject({ status: "loading", index: 1 });
+  });
+
+  // The reader pauses in the same instant that the file ends.
+  it("does not start the next paragraph when a file ends after a pause, and goes on at the next press", () => {
+    const { engine, audio } = setup();
+    engine.playAt(0);
+    audio.emit("playing");
+    engine.pause();
+    audio.emit("ended");
+    expect(engine.getState()).toMatchObject({ status: "paused", index: 0 });
+    engine.resume();
+    expect(engine.getState()).toMatchObject({ status: "loading", index: 1 });
+    expect(audio.src).toBe(tracks[1].url);
+  });
+
+  it("drops the file that it loaded ahead when it is destroyed", () => {
+    const { engine, ahead } = setup();
+    engine.playAt(0);
+    expect(ahead.src).toBe(tracks[1].url);
+    engine.destroy();
+    expect(ahead.src).toBe("");
   });
 
   it("fails for any other play error", async () => {

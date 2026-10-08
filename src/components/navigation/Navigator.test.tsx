@@ -76,11 +76,37 @@ describe("Navigator", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it("shows the same message for a paper number that does not exist", async () => {
+  it("says that the papers go from 1 to 196 for a number that is too high", async () => {
     const { navigate } = setup();
-    await userEvent.type(screen.getByLabelText("Go to a reference"), "197{Enter}");
-    expect(screen.getByRole("alert")).toBeInTheDocument();
+    await userEvent.type(screen.getByRole("textbox", { name: "Go to a reference" }), "197{Enter}");
+    expect(screen.getByRole("alert")).toHaveTextContent("The papers go from 1 to 196.");
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("goes to the Foreword for the word foreword", async () => {
+    const { navigate } = setup();
+    await userEvent.type(screen.getByRole("textbox", { name: "Go to a reference" }), "foreword{Enter}");
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/papers/foreword", true));
+  });
+
+  // After a reload, the entry that the open navigator added is still in the history. It is the same page twice.
+  it("steps back over its own history entry when the page loads with one", () => {
+    window.history.pushState({ navigator: true }, "");
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    setup({ open: false });
+    expect(back).toHaveBeenCalledTimes(1);
+    back.mockRestore();
+    window.history.replaceState(null, "");
+  });
+
+  it("empties the field when it closes", async () => {
+    const view = render(<Navigator open onClose={() => {}} navigate={() => {}} paper={{ id: "1", title: "The Universal Father" }} sections={sections} current="1" previous={null} next={null} />);
+    const field = screen.getByRole("textbox", { name: "Go to a reference" });
+    await userEvent.type(field, "abc{Enter}");
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    view.rerender(<Navigator open={false} onClose={() => {}} navigate={() => {}} paper={{ id: "1", title: "The Universal Father" }} sections={sections} current="1" previous={null} next={null} />);
+    expect(screen.getByRole("textbox", { name: "Go to a reference", hidden: true })).toHaveValue("");
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("says which paper the reader is in, at the top", () => {

@@ -52,4 +52,14 @@ describe("submitToIndexNow", () => {
     const fetchImpl = vi.fn().mockResolvedValue(new Response(null, { status: 403 }));
     await expect(submit(["https://www.urantiahub.com/"], { fetchImpl })).rejects.toThrow(/403/);
   });
+
+  it("sends nothing when the origin is a local address, even with the index setting on", async () => {
+    vi.stubEnv("SITE_ORIGIN", "");
+    vi.stubEnv("SITE_INDEXABLE", "on");
+    vi.stubEnv("INDEXNOW_KEY", "abc123");
+    const { submitToIndexNow } = await import("./indexnow");
+    const fetchImpl = vi.fn();
+    await expect(submitToIndexNow(["http://localhost:3000/"], { fetchImpl })).resolves.toBe("skipped");
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
 });

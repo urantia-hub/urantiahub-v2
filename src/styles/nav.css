@@ -236,8 +236,9 @@
 .navigator {
   width: 100%;
   max-width: none;
-  height: 88dvh;
-  max-height: none;
+  /* The sheet is as tall as its content, up to this limit. Then the section list scrolls. */
+  height: fit-content;
+  max-height: 88dvh;
   margin: auto 0 0;
   padding: 0;
   border: 0;
@@ -252,7 +253,7 @@
 .navigator .sheet {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  max-height: 88dvh;
 }
 .navigator button {
   border: 0;
@@ -441,10 +442,13 @@
 @media (min-width: 768px) {
   .navigator {
     width: 460px;
-    height: min(680px, 84dvh);
+    max-height: min(680px, 84dvh);
     margin: auto;
     border-radius: 20px;
     /* The foot must not cover the round corners. */
     overflow: hidden;
+  }
+  .navigator .sheet {
+    max-height: min(680px, 84dvh);
   }
 }

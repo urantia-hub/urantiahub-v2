@@ -118,3 +118,37 @@ test("the two neighbor cards start their text at the same height, and line up wi
   expect(Math.abs(card.x - list.x)).toBeLessThanOrEqual(1);
   expect(Math.abs(all.x - list.x)).toBeLessThanOrEqual(1);
 });
+
+test("the navigator is as tall as its content: no empty area above the cards", async ({ page }) => {
+  await page.goto("/papers/paper-2-the-nature-of-god");
+  await openNavigator(page);
+  const navigator = page.getByRole("dialog", { name: "Navigator" });
+  const last = (await navigator.locator(".secs li").last().boundingBox())!;
+  const foot = (await navigator.locator(".sheet-foot").boundingBox())!;
+  expect(foot.y - (last.y + last.height)).toBeLessThanOrEqual(10);
+  // No empty area below the foot.
+  const sheet = (await navigator.boundingBox())!;
+  expect(sheet.y + sheet.height - (foot.y + foot.height)).toBeLessThanOrEqual(2);
+});
+
+test("on a phone, the navigator stands on the bottom edge of the screen", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "phone", "the sheet is a bottom sheet on a phone only");
+  await page.goto("/papers/paper-2-the-nature-of-god");
+  await openNavigator(page);
+  const sheet = (await page.getByRole("dialog", { name: "Navigator" }).boundingBox())!;
+  const height = page.viewportSize()!.height;
+  expect(Math.abs(sheet.y + sheet.height - height)).toBeLessThanOrEqual(1);
+  expect(sheet.height).toBeLessThan(height * 0.88);
+});
+
+test("a long section list scrolls inside the navigator, and the cards stay in view", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 560 });
+  await page.goto("/papers/foreword");
+  await openNavigator(page);
+  const navigator = page.getByRole("dialog", { name: "Navigator" });
+  const sheet = (await navigator.boundingBox())!;
+  expect(sheet.height).toBeLessThanOrEqual(560 * 0.88 + 1);
+  await expect(navigator.getByRole("button", { name: "All papers" })).toBeInViewport();
+  const list = navigator.locator(".secs");
+  expect(await list.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+});

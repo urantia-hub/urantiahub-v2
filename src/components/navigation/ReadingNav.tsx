@@ -48,6 +48,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [voice, setVoice] = useState<VoiceState>(IDLE);
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState(false);
+  const toastTimer = useRef(0);
+  const roundButton = useRef<HTMLButtonElement>(null);
 
   const engine = useRef<AudioEngine | null>(null);
   // The page follows the voice until the reader scrolls. `autoUntil` covers the page's own scroll.
@@ -152,6 +154,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     if (!article) return;
     const onClick = (event: Event) => {
       const target = event.target as HTMLElement;
+      // A click with a modifier key, or with another mouse button, belongs to the browser: a new tab, a new window.
+      const mouse = event as MouseEvent;
+      if (mouse.metaKey || mouse.ctrlKey || mouse.shiftKey || mouse.altKey || mouse.button > 0) return;
       const para = target.closest<HTMLElement>(".para");
       if (!para) return;
       // The reference is a real link for a reader with no JavaScript. Here it acts as a tap.
@@ -265,9 +270,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         return;
       }
       const target = event.target as HTMLElement | null;
-      if (event.key === " " && tracks && !target?.closest("a,button,input,textarea,select,[contenteditable]")) {
+      // Space with Shift scrolls up. That belongs to the browser.
+      const plain = !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey;
+      if (event.key === " " && plain && tracks && !target?.closest("a,button,input,textarea,select,[contenteditable]")) {
         event.preventDefault();
-        onRoundRef.current();
+        // A held key repeats. Only the first press counts.
+        if (!event.repeat) onRoundRef.current();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -295,11 +303,20 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     navigator.mediaSession.metadata = new MediaMetadata({ title: `${voiceRef} · ${paper.title}`, artist: "The Urantia Papers" });
   }, [voiceRef, paper.title]);
 
+  // Close, Share, and "Try again" remove the control that had the focus. The focus goes to the round button,
+  // so a keyboard reader stays in the controls.
+  function refocus() {
+    window.requestAnimationFrame(() => roundButton.current?.focus({ preventScroll: true }));
+  }
+
+  useEffect(() => () => window.clearTimeout(toastTimer.current), []);
+
   async function onShare() {
     if (!picked) return;
     const ref = picked;
     setPicked(null);
     setHidden(false);
+    refocus();
     const method = await shareParagraph({
       title: `${ref} · ${paper.id === "0" ? paper.title : `Paper ${paper.id}, ${paper.title}`}`,
       url: `${window.location.origin}${window.location.pathname}#${ref}`,
@@ -308,7 +325,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     track("paragraph_shared", { ref, method });
     if (method === "copy") {
       setToast(true);
-      window.setTimeout(() => setToast(false), 1600);
+      window.clearTimeout(toastTimer.current);
+      toastTimer.current = window.setTimeout(() => setToast(false), 1600);
     }
   }
 
@@ -335,7 +353,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
           <style>{".dock .round{display:none}"}</style>
         </noscript>
         {tracks && (
-          <button type="button" className={`round${voice.status === "loading" ? " loading" : ""}`} data-testid="round-button" aria-label={roundName} onClick={onRound}>
+          <button type="button" className={`round${voice.status === "loading" ? " loading" : ""}`} data-testid="round-button" aria-label={roundName} onClick={onRound} ref={roundButton}>
             <Icon name={pauseShown ? "pause" : "play"} />
           </button>
         )}
@@ -375,7 +393,13 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
           {job === "listening" && voice.status === "failed" && (
             <div className="row fail" role="alert">
               <span>The audio did not load</span>
-              <button type="button" onClick={() => engine.current?.retry()}>
+              <button
+                type="button"
+                onClick={() => {
+                  engine.current?.retry();
+                  refocus();
+                }}
+              >
                 Try again
               </button>
             </div>
@@ -416,6 +440,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                 onClick={() => {
                   setPicked(null);
                   setHidden(false);
+                  refocus();
                 }}
               >
                 <Icon name="close" />

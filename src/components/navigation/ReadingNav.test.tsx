@@ -571,3 +571,69 @@ describe("faults that the branch review found", () => {
     Reflect.deleteProperty(navigator, "mediaSession");
   });
 });
+
+describe("small faults from the two reviews", () => {
+  it("lets a click with Cmd or Ctrl on a reference open the link, and marks nothing", () => {
+    renderNav();
+    const link = screen.getByRole("link", { name: "1:0.2" });
+    // The dock listens on the article. This listener runs after it, reads the result, and then stops
+    // the test browser from following the link, which would change the address for the next test.
+    const seen: boolean[] = [];
+    const after = (event: Event) => {
+      seen.push(event.defaultPrevented);
+      event.preventDefault();
+    };
+    window.addEventListener("click", after);
+    for (const key of [{ metaKey: true }, { ctrlKey: true }, { shiftKey: true }]) {
+      act(() => void link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1, ...key })));
+    }
+    window.removeEventListener("click", after);
+    expect(seen).toEqual([false, false, false]);
+    expect(para("1:0.2")).not.toHaveAttribute("data-picked");
+  });
+
+  it("ignores a held Space key, and Space with Shift", async () => {
+    renderNav();
+    act(() => void document.body.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true, repeat: true })));
+    const shifted = new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true, shiftKey: true });
+    act(() => void document.body.dispatchEvent(shifted));
+    expect(audio().src).toBe("");
+    expect(shifted.defaultPrevented).toBe(false);
+  });
+
+  it("keeps the keyboard focus in the controls after Close", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    screen.getByRole("button", { name: "Close" }).focus();
+    await userEvent.keyboard("{Enter}");
+    await act(async () => {
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    });
+    expect(document.activeElement).toBe(round());
+  });
+
+  it("keeps the keyboard focus in the controls after Try again", async () => {
+    renderNav();
+    await userEvent.click(round());
+    await sound("error");
+    screen.getByRole("button", { name: "Try again" }).focus();
+    await userEvent.keyboard("{Enter}");
+    await act(async () => {
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    });
+    expect(document.activeElement).toBe(round());
+  });
+
+  it("holds the paragraph when the browser refuses to start, so the next press starts it", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    audio().rejectWith = { name: "NotAllowedError" };
+    await userEvent.click(round());
+    await act(async () => {});
+    expect(job()).toBe("reading");
+    audio().rejectWith = null;
+    await userEvent.click(round());
+    expect(audio().src).toBe(TRACKS[1].url);
+    expect(job()).toBe("listening");
+  });
+});
