@@ -212,3 +212,82 @@ test("a crafted text with half of a character does not break the page", async ({
   await expect(page.getByRole("heading", { name: /Exact matches/ })).toBeVisible();
   await expect(page.getByText("Page not found")).toHaveCount(0);
 });
+
+// Found by Kelson on the live site. Next.js keeps the last pages alive but hidden, so a rule that
+// hides the header "when the page has a search screen" kept it hidden on each later page.
+test("the site header returns after a visit to the search screen", async ({ page }) => {
+  await page.goto("/papers");
+  await page.getByRole("banner").getByRole("link", { name: "Search" }).click();
+  await expect(page.locator(".search-bar[data-ready]")).toBeVisible();
+  await expect(page.getByRole("banner")).toBeHidden();
+  await page.getByRole("link", { name: "Back" }).click();
+  await expect(page).toHaveURL("/papers");
+  await expect(page.getByRole("banner")).toBeVisible();
+  await page.locator(".toc .papers a").first().click();
+  await expect(page).toHaveURL(/paper-1-/);
+  await expect(page.getByRole("banner")).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("link", { name: "Search" })).toBeVisible();
+});
+
+test("the header links return after a visit to a paper", async ({ page }) => {
+  await page.goto("/papers");
+  await page.locator(".toc .papers a").first().click();
+  await expect(page).toHaveURL(/paper-1-/);
+  await expect(page.getByRole("banner").getByRole("link", { name: "About" })).toBeHidden();
+  await page.goBack();
+  await expect(page).toHaveURL("/papers");
+  await expect(page.getByRole("banner").getByRole("link", { name: "About" })).toBeVisible();
+});
+
+test("on a desktop, the text of the search field starts on the left edge of the results column", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "the bar is full width on a phone");
+  await openSearch(page, "/search?q=thought%20adjuster");
+  const input = (await field(page).boundingBox())!;
+  const label = (await page.locator(".search-wrap.results .search-label").first().boundingBox())!;
+  // The input has 4 pixels of padding before its text.
+  expect(Math.abs(input.x + 4 - label.x)).toBeLessThanOrEqual(3);
+  const clear = (await page.getByRole("button", { name: "Clear the field" }).boundingBox())!;
+  const column = (await page.locator(".search-wrap.results").boundingBox())!;
+  expect(clear.x + clear.width).toBeLessThanOrEqual(column.x + column.width + 2);
+});
+
+// Found by Kelson: Enter seemed to do nothing, because the page showed no sign of work until the results came.
+test("Enter shows at once that the search runs", async ({ page }) => {
+  await openSearch(page);
+  await field(page).fill("slow search");
+  await field(page).press("Enter");
+  await expect(page.locator(".waiting").first()).toBeVisible({ timeout: 700 });
+  await expect(page).toHaveURL("/search?q=slow%20search");
+  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.", { timeout: 8000 });
+});
+
+test("a starter question shows at once that the search runs", async ({ page }) => {
+  await openSearch(page);
+  await group(page, "Ask in your own words").getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/search\?q=/);
+  // The question is one of sixteen, and the test data holds results for one of them. Each group must end.
+  await expect(group(page, "Exact matches").locator(".result, .search-empty").first()).toBeVisible();
+  await expect(group(page, "Related passages").locator(".result, .search-empty").first()).toBeVisible();
+});
+
+// Each link to a search would run that search ahead of time, and each search costs the API two requests.
+test("the search screen asks the server for no search that the reader did not start", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("hub:recent-searches", JSON.stringify(["thought adjuster", "soul"])));
+  const asked: string[] = [];
+  page.on("request", (request) => {
+    if (/\/search\?.*q=/.test(request.url())) asked.push(request.url());
+  });
+  await openSearch(page);
+  await page.waitForTimeout(1200);
+  expect(asked).toEqual([]);
+});
+
+test("the slash key opens the search screen from a paper", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "a keyboard shortcut is a desktop thing");
+  await page.goto(PAPER_1);
+  await expect(page.getByTestId("reading-bar")).toBeVisible();
+  await page.keyboard.press("/");
+  await expect(page).toHaveURL("/search");
+  await expect(field(page)).toBeFocused();
+  await expect(field(page)).toHaveValue("");
+});

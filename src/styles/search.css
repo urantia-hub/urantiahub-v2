@@ -1,5 +1,7 @@
-/* The search screen is its own screen: the site header gives way to the bar with the back arrow. */
-body:has(.search) .site-header {
+/* The search screen is its own screen: the site header gives way to the bar with the back arrow.
+   Next.js keeps the last pages alive but hidden, with an inline "display: none". A hidden search screen
+   must not count, or the header stays away on each later page. */
+body:has(.search:not([style*="display: none"])) .site-header {
   display: none;
 }
 .search {
@@ -235,5 +237,14 @@ body:has(.search) .site-header {
 @media (prefers-reduced-motion: reduce) {
   .waiting span {
     animation: none;
+  }
+}
+
+/* On a wide screen the text of the field starts on the left edge of the results column,
+   and the clear control ends on its right edge. */
+@media (min-width: 768px) {
+  .search-bar {
+    padding-left: max(8px, calc((100% - 40rem) / 2 - 30px));
+    padding-right: max(10px, calc((100% - 40rem) / 2 + 8px));
   }
 }

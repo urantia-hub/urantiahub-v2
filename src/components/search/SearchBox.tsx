@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type FormEvent, type MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, useTransition, type FormEvent, type MouseEvent } from "react";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import { directHits } from "@/search/direct-hits";
@@ -54,9 +54,22 @@ export function SearchBox({ initial }: { initial: string }) {
   // On the results page the search already ran for `initial`, so the row shows only after a change.
   const searchRow = q !== "" && !isReference && q !== initial;
 
+  // True from the press until the results page arrives. The reader must see at once that the search runs.
+  const [pending, startTransition] = useTransition();
+
   function run(text: string, source: "typed" | "starter" | "recent") {
     saveRecent(text);
     track("search_started", { source });
+    input.current?.blur();
+    startTransition(() => router.push(searchHref(text)));
+  }
+
+  // A starter question or a recent search. The link still works for a new tab and with no JavaScript.
+  function onPick(event: MouseEvent, text: string, source: "starter" | "recent") {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0) return;
+    event.preventDefault();
+    setValue(text);
+    run(text, source);
   }
 
   function onSubmit(event: FormEvent) {
@@ -68,7 +81,6 @@ export function SearchBox({ initial }: { initial: string }) {
       return;
     }
     run(q, "typed");
-    router.push(searchHref(q));
   }
 
   function onBack(event: MouseEvent) {
@@ -113,7 +125,17 @@ export function SearchBox({ initial }: { initial: string }) {
         )}
       </form>
 
-      <div className="search-wrap">
+      {pending && (
+        <div className="search-wrap">
+          <h2 className="search-label">Searching</h2>
+          <div className="waiting" role="status" aria-label="Searching">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      )}
+      <div className="search-wrap" hidden={pending}>
         {hits.length > 0 && (
           <section aria-label="Go to">
             <h2 className="search-label">Go to</h2>
@@ -152,7 +174,7 @@ export function SearchBox({ initial }: { initial: string }) {
               </button>
             </h2>
             {recent.map((text) => (
-              <Link className="search-row" href={searchHref(text)} key={text} onClick={() => run(text, "recent")}>
+              <Link className="search-row" href={searchHref(text)} key={text} prefetch={false} onClick={(event) => onPick(event, text, "recent")}>
                 <span className="glyph">
                   <Icon name="clock" />
                 </span>
@@ -169,7 +191,7 @@ export function SearchBox({ initial }: { initial: string }) {
               // One question of each group shows. CSS hides the others.
               <div className="starter-group" key={group.name}>
                 {group.questions.map((text) => (
-                  <Link className="search-row" href={searchHref(text)} key={text} onClick={() => run(text, "starter")}>
+                  <Link className="search-row" href={searchHref(text)} key={text} prefetch={false} onClick={(event) => onPick(event, text, "starter")}>
                     <span className="glyph">
                       <Icon name="question" />
                     </span>
