@@ -5,7 +5,11 @@ export type AnalyticsEvents = {
   paper_opened: { paper_id: string };
   home_passage_shown: { ref: string; position: number };
   home_read_clicked: undefined;
-  reference_link_copied: { ref: string };
+  paragraph_picked: { paper_id: string };
+  paragraph_shared: { ref: string; method: "sheet" | "copy" };
+  audio_started: { paper_id: string; from: "bar" | "paragraph" };
+  audio_finished_paper: { paper_id: string; speed: number };
+  audio_failed: { paper_id: string };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" };
 };

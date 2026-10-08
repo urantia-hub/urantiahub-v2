@@ -1,47 +1,144 @@
-.reading-bar {
+/* Two objects at the bottom of a paper: a round button for the voice, and a pill with three jobs. */
+.dock {
   position: fixed;
   left: 14px;
   right: 14px;
   bottom: calc(16px + env(safe-area-inset-bottom));
   z-index: 20;
-  max-width: 440px;
+  max-width: 460px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  display: flex;
   align-items: center;
-  overflow: hidden;
-  background: var(--raised);
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  box-shadow: 0 8px 28px var(--shade);
+  gap: 10px;
   font-family: var(--font-ui);
   transition:
     transform 0.28s ease,
     opacity 0.28s ease;
 }
-.reading-bar.away {
-  transform: translateY(110px);
+.dock.away {
+  transform: translateY(120px);
   opacity: 0;
 }
-.reading-bar .step {
-  display: grid;
-  place-items: center;
-  height: 52px;
-  color: var(--muted);
-  font-size: 22px;
-  text-decoration: none;
-}
-.reading-bar .where {
-  height: 52px;
-  min-width: 0;
-  padding: 0;
+.dock button {
+  appearance: none;
   border: 0;
   background: none;
   color: var(--ink);
-  text-align: center;
+  font: inherit;
+  padding: 0;
   cursor: pointer;
 }
-.reading-bar .where small {
+.dock .icon {
+  display: block;
+  width: 19px;
+  height: 19px;
+}
+.dock :is(a, button):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+  border-radius: 999px;
+}
+.dock .round {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--raised);
+  box-shadow: 0 8px 28px var(--shade);
+}
+/* A ring turns while a file loads. The delay hides it on a fast connection. */
+.dock .round.loading::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--voice-line);
+  opacity: 0;
+  animation:
+    dock-ring-in 0.2s 0.4s forwards,
+    dock-ring-turn 0.9s linear infinite;
+}
+@keyframes dock-ring-in {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dock-ring-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dock .round:focus-visible {
+  outline-offset: 3px;
+}
+.dock .pill {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  overflow: hidden;
+  background: var(--raised);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  box-shadow: 0 8px 28px var(--shade);
+}
+.dock .row {
+  display: grid;
+  align-items: center;
+  height: 100%;
+}
+.dock .row > :is(a, button, span) {
+  display: grid;
+  place-items: center;
+  height: 52px;
+}
+.dock .row.read {
+  grid-template-columns: 40px 1fr 40px;
+}
+.dock .row.play {
+  grid-template-columns: 44px 1fr 44px 50px;
+}
+.dock .row.pick {
+  grid-template-columns: 60px 1fr 42px;
+}
+.dock .row.fail {
+  grid-template-columns: 1fr auto;
+  padding: 0 8px 0 20px;
+  font: 500 13.5px/1 var(--font-ui);
+}
+.dock .row.fail span {
+  place-items: center start;
+}
+.dock .row.fail button {
+  padding: 0 14px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.dock .arrow,
+.dock .row.play > button,
+.dock .close {
+  color: var(--muted);
+}
+/* In the middle of a paper the two paper arrows go. */
+.dock.deep .arrow {
+  visibility: hidden;
+}
+.dock .where {
+  display: block;
+  min-width: 0;
+  height: 52px;
+  text-align: center;
+}
+.dock .row.play .where {
+  display: grid;
+  align-content: center;
+}
+.dock .where small {
   display: block;
   font: 600 10px/1 var(--font-ui);
   letter-spacing: 0.14em;
@@ -49,20 +146,83 @@
   color: var(--ref);
   margin-bottom: 5px;
 }
-.reading-bar .where span {
+.dock .row.play .where small {
+  color: var(--voice-line);
+}
+.dock .where span {
   display: block;
   font: 500 14px/1.15 var(--font-ui);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 4px;
 }
-.reading-bar .fill {
+.dock .speed {
+  font: 600 12px/1 var(--font-ui);
+  color: var(--muted);
+}
+.dock .pref {
+  font: 600 12px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--ref);
+}
+.dock .tiles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  height: 100%;
+}
+/* A tile is an icon with its label below. The label always shows. */
+.dock .tile {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  width: 58px;
+  height: 52px;
+  font: 500 10px/1 var(--font-ui);
+}
+.dock .tile:hover {
+  color: var(--accent);
+}
+.dock .fill {
   position: absolute;
   left: 0;
   bottom: 0;
   height: 2px;
   background: var(--accent);
+}
+/* While the voice plays, the line is green and shows the progress through the whole paper. */
+.dock .fill.voice {
+  height: 3px;
+  background: var(--voice-line);
+  transition: width 0.25s linear;
+}
+
+.back-to-voice,
+.dock-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 21;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--raised);
+  font: 500 13px/1 var(--font-ui);
+  box-shadow: 0 6px 20px var(--shade);
+}
+.back-to-voice {
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.dock-toast {
+  top: 16px;
+  padding: 9px 14px;
 }
 
 .navigator {
