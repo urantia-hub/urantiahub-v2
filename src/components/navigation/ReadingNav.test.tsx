@@ -281,12 +281,13 @@ describe("the voice", () => {
     expect(para("1:0.2")).toHaveAttribute("data-voice");
   });
 
-  it("shows the progress through the whole paper as the green line", async () => {
+  // The line sits beside "0:05 / 0:20", so it shows the same thing: the progress through this paragraph.
+  it("shows the progress through the paragraph that plays as the green line", async () => {
     const { container } = renderNav();
     await userEvent.click(text("1:0.2"));
     await userEvent.click(round());
     await sound("playing");
-    audio().currentTime = 20;
+    audio().currentTime = 10;
     await sound("timeupdate");
     const fill = container.querySelector<HTMLElement>(".fill")!;
     expect(fill).toHaveClass("voice");

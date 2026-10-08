@@ -20,14 +20,6 @@ export type AudioLike = {
 
 type Deps = { createAudio: () => AudioLike; onFinished?: () => void };
 
-// How far the voice is through the whole paper, from 0 to 1. It only grows as the paper plays.
-export function paperProgress(tracks: Track[], index: number, time: number): number {
-  const total = tracks.reduce((sum, track) => sum + track.duration, 0);
-  if (total <= 0 || index < 0 || index >= tracks.length) return 0;
-  const before = tracks.slice(0, index).reduce((sum, track) => sum + track.duration, 0);
-  return Math.min(1, (before + Math.min(Math.max(time, 0), tracks[index].duration)) / total);
-}
-
 // Plays a paper one paragraph at a time. It has no user interface: it holds the state and drives one audio element.
 export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: Deps) {
   const audio = createAudio();

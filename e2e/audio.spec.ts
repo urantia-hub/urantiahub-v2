@@ -226,3 +226,27 @@ test("the audio comes from the CDN, and the security policy permits it", async (
   await expect.poll(() => audio.requested.some((url) => decodeURIComponent(url).includes("/nova/tts-1-hd-nova-1:1.0.1.mp3"))).toBe(true);
   expect(errors.filter((text) => /Content Security Policy/i.test(text))).toEqual([]);
 });
+
+// Found by Kelson on the live site: the two lines stood at the top and the bottom of the pill.
+test("the two lines in the pill stand close together, in the middle", async ({ page }) => {
+  await stubAudio(page);
+  await page.goto(PAPER_1);
+  const pill = (await dock(page).locator(".pill").boundingBox())!;
+  const small = (await dock(page).locator(".where small").boundingBox())!;
+  const label = (await page.getByTestId("reading-bar-label").boundingBox())!;
+  expect(label.y - (small.y + small.height)).toBeLessThanOrEqual(7);
+  const middle = (small.y + label.y + label.height) / 2;
+  expect(Math.abs(middle - (pill.y + pill.height / 2))).toBeLessThanOrEqual(3);
+});
+
+test("a long section name cuts off inside the pill", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "phone", "the pill is narrow on a phone");
+  await stubAudio(page);
+  await page.goto(`${PAPER_1}#1:7.1`);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("reading-bar-label")).toHaveText(/^7\. Spiritual Value/);
+  const pill = (await dock(page).locator(".pill").boundingBox())!;
+  const label = (await page.getByTestId("reading-bar-label").boundingBox())!;
+  expect(label.x).toBeGreaterThanOrEqual(pill.x + 30);
+  expect(label.x + label.width).toBeLessThanOrEqual(pill.x + pill.width - 30);
+});

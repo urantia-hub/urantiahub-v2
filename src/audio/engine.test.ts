@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio } from "../../test/fake-audio";
-import { createAudioEngine, paperProgress, SPEEDS } from "./engine";
+import { createAudioEngine, SPEEDS } from "./engine";
 import type { Track } from "./tracks";
 
 const tracks: Track[] = [
@@ -18,23 +18,6 @@ function setup() {
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 beforeEach(() => FakeAudio.reset());
-
-describe("paperProgress", () => {
-  it("is the part of the whole paper that the voice passed", () => {
-    expect(paperProgress(tracks, 0, 0)).toBe(0);
-    expect(paperProgress(tracks, 0, 5)).toBeCloseTo(5 / 60);
-    expect(paperProgress(tracks, 1, 10)).toBeCloseTo(20 / 60);
-    expect(paperProgress(tracks, 2, 30)).toBe(1);
-  });
-  it("never passes the end of a paragraph, and never goes over one", () => {
-    expect(paperProgress(tracks, 0, 99)).toBeCloseTo(10 / 60);
-    expect(paperProgress(tracks, 2, 99)).toBe(1);
-  });
-  it("is zero with no paragraph", () => {
-    expect(paperProgress(tracks, -1, 5)).toBe(0);
-    expect(paperProgress([], 0, 5)).toBe(0);
-  });
-});
 
 describe("the audio engine", () => {
   it("starts idle, with no paragraph", () => {

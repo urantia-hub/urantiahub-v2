@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { track } from "@/analytics";
-import { createAudioEngine, paperProgress, type AudioEngine, type VoiceState } from "@/audio/engine";
+import { createAudioEngine, type AudioEngine, type VoiceState } from "@/audio/engine";
 import type { Track } from "@/audio/tracks";
 import { Icon } from "@/components/icons";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
@@ -310,7 +310,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const paperLabel = paper.id === "0" ? "The Urantia Papers" : `Paper ${paper.id}`;
   const pauseShown = intent.kind === "pause";
   const roundName = pauseShown ? "Pause" : picked ? `Listen from ${picked}` : "Listen";
-  const fill = sounding && tracks ? paperProgress(tracks, voice.index, voice.time) : progress;
+  // While the voice plays, the line shows the same thing as the time beside it: this paragraph.
+  const length = tracks?.[voice.index]?.duration ?? 0;
+  const fill = sounding ? (length > 0 ? Math.min(1, voice.time / length) : 0) : progress;
   const away = hidden && job === "reading" && !open;
 
   return (
