@@ -38,3 +38,82 @@
     padding: 84px 24px 110px;
   }
 }
+
+/* The Privacy page: a date, lists, and one table that can grow. */
+.prose .updated {
+  margin: -1.6em 0 2.4em;
+  font: 400 13px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.prose h3 {
+  margin: 1.8em 0 0.5em;
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ref);
+}
+.prose ul {
+  margin: 0 0 1.1em;
+  padding-left: 1.2em;
+}
+.prose li {
+  margin: 0 0 0.5em;
+}
+.prose .table-wrap {
+  margin: 0 0 1.1em;
+  overflow-x: auto;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 14px/1.5 var(--font-ui);
+}
+.prose th,
+.prose td {
+  padding: 12px 12px 12px 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+.prose thead th {
+  font: 600 10.5px/1.2 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ref);
+}
+.prose tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.prose tbody th a {
+  display: block;
+  margin-top: 2px;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+/* On a phone each company is a block, not a row. */
+@media (max-width: 560px) {
+  .prose thead {
+    position: absolute;
+    left: -9999px;
+  }
+  .prose tr,
+  .prose tbody th,
+  .prose td {
+    display: block;
+    border: 0;
+    padding: 0;
+  }
+  .prose tr {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .prose td {
+    margin-top: 6px;
+  }
+  .prose tbody th a {
+    display: inline;
+    margin-left: 10px;
+  }
+}
