@@ -91,6 +91,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       if (!ref) {
         lastVoiceRef.current = null;
         setBackShown(false);
+        // The voice stopped. The page scrolled down to follow it, so the controls can be hidden.
+        setHidden(false);
         return;
       }
       // When the voice reaches a marked paragraph, the mark goes and the player shows.
@@ -152,6 +154,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       const nextRef = nextPick(latest.current, para.id);
       if (nextRef) track("paragraph_picked", { paper_id: paper.id });
       setPicked(nextRef);
+      setHidden(false);
     };
     article.addEventListener("click", onClick);
     return () => article.removeEventListener("click", onClick);
@@ -237,6 +240,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       if (event.defaultPrevented || document.querySelector("dialog[open]")) return;
       if (event.key === "Escape") {
         setPicked(null);
+        setHidden(false);
         return;
       }
       const target = event.target as HTMLElement | null;
@@ -377,7 +381,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                   Share
                 </button>
               </div>
-              <button type="button" className="close" aria-label="Close" onClick={() => setPicked(null)}>
+              <button type="button" className="close" aria-label="Close"
+                onClick={() => {
+                  setPicked(null);
+                  setHidden(false);
+                }}
+              >
                 <Icon name="close" />
               </button>
             </div>

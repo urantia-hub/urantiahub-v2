@@ -307,6 +307,23 @@ describe("the voice", () => {
     expect(para("1:0.2")).toHaveAttribute("data-voice");
   });
 
+  // Found in the browser tests: the page scrolls down to follow the voice, so a pause hid the controls.
+  it("keeps the controls in view after a pause, and after the mark is closed", async () => {
+    renderNav();
+    const dock = screen.getByTestId("reading-bar");
+    await userEvent.click(round());
+    await sound("playing");
+    await scrollTo(300);
+    await userEvent.click(round());
+    expect(job()).toBe("reading");
+    expect(dock).not.toHaveClass("away");
+
+    await userEvent.click(text("1:0.2"));
+    await scrollTo(600);
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(dock).not.toHaveClass("away");
+  });
+
   it("moves between paragraphs and changes the speed from the player", async () => {
     renderNav();
     await userEvent.click(round());

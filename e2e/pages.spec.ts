@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
+import { openNavigator } from "./audio";
 import { HOME_PASSAGES } from "../src/content/passages";
 
 const paragraphOf = (ref: string) =>
@@ -103,7 +104,7 @@ test("a reader who chose dark sees no light flash on the next page load", async 
 
 test("the navigator has the theme control too", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father");
-  await page.getByTestId("reading-bar").getByRole("button").click();
+  await openNavigator(page);
   await page.getByRole("dialog", { name: "Navigator" }).getByRole("button", { name: "Dark theme" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
 });

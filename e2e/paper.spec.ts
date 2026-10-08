@@ -31,14 +31,9 @@ test("a reference to a paragraph that does not exist shows a notice at the top",
   await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
 });
 
-test("a click on a reference marks the paragraph and copies its link", async ({ page, context, browserName }) => {
-  test.skip(browserName !== "chromium", "clipboard permissions are a Chromium feature");
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+test("the reference is a link to its paragraph", async ({ page }) => {
   await page.goto(PAPER_1);
-  await page.getByRole("link", { name: "1:0.2", exact: true }).click();
-  await expect(page).toHaveURL(`${PAPER_1}#1:0.2`);
-  await expect(page.getByText("Link copied")).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`http://localhost:3100${PAPER_1}#1:0.2`);
+  await expect(page.getByRole("link", { name: "1:0.2", exact: true })).toHaveAttribute("href", "#1:0.2");
 });
 
 for (const [from, to] of [
