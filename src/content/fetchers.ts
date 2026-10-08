@@ -21,6 +21,7 @@ const ParagraphSchema = z.object({
   sectionTitle: z.string().nullable(),
   text: z.string().min(1),
   htmlText: z.string().min(1),
+  audio: z.unknown().optional(),
 });
 
 const PaperResponseSchema = z.object({
@@ -45,7 +46,23 @@ export const TocResponseSchema = z.object({
   }),
 });
 
-export type Paragraph = { ref: string; text: string; html: string };
+// The one voice that covers every paragraph. Its URL comes from the API. The gateway never builds one.
+const NovaAudioSchema = z.object({
+  "tts-1-hd": z.object({
+    nova: z.object({ url: z.string().startsWith("https://cdn.urantia.dev/"), duration: z.number().positive() }),
+  }),
+});
+
+export type ParagraphAudio = { url: string; duration: number };
+
+export function novaAudio(raw: unknown): ParagraphAudio | null {
+  const parsed = NovaAudioSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  const { url, duration } = parsed.data["tts-1-hd"].nova;
+  return { url, duration };
+}
+
+export type Paragraph = { ref: string; text: string; html: string; audio: ParagraphAudio | null };
 export type Section = { id: string; title: string | null; paragraphs: Paragraph[] };
 export type PaperDoc = { id: string; title: string; partId: string; sections: Section[] };
 export type Passage = { ref: string; paperId: string; paperTitle: string; text: string };
@@ -80,6 +97,7 @@ export async function fetchPaper(client: ContentClient, id: string): Promise<Pap
       ref: p.standardReferenceId,
       text: p.text,
       html: sanitizeParagraphHtml(p.htmlText),
+      audio: novaAudio(p.audio),
     });
   }
   return { id: paper.id, title: paper.title, partId: paper.partId, sections };

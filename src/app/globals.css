@@ -16,6 +16,9 @@
   --rule: #e7e0d2;
   --accent: #4f46e5;
   --mark: #f3ead2;
+  /* Green shows only while sound plays. */
+  --voice: #e4efe3;
+  --voice-line: #2f7d5b;
   --raised: #ffffff;
   --shade: #26221c22;
   --font-text: var(--font-literata), Georgia, serif;
@@ -32,6 +35,8 @@
   --rule: #2d2a21;
   --accent: #a5b4fc;
   --mark: #2e2a1a;
+  --voice: #1c2a21;
+  --voice-line: #6fcf9f;
   --raised: #24211a;
   --shade: #00000099;
 }

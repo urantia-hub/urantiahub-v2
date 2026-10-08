@@ -8,8 +8,8 @@ const paper: PaperDoc = {
   title: "The Universal Father",
   partId: "1",
   sections: [
-    { id: "0", title: null, paragraphs: [{ ref: "1:0.1", text: "First.", html: '<span class="urantia-dev-pb-0">First.</span>' }] },
-    { id: "1", title: "The Father’s Name", paragraphs: [{ ref: "1:1.1", text: "Second.", html: "<em>Second.</em>" }] },
+    { id: "0", title: null, paragraphs: [{ ref: "1:0.1", text: "First.", html: '<span class="urantia-dev-pb-0">First.</span>', audio: null }] },
+    { id: "1", title: "The Father’s Name", paragraphs: [{ ref: "1:1.1", text: "Second.", html: "<em>Second.</em>", audio: null }] },
   ],
 };
 

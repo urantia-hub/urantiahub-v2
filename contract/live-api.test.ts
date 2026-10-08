@@ -19,6 +19,16 @@ describe("live API contract", () => {
     expect(paper.sections[0].paragraphs[0].ref).toBe("1:0.1");
   });
 
+  it("gives each paragraph of Paper 1 a nova audio file on the CDN", async () => {
+    const paper = await fetchPaper(client, "1");
+    const paragraphs = paper.sections.flatMap((s) => s.paragraphs);
+    expect(paragraphs.length).toBeGreaterThan(50);
+    for (const p of paragraphs) {
+      expect(p.audio?.url, p.ref).toMatch(/^https:\/\/cdn\.urantia\.dev\/audio\/eng\/paragraphs\/nova\//);
+      expect(p.audio?.duration, p.ref).toBeGreaterThan(0);
+    }
+  });
+
   it("serves the Foreword and the last paper", async () => {
     expect((await fetchPaper(client, "0")).title).toBe("Foreword");
     expect((await fetchPaper(client, "196")).title).toBe("The Faith of Jesus");

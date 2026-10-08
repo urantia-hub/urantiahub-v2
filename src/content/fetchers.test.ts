@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ContentError, excerptPassage, fetchPaper, fetchPassage, type ContentClient, type Passage } from "./fetchers";
+import { ContentError, excerptPassage, fetchPaper, fetchPassage, novaAudio, type ContentClient, type Passage } from "./fetchers";
 
 const paragraph = (ref: string, sectionId: string, sectionTitle: string | null, html = `<span class="urantia-dev-pb-0">Text ${ref}</span>`) => ({
   id: `x-${ref}`,
@@ -57,6 +57,7 @@ describe("fetchPaper", () => {
       ref: "1:0.1",
       text: "Text 1:0.1",
       html: '<span class="urantia-dev-pb-0">Text 1:0.1</span>',
+      audio: null,
     });
   });
 
@@ -183,5 +184,48 @@ describe("excerptPassage", () => {
 
   it("rejects an empty excerpt", () => {
     expect(() => excerptPassage(paragraph, { text: "" })).toThrow(ContentError);
+  });
+});
+
+describe("novaAudio", () => {
+  const nova = { url: "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.0.1.mp3", duration: 45.6, format: "mp3" };
+
+  it("reads the nova entry", () => {
+    expect(novaAudio({ "tts-1-hd": { nova, onyx: { url: "https://cdn.urantia.dev/x.mp3", duration: 1 } } })).toEqual({
+      url: nova.url,
+      duration: 45.6,
+    });
+  });
+
+  it("never uses another voice", () => {
+    expect(novaAudio({ "tts-1-hd": { onyx: nova } })).toBeNull();
+    expect(novaAudio({ "gpt-4o-mini-tts": { cedar: nova } })).toBeNull();
+  });
+
+  it.each([
+    ["no audio", null],
+    ["a missing value", undefined],
+    ["a URL on another host", { "tts-1-hd": { nova: { ...nova, url: "https://audio.urantia.dev/x.mp3" } } }],
+    ["a URL with no host", { "tts-1-hd": { nova: { ...nova, url: "/audio/x.mp3" } } }],
+    ["a duration of zero", { "tts-1-hd": { nova: { ...nova, duration: 0 } } }],
+    ["a duration that is text", { "tts-1-hd": { nova: { ...nova, duration: "45" } } }],
+  ])("gives null for %s", (_name, raw) => {
+    expect(novaAudio(raw)).toBeNull();
+  });
+});
+
+describe("fetchPaper and audio", () => {
+  it("puts the nova audio on each paragraph, or null", async () => {
+    const withAudio = {
+      data: {
+        paper: paperResponse.data.paper,
+        paragraphs: [
+          { ...paragraph("1:0.1", "0", null), audio: { "tts-1-hd": { nova: { url: "https://cdn.urantia.dev/a.mp3", duration: 12 } } } },
+          paragraph("1:0.2", "0", null),
+        ],
+      },
+    };
+    const paper = await fetchPaper(client({ paper: withAudio }), "1");
+    expect(paper.sections[0].paragraphs.map((p) => p.audio)).toEqual([{ url: "https://cdn.urantia.dev/a.mp3", duration: 12 }, null]);
   });
 });
