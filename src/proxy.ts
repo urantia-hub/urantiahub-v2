@@ -1,9 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { paperById } from "@/content/paper-index";
-import { idFromSlug } from "@/lib/paper-url";
+import { paperById, referenceHref } from "@/content/paper-index";
+import { idFromSlug, parseReference } from "@/lib/paper-url";
+import { normalizeQuery } from "@/search/query";
 
-// Sends each paper URL that is not canonical to the canonical one. The query string stays.
+// Two jobs. A paper URL that is not canonical goes to the canonical one, and the query string stays.
+// A search for a reference goes to the paper, so that it works with no JavaScript.
 export function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/search") {
+    const ref = parseReference(normalizeQuery(request.nextUrl.searchParams.get("q") ?? undefined));
+    return ref && paperById(ref.paperId) ? NextResponse.redirect(new URL(referenceHref(ref), request.url), 307) : NextResponse.next();
+  }
+
   let slug: string;
   try {
     slug = decodeURIComponent(request.nextUrl.pathname.slice("/papers/".length));
@@ -22,5 +29,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/papers/:slug",
+  matcher: ["/papers/:slug", "/search"],
 };

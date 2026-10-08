@@ -3,5 +3,6 @@ import { absoluteUrl, site } from "@/site";
 
 export default function robots(): MetadataRoute.Robots {
   if (!site.indexable) return { rules: { userAgent: "*", disallow: "/" } };
-  return { rules: { userAgent: "*", allow: "/" }, sitemap: absoluteUrl("/sitemap.xml") };
+  // A results page is not a page of the text.
+  return { rules: { userAgent: "*", allow: "/", disallow: "/search" }, sitemap: absoluteUrl("/sitemap.xml") };
 }

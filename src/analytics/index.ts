@@ -10,6 +10,11 @@ export type AnalyticsEvents = {
   audio_started: { paper_id: string; from: "bar" | "paragraph" };
   audio_finished_paper: { paper_id: string; speed: number };
   audio_failed: { paper_id: string };
+  search_opened: undefined;
+  search_started: { source: "typed" | "starter" | "recent" | "navigator" };
+  search_direct_hit: { kind: "reference" | "paper" };
+  search_results_shown: { kind: "words" | "question"; exact: "0" | "1-5" | "6-50" | "51+" };
+  search_result_opened: { group: "exact" | "related"; position: number };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };
