@@ -53,7 +53,7 @@ describe("Privacy and search", () => {
 describe("Privacy and the theme choice", () => {
   it("says that the theme choice stays in the browser", () => {
     render(<PrivacyPage />);
-    expect(screen.getByText(/keeps three things in your browser: your theme choice/)).toBeInTheDocument();
+    expect(screen.getByText(/keeps four things in your browser: your theme choice, your text size/)).toBeInTheDocument();
   });
 });
 

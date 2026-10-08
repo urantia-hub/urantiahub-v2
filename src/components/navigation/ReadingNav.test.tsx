@@ -135,6 +135,24 @@ describe("the reading job", () => {
   });
 });
 
+describe("the top bar", () => {
+  // The header of the page leaves and returns with the bottom controls. CSS reads these marks.
+  it("tells the page when the bars are away, and when the page is not at its top", async () => {
+    const view = renderNav();
+    const root = document.documentElement;
+    expect(root.dataset.bars).toBe("shown");
+    await scrollTo(300);
+    expect(root.dataset.bars).toBe("away");
+    expect(root.dataset.scrolled).toBe("");
+    await scrollTo(240);
+    expect(root.dataset.bars).toBe("shown");
+    await scrollTo(0);
+    expect(root.dataset.scrolled).toBeUndefined();
+    view.unmount();
+    expect(root.dataset.bars).toBeUndefined();
+  });
+});
+
 describe("the place the reader left", () => {
   it("is kept in this browser as the paper and the section in view", async () => {
     window.localStorage.clear();

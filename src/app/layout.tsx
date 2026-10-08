@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Literata } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { TEXT_SIZE_INIT_SCRIPT } from "@/lib/text-size";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { site } from "@/site";
 import "./globals.css";
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${literata.variable} ${literataItalic.variable} ${inter.variable}`} suppressHydrationWarning>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT + TEXT_SIZE_INIT_SCRIPT }} />
         <a className="skip" href="#main">
           Skip to the text
         </a>

@@ -123,6 +123,18 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     };
   }, [tracks, paper.id, bring]);
 
+  // The header of the page leaves and returns with these controls. CSS reads the mark.
+  useEffect(() => {
+    document.documentElement.dataset.bars = hidden ? "away" : "shown";
+  }, [hidden]);
+  useEffect(
+    () => () => {
+      delete document.documentElement.dataset.bars;
+      delete document.documentElement.dataset.scrolled;
+    },
+    [],
+  );
+
   useEffect(() => mark("data-picked", picked), [picked]);
   useEffect(() => mark("data-voice", sounding ? voiceRef : null), [sounding, voiceRef]);
 
@@ -199,6 +211,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       }
       setCurrent(section);
       setProgress(max > 0 ? Math.min(1, Math.max(0, y / max)) : 0);
+      // The header of the page has a line under it when the page is not at its top.
+      if (y > 40) document.documentElement.dataset.scrolled = "";
+      else delete document.documentElement.dataset.scrolled;
       setDeep(y > 140);
 
       const now = latest.current;

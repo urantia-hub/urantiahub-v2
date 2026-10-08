@@ -4,6 +4,8 @@
   margin: 0 auto;
   padding: 44px 20px 150px;
   line-height: 1.72;
+  /* The reader's text size, as a factor of the design size. */
+  font-size: calc(1em * var(--reader-scale, 1));
 }
 .paper-head {
   text-align: center;

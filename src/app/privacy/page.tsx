@@ -25,8 +25,8 @@ export default function PrivacyPage() {
         holds no IP address, no page that you opened, and nothing about your device.
       </p>
       <p>
-        Your browser. The site keeps three things in your browser: your theme choice, the last place that you
-        read, and your last five searches. They make the site open as you left it. They do not leave
+        Your browser. The site keeps four things in your browser: your theme choice, your text size, the last
+        place that you read, and your last five searches. They make the site open as you left it. They do not leave
         your device, and you can remove the searches with the Clear control on the search page.
       </p>
 
