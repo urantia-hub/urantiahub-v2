@@ -57,3 +57,19 @@ describe("relatedSnippet", () => {
     expect(relatedSnippet(`The ${mark("word")} here`).every((p) => !p.marked)).toBe(true);
   });
 });
+
+describe("faults that the branch review found", () => {
+  it("reads numbered and named punctuation entities as their characters", () => {
+    expect(text(exactSnippet("God&#8217;s plan &mdash; and &ldquo;more&rdquo; &#x2026; &hellip;"))).toBe("God’s plan — and “more” … …");
+  });
+  it("puts a space in place of a line break", () => {
+    expect(text(relatedSnippet("first<br>second<br/>third"))).toBe("first second third");
+  });
+  it("ignores marker characters that are in the source text", () => {
+    const parts = exactSnippet(`a\u0001b\u0002c ${mark("word")}`);
+    expect(parts).toEqual([
+      { text: "abc ", marked: false },
+      { text: "word", marked: true },
+    ]);
+  });
+});

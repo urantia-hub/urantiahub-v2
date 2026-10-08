@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { sanitizeParagraphHtml } from "@/lib/sanitize";
+import { hasWord } from "@/search/query";
 
 // The one error type that the gateway throws.
 export class ContentError extends Error {
@@ -191,6 +192,8 @@ function toSearchPage(raw: unknown, what: string): SearchPage {
 
 // Paragraphs that hold all of the words.
 export async function fetchExact(client: SearchClient, q: string, page: number, limit: number): Promise<SearchPage> {
+  // The API answers 400 for a text with no letter and no number. That is "no result", not a failure.
+  if (!hasWord(q)) return { hits: [], total: 0 };
   let raw: unknown;
   try {
     raw = await client.search.fullText({ q, type: "and", page, limit });
@@ -202,6 +205,7 @@ export async function fetchExact(client: SearchClient, q: string, page: number, 
 
 // Paragraphs that are near the text in meaning.
 export async function fetchRelated(client: SearchClient, q: string, limit: number): Promise<SearchPage> {
+  if (!hasWord(q)) return { hits: [], total: 0 };
   let raw: unknown;
   try {
     raw = await client.search.semantic({ q, limit });

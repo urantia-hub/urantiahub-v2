@@ -158,6 +158,24 @@ describe("on the results page", () => {
   });
 });
 
+describe("faults that the branch review found", () => {
+  it("has a search row that is a plain button, not a submit button outside the form", async () => {
+    render(<SearchBox initial="" />);
+    await userEvent.type(field(), "nature");
+    expect(screen.getByRole("button", { name: "Search the Papers for “nature”" })).toHaveAttribute("type", "button");
+  });
+
+  // The server does not know the recent searches. It must not show the starter questions to a reader who has some.
+  it("puts no starter question and no recent search in the server HTML", async () => {
+    const { renderToString } = await import("react-dom/server");
+    saveRecent("soul");
+    const html = renderToString(<SearchBox initial="" />);
+    expect(html).not.toContain("Ask in your own words");
+    expect(html).not.toContain("Recent");
+    expect(html).toContain('name="q"');
+  });
+});
+
 describe("the way back", () => {
   it("goes back in the history, and is a link to the home page with no JavaScript", async () => {
     window.history.pushState(null, "", "/search");

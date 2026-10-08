@@ -179,3 +179,36 @@ test("the results column is centered with margins on a desktop", async ({ page }
   expect(box.width).toBeLessThanOrEqual(641);
   expect(Math.abs(box.x + box.width / 2 - 640)).toBeLessThanOrEqual(8);
 });
+
+// The live API refuses such a text. The page must say "no result", not "did not load".
+test("a search with no letter and no number says that nothing matches", async ({ page }) => {
+  await openSearch(page, `/search?q=${encodeURIComponent("???")}`);
+  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.");
+  await expect(group(page, "Related passages")).toContainText("No related passage.");
+});
+
+test("a full title of five words is a direct hit", async ({ page }) => {
+  await openSearch(page);
+  await field(page).fill("the bestowals of christ michael");
+  await expect(group(page, "Go to").getByRole("link")).toHaveText(/The Bestowals of Christ Michael/);
+});
+
+test("a reader with recent searches never sees the starter questions first", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("hub:recent-searches", JSON.stringify(["soul"])));
+  const seen: string[] = [];
+  await page.exposeFunction("report", (text: string) => void seen.push(text));
+  await page.addInitScript(() => {
+    new MutationObserver(() => {
+      if (document.querySelector('[aria-label="Ask in your own words"]')) (window as unknown as { report: (t: string) => void }).report("starters");
+    }).observe(document, { childList: true, subtree: true });
+  });
+  await openSearch(page);
+  await expect(group(page, "Recent").getByRole("link", { name: "soul" })).toBeVisible();
+  expect(seen).toEqual([]);
+});
+
+test("a crafted text with half of a character does not break the page", async ({ page }) => {
+  await openSearch(page, `/search?q=${"god%20".repeat(49)}abc%F0%9F%98%80&all=exact`);
+  await expect(page.getByRole("heading", { name: /Exact matches/ })).toBeVisible();
+  await expect(page.getByText("Page not found")).toHaveCount(0);
+});

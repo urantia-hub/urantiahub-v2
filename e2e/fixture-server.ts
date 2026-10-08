@@ -35,6 +35,8 @@ function search(kind: "search" | "semantic", body: string) {
     return json(400, JSON.stringify({ error: "bad body" }));
   }
   const q = typeof params.q === "string" ? params.q : "";
+  // The live API refuses a text with no letter and no number.
+  if (!/[A-Za-z0-9]/.test(q)) return json(400, JSON.stringify({ title: "q has no word" }));
   if (kind === "semantic" && q === "fail related") return json(500, JSON.stringify({ title: "recorded failure" }));
   const file = join(dir, `${kind}_${slug(q)}.json`);
   const limit = Number(params.limit) || 20;

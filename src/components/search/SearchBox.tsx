@@ -11,9 +11,8 @@ import { clearRecent, readRecent, saveRecent, subscribeToRecent } from "@/search
 import { STARTER_GROUPS } from "@/search/starters";
 
 const NO_RECENT: readonly string[] = [];
-// Picks one question in each group, at random. The same code runs in the layout effect below.
-const PICK = `(function(){document.currentScript.parentElement.querySelectorAll('.starter-group').forEach(function(g){g.dataset.pick=String(Math.floor(Math.random()*g.children.length))})})();`;
 const noRecent = () => NO_RECENT;
+const never = () => () => {};
 
 // The one box: a reference or a paper title is a direct hit, and other text is a search.
 // It is a real form, so it works with no JavaScript. `initial` is the text of the results below it.
@@ -24,6 +23,13 @@ export function SearchBox({ initial }: { initial: string }) {
   const form = useRef<HTMLFormElement>(null);
   const [value, setValue] = useState(initial);
   const recent = useSyncExternalStore(subscribeToRecent, readRecent, noRecent);
+  // The server does not know the recent searches. So the lists below the bar show only in the browser:
+  // a reader with recent searches must not see the starter questions first.
+  const inBrowser = useSyncExternalStore(
+    never,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
     if (initial === "") track("search_opened");
@@ -35,8 +41,8 @@ export function SearchBox({ initial }: { initial: string }) {
   }, []);
 
   const q = normalizeQuery(value);
-  const startersShown = q === "" && recent.length === 0;
-  // React does not run the inline script after a client-side navigation, so then this picks, before the paint.
+  const startersShown = inBrowser && q === "" && recent.length === 0;
+  // Picks one question in each group at random, before the paint.
   useLayoutEffect(() => {
     if (!startersShown) return;
     starters.current?.querySelectorAll<HTMLElement>(".starter-group").forEach((group) => {
@@ -128,7 +134,7 @@ export function SearchBox({ initial }: { initial: string }) {
         {searchRow && (
           <section aria-label="Search">
             <h2 className="search-label">Search</h2>
-            <button type="submit" className="search-row go" form={undefined} onClick={onSubmit}>
+            <button type="button" className="search-row go" onClick={onSubmit}>
               <span className="glyph">
                 <Icon name="search" />
               </span>
@@ -137,7 +143,7 @@ export function SearchBox({ initial }: { initial: string }) {
           </section>
         )}
 
-        {q === "" && recent.length > 0 && (
+        {inBrowser && q === "" && recent.length > 0 && (
           <section aria-label="Recent">
             <h2 className="search-label">
               Recent
@@ -156,12 +162,12 @@ export function SearchBox({ initial }: { initial: string }) {
           </section>
         )}
 
-        {q === "" && recent.length === 0 && (
-          <section aria-label="Ask in your own words" ref={starters} suppressHydrationWarning>
+        {startersShown && (
+          <section aria-label="Ask in your own words" ref={starters}>
             <h2 className="search-label">Ask in your own words</h2>
             {STARTER_GROUPS.map((group) => (
-              // One question of each group shows. CSS hides the others. With no JavaScript, the first one shows.
-              <div className="starter-group" key={group.name} suppressHydrationWarning>
+              // One question of each group shows. CSS hides the others.
+              <div className="starter-group" key={group.name}>
                 {group.questions.map((text) => (
                   <Link className="search-row" href={searchHref(text)} key={text} onClick={() => run(text, "starter")}>
                     <span className="glyph">
@@ -172,8 +178,6 @@ export function SearchBox({ initial }: { initial: string }) {
                 ))}
               </div>
             ))}
-            {/* Runs before the first paint on a full page load, so no text changes in front of the reader. */}
-            <script dangerouslySetInnerHTML={{ __html: PICK }} />
           </section>
         )}
       </div>

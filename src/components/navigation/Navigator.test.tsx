@@ -74,6 +74,7 @@ describe("Navigator", () => {
     await userEvent.type(screen.getByRole("textbox", { name: "Search, or go to a reference" }), "thought  adjuster{Enter}");
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("/search?q=thought%20adjuster", true));
     expect(track).toHaveBeenCalledWith("search_started", { source: "navigator" });
+    expect(JSON.parse(window.localStorage.getItem("hub:recent-searches")!)).toEqual(["thought adjuster"]);
     expect(screen.queryByRole("alert")).toBeNull();
   });
 

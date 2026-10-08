@@ -45,3 +45,10 @@ describe("directHits", () => {
     expect(directHits("197")).toEqual([]);
   });
 });
+
+describe("a full title of five words or more", () => {
+  it("is a direct hit", () => {
+    expect(directHits("the bestowals of christ michael").map((h) => h.title)).toEqual(["The Bestowals of Christ Michael"]);
+    expect(directHits("ministering spirits of the central universe")[0]).toMatchObject({ detail: "Paper 26" });
+  });
+});

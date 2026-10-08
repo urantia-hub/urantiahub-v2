@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { after } from "next/server";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
 import { ResultLink } from "@/components/search/ResultLink";
 import { SearchBox } from "@/components/search/SearchBox";
 import { ShownTracker } from "@/components/search/ShownTracker";
-import { searchExact, searchRelated, type SearchHit, type SearchPage } from "@/content";
+import { searchExact, searchRelated, type SearchHit } from "@/content";
 import { referenceHref } from "@/content/paper-index";
 import { parseReference } from "@/lib/paper-url";
 import { isQuestion, normalizeQuery, searchHref } from "@/search/query";
+import { settle, type Outcome } from "@/search/settle";
 import { exactSnippet, relatedSnippet } from "@/search/snippet";
+import { logSearch } from "@/server/search-log";
 
 // A results page is not a page of the text. It stays out of each search engine, at each index setting.
 export const metadata: Metadata = { title: "Search", robots: { index: false, follow: false } };
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
-type Outcome = { ok: true; page: SearchPage } | { ok: false };
 type Kind = "exact" | "related";
 
 const SHOWN = 5;
@@ -75,12 +77,6 @@ async function SearchContent({ searchParams }: Props) {
   );
 }
 
-const settle = (promise: Promise<SearchPage>): Promise<Outcome> =>
-  promise.then(
-    (page): Outcome => ({ ok: true, page }),
-    (): Outcome => ({ ok: false }),
-  );
-
 function hitHref(hit: SearchHit): string {
   const ref = parseReference(hit.ref);
   return ref ? referenceHref(ref) : "/papers";
@@ -93,6 +89,11 @@ function TwoGroups({ q }: { q: string }) {
   const exact = settle(searchExact(q));
   const related = settle(searchRelated(q));
   const question = isQuestion(q);
+  // After the page is sent: one record of the search, with no link to the reader.
+  after(async () => {
+    const [e, r] = await Promise.all([exact, related]);
+    await logSearch({ query: q, kind: question ? "question" : "words", exact: e.ok ? e.page.total : -1, related: r.ok ? r.page.hits.length : -1 });
+  });
   const order: Kind[] = question ? ["related", "exact"] : ["exact", "related"];
   const outcome = { exact, related };
   return (
@@ -192,7 +193,7 @@ async function AllExact({ q, page }: { q: string; page: number }) {
         {LABEL.exact}
         <em>
           {total.toLocaleString("en-US")}
-          {pages > 1 ? ` · page ${page} of ${pages}` : ""}
+          {pages > 1 ? ` · page ${Math.min(page, pages)} of ${pages}` : ""}
         </em>
       </h2>
       {hits.map((hit, i) => (

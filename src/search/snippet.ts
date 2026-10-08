@@ -3,15 +3,38 @@ export type Part = { text: string; marked: boolean };
 // Private marker characters for the start and the end of a matched word.
 const OPEN = "\u0001";
 const CLOSE = "\u0002";
-const ENTITIES: Record<string, string> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&nbsp;": " " };
+const ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+  mdash: "—",
+  ndash: "–",
+  hellip: "…",
+  lsquo: "‘",
+  rsquo: "’",
+  ldquo: "“",
+  rdquo: "”",
+};
 
-// Paragraph HTML from the API to plain text. Matched words keep a marker, and a dot leader becomes a space.
+function decodeEntity(entity: string, body: string): string {
+  if (body[0] !== "#") return ENTITIES[body] ?? entity;
+  const code = body[1] === "x" || body[1] === "X" ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
+  return Number.isFinite(code) && code > 31 && code <= 0x10ffff ? String.fromCodePoint(code) : "";
+}
+
+// Paragraph HTML from the API to plain text. Matched words keep a marker, and a dot leader or a line break
+// becomes a space. Marker characters that are in the source are removed first.
 function toMarkedText(html: string): string {
   return html
-    .replace(/<span class="?urantia-dev-highlighted"?>([\s\S]*?)<\/span>/g, `${OPEN}$1${CLOSE}`)
-    .replace(/<span class="dot"><\/span>/g, " ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&(?:amp|lt|gt|quot|#39|nbsp);/g, (entity) => ENTITIES[entity])
+    .replaceAll(OPEN, "")
+    .replaceAll(CLOSE, "")
+    .replace(/<span class="?urantia-dev-highlighted"?>([^<]*)<\/span>/g, `${OPEN}$1${CLOSE}`)
+    .replace(/<span class="dot"><\/span>|<br\s*\/?>/g, " ")
+    .replace(/<[^<>]*>/g, "")
+    .replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g, decodeEntity)
     .replace(/[ \t\n]+/g, " ")
     .trim();
 }

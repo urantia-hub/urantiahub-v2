@@ -300,3 +300,19 @@ describe("the two searches", () => {
     await expect(fetchRelated(client, "a", 10)).rejects.toBeInstanceOf(ContentError);
   });
 });
+
+describe("a search text with no letter or number", () => {
+  // The API answers 400 for such text. That is "no result", not a failure.
+  it.each(["???", "…", "愛"])("gives an empty page for %s, with no request", async (q) => {
+    const calls: unknown[] = [];
+    const client: SearchClient = {
+      search: {
+        fullText: async (p) => (calls.push(p), { data: [], meta: { total: 0 } }),
+        semantic: async (p) => (calls.push(p), { data: [], meta: { total: 0 } }),
+      },
+    };
+    await expect(fetchExact(client, q, 0, 8)).resolves.toEqual({ hits: [], total: 0 });
+    await expect(fetchRelated(client, q, 10)).resolves.toEqual({ hits: [], total: 0 });
+    expect(calls).toEqual([]);
+  });
+});

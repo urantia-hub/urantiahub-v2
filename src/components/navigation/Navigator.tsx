@@ -6,6 +6,7 @@ import { Icon } from "@/components/icons";
 import { paperById, referenceHref } from "@/content/paper-index";
 import { parseReference, referenceProblem } from "@/lib/paper-url";
 import { normalizeQuery, searchHref } from "@/search/query";
+import { saveRecent } from "@/search/recent";
 import { sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
 type Props = {
@@ -117,6 +118,7 @@ export function Navigator({
       setError("The papers go from 1 to 196.");
       return;
     }
+    saveRecent(text);
     track("search_started", { source: "navigator" });
     leave(searchHref(text));
   }

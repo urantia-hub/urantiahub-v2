@@ -1,6 +1,6 @@
 import { PAPERS, paperById, paperPath, referenceHref } from "@/content/paper-index";
 import { parseReference } from "@/lib/paper-url";
-import { isQuestion } from "./query";
+import { startsLikeQuestion } from "./query";
 
 export type DirectHit = { kind: "reference" | "paper"; href: string; title: string; detail: string };
 
@@ -22,8 +22,8 @@ export function directHits(text: string): DirectHit[] {
   }
 
   const trimmed = text.trim().replace(/\s+/g, " ");
-  // A question is for the search, not for a title match.
-  if (trimmed === "" || isQuestion(trimmed)) return [];
+  // A question is for the search, not for a title match. A long text can still be a full title.
+  if (trimmed === "" || startsLikeQuestion(trimmed)) return [];
   const words = trimmed
     .toLowerCase()
     .split(" ")
