@@ -1,5 +1,6 @@
 const ALLOWED_TAGS = new Set(["span", "em", "sup", "sub", "i", "b", "strong"]);
-const ALLOWED_CLASS = /^(?:urantia-dev-[a-z0-9-]+|scaps)$/;
+// "pra", "dot", and "ran" are the three parts of a row with a dot leader: a label, the dots, and a value.
+const ALLOWED_CLASS = /^(?:urantia-dev-[a-z0-9-]+|scaps|pra|dot|ran)$/;
 const TOKEN = /<!--[\s\S]*?-->|<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>|</g;
 const CLASS_ATTR = /\bclass\s*=\s*(?:"([^"]*)"|'([^']*)')/i;
 

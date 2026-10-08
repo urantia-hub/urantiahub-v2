@@ -73,3 +73,11 @@ describe("line breaks and tags that do not match", () => {
     expect(sanitizeParagraphHtml("<em>a <sup>1</sup></em> b")).toBe("<em>a <sup>1</sup></em> b");
   });
 });
+
+// A table row in the source: a label, a row of dots, and a number at the right. Paper 15 has 13 of them.
+describe("rows with a dot leader", () => {
+  it("keeps the three classes of a leader row", () => {
+    const row = '<span class="pra">One system embraces, approximately<span class="dot"></span><span class="ran">1,000 worlds</span></span>';
+    expect(sanitizeParagraphHtml(row)).toBe(row);
+  });
+});
