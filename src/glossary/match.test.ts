@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { GlossaryEntry } from "./glossary";
+import { GLOSSARY, type GlossaryEntry } from "./glossary";
 import { createMatcher, termsIn } from "./match";
 
 const entry = (name: string, type: GlossaryEntry["type"] = "being", aliases: string[] = []): GlossaryEntry => ({
@@ -80,6 +80,13 @@ describe("termsIn, with the real glossary", () => {
     const found = names(termsIn("The Universal Father lives on Paradise, and mortals of Urantia find him by faith."));
     for (const name of ["Universal Father", "Paradise", "mortals", "Urantia", "faith"]) expect(found).toContain(name);
   });
+  // One large pattern for each name took 8 seconds to build. A cold server must answer fast.
+  it("is ready in less than a quarter of a second", () => {
+    const start = performance.now();
+    createMatcher(GLOSSARY)("The Universal Father.");
+    expect(performance.now() - start).toBeLessThan(250);
+  });
+
   it("takes less than a twentieth of a second for a long paragraph", () => {
     const text = "The Universal Father and the Eternal Son and the Infinite Spirit on Paradise. ".repeat(40);
     termsIn(text);
