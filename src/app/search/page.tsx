@@ -76,7 +76,11 @@ async function SearchContent({ searchParams }: Props) {
       {/* The key gives the box a new state for each new search. */}
       <SearchBox initial={q} key={q} />
       {q !== "" && (
-        <div className="search-wrap results">{params.all === "exact" ? <AllExact q={q} page={page} /> : <TwoGroups q={q} record={record} />}</div>
+        // The key gives each search its own waiting rows. Without it, the page keeps the old results in view
+        // until the new ones are complete.
+        <div className="search-wrap results" key={`${q}:${params.all === "exact" ? page : ""}`}>
+          {params.all === "exact" ? <AllExact q={q} page={page} /> : <TwoGroups q={q} record={record} />}
+        </div>
       )}
     </>
   );
@@ -170,7 +174,7 @@ async function Group({ kind, q, own, before, question }: GroupProps) {
         </p>
       )}
       {kind === "exact" && total > SHOWN && (
-        <Link className="search-more" href={`${searchHref(q)}&all=exact`}>
+        <Link className="search-more" prefetch={false} href={`${searchHref(q)}&all=exact`}>
           All {total.toLocaleString("en-US")} exact matches
         </Link>
       )}
@@ -215,9 +219,23 @@ async function AllExact({ q, page }: { q: string; page: number }) {
       ))}
       {hits.length === 0 && <p className="search-empty">No more matches.</p>}
       <nav className="search-pages" aria-label="Pages">
-        {page > 1 ? <Link href={address(page - 1)}>Previous</Link> : <span />}
-        <Link href={searchHref(q)}>Back to both groups</Link>
-        {page < pages ? <Link href={address(page + 1)}>Next</Link> : <span />}
+        {page > 1 ? (
+          <Link prefetch={false} href={address(page - 1)}>
+            Previous
+          </Link>
+        ) : (
+          <span />
+        )}
+        <Link prefetch={false} href={searchHref(q)}>
+          Back to both groups
+        </Link>
+        {page < pages ? (
+          <Link prefetch={false} href={address(page + 1)}>
+            Next
+          </Link>
+        ) : (
+          <span />
+        )}
       </nav>
     </section>
   );

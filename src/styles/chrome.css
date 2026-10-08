@@ -76,7 +76,8 @@
   height: 19px;
 }
 /* On a paper page the header has icons only. "Papers" is in the navigator, and "About" is in the footer. */
-body:has(.paper) .site-header nav a:not(.icon-link) {
+/* A hidden paper page (kept alive by Next.js) must not count. */
+body:has(.paper:not([style*="display: none"])) .site-header nav a:not(.icon-link) {
   display: none;
 }
 .site-header nav a {

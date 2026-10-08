@@ -58,11 +58,14 @@ function read(request: IncomingMessage): Promise<string> {
 
 createServer(async (request, response) => {
   const path = new URL(request.url ?? "/", "http://localhost").pathname;
+  const text = request.method === "POST" ? await read(request) : "";
+  // The text "slow search" takes a second and a half, for the test of the sign that a search runs.
+  if (text.includes('"slow search"')) await new Promise((resolve) => setTimeout(resolve, 1500));
   const { status, body } =
     request.method === "POST" && path === "/search"
-      ? search("search", await read(request))
+      ? search("search", text)
       : request.method === "POST" && path === "/search/semantic"
-        ? search("semantic", await read(request))
+        ? search("semantic", text)
         : answer(request.url ?? "/");
   response.writeHead(status, { "content-type": "application/json" });
   response.end(body);
