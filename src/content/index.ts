@@ -2,7 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
-import { fetchExact, fetchPaper, fetchPassage, fetchRelated, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
+import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
 // The only place in the app that talks to api.urantia.dev.
 const client = new UrantiaAPI({ baseUrl: process.env.URANTIA_API_BASE_URL || undefined });
@@ -21,7 +21,25 @@ export async function getPassage(ref: string): Promise<Passage> {
   return fetchPassage(client, ref);
 }
 
-export { ContentError, excerptPassage } from "./fetchers";
+// The text of each paragraph of one paper, from the shared cache. The terms address needs one paragraph for
+// each request, and without this each server instance would read the whole paper from the API again.
+// The cache holds one item for each paper, so no one can fill it with references that do not exist.
+async function paragraphTexts(paperId: string): Promise<Record<string, string>> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag(`paper:${paperId}`);
+  const paper = await getPaper(paperId);
+  return Object.fromEntries(paper.sections.flatMap((section) => section.paragraphs).map((p) => [p.ref, p.text]));
+}
+
+// The check for a missing paragraph is outside the cached call: an error loses its kind when it crosses a cache.
+export async function getParagraphText(paperId: string, ref: string): Promise<string> {
+  const texts = await paragraphTexts(paperId);
+  if (!Object.hasOwn(texts, ref)) throw new ParagraphNotFound(ref);
+  return texts[ref];
+}
+
+export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";
 export type { PaperDoc, Paragraph, ParagraphAudio, Passage, SearchHit, SearchPage, Section } from "./fetchers";
 
 // A search result does not change until the text changes, so each result is kept for days.

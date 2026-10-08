@@ -3,6 +3,7 @@ import { UrantiaAPI } from "@urantia/api";
 import { describe, expect, it } from "vitest";
 import { excerptPassage, fetchExact, fetchPaper, fetchPassage, fetchRelated, TocResponseSchema, type ContentClient, type SearchClient } from "@/content/fetchers";
 import { PARTS } from "@/content/paper-index";
+import { GLOSSARY } from "@/glossary/glossary";
 import { HOME_PASSAGES } from "@/content/passages";
 
 const api = new UrantiaAPI();
@@ -71,5 +72,13 @@ describe("live API contract", () => {
     const page = await fetchRelated(search, "what happens after death", 5);
     expect(page.hits).toHaveLength(5);
     expect(page.hits[0].ref).toMatch(/^\d+:\d+\.\d+$/);
+  });
+
+  // When this fails, run `bun run sync:glossary` and commit the file.
+  it("has the same count of glossary entries as the committed file", async () => {
+    const res = await fetch("https://api.urantia.dev/entities?limit=1");
+    const body = (await res.json()) as { data: { id: string; name: string; type: string }[]; meta: { total: number } };
+    expect(body.meta.total).toBe(GLOSSARY.length);
+    expect(Object.keys(body.data[0])).toEqual(expect.arrayContaining(["id", "name", "type", "aliases", "description", "seeAlso", "citationCount"]));
   });
 });

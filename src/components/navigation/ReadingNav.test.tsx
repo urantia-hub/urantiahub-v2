@@ -655,3 +655,61 @@ describe("small faults from the two reviews", () => {
     expect(job()).toBe("listening");
   });
 });
+
+describe("the Terms tile", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+  });
+
+  it("opens the terms of the marked paragraph, and keeps the paragraph marked", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    expect(screen.getByRole("dialog", { name: "Terms in 1:0.2" })).toBeInTheDocument();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("closes the terms when the reader removes the mark, and on Escape the terms close first", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: /Terms in/ })).toBeNull();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog", { name: /Terms in/ })).toBeNull();
+  });
+
+  // The voice clears the mark of a paragraph when it reaches it. A reader who reads an entry must keep it.
+  it("keeps the terms open when the voice reaches the marked paragraph", async () => {
+    renderNav();
+    await userEvent.click(round());
+    await sound("playing");
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await sound("ended");
+    await sound("playing");
+    expect(screen.getByRole("dialog", { name: "Terms in 1:0.2" })).toBeInTheDocument();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("gives the focus back to the Terms tile when the terms close", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close the terms" }));
+    await act(async () => {
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    });
+    expect(screen.getByRole("button", { name: "Terms" })).toHaveFocus();
+  });
+
+  it("follows the mark to another paragraph", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await userEvent.click(text("1:1.1"));
+    expect(screen.getByRole("dialog", { name: "Terms in 1:1.1" })).toBeInTheDocument();
+  });
+});

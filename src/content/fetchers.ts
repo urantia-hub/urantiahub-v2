@@ -13,6 +13,14 @@ export class ContentError extends Error {
   }
 }
 
+// A reference in the right form, for a paragraph that the paper does not hold.
+export class ParagraphNotFound extends Error {
+  constructor(ref: string) {
+    super(`Paragraph ${ref}: the paper has no such paragraph`);
+    this.name = "ParagraphNotFound";
+  }
+}
+
 const ParagraphSchema = z.object({
   standardReferenceId: z.string(),
   paperId: z.string(),
