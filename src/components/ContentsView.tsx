@@ -10,7 +10,6 @@ export function ContentsView() {
       <p className="lead">A foreword and 196 papers, in four parts.</p>
       <ContinueCard />
       <nav className="jump" aria-label="Parts">
-        <a href="#foreword">Foreword</a>
         {parts.map((part) => (
           <a key={part.id} href={`#part-${part.id}`}>
             Part {partNumeral(part.id)}

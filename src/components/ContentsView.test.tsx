@@ -30,15 +30,11 @@ describe("ContentsView", () => {
     expect(screen.getByRole("region", { name: "The Life and Teachings of Jesus" })).toBeInTheDocument();
   });
 
-  it("has jump links to the Foreword and the four parts", () => {
+  // The Foreword is the first entry of the list, a few lines below. A jump link to it showed the word twice.
+  it("has jump links to the four parts only, and names the Foreword one time", () => {
     render(<ContentsView />);
     const jump = screen.getByRole("navigation", { name: "Parts" });
-    expect(within(jump).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual([
-      "#foreword",
-      "#part-1",
-      "#part-2",
-      "#part-3",
-      "#part-4",
-    ]);
+    expect(within(jump).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["#part-1", "#part-2", "#part-3", "#part-4"]);
+    expect(screen.getAllByText("Foreword")).toHaveLength(1);
   });
 });

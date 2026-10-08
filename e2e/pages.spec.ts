@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { openNavigator } from "./audio";
 import { HOME_PASSAGES } from "../src/content/passages";
 
 const paragraphOf = (ref: string) =>
