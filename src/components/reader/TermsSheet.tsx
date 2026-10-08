@@ -29,7 +29,10 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
 
   useEffect(() => {
     let current = true;
-    fetch(`/api/terms/${encodeURIComponent(reference)}`)
+    // A request that never ends must not leave the grey rows for ever.
+    const control = new AbortController();
+    const timer = window.setTimeout(() => control.abort(), 8000);
+    fetch(`/api/terms/${encodeURIComponent(reference)}`, { signal: control.signal })
       .then((res) => (res.ok ? (res.json() as Promise<TermsAnswer>) : Promise.reject(new Error(String(res.status)))))
       .then((answer) => {
         // An answer for a paragraph that the reader left is dropped.
@@ -43,15 +46,20 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
       })
       .catch(() => {
         if (current) setState({ for: reference, status: "failed" });
-      });
+      })
+      .finally(() => window.clearTimeout(timer));
     return () => {
       current = false;
+      window.clearTimeout(timer);
+      control.abort();
     };
   }, [reference, paperId, attempt]);
 
+  // The focus stays in the sheet: at the start, when an entry opens, and when the list returns.
+  // Each of those removes the control that had the focus.
   useEffect(() => {
     box.current?.focus({ preventScroll: true });
-  }, []);
+  }, [open]);
 
   const onKey = useCallback(
     (event: KeyboardEvent) => {

@@ -1,23 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
-import { ContentError, type PaperDoc } from "@/content/fetchers";
+import { ContentError, ParagraphNotFound } from "@/content/fetchers";
 import { handleTerms, type TermsAnswer } from "./terms";
 
-const paper: PaperDoc = {
-  id: "1",
-  title: "The Universal Father",
-  partId: "1",
-  sections: [
-    {
-      id: "0",
-      title: null,
-      paragraphs: [
-        { ref: "1:0.1", text: "The Universal Father lives on Paradise, and mortals of Urantia find him by faith.", html: "x", audio: null },
-        { ref: "1:0.2", text: "And so it was.", html: "x", audio: null },
-      ],
-    },
-  ],
+const TEXT: Record<string, string> = {
+  "1:0.1": "The Universal Father lives on Paradise, and mortals of Urantia find him by faith.",
+  "1:0.2": "And so it was.",
 };
-const load = vi.fn(async () => paper);
+const load = vi.fn(async (_paperId: string, ref: string) => {
+  if (!(ref in TEXT)) throw new ParagraphNotFound(ref);
+  return TEXT[ref];
+});
 
 describe("handleTerms", () => {
   it("answers the names and the ideas of a paragraph, each with what an entry shows", async () => {
@@ -57,6 +49,19 @@ describe("handleTerms", () => {
       expect(load).not.toHaveBeenCalled();
     },
   );
+
+  it("asks for the one paragraph, by the paper number in its plain form", async () => {
+    load.mockClear();
+    await handleTerms("1:0.1", load);
+    expect(load).toHaveBeenCalledWith("1", "1:0.1");
+  });
+
+  // A reference with extra zeros is not the name of a paragraph. It must not reach the loader and its cache.
+  it.each(["001:0.1", "1:00.1", "1:0.01"])("answers 400 for %s", async (ref) => {
+    load.mockClear();
+    expect((await handleTerms(ref, load)).status).toBe(400);
+    expect(load).not.toHaveBeenCalled();
+  });
 
   it("answers 404 for a paragraph that the paper does not hold", async () => {
     const res = await handleTerms("1:0.999", load);

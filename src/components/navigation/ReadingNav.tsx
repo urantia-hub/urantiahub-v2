@@ -50,6 +50,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const termsOpenRef = useRef(false);
+  const termsTile = useRef<HTMLButtonElement>(null);
   const toastTimer = useRef(0);
   const roundButton = useRef<HTMLButtonElement>(null);
 
@@ -103,7 +105,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         return;
       }
       // When the voice reaches a marked paragraph, the mark goes and the player shows.
-      setPicked((was) => (was === ref ? null : was));
+      // While the reader has the terms of that paragraph open, the mark stays, and so do the terms.
+      setPicked((was) => (was === ref && !termsOpenRef.current ? null : was));
       if (ref !== lastVoiceRef.current) {
         // The reader scrolled, but can see the paragraph that just ended: follow again.
         if (!following.current && inView(lastVoiceRef.current)) following.current = true;
@@ -277,6 +280,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   }
 
   useEffect(() => {
+    termsOpenRef.current = termsOpen;
     latest.current = input;
     onRoundRef.current = onRound;
   });
@@ -331,6 +335,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   }
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), []);
+
+  // The sheet goes, and the focus returns to the tile that opened it.
+  function closeTerms() {
+    setTermsOpen(false);
+    window.requestAnimationFrame(() => termsTile.current?.focus({ preventScroll: true }));
+  }
 
   async function onShare() {
     if (!picked) return;
@@ -456,7 +466,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                   <Icon name="share" />
                   Share
                 </button>
-                <button type="button" className="tile" aria-expanded={termsOpen} onClick={() => setTermsOpen((was) => !was)}>
+                <button type="button" className="tile" aria-expanded={termsOpen} onClick={() => setTermsOpen((was) => !was)} ref={termsTile}>
                   <Icon name="terms" />
                   Terms
                 </button>
@@ -496,7 +506,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         </div>
       )}
 
-      {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={() => setTermsOpen(false)} />}
+      {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />}
       <Navigator
         open={open}
         onClose={() => setOpen(false)}

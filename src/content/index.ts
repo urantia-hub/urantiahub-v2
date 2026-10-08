@@ -2,7 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
-import { fetchExact, fetchPaper, fetchPassage, fetchRelated, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
+import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
 // The only place in the app that talks to api.urantia.dev.
 const client = new UrantiaAPI({ baseUrl: process.env.URANTIA_API_BASE_URL || undefined });
@@ -21,7 +21,20 @@ export async function getPassage(ref: string): Promise<Passage> {
   return fetchPassage(client, ref);
 }
 
-export { ContentError, excerptPassage } from "./fetchers";
+// The text of one paragraph, from the shared cache. The terms address needs one paragraph for each request,
+// and without this each server instance would read the whole paper from the API again.
+// A paragraph that does not exist throws, and a thrown call is not kept, so no one can fill the cache with them.
+export async function getParagraphText(paperId: string, ref: string): Promise<string> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag(`paper:${paperId}`);
+  const paper = await getPaper(paperId);
+  const paragraph = paper.sections.flatMap((section) => section.paragraphs).find((p) => p.ref === ref);
+  if (!paragraph) throw new ParagraphNotFound(ref);
+  return paragraph.text;
+}
+
+export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";
 export type { PaperDoc, Paragraph, ParagraphAudio, Passage, SearchHit, SearchPage, Section } from "./fetchers";
 
 // A search result does not change until the text changes, so each result is kept for days.

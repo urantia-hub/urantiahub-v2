@@ -29,7 +29,13 @@ const sheet = () => screen.getByRole("dialog", { name: "Terms in 1:0.3" });
 beforeEach(() => {
   track.mockClear();
   fetchMock.mockReset();
-  fetchMock.mockImplementation(() => new Promise<Response>((r) => (resolve = r)));
+  fetchMock.mockImplementation(
+    (_url: string, init?: { signal?: AbortSignal }) =>
+      new Promise<Response>((r, reject) => {
+        resolve = r;
+        init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      }),
+  );
   vi.stubGlobal("fetch", fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -129,6 +135,34 @@ describe("TermsSheet", () => {
     await new Promise((r) => setTimeout(r, 20));
     expect(next).not.toHaveTextContent("Old Name");
     expect(next).toHaveTextContent("Universal Father");
+  });
+
+  // A request that never ends must not leave grey rows for ever.
+  it("gives up after eight seconds, and offers to try again", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    render(<TermsSheet reference="1:0.3" paperId="1" onClose={() => {}} />);
+    const signal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+    expect(signal.aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(signal.aborted).toBe(true);
+    vi.useRealTimers();
+    expect(await within(sheet()).findByText("The terms did not load.")).toBeInTheDocument();
+  });
+
+  it("stops its request when it closes", () => {
+    const view = render(<TermsSheet reference="1:0.3" paperId="1" onClose={() => {}} />);
+    const signal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+    view.unmount();
+    expect(signal.aborted).toBe(true);
+  });
+
+  it("keeps the keyboard focus in the sheet when an entry opens and when the list returns", async () => {
+    render(<TermsSheet reference="1:0.3" paperId="1" onClose={() => {}} />);
+    await loaded();
+    await userEvent.click(within(sheet()).getByRole("button", { name: /Universal Father/ }));
+    expect(sheet()).toHaveFocus();
+    await userEvent.click(within(sheet()).getByRole("button", { name: "Back to the terms" }));
+    expect(sheet()).toHaveFocus();
   });
 
   it("closes with the X and with Escape", async () => {

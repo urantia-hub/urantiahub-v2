@@ -1,4 +1,4 @@
-import type { PaperDoc } from "@/content/fetchers";
+import { ParagraphNotFound } from "@/content/fetchers";
 import { isName, KIND_LABEL, type GlossaryEntry } from "@/glossary/glossary";
 import { termsIn } from "@/glossary/match";
 
@@ -23,20 +23,21 @@ const refuse = (status: number, error: string) => Response.json({ error }, { sta
 
 // The glossary terms that stand in one paragraph: names first, then ideas, each in the order of the text.
 // Each term carries its description, so the reader opens an entry with no second request.
-export async function handleTerms(ref: string, loadPaper: (id: string) => Promise<PaperDoc>): Promise<Response> {
+export async function handleTerms(ref: string, loadText: (paperId: string, ref: string) => Promise<string>): Promise<Response> {
   const parsed = REFERENCE.exec(ref);
   if (!parsed || Number(parsed[1]) > LAST_PAPER) return refuse(400, "This is not a paragraph reference.");
+  // "001:0.1" has the right form, but it is not the name of a paragraph. One paragraph has one address.
+  const paperId = String(Number(parsed[1]));
+  if (ref !== `${paperId}:${Number(parsed[2])}.${Number(parsed[3])}`) return refuse(400, "This is not a paragraph reference.");
 
-  let paper: PaperDoc;
+  let text: string;
   try {
-    paper = await loadPaper(String(Number(parsed[1])));
-  } catch {
-    return refuse(502, "The paper did not load.");
+    text = await loadText(paperId, ref);
+  } catch (error) {
+    return error instanceof ParagraphNotFound ? refuse(404, "The paper has no such paragraph.") : refuse(502, "The paper did not load.");
   }
-  const paragraph = paper.sections.flatMap((section) => section.paragraphs).find((p) => p.ref === ref);
-  if (!paragraph) return refuse(404, "The paper has no such paragraph.");
 
-  const found = termsIn(paragraph.text);
+  const found = termsIn(text);
   const answer: TermsAnswer = { names: found.filter(isName).map(toTerm), ideas: found.filter((e) => !isName(e)).map(toTerm) };
   // The text and the glossary change rarely, so a shared cache can keep the answer for a day.
   return Response.json(answer, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });

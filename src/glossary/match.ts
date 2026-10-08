@@ -1,13 +1,66 @@
-import { GLOSSARY, type GlossaryEntry } from "./glossary";
+import { GLOSSARY, isName, type GlossaryEntry } from "./glossary";
 
 type Form = { text: string; lower: string; entry: GlossaryEntry };
 
 const isWordChar = (char: string | undefined) => char !== undefined && /[A-Za-z0-9]/.test(char);
 const hasUpper = (text: string) => /[A-Z]/.test(text);
-// Another name of an entry counts only if it reads as a name: it has a capital letter or more than one word.
-// The glossary gives "worlds" as another name of "Melchizedek worlds", and "parable" for one parable.
-const readsAsName = (text: string) => hasUpper(text) || /\s/.test(text);
 const firstWord = (text: string) => /[A-Za-z0-9]+/.exec(text)?.[0].toLowerCase() ?? "";
+const onlyDigits = (text: string) => /^\d+$/.test(text);
+
+// Another name of an entry counts only if it reads as a name: it has a capital letter or more than one word,
+// and it does not start with a small word. The glossary gives "worlds" as another name of "Melchizedek worlds",
+// "the first" for "Alpha and Omega", and "his wife" for one person.
+const SMALL_START = /^(the|a|an|his|her|its|their|my|our|your)\s/i;
+const readsAsName = (text: string) => (hasUpper(text) || /\s/.test(text)) && !SMALL_START.test(text);
+
+// Ideas of the glossary that are a verb or a small word in almost each sentence: "it will be", "that being so",
+// "in order to", "the present age". As a term they would be wrong far more times than right.
+const PLAIN_WORDS = new Set(
+  "will being order present past good actual first last next way end least whole might living individual impersonal lead hail rest well even still just right like kind mean means set long second close live lives state can may must shall one two three four five six seven eight nine ten twelve back left saw found rose lay lie bear fast minute object subject change forms words names needs plans matter"
+    .split(" "),
+);
+
+// How many more times the Papers must cite one entry than the next, to give it a name that both claim.
+const FAR_MORE = 3;
+
+// "Abraham (Old Testament)" is also "Abraham".
+const withoutNote = (name: string) => name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+
+// Each form that the text can take, with the one entry that it means.
+function collectForms(entries: readonly GlossaryEntry[]): Form[] {
+  const taken = new Map<string, Form>();
+  // The name of an entry comes first. It wins over another name of a second entry.
+  for (const entry of entries) {
+    const text = entry.name.trim();
+    const lower = text.toLowerCase();
+    if (text === "" || onlyDigits(text) || taken.has(lower)) continue;
+    if (entry.type === "concept" && PLAIN_WORDS.has(lower)) continue;
+    taken.set(lower, { text, lower, entry });
+  }
+  // Then the other names. An idea has none here: the glossary gives "Sons" for the idea "children".
+  const claims = new Map<string, Form[]>();
+  for (const entry of entries) {
+    const base = withoutNote(entry.name);
+    const kept = isName(entry) ? entry.aliases.filter(readsAsName) : [];
+    // An order or a race has a plural name. One member of it has the name in the singular: "an Andite".
+    const singular = entry.type === "order" || entry.type === "race" ? [entry.name, ...kept].filter((name) => /[^s]s$/.test(name)).map((name) => name.slice(0, -1)) : [];
+    const others = [...(base !== entry.name.trim() && readsAsName(base) ? [base] : []), ...kept, ...singular];
+    for (const raw of others) {
+      const text = raw.trim();
+      const lower = text.toLowerCase();
+      if (text === "" || onlyDigits(text) || firstWord(text) === "" || taken.has(lower)) continue;
+      if (entry.type === "concept" && PLAIN_WORDS.has(lower)) continue;
+      const list = claims.get(lower) ?? [];
+      if (!list.some((form) => form.entry.id === entry.id)) claims.set(lower, [...list, { text, lower, entry }]);
+    }
+  }
+  for (const [lower, list] of claims) {
+    // Two entries claim one name. It goes to the one that the Papers cite far more, or to neither.
+    const [top, next] = [...list].sort((a, b) => b.entry.citations - a.entry.citations);
+    if (!next || top.entry.citations >= FAR_MORE * Math.max(1, next.entry.citations)) taken.set(lower, top);
+  }
+  return [...taken.values()].filter((form) => firstWord(form.text) !== "");
+}
 
 // Builds one search over each name and each other name. A term matches when its name stands in the text
 // as whole words. The longest name wins where two overlap. A plain plural matches too.
@@ -15,19 +68,11 @@ const firstWord = (text: string) => /[A-Za-z0-9]+/.exec(text)?.[0].toLowerCase()
 // for 4,456 names took 8 seconds to build.
 export function createMatcher(entries: readonly GlossaryEntry[]): (text: string) => GlossaryEntry[] {
   const byFirstWord = new Map<string, Form[]>();
-  const claimed = new Set<string>();
-  for (const entry of entries) {
-    for (const raw of [entry.name, ...entry.aliases.filter(readsAsName)]) {
-      const text = raw.trim();
-      // An entry such as "7" would match each number in a list.
-      if (/^\d+$/.test(text)) continue;
-      const lower = text.toLowerCase();
-      const key = firstWord(text);
-      // The first entry to claim a form keeps it.
-      if (text === "" || key === "" || claimed.has(lower)) continue;
-      claimed.add(lower);
-      byFirstWord.set(key, [...(byFirstWord.get(key) ?? []), { text, lower, entry }]);
-    }
+  for (const form of collectForms(entries)) {
+    const key = firstWord(form.text);
+    const list = byFirstWord.get(key);
+    if (list) list.push(form);
+    else byFirstWord.set(key, [form]);
   }
   // Longest first: at one place in the text, the search then takes the longest name.
   for (const forms of byFirstWord.values()) forms.sort((a, b) => b.lower.length - a.lower.length);
@@ -38,7 +83,9 @@ export function createMatcher(entries: readonly GlossaryEntry[]): (text: string)
     // A name with capitals is a name only with the same capitals: "Son", not "son"; "I AM", not "I am".
     if (hasUpper(form.text) && !text.startsWith(form.text, at)) return -1;
     const end = at + form.lower.length;
-    for (const plural of ["es", "s", ""]) {
+    // A plural adds "s", or "es" after s, x, z, ch, or sh: "churches", but not "wares" for "war".
+    const plurals = /(s|x|z|ch|sh)$/.test(form.lower) ? ["es", "s", ""] : ["s", ""];
+    for (const plural of plurals) {
       if (lowerText.startsWith(plural, end) && !isWordChar(text[end + plural.length])) return end + plural.length;
     }
     return -1;
