@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ContentError, excerptPassage, fetchPaper, fetchPassage, novaAudio, type ContentClient, type Passage } from "./fetchers";
+import { ContentError, excerptPassage, fetchExact, fetchPaper, fetchPassage, fetchRelated, novaAudio, type SearchClient, type ContentClient, type Passage } from "./fetchers";
 
 const paragraph = (ref: string, sectionId: string, sectionTitle: string | null, html = `<span class="urantia-dev-pb-0">Text ${ref}</span>`) => ({
   id: `x-${ref}`,
@@ -233,5 +233,70 @@ describe("fetchPaper and audio", () => {
 describe("fetchPaper and the paper id", () => {
   it("throws when the API returns a paper other than the one asked for", async () => {
     await expect(fetchPaper(client(), "2")).rejects.toThrow(/Paper 2: the content API returned paper 1/);
+  });
+});
+
+describe("the two searches", () => {
+  const row = (ref: string) => ({
+    standardReferenceId: ref,
+    paperId: ref.split(":")[0],
+    paperTitle: "A Paper",
+    htmlText: `<span>Text ${ref}</span>`,
+    text: `Text ${ref}`,
+    rank: 0.5,
+  });
+  const good = { data: [row("16:8.3"), row("108:5.5")], meta: { page: 0, limit: 8, total: 244, totalPages: 31 } };
+
+  function searchClient(over: Partial<{ exact: unknown; related: unknown; fail: boolean }> = {}) {
+    const calls: unknown[] = [];
+    const client: SearchClient = {
+      search: {
+        fullText: async (params) => {
+          calls.push(["exact", params]);
+          if (over.fail) throw new Error("500");
+          return "exact" in over ? over.exact : good;
+        },
+        semantic: async (params) => {
+          calls.push(["related", params]);
+          if (over.fail) throw new Error("500");
+          return "related" in over ? over.related : good;
+        },
+      },
+    };
+    return { client, calls };
+  }
+
+  it("asks for all of the words, and gives the hits and the total", async () => {
+    const { client, calls } = searchClient();
+    await expect(fetchExact(client, "thought adjuster", 2, 20)).resolves.toEqual({
+      hits: [
+        { ref: "16:8.3", paperId: "16", paperTitle: "A Paper", html: "<span>Text 16:8.3</span>" },
+        { ref: "108:5.5", paperId: "108", paperTitle: "A Paper", html: "<span>Text 108:5.5</span>" },
+      ],
+      total: 244,
+    });
+    expect(calls).toEqual([["exact", { q: "thought adjuster", type: "and", page: 2, limit: 20 }]]);
+  });
+
+  it("asks the semantic search with a limit", async () => {
+    const { client, calls } = searchClient();
+    const page = await fetchRelated(client, "what happens after death", 10);
+    expect(page.hits).toHaveLength(2);
+    expect(calls).toEqual([["related", { q: "what happens after death", limit: 10 }]]);
+  });
+
+  it("gives an empty page for no result", async () => {
+    const { client } = searchClient({ exact: { data: [], meta: { total: 0 } } });
+    await expect(fetchExact(client, "zzzz", 0, 8)).resolves.toEqual({ hits: [], total: 0 });
+  });
+
+  it.each([
+    ["a failed request", { fail: true }],
+    ["a response with no data", { exact: { meta: { total: 1 } }, related: { meta: { total: 1 } } }],
+    ["a row with no reference", { exact: { data: [{ paperId: "1" }], meta: { total: 1 } }, related: { data: [{ paperId: "1" }], meta: { total: 1 } } }],
+  ])("throws a ContentError for %s", async (_name, over) => {
+    const { client } = searchClient(over);
+    await expect(fetchExact(client, "a", 0, 8)).rejects.toBeInstanceOf(ContentError);
+    await expect(fetchRelated(client, "a", 10)).rejects.toBeInstanceOf(ContentError);
   });
 });

@@ -1,7 +1,7 @@
 // Runs each night against the live API. It fails when the API no longer matches what the gateway expects.
 import { UrantiaAPI } from "@urantia/api";
 import { describe, expect, it } from "vitest";
-import { excerptPassage, fetchPaper, fetchPassage, TocResponseSchema, type ContentClient } from "@/content/fetchers";
+import { excerptPassage, fetchExact, fetchPaper, fetchPassage, fetchRelated, TocResponseSchema, type ContentClient, type SearchClient } from "@/content/fetchers";
 import { PARTS } from "@/content/paper-index";
 import { HOME_PASSAGES } from "@/content/passages";
 
@@ -56,5 +56,20 @@ describe("live API contract", () => {
       papers: part.papers.map((p) => ({ id: p.id, title: p.title })),
     }));
     expect(live).toEqual(committed);
+  });
+
+  it("marks the matched words of a full-text search, and gives a total", async () => {
+    const search: SearchClient = { search: { fullText: (p) => api.search.fullText(p), semantic: (p) => api.search.semantic(p) } };
+    const page = await fetchExact(search, "thought adjuster", 0, 5);
+    expect(page.total).toBeGreaterThan(100);
+    expect(page.hits).toHaveLength(5);
+    expect(page.hits[0].html).toContain("urantia-dev-highlighted");
+  });
+
+  it("gives paragraphs for a question from the semantic search", async () => {
+    const search: SearchClient = { search: { fullText: (p) => api.search.fullText(p), semantic: (p) => api.search.semantic(p) } };
+    const page = await fetchRelated(search, "what happens after death", 5);
+    expect(page.hits).toHaveLength(5);
+    expect(page.hits[0].ref).toMatch(/^\d+:\d+\.\d+$/);
   });
 });
