@@ -14,6 +14,10 @@ const LINE = {
   close: ["M6.5 6.5l11 11", "M17.5 6.5l-11 11"],
   paperBefore: ["M14.5 6l-6 6 6 6"],
   paperAfter: ["M9.5 6l6 6-6 6"],
+  search: ["M17.5 11a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z", "M16 16l4 4"],
+  list: ["M8.5 7h11", "M8.5 12h11", "M8.5 17h11", "M4.5 7h.01", "M4.5 12h.01", "M4.5 17h.01"],
+  moon: ["M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"],
+  sun: ["M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z", "M12 3v2", "M12 19v2", "M3 12h2", "M19 12h2", "M5.6 5.6l1.4 1.4", "M17 17l1.4 1.4", "M5.6 18.4l1.4-1.4", "M17 7l1.4-1.4"],
 } as const;
 
 export type IconName = keyof typeof SOLID | keyof typeof LINE;

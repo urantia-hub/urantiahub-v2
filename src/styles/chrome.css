@@ -39,7 +39,28 @@
 }
 .site-header nav {
   display: flex;
-  gap: 24px;
+  align-items: center;
+  gap: 20px;
+}
+.theme-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: -6px -8px -6px -6px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.theme-icon:hover {
+  color: var(--ink);
+}
+.theme-icon .icon {
+  display: block;
+  width: 19px;
+  height: 19px;
 }
 .site-header nav a {
   font: 500 14px/1 var(--font-ui);

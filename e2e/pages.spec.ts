@@ -102,11 +102,17 @@ test("a reader who chose dark sees no light flash on the next page load", async 
   expect(await page.evaluate(() => (window as unknown as { firstBackground: string }).firstBackground)).toBe(DARK);
 });
 
-test("the navigator has the theme control too", async ({ page }) => {
+test("the header has the theme control, as an icon, on a paper page", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father");
-  await openNavigator(page);
-  await page.getByRole("dialog", { name: "Navigator" }).getByRole("button", { name: "Dark theme" }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Dark theme" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
+  await expect(page.getByRole("banner").getByRole("button", { name: "Light theme" })).toBeVisible();
+});
+
+test("the contents page shows no Continue card to a new visitor", async ({ page }) => {
+  await page.goto("/papers");
+  await expect(page.getByRole("heading", { name: "Papers", level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Continue/ })).toHaveCount(0);
 });
 
 // A class named "contents" collided with a Tailwind utility and removed this column. Layout is tested, not assumed.

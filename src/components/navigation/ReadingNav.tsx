@@ -7,6 +7,7 @@ import { createAudioEngine, type AudioEngine, type VoiceState } from "@/audio/en
 import type { Track } from "@/audio/tracks";
 import { Icon } from "@/components/icons";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
+import { saveLastRead } from "@/reader/last-read";
 import { shareParagraph } from "@/reader/share";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
@@ -217,6 +218,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       window.cancelAnimationFrame(frame);
     };
   }, [paper.id]);
+
+  // The contents page offers the way back to this place.
+  useEffect(() => {
+    const at = sections.find((s) => s.id === current);
+    saveLastRead({ paperId: paper.id, sectionId: current, label: at && at.id !== "0" ? sectionLabel(at) : null });
+  }, [paper.id, current, sections]);
 
   function start(ref: string, from: "bar" | "paragraph") {
     const index = tracks?.findIndex((t) => t.ref === ref) ?? -1;

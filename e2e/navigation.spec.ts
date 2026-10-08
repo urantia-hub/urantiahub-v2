@@ -54,14 +54,36 @@ test("the navigator rejects input that is not a reference", async ({ page }) => 
   await expect(page).toHaveURL(PAPER_1);
 });
 
-test("the paper grid shows a title before it opens the paper", async ({ page }) => {
+test("All papers opens the contents page, and Continue returns to the section the reader left", async ({ page }) => {
+  await page.goto(`${PAPER_1}#1:2`);
+  await expect(page.getByTestId("reading-bar-label")).toHaveText("2. The Reality of God");
+  await openNavigator(page);
+  const navigator = page.getByRole("dialog", { name: "Navigator" });
+  await expect(navigator.getByRole("heading", { name: "The Universal Father" })).toBeVisible();
+  await navigator.getByRole("button", { name: "All papers" }).click();
+  await expect(page).toHaveURL("/papers");
+  const card = page.getByRole("link", { name: /Continue/ });
+  await expect(card).toContainText("Paper 1 · 2. The Reality of God");
+  await card.click();
+  await expect(page).toHaveURL(`${PAPER_1}#1:2`);
+  await expect(page.locator('[id="1:2"]')).toBeInViewport();
+});
+
+test("the neighbor cards show full titles and open the paper", async ({ page }) => {
   await page.goto(PAPER_1);
   await openNavigator(page);
-  await page.getByRole("tab", { name: "All papers" }).click();
-  await page.getByRole("button", { name: "2", exact: true }).click();
-  await expect(page.locator(".navigator .picked")).toContainText("The Nature of God");
-  await page.locator(".navigator .picked").getByRole("button", { name: "Open", exact: true }).click();
+  const navigator = page.getByRole("dialog", { name: "Navigator" });
+  await navigator.getByRole("button", { name: "Next paper: Paper 2, The Nature of God" }).click();
   await expect(page).toHaveURL("/papers/paper-2-the-nature-of-god");
+});
+
+test("the navigator has round corners at the bottom on a desktop", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "the sheet is a centered card on a desktop only");
+  await page.goto(PAPER_1);
+  await openNavigator(page);
+  const navigator = page.getByRole("dialog", { name: "Navigator" });
+  await expect(navigator).toHaveCSS("border-bottom-left-radius", "20px");
+  await expect(navigator).toHaveCSS("overflow-y", "hidden");
 });
 
 test("Escape and the back control close the navigator and keep the paper", async ({ page }) => {

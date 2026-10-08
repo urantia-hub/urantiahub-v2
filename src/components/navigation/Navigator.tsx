@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { track } from "@/analytics";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { PARTS, paperPath, partNumeral, referenceHref, type PaperEntry } from "@/content/paper-index";
+import { Icon } from "@/components/icons";
+import { paperById, referenceHref } from "@/content/paper-index";
 import { parseReference } from "@/lib/paper-url";
 import { sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
@@ -20,7 +20,16 @@ type Props = {
   navigate?: (href: string, replace: boolean) => void;
 };
 
-const PAPER_PARTS = PARTS.filter((part) => part.id !== "0");
+// A neighbor paper as a card: its number above its full title.
+function neighbor(entry: NavPaper, direction: "Previous" | "Next") {
+  const title = paperById(entry.id)?.title ?? entry.title;
+  const numbered = entry.id !== "0";
+  return {
+    title,
+    small: numbered ? `Paper ${entry.id}` : direction,
+    name: `${direction} paper: ${numbered ? `Paper ${entry.id}, ` : ""}${title}`,
+  };
+}
 
 export function Navigator({
   open,
@@ -34,10 +43,8 @@ export function Navigator({
 }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const leaving = useRef(false);
-  const [tab, setTab] = useState<"this" | "all">("this");
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [picked, setPicked] = useState<PaperEntry | null>(null);
 
   // The open navigator owns one history entry, so the back control closes it.
   // With a destination, that entry is replaced. A step back would make the browser
@@ -97,6 +104,9 @@ export function Navigator({
     leave(href);
   }
 
+  const before = previous && neighbor(previous, "Previous");
+  const after = next && neighbor(next, "Next");
+
   return (
     <dialog
       ref={dialog}
@@ -109,115 +119,86 @@ export function Navigator({
     >
       <div className="sheet">
         <div className="sheet-top">
-          <form className="goto" onSubmit={onSubmit}>
-            <input
-              aria-label="Go to a reference"
-              placeholder="Go to a reference: 99:1.1"
-              autoComplete="off"
-              autoCapitalize="off"
-              value={value}
-              onChange={(event) => {
-                setValue(event.target.value);
-                setError(null);
-              }}
-            />
-            <button type="submit">Go</button>
-          </form>
-          <button type="button" className="close" onClick={() => leave()}>
-            Close
+          <div>
+            {paper.id !== "0" && <small>Paper {paper.id}</small>}
+            <h2>{paper.title}</h2>
+          </div>
+          <button type="button" className="close" aria-label="Close" onClick={() => leave()}>
+            <Icon name="close" />
           </button>
         </div>
+
+        <form className={`goto${value.trim() ? " typed" : ""}`} onSubmit={onSubmit}>
+          <Icon name="search" />
+          <input
+            aria-label="Go to a reference"
+            placeholder="Go to a reference, such as 99:1.1"
+            autoComplete="off"
+            autoCapitalize="off"
+            value={value}
+            onChange={(event) => {
+              setValue(event.target.value);
+              setError(null);
+            }}
+          />
+          <button type="submit">Go</button>
+        </form>
         {error && (
           <p className="goto-error" role="alert">
             {error}
           </p>
         )}
 
-        <div className="tabs" role="tablist">
-          <button type="button" role="tab" aria-selected={tab === "this"} onClick={() => setTab("this")}>
-            This paper
-          </button>
-          <button type="button" role="tab" aria-selected={tab === "all"} onClick={() => setTab("all")}>
-            All papers
+        <ul className="secs">
+          {sections.map((section) => (
+            <li key={section.id}>
+              <button
+                type="button"
+                aria-current={section.id === current ? "true" : undefined}
+                onClick={() => goToSection(section)}
+              >
+                {sectionLabel(section)}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div className="sheet-foot">
+          <div className="hop">
+            {previous && before ? (
+              <button type="button" aria-label={before.name} onClick={() => goToPaper(previous.href)}>
+                <small>
+                  <Icon name="paperBefore" />
+                  {before.small}
+                </small>
+                {before.title}
+              </button>
+            ) : (
+              <span />
+            )}
+            {next && after && (
+              <button type="button" className="next" aria-label={after.name} onClick={() => goToPaper(next.href)}>
+                <small>
+                  {after.small}
+                  <Icon name="paperAfter" />
+                </small>
+                {after.title}
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            className="all"
+            onClick={() => {
+              track("navigator_used", { kind: "contents" });
+              leave("/papers");
+            }}
+          >
+            <Icon name="list" />
+            <span>All papers</span>
+            <Icon name="paperAfter" />
           </button>
         </div>
-
-        {tab === "this" ? (
-          <div className="pane" role="tabpanel" aria-label="This paper">
-            <ul className="secs">
-              {sections.map((section) => (
-                <li key={section.id}>
-                  <button
-                    type="button"
-                    aria-current={section.id === current ? "true" : undefined}
-                    onClick={() => goToSection(section)}
-                  >
-                    {sectionLabel(section)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="hop">
-              {previous && (
-                <button type="button" onClick={() => goToPaper(previous.href)}>
-                  <small>Previous</small>
-                  {previous.title}
-                </button>
-              )}
-              {next && (
-                <button type="button" onClick={() => goToPaper(next.href)}>
-                  <small>Next</small>
-                  {next.title}
-                </button>
-              )}
-            </div>
-            <div className="sheet-foot">
-              <ThemeToggle />
-            </div>
-          </div>
-        ) : (
-          <div className="pane" role="tabpanel" aria-label="All papers">
-            <button type="button" className="foreword" onClick={() => goToPaper(paperPath("0"))}>
-              Foreword
-            </button>
-            {PAPER_PARTS.map((part) => (
-              <div
-                className="part-grid"
-                role="group"
-                aria-label={`Part ${partNumeral(part.id)}: ${part.title}`}
-                key={part.id}
-              >
-                <p className="eyebrow">Part {partNumeral(part.id)}</p>
-                <p className="part-title">{part.title}</p>
-                <div className="grid">
-                  {part.papers.map((entry) => (
-                    <button
-                      type="button"
-                      key={entry.id}
-                      className={entry.id === picked?.id ? "pick" : entry.id === paper.id ? "here" : undefined}
-                      aria-pressed={entry.id === picked?.id}
-                      onClick={() => setPicked(entry)}
-                    >
-                      {entry.id}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === "all" && picked && (
-          <div className="picked">
-            <div>
-              <small>Paper {picked.id}</small>
-              <span>{picked.title}</span>
-            </div>
-            <button type="button" onClick={() => goToPaper(paperPath(picked.id))}>
-              Open
-            </button>
-          </div>
-        )}
       </div>
     </dialog>
   );
