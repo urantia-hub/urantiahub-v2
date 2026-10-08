@@ -84,3 +84,20 @@ describe("logSearch", () => {
     }
   });
 });
+
+describe("asksForNoTracking", () => {
+  const headers = (values: Record<string, string>) => ({ get: (name: string) => values[name.toLowerCase()] ?? null });
+
+  it("is true for a Global Privacy Control signal and for a Do Not Track signal", async () => {
+    const { asksForNoTracking } = await import("./search-log");
+    expect(asksForNoTracking(headers({ "sec-gpc": "1" }))).toBe(true);
+    expect(asksForNoTracking(headers({ dnt: "1" }))).toBe(true);
+  });
+
+  it("is false with no signal, and for a signal that says tracking is permitted", async () => {
+    const { asksForNoTracking } = await import("./search-log");
+    expect(asksForNoTracking(headers({}))).toBe(false);
+    expect(asksForNoTracking(headers({ dnt: "0" }))).toBe(false);
+    expect(asksForNoTracking(headers({ "sec-gpc": "0" }))).toBe(false);
+  });
+});
