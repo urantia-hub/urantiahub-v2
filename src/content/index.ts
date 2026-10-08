@@ -21,17 +21,22 @@ export async function getPassage(ref: string): Promise<Passage> {
   return fetchPassage(client, ref);
 }
 
-// The text of one paragraph, from the shared cache. The terms address needs one paragraph for each request,
-// and without this each server instance would read the whole paper from the API again.
-// A paragraph that does not exist throws, and a thrown call is not kept, so no one can fill the cache with them.
-export async function getParagraphText(paperId: string, ref: string): Promise<string> {
+// The text of each paragraph of one paper, from the shared cache. The terms address needs one paragraph for
+// each request, and without this each server instance would read the whole paper from the API again.
+// The cache holds one item for each paper, so no one can fill it with references that do not exist.
+async function paragraphTexts(paperId: string): Promise<Record<string, string>> {
   "use cache: remote";
   cacheLife("weeks");
   cacheTag(`paper:${paperId}`);
   const paper = await getPaper(paperId);
-  const paragraph = paper.sections.flatMap((section) => section.paragraphs).find((p) => p.ref === ref);
-  if (!paragraph) throw new ParagraphNotFound(ref);
-  return paragraph.text;
+  return Object.fromEntries(paper.sections.flatMap((section) => section.paragraphs).map((p) => [p.ref, p.text]));
+}
+
+// The check for a missing paragraph is outside the cached call: an error loses its kind when it crosses a cache.
+export async function getParagraphText(paperId: string, ref: string): Promise<string> {
+  const texts = await paragraphTexts(paperId);
+  if (!Object.hasOwn(texts, ref)) throw new ParagraphNotFound(ref);
+  return texts[ref];
 }
 
 export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";
