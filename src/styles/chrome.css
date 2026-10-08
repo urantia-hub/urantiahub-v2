@@ -76,6 +76,169 @@
   height: 19px;
 }
 /* On a paper page the header has icons only. "Papers" is in the navigator, and "About" is in the footer. */
+/* On a paper page the header stays at the top of the screen. It leaves on a scroll down and returns on a
+   small scroll up, with the bottom controls, so search and settings are near in the middle of a paper.
+   With no JavaScript it stays in view. */
+body:has(.paper:not([style*="display: none"])) .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.2s;
+}
+html[data-scrolled] body:has(.paper:not([style*="display: none"])) .site-header {
+  box-shadow: 0 1px 0 var(--rule);
+}
+html[data-bars="away"] body:has(.paper:not([style*="display: none"])) .site-header:not(:has([data-open])):not(:focus-within) {
+  transform: translateY(-110%);
+}
+/* The theme is in the reader settings on a paper page. Other pages have no text to size, so they keep the moon. */
+.reader-settings {
+  display: none;
+  position: relative;
+}
+body:has(.paper:not([style*="display: none"])) .reader-settings {
+  display: block;
+}
+body:has(.paper:not([style*="display: none"])) .site-header .theme-icon {
+  display: none;
+}
+.settings-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: -6px -8px -6px -6px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.settings-button:hover,
+.reader-settings[data-open] .settings-button {
+  color: var(--ink);
+}
+.settings-button .icon {
+  display: block;
+  width: 19px;
+  height: 19px;
+}
+.settings-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  background: #26221c55;
+}
+/* A sheet on a phone. */
+.settings-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  padding: 22px 22px calc(26px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0;
+  background: var(--raised);
+  box-shadow: 0 -10px 40px var(--shade);
+  font-family: var(--font-ui);
+}
+.settings-panel h2 {
+  margin: 16px 0 8px;
+  font: 600 10.5px/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ref);
+}
+.settings-panel h2:first-child {
+  margin-top: 0;
+}
+.settings-panel button {
+  border: 0;
+  cursor: pointer;
+  color: var(--ink);
+}
+.settings-panel .segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+}
+.settings-panel .segment button {
+  height: 42px;
+  border-radius: 9px;
+  background: none;
+  font: 500 14px/1 var(--font-ui);
+  color: var(--muted);
+}
+.settings-panel .segment button[aria-pressed="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: 0 1px 4px var(--shade);
+}
+.settings-panel .sizes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-panel .sizes button {
+  flex: none;
+  width: 52px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  font: 500 15px/1 var(--font-text);
+}
+.settings-panel .sizes .big {
+  font-size: 23px;
+}
+.settings-panel .sizes button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.settings-panel .dots {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6px;
+}
+.settings-panel .dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rule);
+}
+.settings-panel .dots i.on {
+  width: 11px;
+  height: 11px;
+  background: var(--ink);
+}
+/* A small panel under the icon on a wide screen. */
+@media (min-width: 768px) {
+  .settings-scrim {
+    background: none;
+  }
+  .settings-panel {
+    left: auto;
+    right: 12px;
+    top: 54px;
+    bottom: auto;
+    width: 320px;
+    padding: 18px;
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    box-shadow: 0 12px 34px var(--shade);
+  }
+}
 /* A hidden paper page (kept alive by Next.js) must not count. */
 body:has(.paper:not([style*="display: none"])) .site-header nav a:not(.icon-link) {
   display: none;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookmarkMark } from "@/brand/BookmarkMark";
 import { site } from "@/site";
 import { Icon } from "./icons";
+import { ReaderSettings } from "./ReaderSettings";
 import { SearchShortcut } from "./search/SearchShortcut";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -20,6 +21,7 @@ export function SiteHeader() {
         </Link>
         <SearchShortcut />
         <ThemeToggle icon />
+        <ReaderSettings />
       </nav>
     </header>
   );

@@ -102,11 +102,16 @@ test("a reader who chose dark sees no light flash on the next page load", async 
   expect(await page.evaluate(() => (window as unknown as { firstBackground: string }).firstBackground)).toBe(DARK);
 });
 
-test("the header has the theme control, as an icon, on a paper page", async ({ page }) => {
+test("on a paper page the theme is in the reader settings, and other pages keep the moon", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father");
-  await page.getByRole("banner").getByRole("button", { name: "Dark theme" }).click();
+  const header = page.getByRole("banner");
+  await expect(header.getByRole("button", { name: "Dark theme" })).toBeHidden();
+  await header.getByRole("button", { name: "Reader settings" }).click();
+  await page.getByRole("dialog", { name: "Reader settings" }).getByRole("button", { name: "Dark" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
+  await page.goto("/papers");
   await expect(page.getByRole("banner").getByRole("button", { name: "Light theme" })).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Reader settings" })).toBeHidden();
 });
 
 test("the contents page shows no Continue card to a new visitor", async ({ page }) => {
