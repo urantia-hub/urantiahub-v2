@@ -120,6 +120,24 @@ html:not([data-reader]) .para:target .ref {
   padding-left: 1.4em;
 }
 
+/* A row with a dot leader: a label, the dots, and a value at the right. */
+.pra {
+  display: flex;
+  align-items: baseline;
+  /* On a phone the label can take two lines. The dots and the value then stand on its last line. */
+  align-items: last baseline;
+  gap: 0.4em;
+}
+.pra .dot {
+  flex: 1;
+  min-width: 1.5em;
+  border-bottom: 1px dotted var(--muted);
+  transform: translateY(-0.25em);
+}
+.pra .ran {
+  white-space: nowrap;
+}
+
 @media (min-width: 768px) {
   .paper {
     padding: 84px 24px 150px;
