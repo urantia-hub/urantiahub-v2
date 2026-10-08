@@ -8,7 +8,14 @@ export function nextHidden(lastY: number, y: number, hidden: boolean): boolean {
   return hidden;
 }
 
+// The Foreword's section titles carry Roman numbers in the source: "I. Deity and Divinity".
+export function hasOwnNumber(title: string | null): boolean {
+  return /^[IVXLC]+\.\s/.test(title ?? "");
+}
+
 // Section 0 has no title in the text. "Introduction" is the Hub's label for it.
 export function sectionLabel(section: NavSection): string {
-  return section.id === "0" ? "Introduction" : `${section.id}. ${section.title ?? ""}`.trim();
+  if (section.id === "0") return "Introduction";
+  if (hasOwnNumber(section.title)) return section.title!;
+  return `${section.id}. ${section.title ?? ""}`.trim();
 }

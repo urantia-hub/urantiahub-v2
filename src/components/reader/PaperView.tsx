@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { PaperDoc } from "@/content/fetchers";
 import { PAPERS, paperPath, partNumeral } from "@/content/paper-index";
+import { hasOwnNumber } from "@/components/navigation/nav-state";
 import { MissingReferenceNotice } from "./MissingReferenceNotice";
 
 export function paperEyebrow(paper: { id: string; partId: string }): string | null {
@@ -25,7 +26,8 @@ export function PaperView({ paper }: { paper: PaperDoc }) {
         <section key={section.id}>
           {section.id !== "0" && (
             <h2 className="sec" id={`${paper.id}:${section.id}`}>
-              <span className="num">{section.id}.</span> {section.title}
+              {!hasOwnNumber(section.title) && <span className="num">{section.id}. </span>}
+              {section.title}
             </h2>
           )}
           {section.paragraphs.map((p) => (
