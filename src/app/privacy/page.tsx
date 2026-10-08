@@ -22,13 +22,22 @@ export default function PrivacyPage() {
       <p>
         Searches. When you search, the site records the words of the search and how many results it found, so that we
         can see what readers look for. The record has no link to you. Our server sends it, not your browser, so it
-        holds no IP address, no page that you opened, and nothing about your device. If your browser sends a Do Not
-        Track or a Global Privacy Control signal, the site makes no record of your searches.
+        holds no IP address, no page that you opened, and nothing about your device.
       </p>
       <p>
         Your browser. The site keeps three things in your browser: your theme choice, the last place that you
         read, and your last five searches. They make the site open as you left it. They do not leave
         your device, and you can remove the searches with the Clear control on the search page.
+      </p>
+
+      <p>
+        Your choice. If your browser sends a Do Not Track or a Global Privacy Control signal, the site sends no
+        analytics event and makes no record of your searches in its analytics.
+      </p>
+      <p>
+        Request logs. As for each website, our hosting provider keeps a log of each request for a short time, to
+        find faults. A log line holds the address of the page, and the address of a search page holds the words of
+        the search.
       </p>
 
       <h2>What UrantiaHub does not collect</h2>

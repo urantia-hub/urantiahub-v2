@@ -34,6 +34,9 @@ let failed = false;
 export function initAnalytics(): void {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   if (started || !key || typeof window === "undefined") return;
+  // A reader can tell each site not to track them. Then nothing starts, and each event is dropped.
+  const signals = navigator as Navigator & { globalPrivacyControl?: boolean };
+  if (signals.doNotTrack === "1" || signals.globalPrivacyControl === true) return;
   started = true;
   whenIdle(() => {
     // Blocked, or offline. Analytics is not needed to read: stay quiet and keep nothing.
