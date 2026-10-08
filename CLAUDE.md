@@ -31,3 +31,9 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Do not name a CSS class after a Tailwind utility. A class named `contents` removed a whole column (`display: contents`). The browser tests check the column layout.
 - Both Literata font calls in `src/app/layout.tsx` give the family name "Literata", so the true italic is picked by the browser. Only the upright face is preloaded.
 - The mark is a bookmark (`src/brand/BookmarkMark.tsx`). The icon files in `src/app/` and `public/` are written by `bun run icons` from that one shape. Do not edit them by hand. No concentric circles, and no mark shared with urantia.dev.
+- Three colors, three meanings. Yellow (`--mark`) is the paragraph in focus. Green (`--voice`, `--voice-line`) shows only while sound plays or loads: a pause removes it. Indigo (`--accent`) is links and the reading position.
+- A paragraph is server HTML. No component exists for each paragraph. `ReadingNav` marks paragraphs with the attributes `data-picked` and `data-voice` through one click listener, and sets `data-reader` on `<html>` when it owns the marks. Before that, and with no JavaScript, CSS `:target` marks the paragraph.
+- One voice: `nova`. The content gateway reads its URL from the API (`novaAudio`). No code builds an audio URL. A paper with one paragraph that has no audio gets no round button.
+- Icons are family B (`src/components/icons.tsx`): tool icons are a line of 1.9 with round ends and a label below; player icons are solid. Check each new icon on one sheet with the full set, because two icons can look alike. The action for keeping a place is "Bookmark". There is no "Highlight".
+- Browser tests serve a silent MP3 file in place of each CDN audio file (`e2e/audio.ts`). No test loads audio from the CDN.
+- A change of the pill's job must call `setHidden(false)`. The page scrolls down to follow the voice, so without it a pause hides the controls.
