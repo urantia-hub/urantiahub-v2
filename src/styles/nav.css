@@ -379,19 +379,22 @@
   font: 500 11px/1 var(--font-ui);
   white-space: nowrap;
 }
+/* One rule above the foot. Everything in the foot lines up with the list. */
 .navigator .sheet-foot {
   border-top: 1px solid var(--rule);
-  padding: 12px 10px calc(8px + env(safe-area-inset-bottom));
+  padding: 14px 22px calc(6px + env(safe-area-inset-bottom));
 }
 /* Two cards. Each shows the full title of its paper. */
 .navigator .hop {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding: 0 12px 8px;
 }
+/* A button centers its content. The column puts the text at the top of each card. */
 .navigator .hop button {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   min-height: 74px;
   padding: 10px 12px;
   border: 1px solid var(--rule);
@@ -414,6 +417,7 @@
 }
 .navigator .hop .next {
   text-align: right;
+  align-items: flex-end;
 }
 .navigator .hop .next small {
   justify-content: flex-end;
@@ -423,8 +427,7 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 13px 12px 11px;
-  border-top: 1px solid var(--rule);
+  padding: 16px 0 12px;
   text-align: left;
   font: 500 14.5px/1 var(--font-ui);
 }

@@ -102,3 +102,19 @@ test("Escape and the back control close the navigator and keep the paper", async
   await expect(navigator).toBeHidden();
   await expect(page).toHaveURL(PAPER_1);
 });
+
+// A one-line title stood lower than a two-line title, because a button centers its content.
+test("the two neighbor cards start their text at the same height, and line up with the list", async ({ page }) => {
+  await page.goto("/papers/paper-2-the-nature-of-god");
+  await openNavigator(page);
+  const navigator = page.getByRole("dialog", { name: "Navigator" });
+  const cards = navigator.locator(".hop button");
+  await cards.first().evaluate((el) => ((el.lastChild as Text).textContent = "A title that is long enough to take two lines here"));
+  const [a, b] = await Promise.all([cards.nth(0).locator("small").boundingBox(), cards.nth(1).locator("small").boundingBox()]);
+  expect(Math.abs(a!.y - b!.y)).toBeLessThanOrEqual(1);
+  const list = (await navigator.locator(".secs button").first().boundingBox())!;
+  const all = (await navigator.locator(".all").boundingBox())!;
+  const card = (await cards.first().boundingBox())!;
+  expect(Math.abs(card.x - list.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(all.x - list.x)).toBeLessThanOrEqual(1);
+});
