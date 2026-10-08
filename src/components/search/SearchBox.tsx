@@ -21,12 +21,18 @@ export function SearchBox({ initial }: { initial: string }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const starters = useRef<HTMLElement>(null);
+  const form = useRef<HTMLFormElement>(null);
   const [value, setValue] = useState(initial);
   const recent = useSyncExternalStore(subscribeToRecent, readRecent, noRecent);
 
   useEffect(() => {
     if (initial === "") track("search_opened");
   }, [initial]);
+
+  // A mark that the box is ready for input. The browser tests wait for it.
+  useEffect(() => {
+    if (form.current) form.current.dataset.ready = "";
+  }, []);
 
   const q = normalizeQuery(value);
   const startersShown = q === "" && recent.length === 0;
@@ -67,7 +73,7 @@ export function SearchBox({ initial }: { initial: string }) {
 
   return (
     <div className="search-box">
-      <form className="search-bar" role="search" action="/search" method="get" onSubmit={onSubmit}>
+      <form className="search-bar" role="search" action="/search" method="get" onSubmit={onSubmit} ref={form}>
         <Link className="icon-button" href="/" aria-label="Back" onClick={onBack}>
           <Icon name="back" />
         </Link>

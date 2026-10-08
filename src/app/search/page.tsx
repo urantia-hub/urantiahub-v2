@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Icon } from "@/components/icons";
 import { ResultLink } from "@/components/search/ResultLink";
 import { SearchBox } from "@/components/search/SearchBox";
 import { ShownTracker } from "@/components/search/ShownTracker";
@@ -25,10 +26,38 @@ const LABEL: Record<Kind, string> = { exact: "Exact matches", related: "Related 
 export default function SearchPage({ searchParams }: Props) {
   return (
     <div className="search">
-      {/* The address decides the content, so it renders for each request. The empty screen is the fallback. */}
-      <Suspense fallback={<SearchBox initial="" />}>
+      {/* The address decides the content, so it renders for each request and arrives as a stream. */}
+      <Suspense fallback={<SearchShell />}>
         <SearchContent searchParams={searchParams} />
       </Suspense>
+    </div>
+  );
+}
+
+// What shows before the stream arrives: an empty bar, so the page does not jump.
+// A stream needs JavaScript to show, so a reader with no JavaScript gets a plain form here.
+// That form still works for a reference: the server sends it to its paper.
+function SearchShell() {
+  return (
+    <div className="search-box">
+      <div className="search-bar shell" aria-hidden="true" />
+      <noscript>
+        <form className="search-bar" role="search" action="/search" method="get">
+          <Link className="icon-button" href="/" aria-label="Back">
+            <Icon name="back" />
+          </Link>
+          <input
+            type="search"
+            name="q"
+            aria-label="Search the Papers"
+            placeholder="Search, ask, or type 99:1.1"
+            autoComplete="off"
+            autoCapitalize="off"
+            maxLength={200}
+          />
+        </form>
+        <p className="search-wrap search-empty">Search results need JavaScript. A reference such as 99:1.1 works without it.</p>
+      </noscript>
     </div>
   );
 }

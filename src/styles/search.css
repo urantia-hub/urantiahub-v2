@@ -13,6 +13,10 @@ body:has(.search) .site-header {
   padding: 10px 10px 10px 8px;
   border-bottom: 1px solid var(--rule);
 }
+/* The empty bar before the stream arrives. With no JavaScript, the plain form below it is the bar. */
+.search-bar.shell {
+  height: 61px;
+}
 .search-bar input {
   flex: 1;
   min-width: 0;
