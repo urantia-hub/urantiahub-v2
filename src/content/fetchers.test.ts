@@ -229,3 +229,9 @@ describe("fetchPaper and audio", () => {
     expect(paper.sections[0].paragraphs.map((p) => p.audio)).toEqual([{ url: "https://cdn.urantia.dev/a.mp3", duration: 12 }, null]);
   });
 });
+
+describe("fetchPaper and the paper id", () => {
+  it("throws when the API returns a paper other than the one asked for", async () => {
+    await expect(fetchPaper(client(), "2")).rejects.toThrow(/Paper 2: the content API returned paper 1/);
+  });
+});

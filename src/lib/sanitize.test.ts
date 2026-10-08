@@ -57,3 +57,19 @@ describe("sanitizeParagraphHtml", () => {
     expect(sanitizeParagraphHtml(text)).toBe(text);
   });
 });
+
+describe("line breaks and tags that do not match", () => {
+  it("puts a space in place of a line break, so two words do not join", () => {
+    expect(sanitizeParagraphHtml("first<br>second<br/>third")).toBe("first second third");
+  });
+  it("closes a tag that the source left open", () => {
+    expect(sanitizeParagraphHtml("<em>open")).toBe("<em>open</em>");
+    expect(sanitizeParagraphHtml('<span class="scaps"><em>a</span>')).toBe('<span class="scaps"><em>a</em></span>');
+  });
+  it("removes a closing tag with no opening tag", () => {
+    expect(sanitizeParagraphHtml("a</em>b</span>")).toBe("ab");
+  });
+  it("leaves matched tags alone", () => {
+    expect(sanitizeParagraphHtml("<em>a <sup>1</sup></em> b")).toBe("<em>a <sup>1</sup></em> b");
+  });
+});

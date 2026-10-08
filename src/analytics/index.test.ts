@@ -92,4 +92,29 @@ describe("analytics", () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(posthog.init).toHaveBeenCalledTimes(1);
   });
+
+  // A reader with a blocker never loads PostHog. The wait list must not grow for the whole visit.
+  it("keeps no more than 50 events while it waits", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, track } = await import("./index");
+    initAnalytics();
+    for (let i = 0; i < 60; i++) track("home_read_clicked");
+    await started();
+    await vi.waitFor(() => expect(posthog.capture).toHaveBeenCalled());
+    expect(posthog.capture).toHaveBeenCalledTimes(50);
+  });
+
+  it("stays quiet when PostHog does not start, and sends nothing later", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    posthog.init.mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    const { initAnalytics, track } = await import("./index");
+    initAnalytics();
+    track("home_read_clicked");
+    await started();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    track("home_read_clicked");
+    expect(posthog.capture).not.toHaveBeenCalled();
+  });
 });

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import { paperById, referenceHref } from "@/content/paper-index";
-import { parseReference } from "@/lib/paper-url";
+import { parseReference, referenceProblem } from "@/lib/paper-url";
 import { sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
 type Props = {
@@ -45,6 +45,15 @@ export function Navigator({
   const leaving = useRef(false);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // The field is empty at each new open. React permits this change of state during a render.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (!open) {
+      setValue("");
+      setError(null);
+    }
+  }
 
   // The open navigator owns one history entry, so the back control closes it.
   // With a destination, that entry is replaced. A step back would make the browser
@@ -77,6 +86,15 @@ export function Navigator({
     if (!open && el.open) el.close();
   }, [open]);
 
+  // After a reload, the entry that the open navigator added is still in the history: the same page twice.
+  // One step back removes the need for a second press of Back.
+  const healed = useRef(false);
+  useEffect(() => {
+    if (healed.current) return;
+    healed.current = true;
+    if (!dialog.current?.open && window.history.state?.navigator) window.history.back();
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     window.addEventListener("popstate", onClose);
@@ -87,7 +105,7 @@ export function Navigator({
     event.preventDefault();
     const ref = parseReference(value);
     if (!ref) {
-      setError("Use a form such as 99, 99:1, or 99:1.1.");
+      setError(referenceProblem(value) === "range" ? "The papers go from 1 to 196." : "Use a form such as 99, 99:1, or 99:1.1.");
       return;
     }
     track("navigator_used", { kind: "reference" });

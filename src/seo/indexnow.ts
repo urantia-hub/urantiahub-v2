@@ -6,6 +6,8 @@ type Options = { fetchImpl?: typeof fetch };
 export async function submitToIndexNow(urls: string[], { fetchImpl = fetch }: Options = {}): Promise<"sent" | "skipped"> {
   const key = process.env.INDEXNOW_KEY;
   if (!site.indexable || !key || urls.length === 0) return "skipped";
+  // SITE_ORIGIN is not set, so the origin is the local default. A local address must never go to a search engine.
+  if (/^(localhost|127\.|\[::1\])/.test(new URL(site.origin).hostname)) return "skipped";
 
   const response = await fetchImpl("https://api.indexnow.org/indexnow", {
     method: "POST",

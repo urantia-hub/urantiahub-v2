@@ -23,10 +23,12 @@ export function idFromSlug(slug: string): string | null {
 
 export type ParsedReference = { paperId: string; sectionId?: string; paragraphId?: string };
 
-const REFERENCE = /^[\s(]*(?:paper\s*)?(\d{1,3})(?:\s*:\s*(\d{1,2})(?:\s*\.\s*(\d{1,3}))?)?[\s)]*$/i;
+// A period at the end is permitted: a reader can copy a reference from the end of a sentence.
+const REFERENCE = /^[\s(]*(?:paper\s*)?(\d{1,3})(?:\s*:\s*(\d{1,2})(?:\s*\.\s*(\d{1,3}))?)?[\s).]*$/i;
 
-// Accepts "99", "99:1", and "99:1.1", with spaces, parentheses, or a leading "Paper".
+// Accepts "99", "99:1", "99:1.1", and "foreword", with spaces, parentheses, or a leading "Paper".
 export function parseReference(input: string): ParsedReference | null {
+  if (/^\s*foreword\s*$/i.test(input)) return { paperId: "0" };
   const match = REFERENCE.exec(input);
   if (!match) return null;
   const paper = Number(match[1]);
@@ -35,6 +37,13 @@ export function parseReference(input: string): ParsedReference | null {
   if (match[2] !== undefined) ref.sectionId = String(Number(match[2]));
   if (match[3] !== undefined) ref.paragraphId = String(Number(match[3]));
   return ref;
+}
+
+// Why an input is not a reference: the paper number is too high, or the form is wrong.
+export function referenceProblem(input: string): "range" | "format" | null {
+  if (parseReference(input)) return null;
+  const match = REFERENCE.exec(input);
+  return match && Number(match[1]) > LAST_PAPER ? "range" : "format";
 }
 
 // Section 0 has no heading in the text, so a reference to it goes to the top of the paper.

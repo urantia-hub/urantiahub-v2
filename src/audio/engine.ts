@@ -31,6 +31,8 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   const listeners = new Set<() => void>();
   // Each start gets a number. A late answer from an older start is ignored.
   let attempt = 0;
+  // True when a file ended after a pause. The next press then goes on to the next paragraph.
+  let endedWhilePaused = false;
 
   function set(patch: Partial<VoiceState>) {
     state = { ...state, ...patch };
@@ -47,7 +49,8 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
       if (name === "AbortError") return;
       // The browser refuses sound with no user action. Not a fault of the file.
       if (name === "NotAllowedError") {
-        set(resumeFrom === null ? { status: "idle", index: -1, time: 0 } : { status: "paused", time: resumeFrom });
+        // The place is held, so the next press, inside a gesture, starts this paragraph.
+        set({ status: "paused", time: resumeFrom ?? 0 });
         return;
       }
       set({ status: "failed" });
@@ -56,6 +59,7 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
 
   function playAt(index: number) {
     if (index < 0 || index >= tracks.length) return;
+    endedWhilePaused = false;
     set({ status: "loading", index, time: 0 });
     audio.src = tracks[index].url;
     const following = tracks[index + 1];
@@ -80,6 +84,11 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   };
   const onEnded = () => {
     if (state.index < 0) return;
+    if (state.status === "paused") {
+      endedWhilePaused = true;
+      return;
+    }
+    if (state.status !== "playing" && state.status !== "loading") return;
     if (state.index + 1 < tracks.length) {
       playAt(state.index + 1);
       return;
@@ -119,6 +128,14 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
     },
     resume() {
       if (state.status !== "paused") return;
+      if (endedWhilePaused) {
+        if (state.index + 1 < tracks.length) playAt(state.index + 1);
+        else {
+          set({ status: "idle", index: -1, time: 0 });
+          onFinished?.();
+        }
+        return;
+      }
       const from = state.time;
       set({ status: "loading" });
       start(from);
@@ -141,6 +158,8 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
     destroy() {
       attempt += 1;
       audio.pause();
+      // Stops the download of the file that loads ahead.
+      ahead.src = "";
       handlers.forEach(([type, handler]) => audio.removeEventListener(type, handler));
       listeners.clear();
     },
