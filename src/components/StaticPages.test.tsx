@@ -31,10 +31,23 @@ describe("Privacy", () => {
   });
 });
 
+describe("Privacy and search", () => {
+  it("says what a search records, and that the record has no link to the reader", () => {
+    const { container } = render(<PrivacyPage />);
+    const text = container.textContent ?? "";
+    expect(text).toMatch(/records the words of the search/);
+    expect(text).toMatch(/no link to you/);
+    expect(text).toMatch(/last five searches/);
+    expect(text).toMatch(/last place that you read/);
+    // The old promise is no longer true as written.
+    expect(text).not.toMatch(/no text that you read or type/);
+  });
+});
+
 describe("Privacy and the theme choice", () => {
   it("says that the theme choice stays in the browser", () => {
     render(<PrivacyPage />);
-    expect(screen.getByText(/theme choice in your browser/)).toBeInTheDocument();
+    expect(screen.getByText(/keeps three things in your browser: your theme choice/)).toBeInTheDocument();
   });
 });
 

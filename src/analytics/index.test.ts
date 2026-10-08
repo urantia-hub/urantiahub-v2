@@ -117,4 +117,61 @@ describe("analytics", () => {
     track("home_read_clicked");
     expect(posthog.capture).not.toHaveBeenCalled();
   });
+
+  // Found by the commit scan: PostHog records each address, and a search address holds the typed text.
+  it("cuts the typed text of a search from each address before an event leaves the browser", async () => {
+    const { scrubSearchText } = await import("./index");
+    const event = {
+      properties: {
+        $current_url: "https://next.urantiahub.com/search?q=why%20am%20i%20afraid&all=exact",
+        $referrer: "https://next.urantiahub.com/search?q=my+private+question",
+        $pathname: "/search",
+        $prev_pageview_pathname: "/papers/paper-1-the-universal-father",
+        count: 3,
+      },
+      $set: { $current_url: "https://next.urantiahub.com/search?q=secret" },
+      $set_once: { $initial_current_url: "https://next.urantiahub.com/search?q=secret#top" },
+    };
+    const out = scrubSearchText(event);
+    expect(out.properties.$current_url).toBe("https://next.urantiahub.com/search");
+    expect(out.properties.$referrer).toBe("https://next.urantiahub.com/search");
+    expect(out.properties.$prev_pageview_pathname).toBe("/papers/paper-1-the-universal-father");
+    expect(out.properties.count).toBe(3);
+    expect(out.$set.$current_url).toBe("https://next.urantiahub.com/search");
+    expect(out.$set_once.$initial_current_url).toBe("https://next.urantiahub.com/search#top");
+    expect(JSON.stringify(out)).not.toMatch(/afraid|private|secret/);
+    expect(scrubSearchText(null)).toBeNull();
+  });
+
+  it("gives PostHog that rule at the start", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics } = await import("./index");
+    initAnalytics();
+    await started();
+    const options = posthog.init.mock.calls[0][1] as { before_send: (event: unknown) => unknown };
+    const sent = options.before_send({ properties: { $current_url: "https://x.test/search?q=hidden" } }) as { properties: { $current_url: string } };
+    expect(sent.properties.$current_url).toBe("https://x.test/search");
+  });
+
+  it("cuts the search text at each depth, from keys too, and in an encoded address", async () => {
+    const { scrubSearchText } = await import("./index");
+    const out = scrubSearchText({
+      properties: {
+        nested: { url: "https://x.test/search?q=deep+secret", list: ["/search?q=in%20a%20list"] },
+        $heatmap_data: { "https://x.test/search?q=key+secret": [{ x: 1 }] },
+        $referrer: "https://other.test/go?to=https%3A%2F%2Fx.test%2Fsearch%3Fq%3Dencoded%2520secret&x=1",
+      },
+    });
+    expect(JSON.stringify(out)).not.toMatch(/secret|in%20a%20list/);
+    expect(out.properties.nested).toEqual({ url: "https://x.test/search", list: ["/search"] });
+    expect(Object.keys(out.properties.$heatmap_data as object)).toEqual(["https://x.test/search"]);
+  });
+
+  it("turns heatmaps off, because a heatmap uses the page address as a key", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics } = await import("./index");
+    initAnalytics();
+    await started();
+    expect(posthog.init.mock.calls[0][1]).toMatchObject({ capture_heatmaps: false });
+  });
 });

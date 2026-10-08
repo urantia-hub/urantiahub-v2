@@ -33,8 +33,8 @@ test("the navigator goes to a section and does not leave the paper", async ({ pa
 test("the navigator goes to a typed reference and the paragraph is marked", async ({ page }) => {
   await page.goto(PAPER_1);
   await openNavigator(page);
-  await page.getByLabel("Go to a reference").fill("99:1.1");
-  await page.getByLabel("Go to a reference").press("Enter");
+  await page.getByLabel("Search, or go to a reference").fill("99:1.1");
+  await page.getByLabel("Search, or go to a reference").press("Enter");
   await expect(page).toHaveURL("/papers/paper-99-the-social-problems-of-religion#99:1.1");
   const paragraph = page.locator('[id="99:1.1"]');
   await expect(paragraph).toBeInViewport();
@@ -42,15 +42,12 @@ test("the navigator goes to a typed reference and the paragraph is marked", asyn
   await expect(paragraph).toHaveCSS("background-color", "rgb(243, 234, 210)");
 });
 
-test("the navigator rejects input that is not a reference", async ({ page }) => {
+test("the navigator says that the papers go from 1 to 196 for a number that is too high", async ({ page }) => {
   await page.goto(PAPER_1);
   await openNavigator(page);
-  await page.getByLabel("Go to a reference").fill("hello");
-  await page.getByLabel("Go to a reference").press("Enter");
-  // Next.js has its own hidden alert element, so the query stays inside the navigator.
-  await expect(page.getByRole("dialog", { name: "Navigator" }).getByRole("alert")).toHaveText(
-    "Use a form such as 99, 99:1, or 99:1.1.",
-  );
+  await page.getByLabel("Search, or go to a reference").fill("197");
+  await page.getByLabel("Search, or go to a reference").press("Enter");
+  await expect(page.getByRole("dialog", { name: "Navigator" }).getByRole("alert")).toHaveText("The papers go from 1 to 196.");
   await expect(page).toHaveURL(PAPER_1);
 });
 

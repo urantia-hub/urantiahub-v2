@@ -10,6 +10,11 @@ export type AnalyticsEvents = {
   audio_started: { paper_id: string; from: "bar" | "paragraph" };
   audio_finished_paper: { paper_id: string; speed: number };
   audio_failed: { paper_id: string };
+  search_opened: undefined;
+  search_started: { source: "typed" | "starter" | "recent" | "navigator" };
+  search_direct_hit: { kind: "reference" | "paper" };
+  search_results_shown: { kind: "words" | "question"; exact: "0" | "1-5" | "6-50" | "51+" };
+  search_result_opened: { group: "exact" | "related"; position: number };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };
@@ -39,6 +44,31 @@ export function initAnalytics(): void {
   });
 }
 
+type Bags = { properties?: Record<string, unknown>; $set?: Record<string, unknown>; $set_once?: Record<string, unknown> };
+
+// A search address in plain form, and inside another address in encoded form.
+const cutSearchText = (text: string) =>
+  text.replace(/\/search\?[^#\s]*/g, "/search").replace(/%2Fsearch%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2Fsearch");
+
+function scrubValue(value: unknown): unknown {
+  if (typeof value === "string") return cutSearchText(value);
+  if (Array.isArray(value)) return value.map(scrubValue);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([name, inner]) => [cutSearchText(name), scrubValue(inner)]));
+  }
+  return value;
+}
+
+// The typed text of a search is in its address: /search?q=... PostHog records the address of each page,
+// the address before it, and the first address of a visit. This cuts the text from each one, at each depth.
+export function scrubSearchText<E extends Bags | null>(event: E): E {
+  if (!event) return event;
+  for (const bag of ["properties", "$set", "$set_once"] as const) {
+    if (event[bag]) event[bag] = scrubValue(event[bag]) as Record<string, unknown>;
+  }
+  return event;
+}
+
 async function start(key: string): Promise<void> {
   const { default: posthog } = await import("posthog-js");
   posthog.init(key, {
@@ -50,6 +80,9 @@ async function start(key: string): Promise<void> {
     // Step 1 uses no feature flags. This also stops a config request to a host that the CSP does not permit.
     advanced_disable_flags: true,
     disable_external_dependency_loading: true,
+    // A heatmap uses the page address as a key, and a search address holds the typed text.
+    capture_heatmaps: false,
+    before_send: (event) => scrubSearchText(event),
   });
   posthog.register({ app: "hub-v2" });
   client = posthog;

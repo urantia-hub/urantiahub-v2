@@ -38,3 +38,12 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Browser tests serve a silent MP3 file in place of each CDN audio file (`e2e/audio.ts`). No test loads audio from the CDN.
 - A change of the pill's job must call `setHidden(false)`. The page scrolls down to follow the voice, so without it a pause hides the controls.
 - The navigator lists the sections of this paper only. "All papers" goes to the contents page, which shows a "Continue" card from `src/reader/last-read.ts` (this browser only, no account). The theme control is an icon in the header and a text link in the footer, not in the navigator.
+- Search (`/search`): the server runs both searches through the content gateway and keeps each result (`searchExact`, `searchRelated`). The browser never calls the API, so the security policy has no API host.
+- A search snippet is a list of text parts from `src/search/snippet.ts`. React renders the marks. No snippet reaches the page as an HTML string.
+- `/search` stays out of each search engine: a `noindex` meta at each index setting, and a `Disallow` in `robots.txt`.
+- Analytics never sends the typed text of a search. Events carry labels and count ranges, and `scrubSearchText` cuts the text from each address that PostHog records.
+- The starter questions in `src/search/starters.ts` are approved copy. Before a question enters the pool, run it against the live search and read its first results. The reader sees one from each group, chosen before the first paint.
+- Request-time content arrives as a stream, and a stream needs JavaScript to show. So search results need JavaScript. With none, `/search` gives a plain form, and the proxy sends a reference to its paper.
+- The fixture server answers a search from `e2e/fixtures/search_*.json` and `semantic_*.json`. Other text gets an empty result, and the text "fail related" makes the semantic search fail.
+- The server records each search with `logSearch` (`src/server/search-log.ts`): the text, the kind, and the counts, under one fixed name, with no link to a reader. The browser never sends the text. The Privacy page states both facts: change it when either one changes.
+- The two search functions use `'use cache: remote'`, because the API has one rate limit for the whole site and each new text costs it two requests. Open before the cutover to www: a rate rule for `/search` in the Vercel firewall.

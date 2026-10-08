@@ -39,3 +39,19 @@ test("no Listen button shows, because it cannot work", async ({ page }) => {
   await expect(page.getByTestId("reading-bar")).toBeVisible();
   await expect(page.getByTestId("round-button")).toBeHidden();
 });
+
+// Results arrive as a stream, and a stream needs JavaScript to show. The form and a reference still work.
+test("the search form works: a reference goes to the paper at that paragraph", async ({ page }) => {
+  await page.goto("/search");
+  await page.getByRole("searchbox", { name: "Search the Papers" }).fill("99:1.1");
+  await page.getByRole("searchbox", { name: "Search the Papers" }).press("Enter");
+  await expect(page).toHaveURL("/papers/paper-99-the-social-problems-of-religion#99:1.1");
+});
+
+test("a search for words says that results need JavaScript", async ({ page }) => {
+  await page.goto("/search?q=thought+adjuster");
+  // The text is inside a noscript element, which a text query does not look into.
+  await expect(page.locator(".search noscript p")).toBeVisible();
+  await expect(page.locator(".search noscript p")).toHaveText(/^Search results need JavaScript\./);
+  await expect(page.getByRole("searchbox", { name: "Search the Papers" })).toBeVisible();
+});

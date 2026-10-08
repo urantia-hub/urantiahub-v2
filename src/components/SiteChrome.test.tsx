@@ -13,6 +13,13 @@ describe("SiteHeader", () => {
 });
 
 describe("SiteFooter", () => {
+  it("has a search link in the header, as an icon with a name", () => {
+    render(<SiteHeader />);
+    const link = screen.getByRole("link", { name: "Search" });
+    expect(link).toHaveAttribute("href", "/search");
+    expect(link.querySelector("svg")).not.toBeNull();
+  });
+
   it("has the theme control in the header", () => {
     render(<SiteHeader />);
     expect(screen.getByRole("banner").querySelector("button[aria-label='Dark theme']")).not.toBeNull();

@@ -5,6 +5,8 @@ import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import { paperById, referenceHref } from "@/content/paper-index";
 import { parseReference, referenceProblem } from "@/lib/paper-url";
+import { normalizeQuery, searchHref } from "@/search/query";
+import { saveRecent } from "@/search/recent";
 import { sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
 type Props = {
@@ -103,13 +105,22 @@ export function Navigator({
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const ref = parseReference(value);
-    if (!ref) {
-      setError(referenceProblem(value) === "range" ? "The papers go from 1 to 196." : "Use a form such as 99, 99:1, or 99:1.1.");
+    const text = normalizeQuery(value);
+    if (text === "") return;
+    const ref = parseReference(text);
+    if (ref) {
+      track("navigator_used", { kind: "reference" });
+      leave(referenceHref(ref));
       return;
     }
-    track("navigator_used", { kind: "reference" });
-    leave(referenceHref(ref));
+    // A number over 196 is a slip of the hand, not a search.
+    if (referenceProblem(text) === "range") {
+      setError("The papers go from 1 to 196.");
+      return;
+    }
+    saveRecent(text);
+    track("search_started", { source: "navigator" });
+    leave(searchHref(text));
   }
 
   function goToSection(section: NavSection) {
@@ -149,8 +160,8 @@ export function Navigator({
         <form className={`goto${value.trim() ? " typed" : ""}`} onSubmit={onSubmit}>
           <Icon name="search" />
           <input
-            aria-label="Go to a reference"
-            placeholder="Go to a reference, such as 99:1.1"
+            aria-label="Search, or go to a reference"
+            placeholder="Search, or go to a reference"
             autoComplete="off"
             autoCapitalize="off"
             value={value}
