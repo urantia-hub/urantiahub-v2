@@ -6,6 +6,7 @@ import { track } from "@/analytics";
 import { createAudioEngine, type AudioEngine, type VoiceState } from "@/audio/engine";
 import type { Track } from "@/audio/tracks";
 import { Icon } from "@/components/icons";
+import { TermsSheet } from "@/components/reader/TermsSheet";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
 import { saveLastRead } from "@/reader/last-read";
 import { shareParagraph } from "@/reader/share";
@@ -48,6 +49,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [voice, setVoice] = useState<VoiceState>(IDLE);
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const toastTimer = useRef(0);
   const roundButton = useRef<HTMLButtonElement>(null);
 
@@ -134,6 +136,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     },
     [],
   );
+
+  // The terms belong to the marked paragraph. With no mark, there is no sheet.
+  if (termsOpen && !picked) setTermsOpen(false);
 
   useEffect(() => mark("data-picked", picked), [picked]);
   useEffect(() => mark("data-voice", sounding ? voiceRef : null), [sounding, voiceRef]);
@@ -279,7 +284,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || document.querySelector("dialog[open]")) return;
-      if (event.key === "Escape") {
+      // While the terms are open, Escape belongs to their sheet.
+      if (event.key === "Escape" && !document.querySelector(".terms-sheet")) {
         setPicked(null);
         setHidden(false);
         return;
@@ -450,6 +456,10 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                   <Icon name="share" />
                   Share
                 </button>
+                <button type="button" className="tile" aria-expanded={termsOpen} onClick={() => setTermsOpen((was) => !was)}>
+                  <Icon name="terms" />
+                  Terms
+                </button>
               </div>
               <button type="button" className="close" aria-label="Close"
                 onClick={() => {
@@ -486,6 +496,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         </div>
       )}
 
+      {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={() => setTermsOpen(false)} />}
       <Navigator
         open={open}
         onClose={() => setOpen(false)}
