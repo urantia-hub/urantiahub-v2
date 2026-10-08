@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { after } from "next/server";
 import { Suspense } from "react";
 import { Icon } from "@/components/icons";
@@ -12,7 +13,7 @@ import { parseReference } from "@/lib/paper-url";
 import { isQuestion, normalizeQuery, searchHref } from "@/search/query";
 import { settle, type Outcome } from "@/search/settle";
 import { exactSnippet, relatedSnippet } from "@/search/snippet";
-import { logSearch } from "@/server/search-log";
+import { asksForNoTracking, logSearch } from "@/server/search-log";
 
 // A results page is not a page of the text. It stays out of each search engine, at each index setting.
 export const metadata: Metadata = { title: "Search", robots: { index: false, follow: false } };
@@ -68,11 +69,15 @@ async function SearchContent({ searchParams }: Props) {
   const params = await searchParams;
   const q = normalizeQuery(params.q);
   const page = Math.min(LAST_PAGE, Math.max(1, Math.floor(Number(params.page)) || 1));
+  // Read here, in the part that renders for each request. The code that runs after the response cannot read it.
+  const record = !asksForNoTracking(await headers());
   return (
     <>
       {/* The key gives the box a new state for each new search. */}
       <SearchBox initial={q} key={q} />
-      {q !== "" && <div className="search-wrap results">{params.all === "exact" ? <AllExact q={q} page={page} /> : <TwoGroups q={q} />}</div>}
+      {q !== "" && (
+        <div className="search-wrap results">{params.all === "exact" ? <AllExact q={q} page={page} /> : <TwoGroups q={q} record={record} />}</div>
+      )}
     </>
   );
 }
@@ -84,13 +89,14 @@ function hitHref(hit: SearchHit): string {
 const paperName = (hit: SearchHit) => (hit.paperId === "0" ? "Foreword" : `Paper ${hit.paperId} · ${hit.paperTitle}`);
 const bucket = (total: number) => (total === 0 ? "0" : total <= 5 ? "1-5" : total <= 50 ? "6-50" : "51+");
 
-function TwoGroups({ q }: { q: string }) {
+function TwoGroups({ q, record }: { q: string; record: boolean }) {
   // Both searches start now. Each group waits for what it needs, so one slow search does not hold the other.
   const exact = settle(searchExact(q));
   const related = settle(searchRelated(q));
   const question = isQuestion(q);
   // After the page is sent: one record of the search, with no link to the reader.
   after(async () => {
+    if (!record) return;
     const [e, r] = await Promise.all([exact, related]);
     await logSearch({ query: q, kind: question ? "question" : "words", exact: e.ok ? e.page.total : -1, related: r.ok ? r.page.hits.length : -1 });
   });

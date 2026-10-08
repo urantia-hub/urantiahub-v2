@@ -37,6 +37,12 @@ describe("Privacy and search", () => {
     const text = container.textContent ?? "";
     expect(text).toMatch(/records the words of the search/);
     expect(text).toMatch(/no link to you/);
+    expect(text).toMatch(/Do Not Track or a Global Privacy Control signal/);
+    // The promise covers the analytics, which the site controls. It must not claim more.
+    expect(text).toMatch(/sends no analytics event and makes no record of your searches in its analytics/);
+    expect(text).toMatch(/hosting provider keeps a log of each request/);
+    // PostHog keeps the time that it received each event, so the page must not promise otherwise.
+    expect(text).not.toMatch(/no time of day/);
     expect(text).toMatch(/last five searches/);
     expect(text).toMatch(/last place that you read/);
     // The old promise is no longer true as written.

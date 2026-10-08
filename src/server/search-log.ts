@@ -4,6 +4,12 @@ type Options = { fetchImpl?: typeof fetch; now?: Date };
 // An email address, or a run of seven or more digits with the usual phone punctuation.
 const PERSONAL = /[^\s@]+@[^\s@]+\.[^\s@]+|(?:\d[\s().+-]*){7,}/;
 
+// A reader can tell each site not to track them: Global Privacy Control, or the older Do Not Track.
+// The record below has no link to a reader, but the reader said no, so no record is made.
+export function asksForNoTracking(headers: { get(name: string): string | null }): boolean {
+  return headers.get("sec-gpc") === "1" || headers.get("dnt") === "1";
+}
+
 // One record for each search: what was asked and how much came back. It tells us what readers look for.
 // It has no link to a reader. The server sends it, so PostHog gets no address, no visit, and no device of
 // the reader, and each record has the same fixed name. A count of -1 means that the search failed.

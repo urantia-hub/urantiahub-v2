@@ -174,4 +174,20 @@ describe("analytics", () => {
     await started();
     expect(posthog.init.mock.calls[0][1]).toMatchObject({ capture_heatmaps: false });
   });
+
+  // The Privacy page promises this. The server log honors the same two signals.
+  it.each([
+    ["Do Not Track", "doNotTrack", "1"],
+    ["Global Privacy Control", "globalPrivacyControl", true],
+  ])("does not start for a reader whose browser sends %s", async (_name, property, value) => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    Object.defineProperty(navigator, property, { value, configurable: true });
+    const { initAnalytics, track } = await import("./index");
+    initAnalytics();
+    track("home_read_clicked");
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(posthog.init).not.toHaveBeenCalled();
+    expect(posthog.capture).not.toHaveBeenCalled();
+    Reflect.deleteProperty(navigator, property);
+  });
 });
