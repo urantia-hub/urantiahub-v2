@@ -17,13 +17,14 @@ describe("logSearch", () => {
   it("records the text, the kind, and the counts, with no link to a person", async () => {
     const logSearch = await load();
     const fetchImpl = ok();
-    await logSearch({ query: "thought adjuster", kind: "words", exact: 244, related: 5 }, { fetchImpl });
+    await logSearch({ query: "thought adjuster", kind: "words", exact: 244, related: 5 }, { fetchImpl, now: new Date("2026-10-07T19:42:13.511Z") });
     expect(fetchImpl.mock.calls[0][0]).toBe("https://us.i.posthog.com/capture/");
     expect(body(fetchImpl)).toEqual({
       api_key: "phc_test",
       event: "search_query",
       // One fixed name for each record. No record can be tied to a reader, a visit, or a device.
       distinct_id: "search-log",
+      timestamp: "2026-10-07T00:00:00.000Z",
       properties: {
         app: "hub-v2",
         query: "thought adjuster",
@@ -70,5 +71,16 @@ describe("logSearch", () => {
   it("stays quiet when the request fails", async () => {
     const logSearch = await load();
     await expect(logSearch({ query: "soul", kind: "words", exact: 1, related: 1 }, { fetchImpl: vi.fn().mockRejectedValue(new Error("down")) })).resolves.toBeUndefined();
+  });
+
+  // The reader's browser sends a page view in the same second. An exact time on this record would let
+  // a person match the two, and the page view comes with a visit. So the record has the date only.
+  it("carries the date and never the time of day", async () => {
+    const logSearch = await load();
+    for (const now of ["2026-10-07T00:00:00.001Z", "2026-10-07T12:30:00Z", "2026-10-07T23:59:59.999Z"]) {
+      const fetchImpl = ok();
+      await logSearch({ query: "soul", kind: "words", exact: 1, related: 1 }, { fetchImpl, now: new Date(now) });
+      expect(body(fetchImpl).timestamp).toBe("2026-10-07T00:00:00.000Z");
+    }
   });
 });

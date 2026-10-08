@@ -1,5 +1,5 @@
 type Entry = { query: string; kind: "words" | "question"; exact: number; related: number };
-type Options = { fetchImpl?: typeof fetch };
+type Options = { fetchImpl?: typeof fetch; now?: Date };
 
 // An email address, or a run of seven or more digits with the usual phone punctuation.
 const PERSONAL = /[^\s@]+@[^\s@]+\.[^\s@]+|(?:\d[\s().+-]*){7,}/;
@@ -7,7 +7,7 @@ const PERSONAL = /[^\s@]+@[^\s@]+\.[^\s@]+|(?:\d[\s().+-]*){7,}/;
 // One record for each search: what was asked and how much came back. It tells us what readers look for.
 // It has no link to a reader. The server sends it, so PostHog gets no address, no visit, and no device of
 // the reader, and each record has the same fixed name. A count of -1 means that the search failed.
-export async function logSearch({ query, kind, exact, related }: Entry, { fetchImpl = fetch }: Options = {}): Promise<void> {
+export async function logSearch({ query, kind, exact, related }: Entry, { fetchImpl = fetch, now = new Date() }: Options = {}): Promise<void> {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   if (!key) return;
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
@@ -19,6 +19,9 @@ export async function logSearch({ query, kind, exact, related }: Entry, { fetchI
         api_key: key,
         event: "search_query",
         distinct_id: "search-log",
+        // The date only. The reader's browser sends a page view in the same second, and an exact time here
+        // would let a person match the two.
+        timestamp: `${now.toISOString().slice(0, 10)}T00:00:00.000Z`,
         properties: {
           app: "hub-v2",
           // A reader can type a contact detail by mistake. Such a text is not kept.
