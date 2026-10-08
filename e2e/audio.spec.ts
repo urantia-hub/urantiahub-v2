@@ -243,6 +243,8 @@ test("a long section name cuts off inside the pill", async ({ page }, testInfo) 
   test.skip(testInfo.project.name !== "phone", "the pill is narrow on a phone");
   await stubAudio(page);
   await page.goto(`${PAPER_1}#1:7.1`);
+  // The page marks the paragraph from the address after it starts. Escape before that does nothing.
+  await expect(page.getByTestId("picked-ref")).toHaveText("1:7.1");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("reading-bar-label")).toHaveText(/^7\. Spiritual Value/);
   const pill = (await dock(page).locator(".pill").boundingBox())!;
