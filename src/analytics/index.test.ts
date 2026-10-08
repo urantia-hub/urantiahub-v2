@@ -76,8 +76,8 @@ describe("analytics", () => {
     const { initAnalytics, track } = await import("./index");
     initAnalytics();
     await started();
-    track("reference_link_copied", { ref: "1:0.1" });
-    expect(posthog.capture).toHaveBeenCalledWith("reference_link_copied", { ref: "1:0.1" });
+    track("paragraph_shared", { ref: "1:0.1", method: "copy" });
+    expect(posthog.capture).toHaveBeenCalledWith("paragraph_shared", { ref: "1:0.1", method: "copy" });
     // Two passages can come from one paragraph, so the event names the position in the list too.
     track("home_passage_shown", { ref: "99:1.1", position: 2 });
     expect(posthog.capture).toHaveBeenCalledWith("home_passage_shown", { ref: "99:1.1", position: 2 });

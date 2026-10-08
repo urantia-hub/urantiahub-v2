@@ -21,4 +21,4 @@ export async function getPassage(ref: string): Promise<Passage> {
 }
 
 export { ContentError, excerptPassage } from "./fetchers";
-export type { PaperDoc, Paragraph, Passage, Section } from "./fetchers";
+export type { PaperDoc, Paragraph, ParagraphAudio, Passage, Section } from "./fetchers";

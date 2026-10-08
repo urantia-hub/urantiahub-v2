@@ -18,6 +18,7 @@ describe("securityHeaders", () => {
     const csp = get(false)["Content-Security-Policy"];
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("connect-src 'self' https://us.i.posthog.com");
+    expect(csp).toContain("media-src https://cdn.urantia.dev");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("base-uri 'self'");

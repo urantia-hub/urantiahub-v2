@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { PaperDoc } from "@/content/fetchers";
 import { PAPERS, paperPath, partNumeral } from "@/content/paper-index";
 import { MissingReferenceNotice } from "./MissingReferenceNotice";
-import { ReferenceLink } from "./ReferenceLink";
 
 export function paperEyebrow(paper: { id: string; partId: string }): string | null {
   return paper.id === "0" ? null : `Part ${partNumeral(paper.partId)} · Paper ${paper.id}`;
@@ -31,7 +30,10 @@ export function PaperView({ paper }: { paper: PaperDoc }) {
           )}
           {section.paragraphs.map((p) => (
             <p className="para" id={p.ref} key={p.ref}>
-              <ReferenceLink reference={p.ref} />
+              {/* A real link, so it works with no JavaScript. With JavaScript, the dock treats a click on it as a tap. */}
+              <a className="ref" href={`#${p.ref}`}>
+                {p.ref}
+              </a>
               {/* The HTML passed the allow-list in the content gateway. */}
               <span dangerouslySetInnerHTML={{ __html: p.html }} />
             </p>

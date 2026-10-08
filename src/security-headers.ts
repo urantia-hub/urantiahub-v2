@@ -8,6 +8,8 @@ export function securityHeaders({ dev, posthogHost }: Options): { key: string; v
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
+    // Paragraph audio. It lives on this one host.
+    "media-src https://cdn.urantia.dev",
     `connect-src 'self' ${posthogHost}`,
     "frame-ancestors 'none'",
     "object-src 'none'",
