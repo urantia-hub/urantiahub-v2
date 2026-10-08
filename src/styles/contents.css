@@ -85,9 +85,6 @@
     columns: 2;
     column-gap: 44px;
   }
-  .toc .papers.single {
-    columns: 1;
-  }
 }
 
 /* The way back to the place the reader left. It shows only when this browser holds one. */
@@ -141,4 +138,18 @@
 .toc .continue .icon {
   width: 19px;
   height: 19px;
+}
+
+.toc .part.fore {
+  padding-bottom: 0;
+}
+.toc .part.fore h2 {
+  margin: 0;
+}
+.toc .part.fore a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.toc .part.fore a:hover {
+  color: var(--accent);
 }

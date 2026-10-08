@@ -17,15 +17,11 @@ export function ContentsView() {
         ))}
       </nav>
 
-      <section className="part" id="foreword" aria-label="Foreword">
-        <ol className="papers single">
-          <li>
-            <Link href={paperPath("0")}>
-              <span className="n" />
-              <span className="t">Foreword</span>
-            </Link>
-          </li>
-        </ol>
+      {/* The Foreword is a peer of the four parts, so it has the form of a part title. */}
+      <section className="part fore" id="foreword" aria-label="Foreword">
+        <h2>
+          <Link href={paperPath("0")}>Foreword</Link>
+        </h2>
       </section>
 
       {parts.map((part) => (

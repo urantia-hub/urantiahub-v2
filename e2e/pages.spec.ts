@@ -48,7 +48,8 @@ test("the home button goes to the contents, which lists 197 papers", async ({ pa
   await page.goto("/");
   await page.getByRole("link", { name: "Read the Papers" }).click();
   await expect(page).toHaveURL("/papers");
-  await expect(page.locator(".toc .papers a")).toHaveCount(197);
+  // 196 numbered papers in the lists, and the Foreword as a title above them.
+  await expect(page.locator('.toc .part a[href^="/papers/"]')).toHaveCount(197);
 });
 
 test("About and Privacy render", async ({ page }) => {
@@ -229,4 +230,15 @@ test("the header shows the bookmark mark beside the name, in the theme colors", 
   await page.getByRole("contentinfo").getByRole("button", { name: "Dark theme" }).click();
   await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(230, 223, 208)");
   await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(23, 21, 15)");
+});
+
+// The Foreword stood alone, indented like a list entry with no list around it.
+test("the Foreword on the contents page looks like a part title: same left edge, same size", async ({ page }) => {
+  await page.goto("/papers");
+  const foreword = page.getByRole("heading", { name: "Foreword", level: 2 });
+  const part = page.getByRole("heading", { name: "The Central and Superuniverses", level: 2 });
+  await expect(foreword.getByRole("link")).toHaveAttribute("href", "/papers/foreword");
+  const [a, b] = await Promise.all([foreword.boundingBox(), part.boundingBox()]);
+  expect(Math.abs(a!.x - b!.x)).toBeLessThanOrEqual(1);
+  expect(await foreword.evaluate((el) => getComputedStyle(el).fontSize)).toBe(await part.evaluate((el) => getComputedStyle(el).fontSize));
 });
