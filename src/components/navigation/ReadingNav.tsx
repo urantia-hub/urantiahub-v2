@@ -53,6 +53,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const following = useRef(true);
   const autoUntil = useRef(0);
   const lastVoiceRef = useRef<string | null>(null);
+  // The marked paragraph before the last single click, for a double-click that selects a word.
+  const beforeClick = useRef<string | null>(null);
 
   const voiceRef = tracks && voice.index >= 0 ? tracks[voice.index].ref : null;
   const sounding = isSounding(voice.status);
@@ -110,6 +112,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       off();
       created.destroy();
       engine.current = null;
+      // Next.js keeps a page alive, hidden, for Back and Forward. Its state must not outlive its engine.
+      setVoice(IDLE);
+      setBackShown(false);
+      setHidden(false);
+      lastVoiceRef.current = null;
     };
   }, [tracks, paper.id, bring]);
 
@@ -149,8 +156,15 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       // The reference is a real link for a reader with no JavaScript. Here it acts as a tap.
       if (target.closest("a.ref")) event.preventDefault();
       else if (target.closest("a")) return;
+      const selecting = String(window.getSelection() ?? "") !== "";
+      // The first click of a double-click has no selection yet. The second one puts the mark back.
+      if ((event as MouseEvent).detail > 1) {
+        if (selecting) setPicked(beforeClick.current);
+        return;
+      }
       // A press that selects words is not a tap.
-      if (String(window.getSelection() ?? "") !== "") return;
+      if (selecting) return;
+      beforeClick.current = latest.current.picked;
       const nextRef = nextPick(latest.current, para.id);
       if (nextRef) track("paragraph_picked", { paper_id: paper.id });
       setPicked(nextRef);
@@ -257,7 +271,10 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   useEffect(() => {
     if (!tracks || !("mediaSession" in navigator)) return;
     const session = navigator.mediaSession;
-    session.setActionHandler("play", () => engine.current?.resume());
+    // "Play" must work from every state: at rest, after a pause, and after a failure.
+    session.setActionHandler("play", () => {
+      if (!isSounding(latest.current.status)) onRoundRef.current();
+    });
     session.setActionHandler("pause", () => engine.current?.pause());
     session.setActionHandler("previoustrack", () => engine.current?.previous());
     session.setActionHandler("nexttrack", () => engine.current?.next());
@@ -275,6 +292,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     if (!picked) return;
     const ref = picked;
     setPicked(null);
+    setHidden(false);
     const method = await shareParagraph({
       title: `${ref} · ${paper.id === "0" ? paper.title : `Paper ${paper.id}, ${paper.title}`}`,
       url: `${window.location.origin}${window.location.pathname}#${ref}`,
@@ -303,6 +321,10 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         data-job={job}
         onFocus={() => setHidden(false)}
       >
+        {/* The round button cannot work with no JavaScript. */}
+        <noscript>
+          <style>{".dock .round{display:none}"}</style>
+        </noscript>
         {tracks && (
           <button type="button" className={`round${voice.status === "loading" ? " loading" : ""}`} data-testid="round-button" aria-label={roundName} onClick={onRound}>
             <Icon name={pauseShown ? "pause" : "play"} />

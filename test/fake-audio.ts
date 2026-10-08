@@ -10,6 +10,7 @@ export class FakeAudio {
   playbackRate = 1;
   preload = "";
   paused = true;
+  ended = false;
   playCalls = 0;
   // Set this to make the next play() fail, for example { name: "NotAllowedError" }.
   rejectWith: { name: string } | null = null;

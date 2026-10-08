@@ -33,3 +33,9 @@ test("the reference still works as a link", async ({ page }) => {
   await expect(page).toHaveURL("/papers/paper-1-the-universal-father#1:0.2");
   await expect(page.locator('[id="1:0.2"]')).toHaveCSS("background-color", "rgb(243, 234, 210)");
 });
+
+test("no Listen button shows, because it cannot work", async ({ page }) => {
+  await page.goto("/papers/paper-1-the-universal-father");
+  await expect(page.getByTestId("reading-bar")).toBeVisible();
+  await expect(page.getByTestId("round-button")).toBeHidden();
+});

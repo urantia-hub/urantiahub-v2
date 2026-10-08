@@ -72,6 +72,33 @@ describe("the audio engine", () => {
     expect(engine.getState().status).toBe("playing");
   });
 
+  // A phone call, or headphones pulled out: the system pauses the sound, not the reader.
+  it("sees a pause by the system, holds the place, and resumes", () => {
+    const { engine, audio } = setup();
+    engine.playAt(1);
+    audio.emit("playing");
+    audio.currentTime = 6;
+    audio.paused = true;
+    audio.emit("pause");
+    expect(engine.getState()).toMatchObject({ status: "paused", index: 1, time: 6 });
+    engine.resume();
+    expect(audio.currentTime).toBe(6);
+    expect(engine.getState().status).toBe("loading");
+  });
+
+  // The browser fires "pause" just before "ended". That is not a pause.
+  it("does not treat the pause event at the end of a file as a pause", () => {
+    const { engine, audio } = setup();
+    engine.playAt(0);
+    audio.emit("playing");
+    audio.ended = true;
+    audio.emit("pause");
+    expect(engine.getState().status).toBe("playing");
+    audio.ended = false;
+    audio.emit("ended");
+    expect(engine.getState()).toMatchObject({ status: "loading", index: 1 });
+  });
+
   it("ignores a stall when the voice is paused", () => {
     const { engine, audio } = setup();
     engine.playAt(0);

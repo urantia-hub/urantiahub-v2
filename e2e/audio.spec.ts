@@ -37,6 +37,16 @@ test("a selection of words marks nothing", async ({ page }, testInfo) => {
   await expect(dock(page)).toHaveAttribute("data-job", "reading");
 });
 
+test("a double-click that selects a word marks nothing", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "a double-click is a desktop action");
+  await stubAudio(page);
+  await page.goto(PAPER_1);
+  await para(page, "1:0.2").locator("span").first().dblclick({ position: { x: 60, y: 12 } });
+  expect((await page.evaluate(() => String(window.getSelection()))).trim().length).toBeGreaterThan(0);
+  await expect(page.locator("[data-picked]")).toHaveCount(0);
+  await expect(dock(page)).toHaveAttribute("data-job", "reading");
+});
+
 test("Share copies the paragraph link where the browser has no share sheet", async ({ page }) => {
   await stubAudio(page);
   await page.goto(PAPER_1);
@@ -212,7 +222,6 @@ test("the audio comes from the CDN, and the security policy permits it", async (
   await page.goto(PAPER_1);
   await round(page).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.1");
-  // "Pause" shows only after the browser reports that the sound plays.
   await expect(para(page, "1:0.1")).toHaveCSS("background-color", GREEN);
   await expect.poll(() => audio.requested.some((url) => decodeURIComponent(url).includes("/nova/tts-1-hd-nova-1:1.0.1.mp3"))).toBe(true);
   expect(errors.filter((text) => /Content Security Policy/i.test(text))).toEqual([]);

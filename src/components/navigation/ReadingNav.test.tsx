@@ -1,5 +1,6 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Activity } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio } from "../../../test/fake-audio";
 import type { Track } from "@/audio/tracks";
@@ -14,9 +15,9 @@ const TRACKS: Track[] = [
   { ref: "1:1.1", url: "https://cdn.urantia.dev/c.mp3", duration: 30 },
 ];
 
-function renderNav(tracks: Track[] | null = TRACKS) {
-  return render(
-    <>
+function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible") {
+  return (
+    <Activity mode={mode}>
       <article className="paper">
         <h1 id="paper-top">The Universal Father</h1>
         {TRACKS.map((t) => (
@@ -38,13 +39,18 @@ function renderNav(tracks: Track[] | null = TRACKS) {
         next={{ id: "2", title: "2 · The Nature of God", href: "/papers/paper-2-the-nature-of-god" }}
         tracks={tracks}
       />
-    </>,
+    </Activity>
   );
+}
+
+function renderNav(tracks: Track[] | null = TRACKS) {
+  return render(tree(tracks));
 }
 
 const para = (ref: string) => document.getElementById(ref)!;
 const text = (ref: string) => screen.getByText(`Text of ${ref}`);
-const audio = () => FakeAudio.made[0];
+// Each engine makes two elements: the one that plays, then the one that loads ahead.
+const audio = () => FakeAudio.made[FakeAudio.made.length - 2];
 const round = () => screen.getByTestId("round-button");
 const job = () => screen.getByTestId("reading-bar").dataset.job;
 async function sound(type: string) {
@@ -477,5 +483,81 @@ describe("follow", () => {
     await sound("ended");
     await sound("playing");
     expect(window.scrollTo).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("faults that the branch review found", () => {
+  // Next.js keeps the last pages alive, hidden, for Back and Forward. Effects stop, state stays.
+  it("has a round button that works after the page was hidden and shown again", async () => {
+    const view = renderNav();
+    await userEvent.click(round());
+    await sound("playing");
+    await userEvent.click(round());
+    view.rerender(tree(TRACKS, "hidden"));
+    view.rerender(tree(TRACKS, "visible"));
+    expect(round()).toHaveAccessibleName("Listen");
+    await userEvent.click(round());
+    expect(audio().playCalls).toBe(1);
+    expect(job()).toBe("listening");
+  });
+
+  it("does not show a player with no sound after the page was hidden while the voice played", async () => {
+    const view = renderNav();
+    await userEvent.click(round());
+    await sound("playing");
+    view.rerender(tree(TRACKS, "hidden"));
+    view.rerender(tree(TRACKS, "visible"));
+    expect(job()).toBe("reading");
+    expect(document.querySelectorAll("[data-voice]")).toHaveLength(0);
+  });
+
+  // Review Focus 4: a double-click selects a word. The first click of the two has no selection yet.
+  it("marks nothing for a double-click that selects a word", () => {
+    renderNav();
+    fireEvent.click(text("1:0.2"), { detail: 1 });
+    vi.spyOn(window, "getSelection").mockReturnValue({ toString: () => "Text" } as Selection);
+    fireEvent.click(text("1:0.2"), { detail: 2 });
+    expect(para("1:0.2")).not.toHaveAttribute("data-picked");
+    expect(job()).toBe("reading");
+  });
+
+  it("keeps an existing mark through a double-click that selects a word", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    fireEvent.click(text("1:0.2"), { detail: 1 });
+    vi.spyOn(window, "getSelection").mockReturnValue({ toString: () => "Text" } as Selection);
+    fireEvent.click(text("1:0.2"), { detail: 2 });
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("keeps the controls in view after Share", async () => {
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: vi.fn().mockResolvedValue(undefined) }, configurable: true });
+    Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await scrollTo(600);
+    // Safari does not focus a button on a click, so the focus handler cannot bring the controls back.
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Share" })));
+    expect(job()).toBe("reading");
+    expect(screen.getByTestId("reading-bar")).not.toHaveClass("away");
+  });
+
+  it("starts or resumes the voice from the lock screen, in every state", async () => {
+    const handlers = new Map<string, (() => void) | null>();
+    Object.defineProperty(navigator, "mediaSession", {
+      value: { metadata: null, setActionHandler: (name: string, fn: (() => void) | null) => handlers.set(name, fn) },
+      configurable: true,
+    });
+    renderNav();
+    await act(async () => handlers.get("play")!());
+    expect(audio().src).toBe(TRACKS[0].url);
+    await sound("playing");
+    await act(async () => handlers.get("play")!());
+    expect(job()).toBe("listening");
+    await act(async () => handlers.get("pause")!());
+    expect(job()).toBe("reading");
+    await act(async () => handlers.get("play")!());
+    expect(job()).toBe("listening");
+    Reflect.deleteProperty(navigator, "mediaSession");
   });
 });

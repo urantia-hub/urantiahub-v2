@@ -11,6 +11,7 @@ export type AudioLike = {
   currentTime: number;
   playbackRate: number;
   preload: string;
+  ended: boolean;
   play(): Promise<void>;
   pause(): void;
   addEventListener(type: string, listener: () => void): void;
@@ -77,6 +78,11 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   const onWaiting = () => {
     if (state.status === "playing") set({ status: "loading" });
   };
+  // The system paused the sound: a phone call, or headphones pulled out. The browser also fires
+  // this event just before "ended", and that is not a pause.
+  const onPause = () => {
+    if (state.status === "playing" && !audio.ended) set({ status: "paused", time: audio.currentTime });
+  };
   const onTime = () => {
     if (state.status === "playing" || state.status === "loading") set({ time: audio.currentTime });
   };
@@ -96,6 +102,7 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   const handlers: [string, () => void][] = [
     ["playing", onPlaying],
     ["waiting", onWaiting],
+    ["pause", onPause],
     ["timeupdate", onTime],
     ["ended", onEnded],
     ["error", onError],
