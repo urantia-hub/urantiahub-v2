@@ -138,6 +138,14 @@
   display: grid;
   align-content: center;
 }
+/* The two lines stand together in the middle of the pill. This rule must beat the row rule above. */
+.dock .row > .where {
+  display: grid;
+  align-content: center;
+  /* A long section name must cut off with an ellipsis, not push the pill wider. */
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
+}
 .dock .where small {
   display: block;
   font: 600 10px/1 var(--font-ui);
@@ -195,7 +203,7 @@
   height: 2px;
   background: var(--accent);
 }
-/* While the voice plays, the line is green and shows the progress through the whole paper. */
+/* While the voice plays, the line is green and shows the progress through the paragraph. */
 .dock .fill.voice {
   height: 3px;
   background: var(--voice-line);
