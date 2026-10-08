@@ -22,7 +22,7 @@ export default function PrivacyPage() {
       <p>
         Searches. When you search, the site records the words of the search and how many results it found, so that we
         can see what readers look for. The record has no link to you. Our server sends it, not your browser, so it
-        holds no IP address, no page that you opened, and nothing about your device.
+        holds no IP address, no page that you opened, nothing about your device, and no time of day: only the date.
       </p>
       <p>
         Your browser. The site keeps three things in your browser: your theme choice, the last place that you
