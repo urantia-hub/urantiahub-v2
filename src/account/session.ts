@@ -4,16 +4,8 @@
 
 import { EncryptJWT, jwtDecrypt } from "jose";
 
-export const SESSION_COOKIE = "hub_session";
-export const START_COOKIE = "hub_signin_start";
-// Set at a sign-out, removed at the next finished sign-in. While it is there, a sign-in is not silent:
-// after a sign-out the reader is still signed in on the accounts site.
-export const ASK_COOKIE = "hub_ask_account";
-// "1" while a reader is signed in. A script can read it, and it holds nothing else: the page reads it
-// before the first paint, so a signed-in reader never sees the invitation to sign in.
-export const IN_COOKIE = "hub_in";
-// "1" for a minute after a sign-in that did not finish, so the page can say so one time.
-export const PROBLEM_COOKIE = "hub_signin_problem";
+export { ASK_COOKIE, IN_COOKIE, PROBLEM_COOKIE, SESSION_COOKIE, START_COOKIE } from "./cookies";
+
 // The session lives as long as a refresh token: 90 days from the last use.
 export const SESSION_SECONDS = 90 * 24 * 60 * 60;
 export const START_SECONDS = 15 * 60;

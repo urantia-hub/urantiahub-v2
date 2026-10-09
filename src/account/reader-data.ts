@@ -7,7 +7,8 @@ import { paperById } from "@/content/paper-index";
 export const PLACE_KEY = "hub.place";
 export const SETTINGS_KEY = "hub.reader";
 
-export type Place = { paperId: string; sectionId: string; at: number };
+// The label is the title of the section, for the "Continue" card. React shows it as text.
+export type Place = { paperId: string; sectionId: string; at: number; label: string | null };
 export type Settings = { theme: "light" | "dark"; textSize: number; at: number };
 
 // A clock can be wrong. A time more than a day ahead counts as now, so it does not win for good.
@@ -20,11 +21,11 @@ function time(value: unknown, now: number): number | null {
 
 export function parsePlace(value: unknown, now: number = Date.now()): Place | null {
   if (typeof value !== "object" || value === null) return null;
-  const { paperId, sectionId, at } = value as Record<string, unknown>;
+  const { paperId, sectionId, at, label } = value as Record<string, unknown>;
   if (typeof paperId !== "string" || !paperById(paperId)) return null;
   if (typeof sectionId !== "string" || !/^\d{1,3}$/.test(sectionId)) return null;
   const when = time(at, now);
-  return when === null ? null : { paperId, sectionId, at: when };
+  return when === null ? null : { paperId, sectionId, at: when, label: typeof label === "string" && label.length <= 120 ? label : null };
 }
 
 export function parseSettings(value: unknown, now: number = Date.now()): Settings | null {

@@ -11,7 +11,7 @@ export function SiteHeader() {
     <header className="site-header">
       <Link className="brand" href="/">
         <BookmarkMark size={22} />
-        {site.name}
+        <span className="brand-name">{site.name}</span>
       </Link>
       <nav aria-label="Site">
         <Link href="/papers">Papers</Link>

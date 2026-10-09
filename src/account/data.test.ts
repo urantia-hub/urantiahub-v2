@@ -17,7 +17,7 @@ function gateway(stored: Record<string, unknown> = {}): Gateway & { saved: Recor
 describe("what the reader has in the account", () => {
   it("is the place and the settings, and nothing else of the record", async () => {
     const g = gateway({ "hub.place": { paperId: "2", sectionId: "3", at: 5 }, "hub.reader": { theme: "dark", textSize: 3, at: 6 }, "other.app": { secret: 1 } });
-    expect(await readReader(g, "t", NOW)).toEqual({ place: { paperId: "2", sectionId: "3", at: 5 }, settings: { theme: "dark", textSize: 3, at: 6 } });
+    expect(await readReader(g, "t", NOW)).toEqual({ place: { paperId: "2", sectionId: "3", at: 5, label: null }, settings: { theme: "dark", textSize: 3, at: 6 } });
   });
 
   it("is null for what is not there, or not of the right form", async () => {
@@ -28,8 +28,8 @@ describe("what the reader has in the account", () => {
 describe("a save of the place", () => {
   it("writes the one key, with the checked value only", async () => {
     const g = gateway();
-    expect(await savePlace(g, "t", { paperId: "2", sectionId: "3", at: NOW - 10, label: "x" }, NOW)).toEqual({ saved: true });
-    expect(g.saved).toEqual([{ "hub.place": { paperId: "2", sectionId: "3", at: NOW - 10 } }]);
+    expect(await savePlace(g, "t", { paperId: "2", sectionId: "3", at: NOW - 10, label: "x", more: 1 }, NOW)).toEqual({ saved: true });
+    expect(g.saved).toEqual([{ "hub.place": { paperId: "2", sectionId: "3", at: NOW - 10, label: "x" } }]);
   });
 
   it("writes nothing for a value that is not a place", async () => {

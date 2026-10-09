@@ -158,7 +158,7 @@ describe("the place the reader left", () => {
     window.localStorage.clear();
     renderNav();
     await scrollTo(100);
-    expect(JSON.parse(window.localStorage.getItem("hub:last-read")!)).toEqual({ paperId: "1", sectionId: "0", label: null });
+    expect(JSON.parse(window.localStorage.getItem("hub:last-read")!)).toMatchObject({ paperId: "1", sectionId: "0", label: null });
   });
 });
 

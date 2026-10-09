@@ -3,7 +3,7 @@ import { newer, parsePlace, parseSettings, PLACE_KEY, SETTINGS_KEY } from "./rea
 
 describe("a place", () => {
   it("is a paper that exists, a section, and a time", () => {
-    expect(parsePlace({ paperId: "2", sectionId: "3", at: 1000 })).toEqual({ paperId: "2", sectionId: "3", at: 1000 });
+    expect(parsePlace({ paperId: "2", sectionId: "3", at: 1000 })).toEqual({ paperId: "2", sectionId: "3", at: 1000, label: null });
   });
 
   it("is nothing for a paper that does not exist, or a value of another form", () => {
@@ -19,8 +19,10 @@ describe("a place", () => {
     expect(parsePlace({ paperId: "2", sectionId: "3", at: now + 1000 }, now)?.at).toBe(now + 1000);
   });
 
-  it("drops what it does not know", () => {
-    expect(parsePlace({ paperId: "2", sectionId: "3", at: 5, label: "<b>x</b>", extra: 1 })).toEqual({ paperId: "2", sectionId: "3", at: 5 });
+  it("keeps a short label as text, and drops what it does not know", () => {
+    expect(parsePlace({ paperId: "2", sectionId: "3", at: 5, label: "3. Justice", extra: 1 })).toEqual({ paperId: "2", sectionId: "3", at: 5, label: "3. Justice" });
+    expect(parsePlace({ paperId: "2", sectionId: "3", at: 5, label: "x".repeat(121) })?.label).toBeNull();
+    expect(parsePlace({ paperId: "2", sectionId: "3", at: 5, label: { a: 1 } })?.label).toBeNull();
   });
 });
 
@@ -38,8 +40,8 @@ describe("reader settings", () => {
 
 // Monday on the phone, Tuesday on the laptop: Tuesday wins on both.
 describe("which of two values wins", () => {
-  const monday = { paperId: "5", sectionId: "1", at: 100 };
-  const tuesday = { paperId: "9", sectionId: "2", at: 200 };
+  const monday = { paperId: "5", sectionId: "1", at: 100, label: null };
+  const tuesday = { paperId: "9", sectionId: "2", at: 200, label: null };
   it("is the newer one, from either side", () => {
     expect(newer(monday, tuesday)).toEqual({ value: tuesday, from: "account" });
     expect(newer(tuesday, monday)).toEqual({ value: tuesday, from: "browser" });
