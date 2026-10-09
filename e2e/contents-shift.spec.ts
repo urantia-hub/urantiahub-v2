@@ -50,6 +50,8 @@ test.describe("the contents page does not move when its cards arrive", () => {
     await page.evaluate((place) => window.localStorage.setItem("hub:last-read", place), PLACE);
     const { before, after } = await jumpBeforeAndAfter(page, ".toc .continue");
     await expect(page.locator(".toc .invite")).toHaveCount(0);
+    // A signed-in reader also gets the link to Saved, with its room from the first paint.
+    await expect(page.locator(".toc .saved-way")).toBeVisible();
     expect(after).toBe(before);
   });
 

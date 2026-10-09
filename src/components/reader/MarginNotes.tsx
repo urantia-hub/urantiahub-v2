@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { SavedNote } from "@/account/saved-data";
@@ -42,9 +43,9 @@ function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
         </button>
       )}
       {notes.length > IN_PLACE && (
-        <button type="button" className="margin-more" data-notes-for={reference}>
+        <Link className="margin-more" href={`/saved?ref=${encodeURIComponent(reference)}`} prefetch={false}>
           See all {notes.length} notes
-        </button>
+        </Link>
       )}
     </aside>
   );

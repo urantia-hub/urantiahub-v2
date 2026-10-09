@@ -264,6 +264,7 @@ html:not([data-reader]) .para:target .ref {
     text-underline-offset: 2px;
   }
   .margin-card .margin-more {
+    text-decoration: none;
     display: block;
     width: 100%;
     padding: 9px 0;

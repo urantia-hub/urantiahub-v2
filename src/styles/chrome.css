@@ -406,14 +406,14 @@ main {
 /* The contents page has the header of a paper: the mark, search, and settings (Kelson, 2026-10-09).
    "About" is in the footer. The header is not sticky there. Its settings have no text size, because
    the page has no text of a paper. A hidden page (kept alive by Next.js) must not count. */
-body:has(.toc:not([style*="display: none"])) .site-header nav a:not(.icon-link),
-body:has(.toc:not([style*="display: none"])) .site-header .theme-icon {
+body:has(:is(.toc, .saved-page):not([style*="display: none"])) .site-header nav a:not(.icon-link),
+body:has(:is(.toc, .saved-page):not([style*="display: none"])) .site-header .theme-icon {
   display: none;
 }
-body:has(.toc:not([style*="display: none"])) .reader-settings {
+body:has(:is(.toc, .saved-page):not([style*="display: none"])) .reader-settings {
   display: block;
 }
-body:has(.toc:not([style*="display: none"])) .site-header .brand-name {
+body:has(:is(.toc, .saved-page):not([style*="display: none"])) .site-header .brand-name {
   position: absolute;
   width: 1px;
   height: 1px;

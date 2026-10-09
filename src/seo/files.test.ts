@@ -18,10 +18,10 @@ describe("robots", () => {
     const { robots } = await load("");
     expect(robots()).toEqual({ rules: { userAgent: "*", disallow: "/" } });
   });
-  it("permits all but the search results, and names the sitemap, when the site is indexable", async () => {
+  it("permits all but the search results and the reader's own page, and names the sitemap, when the site is indexable", async () => {
     const { robots } = await load("on");
     expect(robots()).toEqual({
-      rules: { userAgent: "*", allow: "/", disallow: "/search" },
+      rules: { userAgent: "*", allow: "/", disallow: ["/search", "/saved"] },
       sitemap: "https://next.urantiahub.com/sitemap.xml",
     });
   });

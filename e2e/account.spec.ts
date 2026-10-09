@@ -38,8 +38,9 @@ test.describe("a sign-in from a paper", () => {
     await expect(account).toHaveAttribute("href", "https://accounts.urantiahub.com");
     await expect(account).toHaveAttribute("target", "_blank");
     await expect(sheet(page).getByRole("link", { name: /^Sign in/ })).toHaveCount(0);
-    // One row for the account, and "Sign out". No second link to the same page.
-    await expect(sheet(page).locator(".account-row")).toHaveCount(2);
+    // One row for the account, "Saved", and "Sign out". No second link to the same page.
+    await expect(sheet(page).locator(".account-row")).toHaveCount(3);
+    await expect(sheet(page).getByRole("link", { name: "Saved" })).toHaveAttribute("href", "/saved");
   });
 
   test("keeps no token where a script can read it", async ({ page, context }) => {

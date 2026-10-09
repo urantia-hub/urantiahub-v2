@@ -103,8 +103,30 @@
 }
 
 /* The one invitation to sign in. It shows for a signed-out reader only. */
-html:not([data-guest]) .toc .invite {
+html:not([data-guest]) .toc .invite,
+html:not([data-member]) .toc .saved-way {
   display: none;
+}
+/* The way to what a signed-in reader saved. */
+.toc .saved-way {
+  margin: -8px 0 22px;
+  text-align: center;
+}
+.toc .saved-way a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 13.5px/1 var(--font-ui);
+  text-decoration: none;
+}
+.toc .saved-way .icon {
+  width: 15px;
+  height: 15px;
 }
 /* The room of the Continue card, kept from the first paint for a reader whose browser holds a place. */
 .toc .continue-slot {
