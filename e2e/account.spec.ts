@@ -13,8 +13,8 @@ async function asReader(context: BrowserContext) {
   return { id, set, seen };
 }
 
-const openSettings = (page: Page) => page.getByRole("button", { name: "Reader settings" }).click();
-const sheet = (page: Page) => page.getByRole("dialog", { name: "Reader settings" });
+const openSettings = (page: Page) => page.getByRole("button", { name: "Account and settings" }).click();
+const sheet = (page: Page) => page.getByRole("dialog", { name: "Account and settings" });
 
 async function signIn(page: Page) {
   await openSettings(page);
@@ -84,6 +84,30 @@ test.describe("a sign-in from a paper", () => {
   });
 });
 
+// Kelson, 2026-10-09: the icon is a person. Signed in, it is the reader's initial.
+test.describe("the icon that opens the settings and the account", () => {
+  test("is a person for a reader with no account, and the reader's initial after a sign-in", async ({ page, context }) => {
+    await asReader(context);
+    for (const path of [PAPER, "/papers"]) {
+      await page.goto(path);
+      const button = page.getByRole("button", { name: "Account and settings" });
+      await expect(button.locator("svg")).toBeVisible();
+      await expect(button.locator(".face")).toHaveCount(0);
+    }
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.keyboard.press("Escape");
+    for (const path of [PAPER, "/papers"]) {
+      await page.goto(path);
+      const button = page.getByRole("button", { name: "Account and settings" });
+      await expect(button.locator(".face")).toHaveText("A");
+      await expect(button.locator("svg")).toHaveCount(0);
+      const box = (await button.locator(".face").boundingBox())!;
+      expect(Math.round(box.width)).toBe(Math.round(box.height));
+    }
+  });
+});
+
 test.describe("the top bar of a paper", () => {
   test("shows the mark only, and the mark is the way home", async ({ page }) => {
     await page.goto(PAPER);
@@ -130,7 +154,7 @@ test.describe("the header of the contents page", () => {
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "About" })).toBeVisible();
     await expect(header.getByRole("button", { name: /theme/ })).toBeVisible();
-    await expect(header.getByRole("button", { name: "Reader settings" })).toBeHidden();
+    await expect(header.getByRole("button", { name: "Account and settings" })).toBeHidden();
   });
 });
 
