@@ -44,8 +44,8 @@ export default function PrivacyPage() {
       <p>
         When you open a page or use a feature, the site sends an event to PostHog, our analytics provider. An event
         holds the page address and a label such as a paper number. It holds no text that you read. The address of a
-        search page is sent without the words of the search. The site sets no analytics cookie and keeps no identifier
-        in your browser. PostHog processes your IP address when it receives a request from your browser.
+        search page is sent without the words of the search. The site sets no analytics cookie and keeps no analytics
+        identifier in your browser. PostHog processes your IP address when it receives a request from your browser.
       </p>
       <p>We use this to see which parts of the site help readers, and to find faults.</p>
 
@@ -87,6 +87,12 @@ export default function PrivacyPage() {
             analytics or advertising. Analytics events have no link to your account.
           </p>
           <p>
+            A few more cookies serve the sign-in itself: one holds the start of a sign-in for a few minutes, one
+            remembers that you signed out, so that the next sign-in asks you again, and one says for a minute that a
+            sign-in did not finish. The browser also keeps a mark that says which account the place in this browser
+            belongs to, and the time of your last change of the theme or the text size.
+          </p>
+          <p>
             When you sign out on a device, the last place that you read leaves that browser. Your account still holds
             it.
           </p>
@@ -101,7 +107,7 @@ export default function PrivacyPage() {
       <h2>What stays in your browser</h2>
       <p>
         The site keeps these things in your browser.{" "}
-        {accountsOn ? "If you sign in, the place, the theme, and the text size also go to your account. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
+        {accountsOn ? "If you sign in, the place, the paragraphs that you read, the theme, and the text size also go to your account. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
       </p>
       <ul>
         {BROWSER_ITEMS.map((item) => (

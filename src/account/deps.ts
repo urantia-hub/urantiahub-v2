@@ -14,7 +14,8 @@ const endpoints = { loginUrl: process.env.ACCOUNTS_URL || undefined, apiUrl: pro
 
 // The real dependencies of the account routes. With no `HUB_APP_SECRET`, the sign-in is off.
 export const deps: Deps = {
-  secret: process.env.HUB_APP_SECRET ?? "",
+  // Both settings must be on. With the pages off, a direct link to a route makes no session either.
+  secret: process.env.NEXT_PUBLIC_SIGN_IN === "on" ? (process.env.HUB_APP_SECRET ?? "") : "",
   origin: site.origin,
   authorize: ({ askAccount }) => createAuthorizeUrl({ appId: APP_ID, redirectUri, scopes: SCOPES, askAccount, loginUrl: endpoints.loginUrl }),
   exchange: ({ code, codeVerifier }) => exchangeCode({ appId: APP_ID, code, codeVerifier, redirectUri, appSecret: process.env.HUB_APP_SECRET, ...endpoints }),

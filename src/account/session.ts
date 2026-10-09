@@ -77,8 +77,16 @@ export function safeNext(value: string | null | undefined): string {
   if (!value.startsWith("/") || value.startsWith("//")) return "/";
   // No backslash and no control character: a browser reads some of them as a slash, or as nothing.
   if (/[\\\u0000-\u001f\u007f]/.test(value)) return "/";
-  if (/^\/(api|auth)(\/|$|\?|#)/.test(value)) return "/";
-  return value;
+  // The path as a browser reads it: "/x/../api" is "/api".
+  let url: URL;
+  try {
+    url = new URL(value, "http://hub.invalid");
+  } catch {
+    return "/";
+  }
+  if (url.origin !== "http://hub.invalid") return "/";
+  if (/^\/(api|auth)(\/|$)/.test(url.pathname)) return "/";
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 export type Start = { state: string; codeVerifier: string; next: string };

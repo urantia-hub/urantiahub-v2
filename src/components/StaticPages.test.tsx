@@ -42,6 +42,12 @@ describe("Privacy, about accounts", () => {
     for (const item of ACCOUNT_ITEMS) expect(page).toContain(item);
     for (const vendor of ACCOUNT_VENDORS) expect(page).toContain(vendor.name);
     expect(page).toMatch(/One cookie holds your sign-in/);
+    // Each thing that the code writes to the account is named, and each thing that it keeps in the browser.
+    expect(page).toContain("Which paragraphs you read");
+    expect(page).toMatch(/the place, the paragraphs that you read, the theme, and the text size also go to your account/);
+    expect(page).toMatch(/a mark that says which account/i);
+    expect(page).toMatch(/remembers that you signed out/);
+    expect(page).not.toContain("keeps no identifier in your browser");
     expect(page).toMatch(/delete the account/);
     expect(page).toContain("accounts.urantiahub.com");
     // The old promise is not true any more for a signed-in reader.

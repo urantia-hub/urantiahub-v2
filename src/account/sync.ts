@@ -88,8 +88,11 @@ async function readerChanged(): Promise<void> {
 async function send(path: string, value: unknown, keepalive = false): Promise<void> {
   const key = accountKey();
   if (!key || !ready()) return;
+  const at = epoch;
   try {
     const response = await fetch(path, { method: "PUT", headers: { "content-type": "application/json", "x-hub-reader": key }, body: JSON.stringify(value), keepalive });
+    // An answer for a reader who is gone from this page says nothing of the reader who is here now.
+    if (epoch !== at) return;
     if (response.status === 401) markSignedOut();
     if (response.status === 409) await readerChanged();
   } catch {
@@ -141,6 +144,7 @@ export async function flushRead(keepalive = false): Promise<void> {
   };
   try {
     const response = await fetch("/api/me/read", { method: "POST", headers: { "content-type": "application/json", "x-hub-reader": key }, body: JSON.stringify({ refs }), keepalive });
+    if (epoch !== at) return;
     if (response.status === 401) return markSignedOut();
     if (response.status === 409) return readerChanged();
     if (!response.ok) again();
@@ -222,6 +226,7 @@ async function pull(): Promise<void> {
   let body: { place?: unknown; settings?: unknown };
   try {
     const response = await fetch("/api/me/reader", { headers: { accept: "application/json", "x-hub-reader": key } });
+    if (stale()) return;
     if (response.status === 401) return markSignedOut();
     if (response.status === 409) return readerChanged();
     if (!response.ok) return;
@@ -249,6 +254,21 @@ async function pull(): Promise<void> {
   } else if (settings.from === "browser" && settings.value && settings.value.at > 0) void send("/api/me/settings", settings.value);
 }
 
+// The browser can show a page again as it was, from its memory, when the reader presses Back. That page
+// can be from before a sign-out: it shows the name and the place of the reader before, and it gets no
+// event for what happened while it was frozen. So it loads again when its reader is not the reader of
+// the browser now.
+export function onPageShown(fromMemory: boolean, reload: () => void): void {
+  if (!fromMemory) return;
+  let owner: string | null = null;
+  try {
+    owner = window.localStorage.getItem(ACCOUNT_DATA_KEY);
+  } catch {
+    return;
+  }
+  if (owner !== accountKey()) reload();
+}
+
 // Starts one time, when a reader is signed in. The listeners stay for the life of the page; each one
 // does nothing for a reader who is signed out. A setting change is stamped for each reader, so that a
 // later sign-in knows which side is newer.
@@ -263,6 +283,7 @@ export function startSync(): void {
     sendPlaceNow(true);
     void flushRead(true);
   });
+  window.addEventListener("pageshow", (event) => onPageShown(event.persisted, () => window.location.reload()));
   // Another tab signed out, or another reader signed in there: this tab asks who is here now.
   window.addEventListener("storage", (event) => {
     if (event.key === ACCOUNT_DATA_KEY && event.newValue !== accountKey()) void refreshAccount();

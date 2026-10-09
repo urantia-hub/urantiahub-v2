@@ -51,6 +51,7 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
 export const ACCOUNT_ITEMS: readonly string[] = [
   "Your email address, and your name if your account has one",
   "The last place that you read",
+  "Which paragraphs you read, and when",
   "Your theme and your text size",
 ];
 
@@ -59,7 +60,7 @@ export const ACCOUNT_VENDORS: readonly Vendor[] = [
   {
     name: "Supabase",
     purpose: "Holds the accounts, and what an account keeps.",
-    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, and your theme and text size.",
+    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, which paragraphs you read, and your theme and text size.",
     policy: "https://supabase.com/privacy",
   },
   {
