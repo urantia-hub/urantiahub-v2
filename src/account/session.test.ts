@@ -60,6 +60,11 @@ describe("where the reader goes after a sign-in", () => {
     }
   });
 
+  it("is the home page for a path that only looks like another one", () => {
+    for (const bad of ["/x/../api/auth/start", "/papers/../../auth/callback", "/./api/me/reader", "/%2e%2e/api/auth/start"]) expect(safeNext(bad)).toBe("/");
+    expect(safeNext("/papers/../about")).toBe("/about");
+  });
+
   it("cuts a path that is too long", () => {
     expect(safeNext(`/${"a".repeat(3000)}`)).toBe("/");
   });

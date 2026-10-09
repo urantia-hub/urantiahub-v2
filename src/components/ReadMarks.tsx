@@ -31,7 +31,9 @@ export function ReadMarks({ paperId }: { paperId: string }) {
     const timer = window.setInterval(collect, 1000);
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
+        // The general listener sent its batch before this one ran, so this last part goes out here.
         collect();
+        void flushRead(true);
         tracker.pause();
       } else tracker.resume();
     };

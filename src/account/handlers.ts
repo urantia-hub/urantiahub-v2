@@ -5,7 +5,6 @@ import type { Tokens } from "@urantia/auth/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { callForReader } from "./call";
 import {
-  ASK_COOKIE,
   IN_COOKIE,
   isFromThisSite,
   isSameOrigin,
@@ -13,10 +12,8 @@ import {
   readStart,
   safeNext,
   seal,
-  SESSION_COOKIE,
   SESSION_SECONDS,
   type Session,
-  START_COOKIE,
   START_SECONDS,
   unseal,
   writeStart,
@@ -36,6 +33,25 @@ export type Deps = {
 
 const enabled = (deps: Deps) => deps.secret.length >= 32;
 
+// The names of the cookies that only the server reads. On https they have the __Host- prefix: a browser
+// takes such a cookie only from this host itself, with the path / and no domain. So a page on another
+// host of the same site cannot plant a session or a sign-in start here. A browser does not take the
+// prefix on http, so a local run uses the plain names.
+export function cookieNames(origin: string): { session: string; start: string; ask: string } {
+  const prefix = origin.startsWith("https:") ? "__Host-" : "";
+  return { session: `${prefix}hub_session`, start: `${prefix}hub_signin_start`, ask: `${prefix}hub_ask_account` };
+}
+
+// A call to the API has no time limit of its own. Without one, a request that hangs ends with no
+// answer, and a new session from a refresh never reaches the browser.
+const RUN_LIMIT_MS = 8000;
+function inTime<T>(work: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("The API did not answer in time.")), RUN_LIMIT_MS);
+    work.then(resolve, reject).finally(() => clearTimeout(timer));
+  });
+}
+
 // A name for the signed-in reader that a page can hold: not the id, and not a secret. A page sends it
 // with each request for the reader's data, so the server knows which reader the page speaks for.
 export async function readerKey(secret: string, userId: string): Promise<string> {
@@ -54,16 +70,16 @@ function cookie(deps: Deps, maxAge: number, more: { httpOnly?: boolean; path?: s
 }
 
 async function setSession(response: NextResponse, deps: Deps, session: Session) {
-  response.cookies.set(SESSION_COOKIE, await seal(session, deps.secret), cookie(deps, SESSION_SECONDS));
+  response.cookies.set(cookieNames(deps.origin).session, await seal(session, deps.secret), cookie(deps, SESSION_SECONDS));
   response.cookies.set(IN_COOKIE, "1", cookie(deps, SESSION_SECONDS, { httpOnly: false }));
 }
 
 function clearSession(response: NextResponse, deps: Deps) {
-  response.cookies.set(SESSION_COOKIE, "", cookie(deps, 0));
+  response.cookies.set(cookieNames(deps.origin).session, "", cookie(deps, 0));
   response.cookies.set(IN_COOKIE, "", cookie(deps, 0, { httpOnly: false }));
 }
 
-const readSession = (request: NextRequest, deps: Deps) => (enabled(deps) ? unseal(request.cookies.get(SESSION_COOKIE)?.value, deps.secret) : Promise.resolve(null));
+const readSession = (request: NextRequest, deps: Deps) => (enabled(deps) ? unseal(request.cookies.get(cookieNames(deps.origin).session)?.value, deps.secret) : Promise.resolve(null));
 
 const toSession = (tokens: Tokens, name: string | null): Session => ({
   accessToken: tokens.accessToken,
@@ -78,22 +94,22 @@ export async function handleStart(request: NextRequest, deps: Deps): Promise<Nex
   if (!enabled(deps)) return redirect(deps, next);
   let started: Awaited<ReturnType<Deps["authorize"]>>;
   try {
-    started = await deps.authorize({ askAccount: request.cookies.get(ASK_COOKIE)?.value === "1" });
+    started = await deps.authorize({ askAccount: request.cookies.get(cookieNames(deps.origin).ask)?.value === "1" });
   } catch {
     return redirect(deps, next);
   }
   const response = NextResponse.redirect(started.url, { status: 307, headers: NO_STORE });
-  response.cookies.set(START_COOKIE, writeStart({ state: started.state, codeVerifier: started.codeVerifier, next }), cookie(deps, START_SECONDS, { path: "/auth/callback" }));
+  response.cookies.set(cookieNames(deps.origin).start, writeStart({ state: started.state, codeVerifier: started.codeVerifier, next }), cookie(deps, START_SECONDS));
   return response;
 }
 
 // GET /auth/callback: the accounts site returns the reader here. Check the state, exchange the code,
 // keep the session, and send the reader back to the page where the sign-in started.
 export async function handleCallback(request: NextRequest, deps: Deps): Promise<NextResponse> {
-  const start = readStart(request.cookies.get(START_COOKIE)?.value);
+  const start = readStart(request.cookies.get(cookieNames(deps.origin).start)?.value);
   const back = (problem: boolean) => {
     const response = redirect(deps, start?.next ?? "/");
-    response.cookies.set(START_COOKIE, "", cookie(deps, 0, { path: "/auth/callback" }));
+    response.cookies.set(cookieNames(deps.origin).start, "", cookie(deps, 0));
     if (problem) response.cookies.set(PROBLEM_COOKIE, "1", cookie(deps, 60, { httpOnly: false }));
     return response;
   };
@@ -114,7 +130,7 @@ export async function handleCallback(request: NextRequest, deps: Deps): Promise<
   const response = back(false);
   await setSession(response, deps, toSession(tokens, name));
   // The reader signed in again, so the next sign-in can be silent.
-  response.cookies.set(ASK_COOKIE, "", cookie(deps, 0));
+  response.cookies.set(cookieNames(deps.origin).ask, "", cookie(deps, 0));
   return response;
 }
 
@@ -139,7 +155,7 @@ export async function handleSignOut(request: NextRequest, deps: Deps): Promise<N
   if (session) await deps.revoke(session.refreshToken).catch(() => {});
   const response = NextResponse.json({ signedOut: true }, { headers: NO_STORE });
   clearSession(response, deps);
-  response.cookies.set(ASK_COOKIE, "1", cookie(deps, SESSION_SECONDS));
+  response.cookies.set(cookieNames(deps.origin).ask, "1", cookie(deps, SESSION_SECONDS));
   return response;
 }
 
@@ -155,7 +171,7 @@ export async function handleReader<T>(request: NextRequest, deps: Deps, run: (ac
   if (request.headers.get("x-hub-reader") !== (await readerKey(deps.secret, session.user.id))) return refuse(409, { changed: true });
 
   const called = await callForReader(session, {
-    run,
+    run: (accessToken) => inTime(run(accessToken)),
     refresh: async (old) => toSession(await deps.refresh(old.refreshToken), old.user.name),
   });
   const response = called.ok

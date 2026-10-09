@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LAST_READ_KEY, saveLastRead } from "@/reader/last-read";
 import { refreshAccount, resetAccountForTest, startAccount } from "./client";
-import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, pullFromAccount, queueRead, resetSyncForTest, SETTINGS_AT_KEY, startSync } from "./sync";
+import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, onPageShown, pullFromAccount, queueRead, resetSyncForTest, SETTINGS_AT_KEY, startSync } from "./sync";
 
 const place = (paperId: string, at: number) => JSON.stringify({ paperId, sectionId: "1", label: null, at });
 const clearCookies = () => {
@@ -195,5 +195,31 @@ describe("what a page collected for one reader", () => {
     Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
     await Promise.resolve();
     expect(fetch.mock.calls.filter(([url]) => url === "/api/me/place").length).toBe(before);
+  });
+});
+
+// The browser can show a page again as it was, from its memory, when the reader presses Back. That
+// page can be from before a sign-out, and it then shows the name and the place of the reader before.
+describe("a page that the browser shows again from its memory", () => {
+  it("loads again when the reader of the page is not the reader of the browser now", async () => {
+    await signedInAs("k1", async () => Response.json({ place: null, settings: null }));
+    await pullFromAccount();
+    const reload = vi.fn();
+    onPageShown(true, reload);
+    expect(reload).not.toHaveBeenCalled();
+    window.localStorage.removeItem(ACCOUNT_DATA_KEY);
+    onPageShown(false, reload);
+    expect(reload).not.toHaveBeenCalled();
+    onPageShown(true, reload);
+    expect(reload).toHaveBeenCalledTimes(1);
+    window.localStorage.setItem(ACCOUNT_DATA_KEY, "k2");
+    onPageShown(true, reload);
+    expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+  it("stays as it is for a reader with no account", () => {
+    const reload = vi.fn();
+    onPageShown(true, reload);
+    expect(reload).not.toHaveBeenCalled();
   });
 });

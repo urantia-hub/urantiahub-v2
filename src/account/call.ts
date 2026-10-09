@@ -21,7 +21,9 @@ export type Called<T> =
 
 type Deps<T> = { run: (accessToken: string) => Promise<T>; refresh: (session: Session) => Promise<Session> };
 
-const isRefusal = (error: unknown) => error instanceof AuthError && error.kind === "refused";
+// The API answers 401 when a session is over. The package calls each other 4xx "refused" too, but a
+// limit (429) or a block (403) says nothing about the session, so it counts as an outage.
+const isRefusal = (error: unknown) => error instanceof AuthError && error.kind === "refused" && error.status === 401;
 
 export async function callForReader<T>(session: Session, deps: Deps<T>, now: Date = new Date()): Promise<Called<T>> {
   let current = session;

@@ -36,7 +36,7 @@ describe("a call for the reader's data", () => {
       throw new Refused();
     });
     const refresh = async () => {
-      throw new AuthError("refused", "no");
+      throw new AuthError("refused", "no", 401);
     };
     expect(await callForReader(session, { run, refresh })).toEqual({ ok: false, reason: "signed-out", session: "end" });
     expect(await callForReader(soon, { run, refresh })).toEqual({ ok: false, reason: "signed-out", session: "end" });
@@ -74,5 +74,20 @@ describe("a call for the reader's data", () => {
       throw new Error("502");
     };
     expect(await callForReader(soon, { run, refresh: async () => fresh })).toEqual({ ok: false, reason: "unavailable", session: fresh });
+  });
+
+  // The package calls each 4xx "refused". A limit (429) or a block (403) at the refresh is not the API
+  // saying that the session is over, so the reader stays signed in.
+  it("keeps the sign-in when the refresh is limited or blocked", async () => {
+    const refused = async () => {
+      throw new Refused();
+    };
+    for (const status of [429, 403, 400]) {
+      const refresh = async () => {
+        throw new AuthError("refused", "slow down", status);
+      };
+      expect(await callForReader(session, { run: refused, refresh })).toEqual({ ok: false, reason: "unavailable", session: "keep" });
+      expect(await callForReader(soon, { run: async () => "still good", refresh })).toEqual({ ok: true, value: "still good", session: "keep" });
+    }
   });
 });

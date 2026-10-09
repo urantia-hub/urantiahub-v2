@@ -3,11 +3,13 @@ import { AuthError } from "@urantia/auth/server";
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 import { Refused } from "./call";
-import { type Deps, handleCallback, handleReader, handleSession, handleSignOut, handleStart, readerKey } from "./handlers";
-import { ASK_COOKIE, IN_COOKIE, PROBLEM_COOKIE, seal, SESSION_COOKIE, type Session, START_COOKIE, unseal, writeStart } from "./session";
+import { cookieNames, type Deps, handleCallback, handleReader, handleSession, handleSignOut, handleStart, readerKey } from "./handlers";
+import { IN_COOKIE, PROBLEM_COOKIE, seal, type Session, unseal, writeStart } from "./session";
 
 const ORIGIN = "https://next.urantiahub.com";
 const SECRET = "a-test-secret-that-is-long-enough-0123456789";
+// On an https origin the names of the server cookies have the __Host- prefix.
+const { session: SESSION_COOKIE, start: START_COOKIE, ask: ASK_COOKIE } = cookieNames(ORIGIN);
 const session: Session = { accessToken: "a1", refreshToken: "r1", expiresAt: "2099-01-01T00:00:00.000Z", user: { id: "u1", email: "ana@example.com", name: "Ana" } };
 const tokens = { accessToken: "a1", refreshToken: "r1", expiresAt: "2099-01-01T00:00:00.000Z", userId: "u1", email: "ana@example.com", scopes: ["profile"] };
 
@@ -205,7 +207,7 @@ describe("a request for the reader's data", () => {
   });
 
   it("signs the reader out when the API refuses, and keeps the reader in for an outage", async () => {
-    const refused = await handleReader(await request("/api/me/reader", { session, headers: await mine() }), deps({ refresh: async () => { throw new AuthError("refused", "no"); } }), async () => { throw new Refused(); });
+    const refused = await handleReader(await request("/api/me/reader", { session, headers: await mine() }), deps({ refresh: async () => { throw new AuthError("refused", "no", 401); } }), async () => { throw new Refused(); });
     expect(refused.status).toBe(401);
     expect(cookieOf(refused, SESSION_COOKIE)?.maxAge).toBe(0);
     expect(cookieOf(refused, IN_COOKIE)?.maxAge).toBe(0);
@@ -222,5 +224,47 @@ describe("a request for the reader's data", () => {
     expect((await handleReader(await request("/api/me/place", { session, method: "PUT", body: {}, headers: { origin: "https://evil.example" } }), d, calls)).status).toBe(403);
     expect(calls).not.toHaveBeenCalled();
     expect((await handleReader(await request("/api/me/place", { session, method: "PUT", body: {}, headers: { origin: ORIGIN, ...(await mine()) } }), d, calls)).status).toBe(200);
+  });
+});
+
+// A page on another host of the same site (a sibling subdomain) can set a cookie for the whole site.
+// A cookie with the __Host- prefix can only be set by this host itself, so no other host can plant a
+// session or a sign-in start here.
+describe("the names of the server cookies", () => {
+  it("have the __Host- prefix on https, with the path / and no domain", async () => {
+    expect(cookieNames("https://next.urantiahub.com")).toEqual({ session: "__Host-hub_session", start: "__Host-hub_signin_start", ask: "__Host-hub_ask_account" });
+    const response = await handleStart(await request("/api/auth/start"), deps());
+    const start = cookieOf(response, "__Host-hub_signin_start") as { path?: string; secure?: boolean; domain?: string } | undefined;
+    expect(start?.path).toBe("/");
+    expect(start?.secure).toBe(true);
+    expect(start?.domain).toBeUndefined();
+  });
+
+  it("are plain on http, where a browser does not take the prefix (a local run)", () => {
+    expect(cookieNames("http://localhost:3000")).toEqual({ session: "hub_session", start: "hub_signin_start", ask: "hub_ask_account" });
+  });
+
+  it("do not take a session from a cookie with the old plain name on https", async () => {
+    const planted = await handleSession(await request("/api/auth/session", { cookies: { hub_session: await seal(session, SECRET) } }), deps());
+    expect((await planted.json()).user).toBeNull();
+  });
+});
+
+describe("a request to the API that never answers", () => {
+  it("gets an answer in time, and the new session is still saved", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const old = { ...session, expiresAt: "2000-01-01T00:00:00.000Z" };
+      const key = await readerKey(SECRET, "u1");
+      const pending = handleReader(await request("/api/me/reader", { session: old, headers: { "x-hub-reader": key } }), deps(), () => new Promise(() => {}));
+      // The handler first decrypts the cookie and refreshes. Wait until its time limit is set.
+      while (vi.getTimerCount() === 0) await new Promise((resolve) => setImmediate(resolve));
+      await vi.advanceTimersByTimeAsync(9000);
+      const response = await pending;
+      expect(response.status).toBe(503);
+      expect((await unseal(cookieOf(response, SESSION_COOKIE)?.value, SECRET))?.refreshToken).toBe("r2");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
