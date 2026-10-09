@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LAST_READ_KEY, saveLastRead } from "@/reader/last-read";
-import { resetAccountForTest, startAccount } from "./client";
-import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, pullFromAccount, resetSyncForTest, SETTINGS_AT_KEY, startSync } from "./sync";
+import { refreshAccount, resetAccountForTest, startAccount } from "./client";
+import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, pullFromAccount, queueRead, resetSyncForTest, SETTINGS_AT_KEY, startSync } from "./sync";
 
 const place = (paperId: string, at: number) => JSON.stringify({ paperId, sectionId: "1", label: null, at });
 const clearCookies = () => {
@@ -108,5 +108,92 @@ describe("a pull from the account", () => {
     await started;
     await pullFromAccount();
     expect(fetch.mock.calls.filter(([url]) => url === "/api/me/place")).toHaveLength(1);
+  });
+});
+
+describe("the paragraphs that the reader read", () => {
+  const bodyOf = (call: unknown[] | undefined) => JSON.parse(String((call?.[1] as RequestInit).body)) as { refs: string[] };
+  const reads = (fetch: ReturnType<typeof vi.fn>) => fetch.mock.calls.filter(([url]) => url === "/api/me/read");
+
+  it("go out as one batch, with the reader named", async () => {
+    const fetch = await signedInAs("k1", async () => Response.json({ saved: 2 }));
+    queueRead(["1:0.1", "1:0.2", "1:0.1"]);
+    await flushRead();
+    expect(reads(fetch)).toHaveLength(1);
+    expect(bodyOf(reads(fetch)[0]).refs).toEqual(["1:0.1", "1:0.2"]);
+    expect(new Headers((reads(fetch)[0][1] as RequestInit).headers).get("x-hub-reader")).toBe("k1");
+    await flushRead();
+    expect(reads(fetch)).toHaveLength(1);
+  });
+
+  it("are kept for the next try when the request fails", async () => {
+    let fail = true;
+    const fetch = await signedInAs("k1", async () => {
+      if (fail) throw new Error("offline");
+      return Response.json({ saved: 1 });
+    });
+    queueRead(["1:0.1"]);
+    await flushRead();
+    fail = false;
+    queueRead(["1:0.2"]);
+    await flushRead();
+    expect(bodyOf(reads(fetch)[1]).refs).toEqual(["1:0.1", "1:0.2"]);
+  });
+
+  it("are not kept for a reader who is not signed in, and leave at a sign-out", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    queueRead(["1:0.1"]);
+    await flushRead();
+    expect(fetch).not.toHaveBeenCalled();
+
+    const signedIn = await signedInAs("k1", async () => Response.json({ saved: 1 }));
+    queueRead(["1:0.1"]);
+    forgetAccountData();
+    await flushRead();
+    expect(reads(signedIn)).toHaveLength(0);
+  });
+
+  it("go out 200 at a time", async () => {
+    const fetch = await signedInAs("k1", async () => Response.json({ saved: 200 }));
+    queueRead(Array.from({ length: 250 }, (_, i) => `1:1.${i}`));
+    await flushRead();
+    expect(bodyOf(reads(fetch)[0]).refs).toHaveLength(200);
+    await flushRead();
+    expect(bodyOf(reads(fetch)[1]).refs).toHaveLength(50);
+  });
+});
+
+// The reader can change with no sign-out on this page: another tab signed out, and another person
+// signed in there. What this page collected is the first reader's, and must not go out under the second.
+describe("what a page collected for one reader", () => {
+  async function becomes(key: string, fetch: ReturnType<typeof vi.fn>) {
+    fetch.mockImplementation(async (url: string) => (url === "/api/auth/session" ? Response.json({ enabled: true, user: { name: "Ben", email: null, key } }) : Response.json({ saved: 1, place: null, settings: null })));
+    await refreshAccount();
+  }
+
+  it("does not go out as read paragraphs of the next reader", async () => {
+    const fetch = await signedInAs("k1", async () => Response.json({ saved: 1 }));
+    queueRead(["5:1.1", "5:1.2"]);
+    await becomes("k2", fetch);
+    queueRead(["9:2.1"]);
+    await flushRead();
+    const sent = fetch.mock.calls.filter(([url]) => url === "/api/me/read").map(([, init]) => JSON.parse(String((init as RequestInit).body)).refs);
+    expect(sent).toEqual([["9:2.1"]]);
+  });
+
+  it("does not go out as the place of the next reader", async () => {
+    startSync();
+    const fetch = await signedInAs("k1", async () => Response.json({ saved: true }));
+    saveLastRead({ paperId: "5", sectionId: "1", label: null });
+    saveLastRead({ paperId: "5", sectionId: "2", label: null });
+    const before = fetch.mock.calls.filter(([url]) => url === "/api/me/place").length;
+    await becomes("k2", fetch);
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+    await Promise.resolve();
+    expect(fetch.mock.calls.filter(([url]) => url === "/api/me/place").length).toBe(before);
   });
 });

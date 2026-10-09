@@ -14,12 +14,17 @@ type Reader = {
   revoked: number;
   writes: number;
   tokens: number;
+  // The paragraphs that the reader read, and each batch as it arrived.
+  read: string[];
+  batches: string[][];
+  // What the API says of each paper, when the test sets it.
+  progress: { paperId: string; readCount: number; totalParagraphs: number }[];
 };
 
 const readers = new Map<string, Reader>();
 const reader = (id: string): Reader => {
   let found = readers.get(id);
-  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0 }));
+  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], batches: [], progress: [] }));
   return found;
 };
 
@@ -91,6 +96,15 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
     if (r.mode === "refused") return json(401, { detail: "refused" });
     if (r.mode === "down") return json(500, { detail: "recorded failure" });
     if (path === "/me") return json(200, { data: { id: `user-${id}`, email: `${id}@example.com`, name: r.name } });
+    if (path === "/me/reading-progress") {
+      if (request.method === "POST") {
+        const refs = Array.isArray(body.refs) ? (body.refs as string[]) : [];
+        r.batches.push(refs);
+        r.read = [...new Set([...r.read, ...refs])];
+        return json(200, { data: { marked: refs.length, alreadyRead: 0, total: refs.length } });
+      }
+      return json(200, { data: r.progress });
+    }
     if (path === "/me/preferences") {
       if (request.method === "PUT") {
         r.writes += 1;

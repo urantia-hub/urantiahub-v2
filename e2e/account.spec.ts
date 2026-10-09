@@ -97,6 +97,43 @@ test.describe("the top bar of a paper", () => {
   });
 });
 
+// Kelson, 2026-10-09: the contents page has the header of a paper. The mark only, search, and settings.
+test.describe("the header of the contents page", () => {
+  test("shows the mark, search, and settings, and no name or page links", async ({ page }) => {
+    await page.goto("/papers");
+    const header = page.getByRole("banner");
+    await expect(header.getByRole("link", { name: "Papers" })).toBeHidden();
+    await expect(header.getByRole("link", { name: "About" })).toBeHidden();
+    await expect(header.getByRole("button", { name: /theme/ })).toBeHidden();
+    await expect(header.getByRole("link", { name: "Search" })).toBeVisible();
+    expect((await page.locator(".site-header .brand").boundingBox())!.width).toBeLessThan(40);
+    // "About" is in the footer of each page.
+    await expect(page.getByRole("contentinfo").getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+  });
+
+  test("its settings hold the theme and the account, and no text size", async ({ page, context }) => {
+    await asReader(context);
+    await page.goto("/papers");
+    await openSettings(page);
+    await expect(sheet(page).getByRole("button", { name: "Dark" })).toBeVisible();
+    await expect(sheet(page).getByRole("button", { name: "Larger text" })).toBeHidden();
+    await sheet(page).getByRole("link", { name: /^Sign in/ }).click();
+    await page.waitForURL((url) => url.pathname === "/papers");
+    await openSettings(page);
+    await expect(sheet(page).getByRole("link", { name: /Ana Reader/ })).toBeVisible();
+    await sheet(page).getByRole("button", { name: "Sign out" }).click();
+    await expect(sheet(page).getByRole("link", { name: /^Sign in/ })).toBeVisible();
+  });
+
+  test("the home page keeps the name, the links, and the moon", async ({ page }) => {
+    await page.goto("/");
+    const header = page.getByRole("banner");
+    await expect(header.getByRole("link", { name: "About" })).toBeVisible();
+    await expect(header.getByRole("button", { name: /theme/ })).toBeVisible();
+    await expect(header.getByRole("button", { name: "Reader settings" })).toBeHidden();
+  });
+});
+
 test.describe("the contents page", () => {
   test("invites a signed-out reader one time, and not a signed-in reader", async ({ page, context }) => {
     await asReader(context);
@@ -210,6 +247,84 @@ test.describe("a browser that two people use", () => {
     await sheet(page).getByRole("button", { name: "Sign out" }).click();
     await expect(sheet(page).getByText("The sign-out did not finish, so you are still signed in. Try again.")).toBeVisible();
     await expect(sheet(page).getByRole("button", { name: "Sign out" })).toBeVisible();
+  });
+});
+
+test.describe("what the reader read", () => {
+  test("a paragraph that stays in view goes to the account, and one that a fast scroll passed does not", async ({ page, context }) => {
+    const reader = await asReader(context);
+    // The test moves the clock of the page, so it does not wait for the real time.
+    await page.clock.install();
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.keyboard.press("Escape");
+    await expect.poll(async () => (await page.request.get("/api/auth/session")).ok()).toBe(true);
+    // The first paragraphs are in view. Each needs 8 seconds at most, and a batch goes out after 30.
+    await page.clock.fastForward(10_000);
+    expect((await reader.seen()).read).toEqual([]);
+    await page.clock.fastForward(31_000);
+    await expect.poll(async () => (await reader.seen()).read.length).toBeGreaterThan(0);
+    const read = (await reader.seen()).read as string[];
+    expect(read.every((ref) => /^1:\d+\.\d+$/.test(ref))).toBe(true);
+    expect(read).toContain("1:0.1");
+    // The end of the paper was never on the screen.
+    expect(read.some((ref) => ref.startsWith("1:7."))).toBe(false);
+  });
+
+  test("goes out when the reader leaves the paper", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.clock.install();
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.keyboard.press("Escape");
+    await expect.poll(async () => (await page.request.get("/api/auth/session")).ok()).toBe(true);
+    await page.clock.fastForward(9000);
+    await page.goto("/papers");
+    await expect.poll(async () => (await reader.seen()).read.length).toBeGreaterThan(0);
+  });
+
+  test("is not recorded for a reader with no account", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.clock.install();
+    await page.goto(PAPER);
+    await expect(page.getByRole("heading", { level: 1, name: "The Universal Father" })).toBeVisible();
+    await page.clock.fastForward(40_000);
+    await page.goto("/papers");
+    await expect(page.locator(".invite")).toBeVisible();
+    expect((await reader.seen()).batches).toEqual([]);
+  });
+
+  test("the contents page says Read, and the section of the paper where the reader is", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({
+      progress: [
+        { paperId: "0", readCount: 100, totalParagraphs: 100 },
+        { paperId: "1", readCount: 58, totalParagraphs: 60 },
+        { paperId: "3", readCount: 10, totalParagraphs: 60 },
+      ],
+      preferences: { "hub.place": { paperId: "2", sectionId: "3", label: "3. Justice and Righteousness", at: Date.now() - 60_000 } },
+    });
+    await page.goto("/papers");
+    await expect(page.locator(".toc .mark")).toHaveCount(0);
+    await page.locator(".invite").getByRole("link", { name: "Sign in" }).click();
+    await page.waitForURL((url) => url.pathname === "/papers");
+    const row = (title: string) => page.locator(".toc .papers li", { hasText: title });
+    await expect(row("The Universal Father").locator(".mark")).toHaveText("Read");
+    // The word must be readable. A pale color on the paper passed each other test and could not be seen.
+    const [ink, paper] = await row("The Universal Father").locator(".mark").evaluate((mark) => {
+      const light = (color: string) => { const [r, g, b] = color.match(/\d+/g)!.map(Number); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+      return [light(getComputedStyle(mark).color), light(getComputedStyle(document.body).backgroundColor)];
+    });
+    expect(paper - ink).toBeGreaterThan(100);
+    await expect(row("The Nature of God").locator(".mark")).toHaveText("Section 3 of 7");
+    await expect(row("The Attributes of God").locator(".mark")).toHaveCount(0);
+    await expect(page.locator("#foreword .mark")).toHaveText("Read");
+    await expect(page.locator(".toc .mark")).toHaveCount(3);
+
+    // After a sign-out the marks are gone.
+    await openSettings(page);
+    await sheet(page).getByRole("button", { name: "Sign out" }).click();
+    await expect(page.locator(".toc .mark")).toHaveCount(0);
   });
 });
 

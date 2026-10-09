@@ -9,6 +9,7 @@ export function SiteFooter() {
         <span>
           For developers: <a href="https://urantia.dev">urantia.dev</a>
         </span>
+        <Link href="/about">About</Link>
         <Link href="/privacy">Privacy</Link>
         <ThemeToggle />
       </span>
