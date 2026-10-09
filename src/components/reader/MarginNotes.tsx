@@ -14,11 +14,19 @@ const LONG = 110;
 function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
   const [all, setAll] = useState(false);
   const [whole, setWhole] = useState<ReadonlySet<string>>(new Set());
-  const more = notes.length - 1;
+  const others = notes.length - 1;
   // The newest note is the last of the thread. With all notes open, they read from the oldest.
   const shown = all ? notes : notes.slice(-1);
+  // A tall card scrolls inside. It fades at its end while more of it is below.
+  const box = useRef<HTMLElement>(null);
+  const [more, setMoreBelow] = useState(false);
+  const look = () => {
+    const el = box.current;
+    if (el) setMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 2);
+  };
+  useLayoutEffect(look);
   return (
-    <aside className="margin-card" data-for={reference} aria-label={`Your notes on ${reference}`}>
+    <aside className="margin-card" data-for={reference} data-more={more ? "" : undefined} aria-label={`Your notes on ${reference}`} ref={box} onScroll={look}>
       {shown.map((note) => {
         const long = note.text.length > LONG || note.text.includes("\n");
         const open = whole.has(note.id);
@@ -37,9 +45,9 @@ function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
           </div>
         );
       })}
-      {more > 0 && notes.length <= IN_PLACE && (
+      {others > 0 && notes.length <= IN_PLACE && (
         <button type="button" className="margin-more" aria-expanded={all} onClick={() => setAll((was) => !was)}>
-          {all ? "Show fewer" : `${more} more ${more === 1 ? "note" : "notes"}`}
+          {all ? "Show fewer" : `${others} more ${others === 1 ? "note" : "notes"}`}
         </button>
       )}
       {notes.length > IN_PLACE && (

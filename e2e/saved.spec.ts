@@ -430,6 +430,11 @@ test.describe("the notes in the margin", () => {
     const gap = (ref: string) => page.evaluate((ref) => Math.abs(Math.round(document.querySelector(`.margin-card[data-for="${ref}"]`)!.getBoundingClientRect().top - document.getElementById(ref)!.getBoundingClientRect().top)), ref);
     // The open card has a limit, so the next card stays within one screen of its paragraph.
     expect((await card(page, "1:0.2").boundingBox())!.height).toBeLessThanOrEqual(342);
+    // The card fades at its end while there is more of the note below, and not at the end of the note.
+    await expect(card(page, "1:0.2")).toHaveAttribute("data-more", "");
+    await card(page, "1:0.2").evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    await expect(card(page, "1:0.2")).not.toHaveAttribute("data-more");
+    await expect(card(page, "1:0.3")).not.toHaveAttribute("data-more");
     await tap(page, "1:0.3");
     await expect.poll(() => gap("1:0.3")).toBe(0);
     await tap(page, "1:0.2");
