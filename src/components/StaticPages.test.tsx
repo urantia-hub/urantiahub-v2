@@ -44,6 +44,8 @@ describe("Privacy, about accounts", () => {
     expect(page).toMatch(/One cookie holds your sign-in/);
     // Each thing that the code writes to the account is named, and each thing that it keeps in the browser.
     expect(page).toContain("Which paragraphs you read");
+    expect(page).toContain("The paragraphs that you saved");
+    expect(page).toContain("Your notes");
     expect(page).toMatch(/the place, the paragraphs that you read, the theme, and the text size also go to your account/);
     expect(page).toMatch(/a mark that says which account/i);
     expect(page).toMatch(/remembers that you signed out/);

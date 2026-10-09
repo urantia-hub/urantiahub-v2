@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { type MouseEvent, useEffect, useState, useSyncExternalStore } from "react";
+import { track } from "@/analytics";
 import { accountState, serverAccountState, signInHref, subscribeToAccount } from "@/account/client";
 import { readerCall } from "@/account/reader-call";
 import type { NoteResult } from "@/account/saved";
@@ -57,6 +58,9 @@ export function SavedView() {
     const gone = answer.ok === false && answer.why === "gone";
     if (answer.ok !== true && !gone) return FAILED;
     change(ref, (entry) => ({ ...entry, notes: done(entry.notes, answer.note) }));
+    const paper_id = ref.split(":")[0];
+    if (init.method === "DELETE") track("note_deleted", { paper_id });
+    else if (!gone) track("note_saved", { paper_id, kind: init.method === "POST" ? "new" : "change" });
     return gone ? { ok: false, why: "gone" } : { ok: true };
   }
   const actions = (ref: string) => ({
@@ -71,6 +75,7 @@ export function SavedView() {
     const answer = (await readerCall(`/api/me/bookmarks?ref=${encodeURIComponent(ref)}`, { method: "DELETE" })) as { ok?: unknown } | null;
     if (answer?.ok !== true) return setProblem("The paragraph is still saved. Try again.");
     change(ref, (entry) => ({ ...entry, savedAt: null }));
+    track("bookmark_removed", { paper_id: ref.split(":")[0] });
   }
 
   const waiting = account.status === "in" && (key === null || data.status === "loading");

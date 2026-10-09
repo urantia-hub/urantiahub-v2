@@ -809,6 +809,8 @@ describe("Save", () => {
     await userEvent.click(tile);
     expect(screen.getByRole("button", { name: "Saved" })).toHaveAttribute("aria-pressed", "true");
     expect(fetch).toHaveBeenCalledWith("/api/me/bookmarks", expect.objectContaining({ method: "POST", body: JSON.stringify({ ref: "1:0.2" }) }));
+    // The count for us holds the paper, and no reference.
+    expect(track).toHaveBeenCalledWith("bookmark_added", { paper_id: "1" });
   });
 
   it("shows Saved for a paragraph that the account holds, and a press removes it", async () => {
@@ -818,6 +820,7 @@ describe("Save", () => {
     await userEvent.click(screen.getByRole("button", { name: "Saved" }));
     expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith("/api/me/bookmarks?ref=1%3A1.1", expect.objectContaining({ method: "DELETE" }));
+    expect(track).toHaveBeenCalledWith("bookmark_removed", { paper_id: "1" });
   });
 
   it("goes back and says so when the save fails", async () => {
@@ -826,6 +829,7 @@ describe("Save", () => {
     await userEvent.click(text("1:0.2"));
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByText("This did not save. Try again.")).toBeInTheDocument();
+    expect(track).not.toHaveBeenCalledWith("bookmark_added", expect.anything());
     expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
   });
 });

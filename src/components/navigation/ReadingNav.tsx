@@ -391,7 +391,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   async function onSave() {
     if (!picked) return;
     if (account.status !== "in") return ask("save");
-    if (!(await toggleBookmark(picked))) say("This did not save. Try again.");
+    const adding = !saved.bookmarks.has(picked);
+    if (await toggleBookmark(picked)) track(adding ? "bookmark_added" : "bookmark_removed", { paper_id: paper.id });
+    else say("This did not save. Try again.");
   }
 
   function onNote() {
