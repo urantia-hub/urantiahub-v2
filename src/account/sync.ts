@@ -80,7 +80,7 @@ function stampSettings(at: number) {
 
 // The server says that the session is not this page's reader any more: another tab signed out, or
 // another reader signed in. Nothing of the reader before stays, and the page asks who is here now.
-async function readerChanged(): Promise<void> {
+export async function readerChanged(): Promise<void> {
   forgetAccountData();
   await refreshAccount();
 }

@@ -7,11 +7,17 @@ const SOLID = {
   pause: ["M7 5h3.8v14H7z", "M13.2 5H17v14h-3.8z"],
   previous: ["M6 6h2.2v12H6z", "M20 6v12l-9.5-6z"],
   next: ["M15.8 6H18v12h-2.2z", "M4 6l9.5 6L4 18z"],
+  // The one solid icon that is not the voice: a paragraph that the reader saved.
+  saved: ["M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"],
 } as const;
 
 const LINE = {
   share: ["M12 15V4", "M8 7.5l4-4 4 4", "M6 11v7.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V11"],
   close: ["M6.5 6.5l11 11", "M17.5 6.5l-11 11"],
+  // A ribbon: save this paragraph.
+  save: ["M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"],
+  more: ["M6 12h.01", "M12 12h.01", "M18 12h.01"],
+  copy: ["M10 8h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z", "M5 15V6a1 1 0 0 1 1-1h9"],
   paperBefore: ["M14.5 6l-6 6 6 6"],
   paperAfter: ["M9.5 6l6 6-6 6"],
   back: ["M19 12H5", "M11 6l-6 6 6 6"],

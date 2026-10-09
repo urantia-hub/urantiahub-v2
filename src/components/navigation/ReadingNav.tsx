@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
+import { noSaved, savedState, subscribeToSaved, toggleBookmark } from "@/account/saved";
 import { track } from "@/analytics";
 import { createAudioEngine, type AudioEngine, type VoiceState } from "@/audio/engine";
 import type { Track } from "@/audio/tracks";
 import { Icon } from "@/components/icons";
+import { Sheet } from "@/components/reader/Sheet";
 import { TermsSheet } from "@/components/reader/TermsSheet";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
 import { saveLastRead } from "@/reader/last-read";
@@ -48,10 +51,16 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [picked, setPicked] = useState<string | null>(null);
   const [voice, setVoice] = useState<VoiceState>(IDLE);
   const [backShown, setBackShown] = useState(false);
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  // The small panel above the row: the two more actions, or the question for a reader with no account.
+  const [panel, setPanel] = useState<"more" | "ask" | null>(null);
+  const [askHref, setAskHref] = useState("");
+  const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
+  const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
   const [termsOpen, setTermsOpen] = useState(false);
   const termsOpenRef = useRef(false);
-  const termsTile = useRef<HTMLButtonElement>(null);
+  const moreTile = useRef<HTMLButtonElement>(null);
+  const saveTile = useRef<HTMLButtonElement>(null);
   const toastTimer = useRef(0);
   const roundButton = useRef<HTMLButtonElement>(null);
 
@@ -142,6 +151,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   // The terms belong to the marked paragraph. With no mark, there is no sheet.
   if (termsOpen && !picked) setTermsOpen(false);
+  if (panel && !picked) setPanel(null);
 
   useEffect(() => mark("data-picked", picked), [picked]);
   useEffect(() => mark("data-voice", sounding ? voiceRef : null), [sounding, voiceRef]);
@@ -289,7 +299,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || document.querySelector("dialog[open]")) return;
       // While the terms are open, Escape belongs to their sheet.
-      if (event.key === "Escape" && !document.querySelector(".terms-sheet")) {
+      if (event.key === "Escape" && !document.querySelector(".terms-sheet, .panel")) {
         setPicked(null);
         setHidden(false);
         return;
@@ -339,7 +349,43 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   // The sheet goes, and the focus returns to the tile that opened it.
   function closeTerms() {
     setTermsOpen(false);
-    window.requestAnimationFrame(() => termsTile.current?.focus({ preventScroll: true }));
+    window.requestAnimationFrame(() => moreTile.current?.focus({ preventScroll: true }));
+  }
+
+  function closePanel() {
+    const tile = panel === "ask" ? saveTile : moreTile;
+    setPanel(null);
+    window.requestAnimationFrame(() => tile.current?.focus({ preventScroll: true }));
+  }
+
+  function say(words: string) {
+    setToast(words);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200);
+  }
+
+  async function onSave() {
+    if (!picked) return;
+    // A reader with no account gets the question. Nothing is kept in the browser.
+    if (account.status !== "in") {
+      // The sign-in returns to this paragraph, and the row opens again.
+      setAskHref(`/api/auth/start?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}#${picked}`)}`);
+      return setPanel("ask");
+    }
+    if (!(await toggleBookmark(picked))) say("This did not save. Try again.");
+  }
+
+  async function onCopyText() {
+    if (!picked) return;
+    const text = document.getElementById(picked)?.querySelector(":scope > .text, :scope > span:last-child")?.textContent?.trim();
+    closePanel();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(`${text} (${picked})`);
+      say("Text copied");
+    } catch {
+      // The browser refused the clipboard. The reader can still select the text.
+    }
   }
 
   async function onShare() {
@@ -354,17 +400,14 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     });
     if (method === "none") return;
     track("paragraph_shared", { ref, method });
-    if (method === "copy") {
-      setToast(true);
-      window.clearTimeout(toastTimer.current);
-      toastTimer.current = window.setTimeout(() => setToast(false), 1600);
-    }
+    if (method === "copy") say("Link copied");
   }
 
   const section = sections.find((s) => s.id === current);
   const label = !section || section.id === "0" ? paper.title : sectionLabel(section);
   const paperLabel = paper.id === "0" ? "The Urantia Papers" : `Paper ${paper.id}`;
   const pauseShown = intent.kind === "pause";
+  const isSaved = picked !== null && saved.bookmarks.has(picked);
   const roundName = pauseShown ? "Pause" : picked ? `Listen from ${picked}` : "Listen";
   // While the voice plays, the line shows the same thing as the time beside it: this paragraph.
   const length = tracks?.[voice.index]?.duration ?? 0;
@@ -462,13 +505,30 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                 {picked}
               </span>
               <div className="tiles">
+                {/* While the site has no sign-in, there is nothing to save to. */}
+                {account.status !== "off" && (
+                  <button type="button" className="tile" aria-pressed={isSaved} onClick={onSave} ref={saveTile}>
+                    <Icon name={isSaved ? "saved" : "save"} />
+                    {isSaved ? "Saved" : "Save"}
+                  </button>
+                )}
                 <button type="button" className="tile" onClick={onShare}>
                   <Icon name="share" />
                   Share
                 </button>
-                <button type="button" className="tile" aria-expanded={termsOpen} onClick={() => setTermsOpen((was) => !was)} ref={termsTile}>
-                  <Icon name="terms" />
-                  Terms
+                <button
+                  type="button"
+                  className="tile"
+                  aria-haspopup="dialog"
+                  aria-expanded={panel === "more" || termsOpen}
+                  onClick={() => {
+                    setTermsOpen(false);
+                    setPanel((was) => (was === "more" || termsOpen ? null : "more"));
+                  }}
+                  ref={moreTile}
+                >
+                  <Icon name="more" />
+                  More
                 </button>
               </div>
               <button type="button" className="close" aria-label="Close"
@@ -502,10 +562,43 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       )}
       {toast && (
         <div className="dock-toast" role="status">
-          Link copied
+          {toast}
         </div>
       )}
 
+      {panel === "more" && picked && (
+        <Sheet label="More" onClose={closePanel}>
+          <button
+            type="button"
+            className="panel-line"
+            onClick={() => {
+              setPanel(null);
+              setTermsOpen(true);
+            }}
+          >
+            <Icon name="terms" />
+            Terms in this paragraph
+          </button>
+          <button type="button" className="panel-line" onClick={onCopyText}>
+            <Icon name="copy" />
+            Copy the text
+          </button>
+        </Sheet>
+      )}
+      {panel === "ask" && picked && (
+        <Sheet label="Sign in to save this" onClose={closePanel}>
+          <h2>Sign in to save this</h2>
+          <p>Your saved paragraphs and notes stay with your account.</p>
+          <div className="panel-actions">
+            <a className="panel-button dark" href={askHref}>
+              Sign in
+            </a>
+            <button type="button" className="panel-button" onClick={closePanel}>
+              Not now
+            </button>
+          </div>
+        </Sheet>
+      )}
       {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />}
       <Navigator
         open={open}

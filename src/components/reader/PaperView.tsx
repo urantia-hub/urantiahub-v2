@@ -33,11 +33,15 @@ export function PaperView({ paper }: { paper: PaperDoc }) {
           {section.paragraphs.map((p) => (
             <p className="para" id={p.ref} key={p.ref}>
               {/* A real link, so it works with no JavaScript. With JavaScript, the dock treats a click on it as a tap. */}
-              <a className="ref" href={`#${p.ref}`}>
-                {p.ref}
-              </a>
+              <span className="refline">
+                <a className="ref" href={`#${p.ref}`}>
+                  {p.ref}
+                </a>
+                {/* The place for the marks of a signed-in reader. It is empty in the HTML. */}
+                <span className="marks" />
+              </span>
               {/* The HTML passed the allow-list in the content gateway. */}
-              <span dangerouslySetInnerHTML={{ __html: p.html }} />
+              <span className="text" dangerouslySetInnerHTML={{ __html: p.html }} />
             </p>
           ))}
         </section>

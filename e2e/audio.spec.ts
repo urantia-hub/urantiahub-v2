@@ -27,7 +27,7 @@ test("a selection of words marks nothing", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "a drag with the mouse is a desktop action");
   await stubAudio(page);
   await page.goto(PAPER_1);
-  const box = (await para(page, "1:0.2").locator("span").first().boundingBox())!;
+  const box = (await para(page, "1:0.2").locator(".text").boundingBox())!;
   await page.mouse.move(box.x + 10, box.y + 14);
   await page.mouse.down();
   await page.mouse.move(box.x + 260, box.y + 14, { steps: 6 });
@@ -41,7 +41,7 @@ test("a double-click that selects a word marks nothing", async ({ page }, testIn
   test.skip(testInfo.project.name !== "desktop", "a double-click is a desktop action");
   await stubAudio(page);
   await page.goto(PAPER_1);
-  await para(page, "1:0.2").locator("span").first().dblclick({ position: { x: 60, y: 12 } });
+  await para(page, "1:0.2").locator(".text").dblclick({ position: { x: 60, y: 12 } });
   expect((await page.evaluate(() => String(window.getSelection()))).trim().length).toBeGreaterThan(0);
   await expect(page.locator("[data-picked]")).toHaveCount(0);
   await expect(dock(page)).toHaveAttribute("data-job", "reading");

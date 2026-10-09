@@ -1,0 +1,90 @@
+/* A small panel above the controls of a paper: a sheet on a phone, a card on a wide screen. */
+.panel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  background: color-mix(in srgb, var(--ink) 28%, transparent);
+}
+.panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  max-height: 80dvh;
+  overflow-y: auto;
+  padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0;
+  background: var(--raised);
+  box-shadow: 0 -10px 40px var(--shade);
+  font: 400 14.5px/1.45 var(--font-ui);
+  outline: none;
+}
+.panel h2 {
+  margin: 0 0 4px;
+  font: 500 17px/1.3 var(--font-text);
+}
+.panel p {
+  margin: 0;
+  color: var(--ref);
+  font-size: 13.5px;
+}
+.panel button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.panel-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 0;
+  font-weight: 500;
+  text-align: left;
+}
+.panel-line + .panel-line {
+  border-top: 1px solid var(--rule);
+}
+.panel-line .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+}
+.panel-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.panel .panel-button {
+  padding: 10px 17px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 14px/1.2 var(--font-ui);
+  text-decoration: none;
+}
+.panel .panel-button.dark {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+@media (min-width: 768px) {
+  .panel-scrim {
+    background: none;
+  }
+  .panel {
+    left: 50%;
+    right: auto;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+    width: 420px;
+    margin-left: -210px;
+    padding: 20px 22px;
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    box-shadow: 0 12px 34px var(--shade);
+  }
+}
