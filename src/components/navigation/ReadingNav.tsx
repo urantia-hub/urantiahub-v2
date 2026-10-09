@@ -193,10 +193,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       // A click with a modifier key, or with another mouse button, belongs to the browser: a new tab, a new window.
       const mouse = event as MouseEvent;
       if (mouse.metaKey || mouse.ctrlKey || mouse.shiftKey || mouse.altKey || mouse.button > 0) return;
-      const para = target.closest<HTMLElement>(".para");
+      // A card of notes in the margin names its paragraph.
+      const noted = target.closest<HTMLElement>("[data-notes-for]")?.dataset.notesFor;
+      const para = noted ? document.getElementById(noted) : target.closest<HTMLElement>(".para");
       if (!para) return;
       // The small pen beside a reference opens the reader's notes on that paragraph.
-      if (target.closest(".mark-notes")) {
+      if (noted || target.closest(".mark-notes")) {
         setPicked(para.id);
         setHidden(false);
         setTermsOpen(false);
