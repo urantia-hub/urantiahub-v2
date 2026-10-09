@@ -26,6 +26,11 @@ const at = (ref: string) => ({ ref, createdAt: "2026-10-01T00:00:00.000Z" });
 const noteOf = (ref: string, text: string, createdAt = "2026-10-01T00:00:00.000Z") => ({ id: randomUUID(), ref, text, createdAt });
 const notes = (page: Page, ref: string) => page.getByRole("dialog", { name: `Your notes on ${ref}` });
 const pen = (page: Page, ref: string) => page.locator(`[id="${ref}"] .mark-notes`);
+// The row opens the notes on each screen. The pen is for a narrow screen, and the card for a wide one.
+async function openNotes(page: Page, ref: string) {
+  await tap(page, ref);
+  await page.getByRole("button", { name: "Note", exact: true }).click();
+}
 
 test.beforeEach(async ({ page }) => {
   await stubAudio(page);
@@ -154,7 +159,7 @@ test.describe("Note", () => {
     await asReader(context);
     await page.goto(PAPER);
     await tap(page, "1:0.3");
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Sign in to save this" })).toBeVisible();
   });
 
@@ -163,7 +168,7 @@ test.describe("Note", () => {
     await page.goto(PAPER);
     await signIn(page);
     await tap(page, "1:0.3");
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     const sheet = notes(page, "1:0.3");
     await expect(sheet).toContainText("Only you see them.");
     // With no note yet, the reader is in the field.
@@ -171,13 +176,13 @@ test.describe("Note", () => {
     await page.keyboard.type("Compare with Paper 10.");
     await sheet.getByRole("button", { name: "Save" }).click();
     await expect(sheet.getByRole("listitem")).toHaveText(/Compare with Paper 10\./);
-    await expect(pen(page, "1:0.3")).toHaveAccessibleName("1 note on 1:0.3");
+    await expect(page.getByRole("button", { name: "1 note on 1:0.3", includeHidden: true })).toHaveCount(1);
     await expect.poll(async () => (await reader.seen()).notes.map((n: { text: string }) => n.text)).toEqual(["Compare with Paper 10."]);
 
     // After a reload, the pen opens the notes and marks the paragraph.
     await page.reload();
-    await pen(page, "1:0.3").click();
-    await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
+    await expect(pen(page, "1:0.3")).toHaveCount(1);
+    await openNotes(page, "1:0.3");
     await notes(page, "1:0.3").getByRole("button", { name: "Edit" }).click();
     const field = notes(page, "1:0.3").getByRole("textbox", { name: "Your note" });
     await expect(field).toHaveValue("Compare with Paper 10.");
@@ -200,10 +205,21 @@ test.describe("Note", () => {
     await page.goto(PAPER);
     await signIn(page);
     await expect(pen(page, "1:0.3")).toHaveText("2");
-    await pen(page, "1:0.3").click();
+    await openNotes(page, "1:0.3");
     await expect(notes(page, "1:0.3").locator(".note-text")).toHaveText(["The older one.", "The newer one."]);
     const order = await notes(page, "1:0.3").evaluate((el) => [...el.querySelectorAll(".note-text, textarea")].map((x) => x.tagName));
     expect(order).toEqual(["P", "P", "TEXTAREA"]);
+  });
+
+  test("on a narrow screen the pen opens the notes and marks the paragraph", async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== "phone", "a wide screen shows the card, not the pen");
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.3", "From the pen.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await pen(page, "1:0.3").click();
+    await expect(notes(page, "1:0.3")).toContainText("From the pen.");
+    await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
   });
 
   test("a note that does not save stays in its field", async ({ page, context }) => {
@@ -211,7 +227,7 @@ test.describe("Note", () => {
     await page.goto(PAPER);
     await signIn(page);
     await tap(page, "1:0.3");
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     await reader.set({ mode: "down" });
     await notes(page, "1:0.3").getByRole("textbox", { name: "Add a note" }).fill("Do not lose me.");
     await notes(page, "1:0.3").getByRole("button", { name: "Save" }).click();
@@ -227,7 +243,8 @@ test.describe("Note", () => {
     await reader.set({ notes: [noteOf("1:0.3", `<img src=x onerror="document.title='broken'"> ${"w".repeat(400)}`)] });
     await page.goto(PAPER);
     await signIn(page);
-    await pen(page, "1:0.3").click();
+    await expect(pen(page, "1:0.3")).toHaveCount(1);
+    await openNotes(page, "1:0.3");
     const sheet = notes(page, "1:0.3");
     await expect(sheet.locator(".note-text")).toContainText("<img src=x");
     expect(await page.title()).not.toBe("broken");
@@ -239,17 +256,106 @@ test.describe("Note", () => {
     await first.set({ notes: [noteOf("1:0.3", "Mine only.")] });
     await page.goto(PAPER);
     await signIn(page);
-    await expect(pen(page, "1:0.3")).toBeVisible();
+    await expect(pen(page, "1:0.3")).toHaveCount(1);
     await page.getByRole("button", { name: "Account and settings" }).click();
     await settings(page).getByRole("button", { name: "Sign out" }).click();
-    await expect(page.locator(".mark-notes")).toHaveCount(0);
+    await expect(page.locator(".mark-notes, .margin-card")).toHaveCount(0);
     await asReader(context);
     await page.keyboard.press("Escape");
     await signIn(page);
     await tap(page, "1:0.3");
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     await expect(notes(page, "1:0.3")).toBeVisible();
     await expect(page.getByText("Mine only.")).toHaveCount(0);
+  });
+});
+
+test.describe("the notes in the margin", () => {
+  const card = (page: Page, ref: string) => page.getByRole("complementary", { name: `Your notes on ${ref}` });
+
+  test("a wide screen shows a card beside the paragraph and no pen, and a phone shows the pen and no card", async ({ page, context }, testInfo) => {
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.3", "Older.", "2026-10-01T00:00:00.000Z"), noteOf("1:0.3", "Newer.", "2026-10-05T00:00:00.000Z")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    if (testInfo.project.name === "phone") {
+      await expect(pen(page, "1:0.3")).toBeVisible();
+      await expect(card(page, "1:0.3")).toBeHidden();
+      return;
+    }
+    await expect(card(page, "1:0.3")).toBeVisible();
+    await expect(pen(page, "1:0.3")).toBeHidden();
+    await expect(card(page, "1:0.3").locator(".margin-text")).toHaveText(["Newer."]);
+    // The card starts at the top of its paragraph, at the right of the text, inside the window.
+    const boxes = await page.evaluate(() => {
+      const box = (el: Element) => el.getBoundingClientRect();
+      const para = box(document.getElementById("1:0.3")!);
+      const made = box(document.querySelector('.margin-card[data-for="1:0.3"]')!);
+      return { paraTop: para.top, paraRight: para.right, top: made.top, left: made.left, right: made.right, wide: window.innerWidth };
+    });
+    expect(Math.abs(boxes.top - boxes.paraTop)).toBeLessThanOrEqual(1);
+    expect(boxes.left).toBeGreaterThanOrEqual(boxes.paraRight);
+    expect(boxes.right).toBeLessThanOrEqual(boxes.wide);
+
+    await card(page, "1:0.3").getByRole("button", { name: "1 more note" }).click();
+    await expect(card(page, "1:0.3").locator(".margin-text")).toHaveText(["Older.", "Newer."]);
+  });
+
+  test("the cards do not overlap, and they move no text", async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
+    const reader = await asReader(context);
+    const long = "A long note that takes many lines in a narrow card. ".repeat(14);
+    await reader.set({ notes: [noteOf("1:0.1", long), noteOf("1:0.2", "Second card."), noteOf("1:0.3", "Third card.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route("**/api/me/saved?paper=1", async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.reload();
+    const tops = () => page.evaluate(() => ["1:0.1", "1:0.2", "1:0.3", "1:1.1"].map((ref) => Math.round(document.getElementById(ref)!.getBoundingClientRect().top + window.scrollY)));
+    await expect(page.getByRole("button", { name: "Account and settings" }).locator(".face")).toBeVisible();
+    const before = await tops();
+    release();
+    await expect(page.locator(".margin-card")).toHaveCount(3);
+    await card(page, "1:0.1").getByRole("button", { name: "Read more" }).click();
+    expect(await tops()).toEqual(before);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const boxes = [...document.querySelectorAll(".margin-card")].map((el) => el.getBoundingClientRect()).sort((a, b) => a.top - b.top);
+          return boxes.every((box, i) => i === 0 || box.top >= boxes[i - 1].bottom + 8);
+        }),
+      )
+      .toBe(true);
+  });
+
+  test("a press on a note in the card opens Your notes for that paragraph", async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.3", "Open me.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await card(page, "1:0.3").getByRole("button", { name: "Open your notes on 1:0.3" }).click();
+    await expect(notes(page, "1:0.3")).toContainText("Open me.");
+    await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
+  });
+
+  test("a larger text size moves the card with its paragraph", async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:1.1", "Stay with me.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(card(page, "1:1.1")).toBeVisible();
+    await page.getByRole("button", { name: "Account and settings" }).click();
+    await settings(page).getByRole("button", { name: "Larger text" }).click();
+    await settings(page).getByRole("button", { name: "Larger text" }).click();
+    await expect
+      .poll(() => page.evaluate(() => Math.abs(document.querySelector('.margin-card[data-for="1:1.1"]')!.getBoundingClientRect().top - document.getElementById("1:1.1")!.getBoundingClientRect().top)))
+      .toBeLessThanOrEqual(1);
   });
 });
 

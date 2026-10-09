@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { lazy, Suspense, useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { loadSaved, noSaved, savedState, subscribeToSaved } from "@/account/saved";
 import { Icon } from "@/components/icons";
+
+// Only a reader with notes gets the cards of the margin, so their code loads then.
+const MarginNotes = lazy(() => import("./MarginNotes"));
 
 // On a paper, for a signed-in reader: a small mark beside the reference of each saved paragraph.
 // Each paragraph has an empty place for its marks in the server's HTML, so a mark moves no text.
@@ -20,7 +23,7 @@ export function SavedMarks({ paperId }: { paperId: string }) {
   if (saved.paperId !== paperId) return null;
   const notes = new Map<string, number>();
   for (const note of saved.notes) notes.set(note.ref, (notes.get(note.ref) ?? 0) + 1);
-  return [...new Set([...saved.bookmarks, ...notes.keys()])].map((ref) => {
+  const marks = [...new Set([...saved.bookmarks, ...notes.keys()])].map((ref) => {
     const place = document.getElementById(ref)?.querySelector(".marks");
     const count = notes.get(ref) ?? 0;
     return place
@@ -44,4 +47,14 @@ export function SavedMarks({ paperId }: { paperId: string }) {
         )
       : null;
   });
+  return (
+    <>
+      {marks}
+      {saved.notes.length > 0 && (
+        <Suspense fallback={null}>
+          <MarginNotes notes={saved.notes} />
+        </Suspense>
+      )}
+    </>
+  );
 }
