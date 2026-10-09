@@ -85,6 +85,8 @@ export function safeNext(value: string | null | undefined): string {
     return "/";
   }
   if (url.origin !== "http://hub.invalid") return "/";
+  // With the dot segments gone, the path can start with two slashes: "/.//host" is "//host".
+  if (url.pathname.startsWith("//")) return "/";
   if (/^\/(api|auth)(\/|$)/.test(url.pathname)) return "/";
   return `${url.pathname}${url.search}${url.hash}`;
 }

@@ -76,13 +76,25 @@ describe("a call for the reader's data", () => {
     expect(await callForReader(soon, { run, refresh: async () => fresh })).toEqual({ ok: false, reason: "unavailable", session: fresh });
   });
 
+  // A refresh token that the API cannot read (400) is as dead as one that it refuses (401). The reader
+  // must not stay "signed in" with a session that can never work again.
+  it("ends the sign-in when the API says that the refresh token is not one", async () => {
+    const refresh = async () => {
+      throw new AuthError("refused", "bad token", 400);
+    };
+    const refused = async () => {
+      throw new Refused();
+    };
+    expect(await callForReader(session, { run: refused, refresh })).toEqual({ ok: false, reason: "signed-out", session: "end" });
+  });
+
   // The package calls each 4xx "refused". A limit (429) or a block (403) at the refresh is not the API
   // saying that the session is over, so the reader stays signed in.
   it("keeps the sign-in when the refresh is limited or blocked", async () => {
     const refused = async () => {
       throw new Refused();
     };
-    for (const status of [429, 403, 400]) {
+    for (const status of [429, 403, 408, 409]) {
       const refresh = async () => {
         throw new AuthError("refused", "slow down", status);
       };

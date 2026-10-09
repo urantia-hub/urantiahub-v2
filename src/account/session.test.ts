@@ -65,6 +65,12 @@ describe("where the reader goes after a sign-in", () => {
     expect(safeNext("/papers/../about")).toBe("/about");
   });
 
+  // After the dot segments are gone, the path can start with two slashes. A browser reads that as
+  // another host when it stands alone, so it never leaves this function.
+  it("is the home page for a path that becomes two slashes and a host", () => {
+    for (const bad of ["/.//evil.example", "/x/..//evil.example/path", "/%2e//evil.example", "/./%2e%2e//evil.example"]) expect(safeNext(bad)).toBe("/");
+  });
+
   it("cuts a path that is too long", () => {
     expect(safeNext(`/${"a".repeat(3000)}`)).toBe("/");
   });
