@@ -21,9 +21,10 @@ export type Called<T> =
 
 type Deps<T> = { run: (accessToken: string) => Promise<T>; refresh: (session: Session) => Promise<Session> };
 
-// The API answers 401 when a session is over. The package calls each other 4xx "refused" too, but a
+// The API answers 401 when a session is over, and 400 for a refresh token that it cannot read. Both
+// mean that this session can never work again. The package calls each other 4xx "refused" too, but a
 // limit (429) or a block (403) says nothing about the session, so it counts as an outage.
-const isRefusal = (error: unknown) => error instanceof AuthError && error.kind === "refused" && error.status === 401;
+const isRefusal = (error: unknown) => error instanceof AuthError && error.kind === "refused" && (error.status === 401 || error.status === 400);
 
 export async function callForReader<T>(session: Session, deps: Deps<T>, now: Date = new Date()): Promise<Called<T>> {
   let current = session;
