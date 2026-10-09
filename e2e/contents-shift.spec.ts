@@ -57,7 +57,8 @@ test.describe("the contents page does not move when its cards arrive", () => {
     await page.addInitScript(() => window.localStorage.setItem("hub:last-read", JSON.stringify({ paperId: "900", sectionId: "1", label: null, at: 5 })));
     await page.goto("/papers");
     await expect(page.locator(".toc .invite")).toBeVisible();
-    const gap = await page.evaluate(() => document.querySelector(".toc .invite")!.getBoundingClientRect().top - document.querySelector(".toc .lead")!.getBoundingClientRect().bottom);
-    expect(gap).toBeLessThan(40);
+    // The room is there before the script runs, and goes when the script finds no paper for the place.
+    const gap = () => page.evaluate(() => document.querySelector(".toc .invite")!.getBoundingClientRect().top - document.querySelector(".toc .lead")!.getBoundingClientRect().bottom);
+    await expect.poll(gap).toBeLessThan(40);
   });
 });
