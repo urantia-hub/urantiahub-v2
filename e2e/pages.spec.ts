@@ -106,13 +106,13 @@ test("on a paper page the theme is in the reader settings, and other pages keep 
   await page.goto("/papers/paper-1-the-universal-father");
   const header = page.getByRole("banner");
   await expect(header.getByRole("button", { name: "Dark theme" })).toBeHidden();
-  await header.getByRole("button", { name: "Reader settings" }).click();
-  await page.getByRole("dialog", { name: "Reader settings" }).getByRole("button", { name: "Dark" }).click();
+  await header.getByRole("button", { name: "Account and settings" }).click();
+  await page.getByRole("dialog", { name: "Account and settings" }).getByRole("button", { name: "Dark" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
   // The contents page has the settings too. A page such as About keeps the moon.
   await page.goto("/about");
   await expect(page.getByRole("banner").getByRole("button", { name: "Light theme" })).toBeVisible();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Reader settings" })).toBeHidden();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeHidden();
 });
 
 test("the contents page shows no Continue card to a new visitor", async ({ page }) => {

@@ -12,15 +12,15 @@ beforeEach(() => {
 });
 
 const openPanel = async () => {
-  await userEvent.click(screen.getByRole("button", { name: "Reader settings" }));
-  return screen.getByRole("dialog", { name: "Reader settings" });
+  await userEvent.click(screen.getByRole("button", { name: "Account and settings" }));
+  return screen.getByRole("dialog", { name: "Account and settings" });
 };
 
 describe("ReaderSettings", () => {
   it("is closed at first, and its button says so", () => {
     render(<ReaderSettings />);
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByRole("button", { name: "Reader settings" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "Account and settings" })).toHaveAttribute("aria-expanded", "false");
   });
 
   it("changes the theme and shows which one is on", async () => {
@@ -53,9 +53,9 @@ describe("ReaderSettings", () => {
     await openPanel();
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByRole("button", { name: "Reader settings" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Account and settings" })).toHaveFocus();
     await openPanel();
-    await userEvent.click(screen.getByRole("button", { name: "Reader settings" }));
+    await userEvent.click(screen.getByRole("button", { name: "Account and settings" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 

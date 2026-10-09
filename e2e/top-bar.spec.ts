@@ -14,7 +14,7 @@ test("the top bar leaves on a scroll down and returns on a small scroll up, with
   await page.mouse.wheel(0, -80);
   await expect(header).toBeInViewport();
   await expect(header.getByRole("link", { name: "Search" })).toBeInViewport();
-  await expect(header.getByRole("button", { name: "Reader settings" })).toBeInViewport();
+  await expect(header.getByRole("button", { name: "Account and settings" })).toBeInViewport();
   // The reader keeps their place.
   expect(before - (await page.evaluate(() => window.scrollY))).toBeLessThan(200);
   // The bar shows the mark and the name, and no paper title.
@@ -34,8 +34,8 @@ test("the reader settings change the text size, and the choice stays after a rel
   const para = page.locator('[id="1:0.1"]');
   const size = () => para.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
   const start = await size();
-  await page.getByRole("banner").getByRole("button", { name: "Reader settings" }).click();
-  const panel = page.getByRole("dialog", { name: "Reader settings" });
+  await page.getByRole("banner").getByRole("button", { name: "Account and settings" }).click();
+  const panel = page.getByRole("dialog", { name: "Account and settings" });
   await panel.getByRole("button", { name: "Larger text" }).click();
   await panel.getByRole("button", { name: "Larger text" }).click();
   await expect(panel.getByRole("button", { name: "Larger text" })).toBeDisabled();
@@ -55,8 +55,8 @@ test("the settings panel stays in view while it is open, and closes on a press o
   await page.mouse.move(200, 300);
   await page.mouse.wheel(0, 1500);
   await page.mouse.wheel(0, -80);
-  await page.getByRole("banner").getByRole("button", { name: "Reader settings" }).click();
-  const panel = page.getByRole("dialog", { name: "Reader settings" });
+  await page.getByRole("banner").getByRole("button", { name: "Account and settings" }).click();
+  const panel = page.getByRole("dialog", { name: "Account and settings" });
   await expect(panel).toBeInViewport();
   await page.locator(".settings-scrim").click({ position: { x: 20, y: 200 } });
   await expect(panel).toBeHidden();

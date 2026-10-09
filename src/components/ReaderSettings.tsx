@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { AccountRows } from "@/components/AccountRows";
 import { Icon } from "@/components/icons";
 import { applyTextSize, currentTextSize, DEFAULT_STEP, SCALES, subscribeToTextSize } from "@/lib/text-size";
@@ -10,8 +11,8 @@ import { applyTheme, currentTheme, subscribeToTheme, type Theme } from "@/lib/th
 const serverTheme = (): Theme => "light";
 const serverSize = () => DEFAULT_STEP;
 
-// The settings of the reader, behind one icon in the header of a paper: the theme, the text size, and
-// the reader's account. Later steps add rows here: translation, and parallels for the paper.
+// The settings of the reader and the reader's account, behind one icon in the header of a paper and
+// of the contents page: the theme, the text size, and the account rows. Later steps add rows here: translation, and parallels for the paper.
 export function ReaderSettings() {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -19,6 +20,8 @@ export function ReaderSettings() {
   const panel = useRef<HTMLDivElement>(null);
   const theme = useSyncExternalStore(subscribeToTheme, currentTheme, serverTheme);
   const size = useSyncExternalStore(subscribeToTextSize, currentTextSize, serverSize);
+  const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
+  const initial = account.status === "in" ? (account.user?.name || account.user?.email || "").trim().charAt(0).toUpperCase() : "";
 
   useEffect(() => {
     if (!open) return;
@@ -45,13 +48,14 @@ export function ReaderSettings() {
         type="button"
         className="settings-button"
         ref={button}
-        aria-label="Reader settings"
-        title="Reader settings"
+        aria-label="Account and settings"
+        title="Account and settings"
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((was) => !was)}
       >
-        <Icon name="settings" />
+        {/* A person, and the reader's initial after a sign-in. While the site has no sign-in, the sliders. */}
+        {initial ? <span className="face">{initial}</span> : <Icon name={account.status === "off" ? "settings" : "person"} />}
       </button>
       {open &&
         // The panel is a child of the page body. The header has a blur, and a blur makes a fixed child
@@ -59,7 +63,7 @@ export function ReaderSettings() {
         createPortal(
           <>
             <div className="settings-scrim" />
-            <div className="settings-panel" role="dialog" aria-label="Reader settings" ref={panel}>
+            <div className="settings-panel" role="dialog" aria-label="Account and settings" ref={panel}>
               <h2>Theme</h2>
               <div className="segment">
                 {(["light", "dark"] as const).map((name) => (

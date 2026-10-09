@@ -252,13 +252,13 @@ test("the header links return after a visit to a paper", async ({ page }) => {
   await expect(page).toHaveURL("/about");
   await expect(page.getByRole("banner").getByRole("link", { name: "Papers" })).toBeVisible();
   await expect(page.getByRole("banner").getByRole("button", { name: /theme/ })).toBeVisible();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Reader settings" })).toBeHidden();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeHidden();
   // And back: the contents page has icons only again.
   await page.goBack();
   await page.goBack();
   await expect(page).toHaveURL("/papers");
   await expect(page.getByRole("banner").getByRole("link", { name: "About" })).toBeHidden();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Reader settings" })).toBeVisible();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeVisible();
 });
 
 test("on a desktop, the text of the search field starts on the left edge of the results column", async ({ page }, testInfo) => {

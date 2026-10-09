@@ -128,6 +128,17 @@ body:has(.paper:not([style*="display: none"])) .site-header .theme-icon {
   width: 19px;
   height: 19px;
 }
+/* Signed in, the icon is the reader's initial. */
+.settings-button .face {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  font: 600 12.5px/1 var(--font-ui);
+}
 .settings-scrim {
   position: fixed;
   inset: 0;
