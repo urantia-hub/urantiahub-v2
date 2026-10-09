@@ -358,6 +358,23 @@ test.describe("the notes in the margin", () => {
     await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
   });
 
+  // Next.js keeps the paper before alive and hidden. The cards must be in the paper that shows.
+  test("the cards show on the next paper after a move by a link", async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.3", "On paper 1."), noteOf("2:0.1", "On paper 2.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(card(page, "1:0.3")).toBeVisible();
+    await page.locator(".pager .next").click();
+    await page.waitForURL("**/papers/paper-2-**");
+    await expect(card(page, "2:0.1")).toBeVisible();
+    const gap = await page.evaluate(() => Math.abs(document.querySelector('.margin-card[data-for="2:0.1"]')!.getBoundingClientRect().top - document.getElementById("2:0.1")!.getBoundingClientRect().top));
+    expect(gap).toBeLessThanOrEqual(1);
+    await page.goBack();
+    await expect(card(page, "1:0.3")).toBeVisible();
+  });
+
   test("a larger text size moves the card with its paragraph", async ({ page, context }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
     const reader = await asReader(context);
