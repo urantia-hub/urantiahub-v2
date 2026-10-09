@@ -6,6 +6,9 @@ import { loadSaved, resetSavedForTest } from "@/account/saved";
 import { resetSyncForTest } from "@/account/sync";
 import NoteSheet from "./NoteSheet";
 
+const track = vi.hoisted(() => vi.fn());
+vi.mock("@/analytics", () => ({ track }));
+
 type Answer = (url: string, init?: RequestInit) => Response | Promise<Response>;
 const NOTES = [
   { id: "n1", ref: "1:0.3", text: "The first note.", at: "2026-10-01T00:00:00.000Z" },
@@ -34,6 +37,7 @@ const items = () => within(list()).getAllByRole("listitem");
 const sent = (fetch: ReturnType<typeof vi.fn>) => fetch.mock.calls.filter(([url]) => String(url).startsWith("/api/me/notes")).map(([url, init]) => [`${(init as RequestInit).method} ${url}`, (init as RequestInit).body]);
 
 beforeEach(() => {
+  track.mockClear();
   clearCookies();
   resetSyncForTest();
   resetSavedForTest();
@@ -65,6 +69,8 @@ describe("the notes of a paragraph", () => {
     expect(items()[2]).toHaveTextContent("A new one.");
     expect(screen.getByRole("textbox", { name: "Add a note" })).toHaveValue("");
     expect(sent(fetch)).toEqual([["POST /api/me/notes", JSON.stringify({ ref: "1:0.3", text: "A new one." })]]);
+    // The count for us holds no text and no reference.
+    expect(track.mock.calls).toEqual([["note_saved", { paper_id: "1", kind: "new" }]]);
   });
 
   it("keeps the text in the field and says so when the save fails", async () => {
@@ -72,6 +78,7 @@ describe("the notes of a paragraph", () => {
     await userEvent.type(screen.getByRole("textbox", { name: "Add a note" }), "Do not lose me.");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(screen.getByRole("alert")).toHaveTextContent("The note did not save. Try again.");
+    expect(track).not.toHaveBeenCalled();
     expect(screen.getByRole("textbox", { name: "Add a note" })).toHaveValue("Do not lose me.");
     expect(items()).toHaveLength(2);
   });
@@ -107,6 +114,7 @@ describe("Edit", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(items().map((item) => item.querySelector(".note-text")?.textContent)).toEqual(["The first note.", "Changed."]);
     expect(sent(fetch)).toEqual([["PUT /api/me/notes/n2", JSON.stringify({ text: "Changed." })]]);
+    expect(track.mock.calls).toEqual([["note_saved", { paper_id: "1", kind: "change" }]]);
     expect(screen.getByRole("textbox", { name: "Add a note" })).toBeInTheDocument();
   });
 
@@ -152,6 +160,7 @@ describe("Delete", () => {
     await userEvent.click(within(items()[0]).getByRole("button", { name: "Delete" }));
     expect(items().map((item) => item.querySelector(".note-text")?.textContent)).toEqual(["The second note."]);
     expect(sent(fetch)).toEqual([["DELETE /api/me/notes/n1", undefined]]);
+    expect(track.mock.calls).toEqual([["note_deleted", { paper_id: "1" }]]);
   });
 
   it("keeps the note and says so when the delete fails", async () => {

@@ -76,6 +76,8 @@ describe("analytics", () => {
     const { initAnalytics, track } = await import("./index");
     initAnalytics();
     await started();
+    track("note_saved", { paper_id: "1", kind: "new" });
+    expect(posthog.capture).toHaveBeenCalledWith("note_saved", { paper_id: "1", kind: "new" });
     track("paragraph_shared", { ref: "1:0.1", method: "copy" });
     expect(posthog.capture).toHaveBeenCalledWith("paragraph_shared", { ref: "1:0.1", method: "copy" });
     // Two passages can come from one paragraph, so the event names the position in the list too.

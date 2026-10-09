@@ -29,7 +29,7 @@ test.describe("a sign-in from a paper", () => {
     await asReader(context);
     await page.goto(`${PAPER}#1:0.3`);
     await openSettings(page);
-    await expect(sheet(page).getByText("Keep your place and your settings on each device")).toBeVisible();
+    await expect(sheet(page).getByText("Save paragraphs, write notes, and keep your place")).toBeVisible();
     await sheet(page).getByRole("link", { name: /^Sign in/ }).click();
     await page.waitForURL((url) => url.pathname === PAPER && url.hash === "#1:0.3");
 
@@ -164,7 +164,7 @@ test.describe("the contents page", () => {
     await asReader(context);
     await page.goto("/papers");
     const invite = page.locator(".invite");
-    await expect(invite.getByText("Keep your place and your settings")).toBeVisible();
+    await expect(invite.getByText("Save paragraphs and write notes")).toBeVisible();
     await invite.getByRole("link", { name: "Sign in" }).click();
     await page.waitForURL((url) => url.pathname === "/papers");
     await expect(page.getByRole("heading", { level: 1, name: "Papers" })).toBeVisible();

@@ -17,6 +17,11 @@ export type AnalyticsEvents = {
   search_result_opened: { group: "exact" | "related"; position: number };
   terms_opened: { paper_id: string; names: "0" | "1-3" | "4+"; ideas: "0" | "1-5" | "6+" };
   term_opened: { kind: string; term: string };
+  // What a signed-in reader saves. The paper only: never a reference, and never the text of a note.
+  bookmark_added: { paper_id: string };
+  bookmark_removed: { paper_id: string };
+  note_saved: { paper_id: string; kind: "new" | "change" };
+  note_deleted: { paper_id: string };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };

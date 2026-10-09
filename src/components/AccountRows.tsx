@@ -26,7 +26,7 @@ export function AccountRows() {
           <Icon name="person" />
           <span>
             Sign in
-            <small>Keep your place and your settings on each device</small>
+            <small>Save paragraphs, write notes, and keep your place</small>
           </span>
           <Icon name="paperAfter" />
         </a>
@@ -85,8 +85,8 @@ export function SignInInvite() {
   return (
     <div className="invite">
       <p>
-        <strong>Keep your place and your settings</strong>
-        {problem ? "The sign-in did not finish. Try again." : "Sign in, and they follow you to each device."}
+        <strong>Save paragraphs and write notes</strong>
+        {problem ? "The sign-in did not finish. Try again." : "Sign in, and they stay with you on each device."}
       </p>
       <a {...toSignIn}>
         Sign in
