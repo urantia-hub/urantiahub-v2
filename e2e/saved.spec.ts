@@ -359,6 +359,128 @@ test.describe("the notes in the margin", () => {
   });
 });
 
+test.describe("the Saved page", () => {
+  const entries = (page: Page) => page.locator(".saved-entry");
+  const seed = { saved: [at("1:0.3"), { ref: "2:0.1", createdAt: "2026-10-04T00:00:00.000Z" }], notes: [noteOf("1:0.3", "Compare with Paper 10.", "2026-10-06T00:00:00.000Z"), noteOf("1:1.2", "Ask the group.", "2026-10-02T00:00:00.000Z")] };
+
+  test("asks a reader with no account to sign in, and the sign-in returns to it", async ({ page, context }) => {
+    await asReader(context);
+    await page.goto("/saved");
+    await expect(page.getByText("Sign in to find them here.")).toBeVisible();
+    await page.getByRole("link", { name: "Sign in" }).click();
+    await page.waitForURL((url) => url.pathname === "/saved");
+    await expect(page.getByText("Nothing saved yet")).toBeVisible();
+  });
+
+  test("is reached from the account sheet and from the contents page", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set(seed);
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.getByRole("button", { name: "Account and settings" }).click();
+    await settings(page).getByRole("link", { name: "Saved" }).click();
+    await page.waitForURL("**/saved");
+    await expect(entries(page)).toHaveCount(3);
+    await page.goto("/papers");
+    await page.locator(".toc").getByRole("link", { name: "Saved" }).click();
+    await page.waitForURL("**/saved");
+  });
+
+  test("lists, searches, filters, and sorts what the reader saved", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set(seed);
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.goto("/saved");
+    const refs = () => entries(page).locator("small").evaluateAll((all) => all.map((el) => el.textContent!.split("·")[0].trim()));
+    await expect.poll(refs).toEqual(["1:0.3", "2:0.1", "1:1.2"]);
+    await page.getByRole("searchbox", { name: "Search what you saved" }).fill("group");
+    await expect.poll(refs).toEqual(["1:1.2"]);
+    await page.getByRole("searchbox", { name: "Search what you saved" }).fill("");
+    await page.getByRole("button", { name: "Paragraphs" }).click();
+    await expect.poll(refs).toEqual(["1:0.3", "2:0.1"]);
+    await page.getByRole("button", { name: "All", exact: true }).click();
+    await page.getByRole("button", { name: /Newest first/ }).click();
+    await expect.poll(refs).toEqual(["1:0.3", "1:1.2", "2:0.1"]);
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(["Paper 1 · Paper 1", "Paper 2 · Paper 2"]);
+  });
+
+  test("an entry opens the paper at its paragraph", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set(seed);
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.goto("/saved");
+    await entries(page).first().locator(".saved-where").click();
+    await page.waitForURL((url) => url.pathname === PAPER && url.hash === "#1:0.3");
+    await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
+  });
+
+  test("Remove, Edit, and Delete change the account and the list", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set(seed);
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.goto("/saved");
+    await entries(page).nth(1).getByRole("button", { name: /^Remove/ }).click();
+    await expect(entries(page)).toHaveCount(2);
+    await entries(page).first().getByRole("button", { name: "Edit" }).click();
+    await page.getByRole("textbox", { name: "Your note" }).fill("Changed here.");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(entries(page).first()).toContainText("Changed here.");
+    await entries(page).nth(1).getByRole("button", { name: "Delete" }).click();
+    await entries(page).nth(1).getByRole("group", { name: "Delete this note?" }).getByRole("button", { name: "Delete" }).click();
+    await expect(entries(page)).toHaveCount(1);
+    const seen = await reader.seen();
+    expect(seen.saved.map((b: { ref: string }) => b.ref)).toEqual(["1:0.3"]);
+    expect(seen.notes.map((n: { text: string }) => n.text)).toEqual(["Changed here."]);
+  });
+
+  test("a long thread opens on the page of its paragraph, from the sheet and from the margin", async ({ page, context }, testInfo) => {
+    const reader = await asReader(context);
+    await reader.set({ notes: Array.from({ length: 12 }, (_, i) => noteOf("1:0.3", `Note ${i + 1}.`, `2026-09-${10 + i}T00:00:00.000Z`)) });
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(pen(page, "1:0.3")).toHaveCount(1);
+    if (testInfo.project.name === "desktop") {
+      await page.getByRole("complementary", { name: "Your notes on 1:0.3" }).getByRole("link", { name: "See all 12 notes" }).click();
+    } else {
+      await openNotes(page, "1:0.3");
+      // The sheet shows the last three notes of the thread.
+      await expect(notes(page, "1:0.3").locator(".note-text")).toHaveText(["Note 10.", "Note 11.", "Note 12."]);
+      await notes(page, "1:0.3").getByRole("link", { name: "See all 12 notes" }).click();
+    }
+    await page.waitForURL((url) => url.pathname === "/saved" && url.searchParams.get("ref") === "1:0.3");
+    await expect(page.getByRole("heading", { name: "Your notes on 1:0.3" })).toBeVisible();
+    await expect(page.locator(".saved-page .note-text")).toHaveCount(12);
+    await expect(page.locator(".saved-quote")).toHaveText("Text of 1:0.3.");
+    await page.getByRole("textbox", { name: "Add a note" }).fill("Note 13.");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.locator(".saved-page .note-text")).toHaveCount(13);
+    await page.getByRole("link", { name: "Paper 1" }).click();
+    await page.waitForURL((url) => url.pathname === PAPER && url.hash === "#1:0.3");
+  });
+
+  test("stays out of search engines", async ({ page, request }) => {
+    await page.goto("/saved");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    expect(await (await request.get("/sitemap.xml")).text()).not.toContain("/saved");
+  });
+
+  test("the next person on the same browser sees none of it", async ({ page, context }) => {
+    const first = await asReader(context);
+    await first.set(seed);
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.goto("/saved");
+    await expect(entries(page)).toHaveCount(3);
+    await page.getByRole("button", { name: "Account and settings" }).click();
+    await settings(page).getByRole("button", { name: "Sign out" }).click();
+    await expect(entries(page)).toHaveCount(0);
+    await expect(page.getByText("Sign in to find them here.")).toBeVisible();
+  });
+});
+
 test.describe("More", () => {
   test("holds the terms of the paragraph", async ({ page }) => {
     await page.goto(PAPER);

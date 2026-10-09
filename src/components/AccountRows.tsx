@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type MouseEvent, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { accountState, never, noSignInProblem, serverAccountState, signInHref, signInProblem, signOut, subscribeToAccount } from "@/account/client";
 import { Icon } from "@/components/icons";
@@ -48,6 +49,11 @@ export function AccountRows() {
         </span>
         <Icon name="external" />
       </a>
+      <Link className="account-row" href="/saved">
+        <Icon name="save" />
+        <span>Saved</span>
+        <Icon name="paperAfter" />
+      </Link>
       <button type="button" className="account-row" onClick={() => void signOut().then((done) => setStuck(!done))}>
         <Icon name="signOut" />
         <span>Sign out</span>
@@ -67,8 +73,12 @@ export function SignInInvite() {
   const problem = useProblem();
   const out = account.status === "out";
   useLayoutEffect(() => {
-    if (out) document.documentElement.dataset.guest = "";
-    else if (account.status === "in") delete document.documentElement.dataset.guest;
+    const marks = document.documentElement.dataset;
+    if (out) marks.guest = "";
+    else if (account.status === "in") delete marks.guest;
+    // The same for the link to Saved, which a signed-in reader gets.
+    if (account.status === "in") marks.member = "";
+    else if (out) delete marks.member;
   }, [out, account.status]);
   // "off" here is the page before the account started: the server, and the first render in the browser.
   if (!out && !(SIGN_IN_ON && account.status === "off")) return null;
@@ -82,5 +92,19 @@ export function SignInInvite() {
         Sign in
       </a>
     </div>
+  );
+}
+
+// On the contents page: the way to what a signed-in reader saved. It is in the server's HTML, and CSS
+// shows it only while the page carries the mark of a signed-in reader, so it moves nothing when it shows.
+export function SavedLink() {
+  if (!SIGN_IN_ON) return null;
+  return (
+    <p className="saved-way">
+      <Link href="/saved">
+        <Icon name="save" />
+        Saved
+      </Link>
+    </p>
   );
 }

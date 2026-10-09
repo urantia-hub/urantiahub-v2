@@ -39,10 +39,10 @@ describe("the notes in the margin", () => {
     expect(within(card("1:0.3")).getByRole("button", { name: "1 more note" })).toBeInTheDocument();
   });
 
-  it("send a long thread to Your notes, and do not open it in the margin", () => {
+  it("send a long thread to the page of the paragraph, and do not open it in the margin", () => {
     render(<MarginNotes notes={Array.from({ length: 12 }, (_, i) => note(`n${i}`, "1:0.3", `Note ${i}.`, 1 + (i % 9)))} />);
-    const all = within(card("1:0.3")).getByRole("button", { name: "See all 12 notes" });
-    expect(all).toHaveAttribute("data-notes-for", "1:0.3");
+    const all = within(card("1:0.3")).getByRole("link", { name: "See all 12 notes" });
+    expect(all).toHaveAttribute("href", "/saved?ref=1%3A0.3");
     expect(within(card("1:0.3")).queryByRole("button", { name: /more notes$/ })).toBeNull();
     expect(texts("1:0.3")).toHaveLength(1);
   });

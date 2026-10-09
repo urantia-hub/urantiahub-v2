@@ -1,0 +1,285 @@
+/* The page of what a reader saved. Its notes use the styles of the note thread (panel.css). */
+.saved-page {
+  max-width: 38rem;
+  min-height: 60dvh;
+  margin: 0 auto;
+  padding: 44px 20px 80px;
+  font: 400 14.5px/1.45 var(--font-ui);
+}
+.saved-page h1 {
+  margin: 0 0 18px;
+  font: 500 2em/1.15 var(--font-text);
+}
+.saved-page button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.saved-find {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--raised);
+  color: var(--muted);
+}
+.saved-find:focus-within {
+  border-color: var(--ink);
+}
+.saved-find .icon {
+  width: 18px;
+  height: 18px;
+}
+.saved-find input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 16px/1.3 var(--font-ui);
+}
+.saved-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.saved-kinds {
+  display: flex;
+  gap: 6px;
+}
+.saved-page .saved-kinds button,
+.saved-page .saved-order {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--raised);
+  border: 1px solid var(--rule);
+  color: var(--ref);
+  font: 500 13.5px/1 var(--font-ui);
+}
+.saved-page .saved-kinds button[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.saved-page .saved-order {
+  margin-left: auto;
+}
+.saved-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.saved-entry {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.saved-where {
+  display: block;
+  color: var(--ink);
+  text-decoration: none;
+}
+.saved-where small {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  color: var(--ref);
+  font: 500 11.5px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.saved-where small .icon {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+.saved-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font: 400 16px/1.55 var(--font-text);
+}
+/* The notes of an entry, in a quiet frame. */
+.saved-entry .saved-thread {
+  margin-top: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--raised);
+}
+.saved-thread .note-list li:first-child {
+  border-top: 0;
+}
+.saved-thread .note-text {
+  margin: 0;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.saved-thread .note-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 5px 0 0;
+  color: var(--ref);
+  font-size: 12.5px;
+}
+.saved-thread .note-meta button,
+.saved-page .saved-remove,
+.saved-empty button {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.saved-thread .note-ask {
+  margin-top: 8px;
+}
+.saved-thread .panel-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.saved-page .panel-button {
+  padding: 8px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 13.5px/1.2 var(--font-ui);
+}
+.saved-page .panel-button.dark {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.saved-page .panel-button:disabled {
+  opacity: 0.5;
+}
+.saved-thread .note-all {
+  padding: 12px 0 0;
+}
+.saved-thread .note-problem,
+.saved-thread .note-limit {
+  margin: 8px 0;
+  font-size: 13px;
+}
+.saved-page .saved-remove {
+  margin-top: 10px;
+  color: var(--ref);
+  font: 500 12.5px/1 var(--font-ui);
+}
+.saved-paper {
+  margin: 26px 0 0;
+  color: var(--ref);
+  font: 600 10.5px/1.3 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.saved-note {
+  margin: 8px 0;
+  color: var(--ref);
+  font-size: 13px;
+}
+.saved-empty {
+  margin: 8px 0 0;
+  padding: 26px 22px;
+  border: 1px dashed var(--rule);
+  border-radius: 16px;
+  color: var(--ref);
+  text-align: center;
+}
+.saved-empty b {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ink);
+  font: 500 16px/1.3 var(--font-ui);
+}
+.saved-button {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 17px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 500 14px/1.2 var(--font-ui);
+  text-decoration: none;
+}
+.saved-waiting {
+  display: grid;
+  gap: 26px;
+  margin-top: 18px;
+}
+.saved-waiting div {
+  display: grid;
+  gap: 9px;
+}
+.saved-waiting span {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--rule);
+}
+.saved-waiting span:first-child {
+  width: 22%;
+}
+.saved-waiting span:last-child {
+  width: 68%;
+}
+/* The page of one paragraph. */
+.saved-back {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  font: 500 13.5px/1 var(--font-ui);
+}
+.saved-back a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--ref);
+  text-decoration: none;
+}
+.saved-back .icon {
+  width: 16px;
+  height: 16px;
+}
+.saved-quote {
+  margin: 0 0 20px;
+  font: 400 17px/1.65 var(--font-text);
+}
+.saved-only {
+  margin: 0 0 6px;
+  color: var(--ref);
+  font-size: 13px;
+}
+.saved-page > .saved-thread .note-add {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.saved-page > .saved-thread .note-list li:first-child {
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 768px) {
+  .saved-page {
+    padding-top: 84px;
+  }
+}
+/* On this page the field sits on the page color, so it has its frame at rest too. */
+.saved-page .note-field {
+  border-color: var(--rule);
+  background: var(--raised);
+}
+.saved-page .note-field:focus {
+  border-color: var(--ink);
+}
+.saved-thread .note-list li:last-child {
+  padding-bottom: 14px;
+}
