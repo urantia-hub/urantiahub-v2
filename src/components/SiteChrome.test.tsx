@@ -20,6 +20,12 @@ describe("SiteFooter", () => {
     expect(link.querySelector("svg")).not.toBeNull();
   });
 
+  // The theme is in the header, or in the reader settings. A second control in the footer was noise.
+  it("has no theme control in the footer", () => {
+    render(<SiteFooter />);
+    expect(screen.getByRole("contentinfo").querySelector("button")).toBeNull();
+  });
+
   it("has the theme control in the header", () => {
     render(<SiteHeader />);
     expect(screen.getByRole("banner").querySelector("button[aria-label='Dark theme']")).not.toBeNull();

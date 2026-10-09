@@ -70,3 +70,12 @@ test("a paper page has a share image", async ({ request }) => {
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("image/png");
 });
+
+// The header of a paper is sticky. A link to a paragraph must not put the paragraph under it.
+test("a link to a paragraph lands below the header", async ({ page }) => {
+  await page.goto("/papers/paper-1-the-universal-father#1:1.2");
+  await expect(page.locator('[id="1:1.2"]')).toHaveAttribute("data-picked", "");
+  const edges = await page.evaluate(() => ({ header: document.querySelector(".site-header")!.getBoundingClientRect().bottom, top: document.getElementById("1:1.2")!.getBoundingClientRect().top }));
+  expect(edges.top).toBeGreaterThanOrEqual(edges.header + 8);
+});
+

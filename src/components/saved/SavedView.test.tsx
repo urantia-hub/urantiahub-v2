@@ -131,6 +131,18 @@ describe("the Saved page", () => {
     expect(screen.queryByRole("searchbox")).toBeNull();
   });
 
+  it("says that there are too many requests when the list is refused for that", async () => {
+    await show(() => new Response("", { status: 429 }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Too many requests for now. Wait a minute, then try again.");
+  });
+
+  it("cuts a long note in the list until Read more", async () => {
+    await show(() => Response.json({ entries: [{ ...ENTRIES[0], notes: [{ id: "n1", ref: "1:0.3", text: "A long note. ".repeat(60).trim(), at: day(6) }] }], cut: false }));
+    expect(entryOf("1:0.3").querySelector(".note-text")).toHaveClass("clamp");
+    await userEvent.click(within(entryOf("1:0.3")).getByRole("button", { name: "Read more" }));
+    expect(entryOf("1:0.3").querySelector(".note-text")).not.toHaveClass("clamp");
+  });
+
   it("loads again after Try again", async () => {
     let n = 0;
     await show(() => (++n === 1 ? new Response("", { status: 503 }) : Response.json({ entries: ENTRIES, cut: false })));
@@ -179,6 +191,8 @@ describe("the page of one paragraph", () => {
     await userEvent.type(screen.getByRole("textbox", { name: "Add a note" }), "A new one.");
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(screen.getAllByRole("listitem").map((li) => li.querySelector(".note-text")?.textContent)).toEqual(["Compare with Paper 10.", "A new one."]);
+    // On this page each note shows in full.
+    expect(document.querySelector(".note-text.clamp")).toBeNull();
     expect(writes(fetch)).toEqual(["POST /api/me/notes"]);
   });
 

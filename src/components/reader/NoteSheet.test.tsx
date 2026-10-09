@@ -83,13 +83,43 @@ describe("the notes of a paragraph", () => {
     expect(items()).toHaveLength(2);
   });
 
-  it("stops the field at the limit and says so", async () => {
-    await open();
+  // The field takes a text that is too long, so that a paste loses nothing. The reader trims it.
+  it("counts down near the limit, shows how much is too much, and saves only a text that fits", async () => {
+    const { fetch } = await open();
     const field = screen.getByRole("textbox", { name: "Add a note" });
-    expect(field).toHaveAttribute("maxlength", "5000");
+    expect(field).not.toHaveAttribute("maxlength");
     await userEvent.click(field);
-    await userEvent.paste("x".repeat(5000));
-    expect(screen.getByText("A note holds 5,000 characters at most.")).toBeInTheDocument();
+    await userEvent.paste("x".repeat(4000));
+    expect(screen.queryByRole("status", { name: /characters/ })).toBeNull();
+    await userEvent.paste("x".repeat(850));
+    expect(screen.getByRole("status", { name: "150 characters left" })).toHaveTextContent("150");
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    await userEvent.paste("x".repeat(382));
+    const over = screen.getByRole("status", { name: "232 characters too many" });
+    expect(over).toHaveTextContent("-232");
+    expect(over).toHaveClass("over");
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(sent(fetch)).toEqual([]);
+  });
+
+  it("cuts a long note to a few lines until Read more, in the sheet", async () => {
+    await open(undefined, [{ id: "n1", ref: "1:0.3", text: "A long note. ".repeat(60).trim(), at: "2026-10-01T00:00:00.000Z" }, NOTES[1]]);
+    const text = items()[0].querySelector(".note-text")!;
+    expect(text).toHaveClass("clamp");
+    await userEvent.click(within(items()[0]).getByRole("button", { name: "Read more" }));
+    expect(text).not.toHaveClass("clamp");
+    await userEvent.click(within(items()[0]).getByRole("button", { name: "Show less" }));
+    expect(text).toHaveClass("clamp");
+    expect(within(items()[1]).queryByRole("button", { name: "Read more" })).toBeNull();
+  });
+
+  it("says that there are too many requests, and keeps the text", async () => {
+    await open(() => new Response("", { status: 429 }));
+    await userEvent.type(screen.getByRole("textbox", { name: "Add a note" }), "Wait for me.");
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Too many requests for now. Wait a minute, then try again.");
+    expect(screen.getByRole("textbox", { name: "Add a note" })).toHaveValue("Wait for me.");
   });
 
   it("shows a note with markup characters as plain text", async () => {

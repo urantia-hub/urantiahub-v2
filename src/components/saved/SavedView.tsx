@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { type MouseEvent, useEffect, useState, useSyncExternalStore } from "react";
 import { track } from "@/analytics";
 import { accountState, serverAccountState, signInHref, subscribeToAccount } from "@/account/client";
+import { failureWords } from "@/account/limited";
 import { readerCall } from "@/account/reader-call";
 import type { NoteResult } from "@/account/saved";
 import type { AllSaved, SavedEntry, SavedNote } from "@/account/saved-data";
@@ -73,7 +74,7 @@ export function SavedView() {
   async function unsave(ref: string) {
     setProblem(null);
     const answer = (await readerCall(`/api/me/bookmarks?ref=${encodeURIComponent(ref)}`, { method: "DELETE" })) as { ok?: unknown } | null;
-    if (answer?.ok !== true) return setProblem("The paragraph is still saved. Try again.");
+    if (answer?.ok !== true) return setProblem(failureWords("The paragraph is still saved. Try again."));
     change(ref, (entry) => ({ ...entry, savedAt: null }));
     track("bookmark_removed", { paper_id: ref.split(":")[0] });
   }
@@ -106,7 +107,7 @@ export function SavedView() {
             {entry && <p className="saved-quote">{entry.text}</p>}
             <p className="saved-only">Only you see them.</p>
             <div className="saved-thread">
-              <NoteThread reference={reference} notes={entry?.notes ?? []} {...actions(reference)} add={entry ? actions(reference).add : undefined} />
+              <NoteThread whole reference={reference} notes={entry?.notes ?? []} {...actions(reference)} add={entry ? actions(reference).add : undefined} />
             </div>
             {!entry && <p className="saved-empty">You have no notes on this paragraph.</p>}
           </>
@@ -157,7 +158,7 @@ function Rows() {
 function Failed({ again }: { again: () => void }) {
   return (
     <p className="saved-empty" role="alert">
-      This did not load.{" "}
+      {failureWords("This did not load.")}{" "}
       <button type="button" onClick={again}>
         Try again
       </button>

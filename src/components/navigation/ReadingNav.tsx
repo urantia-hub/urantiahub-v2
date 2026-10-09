@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
+import { failureWords } from "@/account/limited";
 import { noSaved, savedState, subscribeToSaved, toggleBookmark } from "@/account/saved";
 import { track } from "@/analytics";
 import { createAudioEngine, type AudioEngine, type VoiceState } from "@/audio/engine";
@@ -399,7 +400,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     if (account.status !== "in") return ask("save");
     const adding = !saved.bookmarks.has(picked);
     if (await toggleBookmark(picked)) track(adding ? "bookmark_added" : "bookmark_removed", { paper_id: paper.id });
-    else say("This did not save. Try again.");
+    else say(failureWords("This did not save. Try again."));
   }
 
   function onNote() {

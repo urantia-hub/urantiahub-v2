@@ -69,7 +69,10 @@ export default function MarginNotes({ notes }: { notes: readonly SavedNote[] }) 
         const paragraph = document.getElementById(card.dataset.for ?? "");
         return { top: paragraph ? paragraph.getBoundingClientRect().top - from : 0, height: card.offsetHeight };
       });
-      placeCards(wanted).forEach((top, i) => {
+      // The card of the marked paragraph sits at its paragraph. The other cards make room.
+      const marked = paper.querySelector(".para[data-picked]")?.id;
+      const chosen = cards.findIndex((card) => card.dataset.for === marked);
+      placeCards(wanted, 12, chosen).forEach((top, i) => {
         cards[i].style.top = `${Math.round(top)}px`;
       });
     };
@@ -78,7 +81,12 @@ export default function MarginNotes({ notes }: { notes: readonly SavedNote[] }) 
     const watch = new ResizeObserver(arrange);
     watch.observe(paper);
     for (const card of box.querySelectorAll(".margin-card")) watch.observe(card);
-    return () => watch.disconnect();
+    const marks = new MutationObserver(arrange);
+    marks.observe(paper, { subtree: true, attributes: true, attributeFilter: ["data-picked"] });
+    return () => {
+      watch.disconnect();
+      marks.disconnect();
+    };
   });
 
   if (!paper) return null;

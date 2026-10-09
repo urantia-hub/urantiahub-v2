@@ -27,7 +27,8 @@
   font-style: italic;
   text-align: center;
   margin: 3em 0 1.4em;
-  scroll-margin-top: 24px;
+  /* The header of a paper is sticky. A link to a section or a paragraph lands below it. */
+  scroll-margin-top: 84px;
 }
 .paper .sec .num {
   font-style: normal;
@@ -37,7 +38,7 @@
 .para {
   position: relative;
   margin: 0 0 1.15em;
-  scroll-margin-top: 24px;
+  scroll-margin-top: 84px;
   border-radius: 2px;
   transition:
     background-color 0.3s,
@@ -182,16 +183,16 @@ html:not([data-reader]) .para:target .ref {
     font-size: 2.5em;
     margin-bottom: 2.2em;
   }
+  /* In the left margin, on the first line of the text: the marks, then the reference. */
   .refline {
     position: absolute;
-    left: -4.6rem;
-    width: 3.6rem;
+    right: calc(100% + 1rem);
     top: 0.62em;
-    height: auto;
+    height: 12px;
     margin: 0;
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row-reverse;
     gap: 7px;
+    white-space: nowrap;
   }
 }
 
@@ -219,6 +220,10 @@ html:not([data-reader]) .para:target .ref {
     background: var(--raised);
     font: 400 13px/1.5 var(--font-ui);
     color: var(--ink);
+    /* An open card stays a card: a long note scrolls in it, and the next card stays near its paragraph. */
+    max-height: 340px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .margin-card button {
     border: 0;

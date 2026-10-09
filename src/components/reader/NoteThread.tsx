@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { failureWords } from "@/account/limited";
 import { NOTE_MAX } from "@/account/note-limit";
 import type { NoteResult } from "@/account/saved";
 import type { SavedNote } from "@/account/saved-data";
@@ -19,6 +20,8 @@ type Props = {
   last?: number;
   allHref?: string;
   focusField?: boolean;
+  // Each note in full. Without it, a long note shows a few lines and "Read more".
+  whole?: boolean;
 };
 
 // A field that is as tall as its text. It has no handle to drag.
@@ -36,15 +39,31 @@ function NoteField({ value, onChange, label, placeholder, focus }: { value: stri
     el?.focus({ preventScroll: true });
     el?.setSelectionRange(el.value.length, el.value.length);
   }, [focus]);
-  return <textarea ref={field} className="note-field" rows={1} aria-label={label} placeholder={placeholder} maxLength={NOTE_MAX} value={value} onChange={(event) => onChange(event.target.value)} />;
+  return <textarea ref={field} className="note-field" rows={1} aria-label={label} placeholder={placeholder} value={value} onChange={(event) => onChange(event.target.value)} />;
 }
 
-const full = (text: string) => text.length >= NOTE_MAX;
-const LIMIT = `A note holds ${NOTE_MAX.toLocaleString("en")} characters at most.`;
+// The field takes a text that is too long, so that a paste loses nothing. The count shows near the
+// limit, and past it the count is below zero and "Save" is off until the reader trims the text.
+const NEAR = 200;
+const left = (text: string) => NOTE_MAX - text.trim().length;
+function Count({ text }: { text: string }) {
+  const n = left(text);
+  if (n > NEAR) return null;
+  return (
+    <p className={`note-count${n < 0 ? " over" : ""}`} role="status" aria-label={n < 0 ? `${-n} characters too many` : `${n} characters left`}>
+      {n}
+    </p>
+  );
+}
+const fits = (text: string) => text.trim().length > 0 && left(text) >= 0;
+// A note longer than this, or with more lines, shows cut.
+const LONG = 280;
+const isLong = (text: string) => text.length > LONG || text.split("\n").length > 5;
 
 // The notes of one paragraph as a thread: the oldest first, and the field for a new one at the end.
 // "Edit" and "Delete" work on a note in its place, one note at a time.
-export function NoteThread({ reference, notes: every, add, change, remove, last, allHref, focusField }: Props) {
+export function NoteThread({ reference, notes: every, add, change, remove, last, allHref, focusField, whole }: Props) {
+  const [shownWhole, setShownWhole] = useState<ReadonlySet<string>>(new Set());
   const cut = last !== undefined && every.length > last;
   const notes = cut ? every.slice(-last) : every;
   const [draft, setDraft] = useState("");
@@ -53,7 +72,7 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  async function run(work: () => Promise<{ ok: true } | { ok: false; why: "failed" | "gone" }>, failed: string, done: () => void) {
+  async function run(work: () => Promise<{ ok: true } | { ok: false; why: "failed" | "gone" }>, failed: () => string, done: () => void) {
     setBusy(true);
     setProblem(null);
     const result = await work();
@@ -63,24 +82,24 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
       setOpen(null);
       return setProblem("This note is gone.");
     }
-    setProblem(failed);
+    setProblem(failed());
   }
 
   function onAdd(event: FormEvent) {
     event.preventDefault();
     const text = draft.trim();
-    if (!text || busy) return;
-    void run(() => add!(reference, text), "The note did not save. Try again.", () => setDraft(""));
+    if (!text || busy || text.length > NOTE_MAX) return;
+    void run(() => add!(reference, text), () => failureWords("The note did not save. Try again."), () => setDraft(""));
   }
 
   function onChange(event: FormEvent) {
     event.preventDefault();
     const text = open?.text.trim();
-    if (!open || !text || busy) return;
-    void run(() => change(open.id, text), "The note did not save. Try again.", () => setOpen(null));
+    if (!open || !text || busy || text.length > NOTE_MAX) return;
+    void run(() => change(open.id, text), () => failureWords("The note did not save. Try again."), () => setOpen(null));
   }
 
-  const onDelete = (id: string) => void run(() => remove(id), "The note is still here. Try again.", () => setOpen(null));
+  const onDelete = (id: string) => void run(() => remove(id), () => failureWords("The note is still here. Try again."), () => setOpen(null));
 
   return (
     <>
@@ -96,9 +115,9 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
               {open?.id === note.id && open.mode === "edit" ? (
                 <form onSubmit={onChange}>
                   <NoteField label="Your note" value={open.text} onChange={(text) => setOpen({ ...open, text })} focus />
-                  {full(open.text) && <p className="note-limit">{LIMIT}</p>}
+                  <Count text={open.text} />
                   <div className="panel-actions">
-                    <button type="submit" className="panel-button dark" disabled={busy || !open.text.trim()}>
+                    <button type="submit" className="panel-button dark" disabled={busy || !fits(open.text)}>
                       Save
                     </button>
                     <button type="button" className="panel-button" onClick={() => setOpen(null)}>
@@ -108,7 +127,17 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
                 </form>
               ) : (
                 <>
-                  <p className="note-text">{note.text}</p>
+                  <p className={`note-text${!whole && isLong(note.text) && !shownWhole.has(note.id) ? " clamp" : ""}`}>{note.text}</p>
+                  {!whole && isLong(note.text) && (
+                    <button
+                      type="button"
+                      className="note-more"
+                      aria-expanded={shownWhole.has(note.id)}
+                      onClick={() => setShownWhole((was) => new Set(was.has(note.id) ? [...was].filter((id) => id !== note.id) : [...was, note.id]))}
+                    >
+                      {shownWhole.has(note.id) ? "Show less" : "Read more"}
+                    </button>
+                  )}
                   {open?.id === note.id ? (
                     <div className="note-ask" role="group" aria-label="Delete this note?">
                       <b>Delete this note?</b>
@@ -149,10 +178,10 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
       {add && !open && (
         <form className="note-add" onSubmit={onAdd}>
           <NoteField label="Add a note" placeholder="Add a note" value={draft} onChange={setDraft} focus={focusField} />
-          {full(draft) && <p className="note-limit">{LIMIT}</p>}
+          <Count text={draft} />
           {draft.trim() && (
             <div className="panel-actions">
-              <button type="submit" className="panel-button dark" disabled={busy}>
+              <button type="submit" className="panel-button dark" disabled={busy || !fits(draft)}>
                 Save
               </button>
             </div>
