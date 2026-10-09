@@ -103,6 +103,16 @@
 }
 
 /* The one invitation to sign in. It shows for a signed-out reader only. */
+html:not([data-guest]) .toc .invite {
+  display: none;
+}
+/* The room of the Continue card, kept from the first paint for a reader whose browser holds a place. */
+.toc .continue-slot {
+  display: flow-root;
+}
+html[data-place] .toc .continue-slot {
+  min-height: 116px;
+}
 .toc .invite {
   display: flex;
   align-items: center;
@@ -139,6 +149,8 @@
 /* The way back to the place the reader left. It shows only when this browser holds one. */
 .toc .continue {
   display: flex;
+  /* A whole number, so that the room kept for the card is exact. */
+  min-height: 90px;
   align-items: center;
   gap: 12px;
   max-width: 30rem;

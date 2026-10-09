@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, useState, useSyncExternalStore } from "react";
+import { type MouseEvent, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { accountState, never, noSignInProblem, serverAccountState, signInHref, signInProblem, signOut, subscribeToAccount } from "@/account/client";
 import { Icon } from "@/components/icons";
 
@@ -58,10 +58,20 @@ export function AccountRows() {
 }
 
 // On the contents page, under "Continue": the one place that asks a reader to sign in.
+// The invitation is in the server's HTML, so it has its room from the first paint. CSS shows it only
+// while the page carries the mark of a reader with no account.
+const SIGN_IN_ON = process.env.NEXT_PUBLIC_SIGN_IN === "on";
+
 export function SignInInvite() {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const problem = useProblem();
-  if (account.status !== "out") return null;
+  const out = account.status === "out";
+  useLayoutEffect(() => {
+    if (out) document.documentElement.dataset.guest = "";
+    else if (account.status === "in") delete document.documentElement.dataset.guest;
+  }, [out, account.status]);
+  // "off" here is the page before the account started: the server, and the first render in the browser.
+  if (!out && !(SIGN_IN_ON && account.status === "off")) return null;
   return (
     <div className="invite">
       <p>

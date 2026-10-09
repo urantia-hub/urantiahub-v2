@@ -7,8 +7,13 @@ beforeEach(() => window.localStorage.clear());
 
 describe("ContinueCard", () => {
   it("shows nothing for a new visitor", () => {
+    // The page marked a place before its first paint, and the place names no paper.
+    document.documentElement.dataset.place = "";
     const { container } = render(<ContinueCard />);
-    expect(container).toBeEmptyDOMElement();
+    expect(container.querySelector("a")).toBeNull();
+    expect(container.textContent).toBe("");
+    // With no card, the page keeps no room for one.
+    expect(document.documentElement).not.toHaveAttribute("data-place");
   });
 
   it("links to the section the reader left, with the paper and the section named", () => {
