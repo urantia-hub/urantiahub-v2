@@ -5,6 +5,7 @@ import { paperTracks } from "@/audio/tracks";
 import { getPaper } from "@/content";
 import { ReadingNav } from "@/components/navigation/ReadingNav";
 import { ReadMarks } from "@/components/ReadMarks";
+import { SavedMarks } from "@/components/reader/SavedMarks";
 import type { NavPaper } from "@/components/navigation/nav-state";
 import { PAPERS, paperById, paperPath } from "@/content/paper-index";
 import { prerenderIds } from "@/content/prerender";
@@ -49,6 +50,7 @@ export default async function PaperPage({ params }: Props) {
       <JsonLd data={paperJsonLd(entry, describe(paper.sections[0].paragraphs[0].text))} />
       <PaperView paper={paper} />
       <ReadMarks paperId={paper.id} />
+      <SavedMarks paperId={paper.id} />
       <ReadingNav
         paper={{ id: paper.id, title: paper.title }}
         sections={paper.sections.map((s) => ({ id: s.id, title: s.title }))}

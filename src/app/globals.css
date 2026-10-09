@@ -6,6 +6,7 @@
 @import "../styles/nav.css";
 @import "../styles/search.css";
 @import "../styles/terms.css";
+@import "../styles/panel.css";
 @import "../styles/prose.css";
 
 :root {

@@ -104,7 +104,10 @@
   grid-template-columns: 44px 1fr 44px 50px;
 }
 .dock .row.pick {
-  grid-template-columns: 60px 1fr 42px;
+  grid-template-columns: auto 1fr 40px;
+}
+.dock .row.pick .pref {
+  padding-left: 16px;
 }
 .dock .row.fail {
   grid-template-columns: 1fr auto;
@@ -189,12 +192,25 @@
   justify-items: center;
   align-content: center;
   gap: 4px;
-  width: 58px;
+  width: 54px;
   height: 52px;
   font: 500 10px/1 var(--font-ui);
 }
 .dock .tile:hover {
   color: var(--accent);
+}
+.dock .tile[aria-pressed="true"] {
+  font-weight: 600;
+}
+/* A narrow phone: the paragraph has its reference above it, and the yellow mark. The row keeps its tiles. */
+@media (max-width: 379px) {
+  .dock .row.pick .pref {
+    display: none;
+  }
+  .dock .row.pick {
+    grid-template-columns: 1fr 40px;
+    padding-left: 6px;
+  }
 }
 .dock .fill {
   position: absolute;

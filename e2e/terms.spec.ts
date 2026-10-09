@@ -3,6 +3,10 @@ import { stubAudio, tap } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 const sheet = (page: Page, ref: string) => page.getByRole("dialog", { name: `Terms in ${ref}` });
+async function openTerms(page: Page) {
+  await page.getByRole("button", { name: "More" }).click();
+  await page.getByRole("button", { name: "Terms in this paragraph" }).click();
+}
 
 test.beforeEach(async ({ page }) => {
   await stubAudio(page);
@@ -15,7 +19,7 @@ test("Terms lists the names and the ideas of a paragraph, and an entry opens wit
   });
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
-  await page.getByRole("button", { name: "Terms" }).click();
+  await openTerms(page);
   const terms = sheet(page, "1:0.3");
   await expect(terms).toBeVisible();
   const names = terms.getByRole("list", { name: "Names" });
@@ -45,7 +49,7 @@ test("the text of a paper has no glossary mark, and the page holds no term data"
 test("the paragraph stays marked while the terms are open, and Escape closes the terms first", async ({ page }) => {
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
-  await page.getByRole("button", { name: "Terms" }).click();
+  await openTerms(page);
   await expect(sheet(page, "1:0.3")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(sheet(page, "1:0.3")).toBeHidden();
@@ -60,7 +64,7 @@ test("a failed load shows a message, and Try again works", async ({ page }) => {
   await page.route("**/api/terms/**", (route) => (fail ? route.fulfill({ status: 502, body: "{}" }) : route.continue()));
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
-  await page.getByRole("button", { name: "Terms" }).click();
+  await openTerms(page);
   await expect(sheet(page, "1:0.3")).toContainText("The terms did not load.");
   fail = false;
   await sheet(page, "1:0.3").getByRole("button", { name: "Try again" }).click();
@@ -74,7 +78,7 @@ test("the sheet shows grey rows at once while the list loads", async ({ page }) 
   });
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
-  await page.getByRole("button", { name: "Terms" }).click();
+  await openTerms(page);
   await expect(sheet(page, "1:0.3").getByRole("status", { name: "Loading the terms" })).toBeVisible({ timeout: 500 });
   await expect(sheet(page, "1:0.3").getByRole("list", { name: "Names" })).toBeVisible();
 });
@@ -97,7 +101,7 @@ test("the terms address refuses what is not a paragraph reference", async ({ req
 test("on a phone the terms are a bottom sheet, and on a desktop a card in the right margin", async ({ page }, testInfo) => {
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
-  await page.getByRole("button", { name: "Terms" }).click();
+  await openTerms(page);
   const box = (await sheet(page, "1:0.3").boundingBox())!;
   const view = page.viewportSize()!;
   if (testInfo.project.name === "phone") {

@@ -58,9 +58,29 @@ html:not([data-reader]) .para:target {
 html[data-reader] .para {
   cursor: pointer;
 }
-.ref {
-  display: block;
+/* The reference and the reader's marks, on one line of a fixed height: a mark moves no text. */
+.refline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 12px;
   margin: 0 0 5px;
+}
+.marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ref);
+}
+.marks .icon {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+.mark-saved {
+  display: block;
+}
+.ref {
   font: 400 11.5px/1 var(--font-ui);
   font-variant-numeric: tabular-nums;
   color: var(--ref);
@@ -148,12 +168,15 @@ html:not([data-reader]) .para:target .ref {
     font-size: 2.5em;
     margin-bottom: 2.2em;
   }
-  .ref {
+  .refline {
     position: absolute;
     left: -4.6rem;
     width: 3.6rem;
     top: 0.62em;
+    height: auto;
     margin: 0;
-    text-align: right;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 7px;
   }
 }

@@ -4,6 +4,9 @@ import { Activity } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio } from "../../../test/fake-audio";
 import type { Track } from "@/audio/tracks";
+import { resetAccountForTest, startAccount } from "@/account/client";
+import { loadSaved, resetSavedForTest } from "@/account/saved";
+import { resetSyncForTest } from "@/account/sync";
 import { ReadingNav } from "./ReadingNav";
 
 const track = vi.hoisted(() => vi.fn());
@@ -53,6 +56,10 @@ const text = (ref: string) => screen.getByText(`Text of ${ref}`);
 const audio = () => FakeAudio.made[FakeAudio.made.length - 2];
 const round = () => screen.getByTestId("round-button");
 const job = () => screen.getByTestId("reading-bar").dataset.job;
+async function openTerms() {
+  await userEvent.click(screen.getByRole("button", { name: "More" }));
+  await userEvent.click(screen.getByRole("button", { name: "Terms in this paragraph" }));
+}
 async function sound(type: string) {
   await act(async () => audio().emit(type));
 }
@@ -656,7 +663,7 @@ describe("small faults from the two reviews", () => {
   });
 });
 
-describe("the Terms tile", () => {
+describe("the terms, from More", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
   });
@@ -664,7 +671,7 @@ describe("the Terms tile", () => {
   it("opens the terms of the marked paragraph, and keeps the paragraph marked", async () => {
     renderNav();
     await userEvent.click(text("1:0.2"));
-    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await openTerms();
     expect(screen.getByRole("dialog", { name: "Terms in 1:0.2" })).toBeInTheDocument();
     expect(para("1:0.2")).toHaveAttribute("data-picked");
   });
@@ -672,11 +679,11 @@ describe("the Terms tile", () => {
   it("closes the terms when the reader removes the mark, and on Escape the terms close first", async () => {
     renderNav();
     await userEvent.click(text("1:0.2"));
-    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await openTerms();
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: /Terms in/ })).toBeNull();
     expect(para("1:0.2")).toHaveAttribute("data-picked");
-    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await openTerms();
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog", { name: /Terms in/ })).toBeNull();
   });
@@ -687,29 +694,138 @@ describe("the Terms tile", () => {
     await userEvent.click(round());
     await sound("playing");
     await userEvent.click(text("1:0.2"));
-    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await openTerms();
     await sound("ended");
     await sound("playing");
     expect(screen.getByRole("dialog", { name: "Terms in 1:0.2" })).toBeInTheDocument();
     expect(para("1:0.2")).toHaveAttribute("data-picked");
   });
 
-  it("gives the focus back to the Terms tile when the terms close", async () => {
+  it("gives the focus back to the More tile when the terms close", async () => {
     renderNav();
     await userEvent.click(text("1:0.2"));
-    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await openTerms();
     await userEvent.click(screen.getByRole("button", { name: "Close the terms" }));
     await act(async () => {
       await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
     });
-    expect(screen.getByRole("button", { name: "Terms" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "More" })).toHaveFocus();
   });
 
   it("follows the mark to another paragraph", async () => {
     renderNav();
     await userEvent.click(text("1:0.2"));
-    await userEvent.click(screen.getByRole("button", { name: "Terms" }));
+    await openTerms();
     await userEvent.click(text("1:1.1"));
     expect(screen.getByRole("dialog", { name: "Terms in 1:1.1" })).toBeInTheDocument();
+  });
+});
+
+describe("More", () => {
+  it("holds the terms and the copy of the text, and Escape closes it before the mark goes", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "More" }));
+    const more = screen.getByRole("dialog", { name: "More" });
+    expect(more).toHaveTextContent("Terms in this paragraph");
+    expect(more).toHaveTextContent("Copy the text");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "More" })).toBeNull();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("copies the text of the paragraph with its reference", async () => {
+    const writeText = vi.fn(async () => {});
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+    renderNav();
+    await act(async () => fireEvent.click(text("1:0.2")));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "More" })));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Copy the text" })));
+    expect(writeText).toHaveBeenCalledWith("Text of 1:0.2 (1:0.2)");
+    expect(await screen.findByText("Text copied")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "More" })).toBeNull();
+  });
+});
+
+describe("Save", () => {
+  const clearCookies = () => {
+    for (const part of document.cookie.split(";")) document.cookie = `${part.split("=")[0].trim()}=; max-age=0; path=/`;
+  };
+  beforeEach(() => {
+    clearCookies();
+    resetSyncForTest();
+    resetSavedForTest();
+  });
+  afterEach(() => {
+    resetAccountForTest(false);
+    clearCookies();
+  });
+
+  async function signedIn(write: () => Response) {
+    document.cookie = "hub_in=1; path=/";
+    resetAccountForTest(true);
+    const fetch = vi.fn(async (url: string) =>
+      url === "/api/auth/session" ? Response.json({ user: { name: "Ana", email: null, key: "k1" } }) : url.startsWith("/api/me/saved") ? Response.json({ bookmarks: ["1:1.1"], notes: [] }) : write(),
+    );
+    vi.stubGlobal("fetch", fetch);
+    await act(async () => {
+      await startAccount();
+      await loadSaved("1");
+    });
+    return fetch;
+  }
+
+  it("is not in the row while the site has no sign-in", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
+  });
+
+  it("asks a reader with no account to sign in, and saves nothing", async () => {
+    resetAccountForTest(true);
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    await act(async () => startAccount());
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    const ask = screen.getByRole("dialog", { name: "Sign in to save this" });
+    expect(ask).toHaveTextContent("Your saved paragraphs and notes stay with your account.");
+    // The sign-in returns to this paragraph.
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", `/api/auth/start?next=${encodeURIComponent("/papers/paper-1-the-universal-father#1:0.2")}`);
+    expect(fetch).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Not now" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("saves the marked paragraph, and says Saved", async () => {
+    const fetch = await signedIn(() => Response.json({ ok: true }));
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    const tile = screen.getByRole("button", { name: "Save" });
+    expect(tile).toHaveAttribute("aria-pressed", "false");
+    await userEvent.click(tile);
+    expect(screen.getByRole("button", { name: "Saved" })).toHaveAttribute("aria-pressed", "true");
+    expect(fetch).toHaveBeenCalledWith("/api/me/bookmarks", expect.objectContaining({ method: "POST", body: JSON.stringify({ ref: "1:0.2" }) }));
+  });
+
+  it("shows Saved for a paragraph that the account holds, and a press removes it", async () => {
+    const fetch = await signedIn(() => Response.json({ ok: true }));
+    renderNav();
+    await userEvent.click(text("1:1.1"));
+    await userEvent.click(screen.getByRole("button", { name: "Saved" }));
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/me/bookmarks?ref=1%3A1.1", expect.objectContaining({ method: "DELETE" }));
+  });
+
+  it("goes back and says so when the save fails", async () => {
+    await signedIn(() => new Response("", { status: 503 }));
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("This did not save. Try again.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
   });
 });
