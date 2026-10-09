@@ -47,7 +47,7 @@ describe("paperJsonLd", () => {
   it("describes the paper as an article with a breadcrumb", async () => {
     const { paperJsonLd } = await load("");
     const [article, crumbs] = paperJsonLd(
-      { id: "1", title: "The Universal Father", partId: "1", slug: "paper-1-the-universal-father" },
+      { id: "1", title: "The Universal Father", partId: "1", slug: "paper-1-the-universal-father", sections: 7 },
       "A description.",
     ) as Record<string, unknown>[];
     expect(article).toMatchObject({

@@ -7,7 +7,8 @@
       "papers": [
         {
           "id": "0",
-          "title": "Foreword"
+          "title": "Foreword",
+          "sections": 12
         }
       ]
     },
@@ -18,127 +19,158 @@
       "papers": [
         {
           "id": "1",
-          "title": "The Universal Father"
+          "title": "The Universal Father",
+          "sections": 7
         },
         {
           "id": "2",
-          "title": "The Nature of God"
+          "title": "The Nature of God",
+          "sections": 7
         },
         {
           "id": "3",
-          "title": "The Attributes of God"
+          "title": "The Attributes of God",
+          "sections": 6
         },
         {
           "id": "4",
-          "title": "God’s Relation to the Universe"
+          "title": "God’s Relation to the Universe",
+          "sections": 5
         },
         {
           "id": "5",
-          "title": "God’s Relation to the Individual"
+          "title": "God’s Relation to the Individual",
+          "sections": 6
         },
         {
           "id": "6",
-          "title": "The Eternal Son"
+          "title": "The Eternal Son",
+          "sections": 8
         },
         {
           "id": "7",
-          "title": "Relation of the Eternal Son to the Universe"
+          "title": "Relation of the Eternal Son to the Universe",
+          "sections": 7
         },
         {
           "id": "8",
-          "title": "The Infinite Spirit"
+          "title": "The Infinite Spirit",
+          "sections": 6
         },
         {
           "id": "9",
-          "title": "Relation of the Infinite Spirit to the Universe"
+          "title": "Relation of the Infinite Spirit to the Universe",
+          "sections": 8
         },
         {
           "id": "10",
-          "title": "The Paradise Trinity"
+          "title": "The Paradise Trinity",
+          "sections": 8
         },
         {
           "id": "11",
-          "title": "The Eternal Isle of Paradise"
+          "title": "The Eternal Isle of Paradise",
+          "sections": 9
         },
         {
           "id": "12",
-          "title": "The Universe of Universes"
+          "title": "The Universe of Universes",
+          "sections": 9
         },
         {
           "id": "13",
-          "title": "The Sacred Spheres of Paradise"
+          "title": "The Sacred Spheres of Paradise",
+          "sections": 4
         },
         {
           "id": "14",
-          "title": "The Central and Divine Universe"
+          "title": "The Central and Divine Universe",
+          "sections": 6
         },
         {
           "id": "15",
-          "title": "The Seven Superuniverses"
+          "title": "The Seven Superuniverses",
+          "sections": 14
         },
         {
           "id": "16",
-          "title": "The Seven Master Spirits"
+          "title": "The Seven Master Spirits",
+          "sections": 9
         },
         {
           "id": "17",
-          "title": "The Seven Supreme Spirit Groups"
+          "title": "The Seven Supreme Spirit Groups",
+          "sections": 8
         },
         {
           "id": "18",
-          "title": "The Supreme Trinity Personalities"
+          "title": "The Supreme Trinity Personalities",
+          "sections": 7
         },
         {
           "id": "19",
-          "title": "The Co-ordinate Trinity-Origin Beings"
+          "title": "The Co-ordinate Trinity-Origin Beings",
+          "sections": 7
         },
         {
           "id": "20",
-          "title": "The Paradise Sons of God"
+          "title": "The Paradise Sons of God",
+          "sections": 10
         },
         {
           "id": "21",
-          "title": "The Paradise Creator Sons"
+          "title": "The Paradise Creator Sons",
+          "sections": 6
         },
         {
           "id": "22",
-          "title": "The Trinitized Sons of God"
+          "title": "The Trinitized Sons of God",
+          "sections": 10
         },
         {
           "id": "23",
-          "title": "The Solitary Messengers"
+          "title": "The Solitary Messengers",
+          "sections": 4
         },
         {
           "id": "24",
-          "title": "Higher Personalities of the Infinite Spirit"
+          "title": "Higher Personalities of the Infinite Spirit",
+          "sections": 7
         },
         {
           "id": "25",
-          "title": "The Messenger Hosts of Space"
+          "title": "The Messenger Hosts of Space",
+          "sections": 8
         },
         {
           "id": "26",
-          "title": "Ministering Spirits of the Central Universe"
+          "title": "Ministering Spirits of the Central Universe",
+          "sections": 11
         },
         {
           "id": "27",
-          "title": "Ministry of the Primary Supernaphim"
+          "title": "Ministry of the Primary Supernaphim",
+          "sections": 7
         },
         {
           "id": "28",
-          "title": "Ministering Spirits of the Superuniverses"
+          "title": "Ministering Spirits of the Superuniverses",
+          "sections": 7
         },
         {
           "id": "29",
-          "title": "The Universe Power Directors"
+          "title": "The Universe Power Directors",
+          "sections": 5
         },
         {
           "id": "30",
-          "title": "Personalities of the Grand Universe"
+          "title": "Personalities of the Grand Universe",
+          "sections": 4
         },
         {
           "id": "31",
-          "title": "The Corps of the Finality"
+          "title": "The Corps of the Finality",
+          "sections": 10
         }
       ]
     },
@@ -149,103 +181,128 @@
       "papers": [
         {
           "id": "32",
-          "title": "The Evolution of Local Universes"
+          "title": "The Evolution of Local Universes",
+          "sections": 5
         },
         {
           "id": "33",
-          "title": "Administration of the Local Universe"
+          "title": "Administration of the Local Universe",
+          "sections": 8
         },
         {
           "id": "34",
-          "title": "The Local Universe Mother Spirit"
+          "title": "The Local Universe Mother Spirit",
+          "sections": 7
         },
         {
           "id": "35",
-          "title": "The Local Universe Sons of God"
+          "title": "The Local Universe Sons of God",
+          "sections": 10
         },
         {
           "id": "36",
-          "title": "The Life Carriers"
+          "title": "The Life Carriers",
+          "sections": 6
         },
         {
           "id": "37",
-          "title": "Personalities of the Local Universe"
+          "title": "Personalities of the Local Universe",
+          "sections": 10
         },
         {
           "id": "38",
-          "title": "Ministering Spirits of the Local Universe"
+          "title": "Ministering Spirits of the Local Universe",
+          "sections": 9
         },
         {
           "id": "39",
-          "title": "The Seraphic Hosts"
+          "title": "The Seraphic Hosts",
+          "sections": 9
         },
         {
           "id": "40",
-          "title": "The Ascending Sons of God"
+          "title": "The Ascending Sons of God",
+          "sections": 10
         },
         {
           "id": "41",
-          "title": "Physical Aspects of the Local Universe"
+          "title": "Physical Aspects of the Local Universe",
+          "sections": 10
         },
         {
           "id": "42",
-          "title": "Energy—Mind and Matter"
+          "title": "Energy—Mind and Matter",
+          "sections": 12
         },
         {
           "id": "43",
-          "title": "The Constellations"
+          "title": "The Constellations",
+          "sections": 9
         },
         {
           "id": "44",
-          "title": "The Celestial Artisans"
+          "title": "The Celestial Artisans",
+          "sections": 8
         },
         {
           "id": "45",
-          "title": "The Local System Administration"
+          "title": "The Local System Administration",
+          "sections": 7
         },
         {
           "id": "46",
-          "title": "The Local System Headquarters"
+          "title": "The Local System Headquarters",
+          "sections": 8
         },
         {
           "id": "47",
-          "title": "The Seven Mansion Worlds"
+          "title": "The Seven Mansion Worlds",
+          "sections": 10
         },
         {
           "id": "48",
-          "title": "The Morontia Life"
+          "title": "The Morontia Life",
+          "sections": 8
         },
         {
           "id": "49",
-          "title": "The Inhabited Worlds"
+          "title": "The Inhabited Worlds",
+          "sections": 6
         },
         {
           "id": "50",
-          "title": "The Planetary Princes"
+          "title": "The Planetary Princes",
+          "sections": 7
         },
         {
           "id": "51",
-          "title": "The Planetary Adams"
+          "title": "The Planetary Adams",
+          "sections": 7
         },
         {
           "id": "52",
-          "title": "Planetary Mortal Epochs"
+          "title": "Planetary Mortal Epochs",
+          "sections": 7
         },
         {
           "id": "53",
-          "title": "The Lucifer Rebellion"
+          "title": "The Lucifer Rebellion",
+          "sections": 9
         },
         {
           "id": "54",
-          "title": "Problems of the Lucifer Rebellion"
+          "title": "Problems of the Lucifer Rebellion",
+          "sections": 6
         },
         {
           "id": "55",
-          "title": "The Spheres of Light and Life"
+          "title": "The Spheres of Light and Life",
+          "sections": 12
         },
         {
           "id": "56",
-          "title": "Universal Unity"
+          "title": "Universal Unity",
+          "sections": 10
         }
       ]
     },
@@ -256,255 +313,318 @@
       "papers": [
         {
           "id": "57",
-          "title": "The Origin of Urantia"
+          "title": "The Origin of Urantia",
+          "sections": 8
         },
         {
           "id": "58",
-          "title": "Life Establishment on Urantia"
+          "title": "Life Establishment on Urantia",
+          "sections": 7
         },
         {
           "id": "59",
-          "title": "The Marine-Life Era on Urantia"
+          "title": "The Marine-Life Era on Urantia",
+          "sections": 6
         },
         {
           "id": "60",
-          "title": "Urantia During the Early Land-Life Era"
+          "title": "Urantia During the Early Land-Life Era",
+          "sections": 4
         },
         {
           "id": "61",
-          "title": "The Mammalian Era on Urantia"
+          "title": "The Mammalian Era on Urantia",
+          "sections": 7
         },
         {
           "id": "62",
-          "title": "The Dawn Races of Early Man"
+          "title": "The Dawn Races of Early Man",
+          "sections": 7
         },
         {
           "id": "63",
-          "title": "The First Human Family"
+          "title": "The First Human Family",
+          "sections": 7
         },
         {
           "id": "64",
-          "title": "The Evolutionary Races of Color"
+          "title": "The Evolutionary Races of Color",
+          "sections": 7
         },
         {
           "id": "65",
-          "title": "The Overcontrol of Evolution"
+          "title": "The Overcontrol of Evolution",
+          "sections": 8
         },
         {
           "id": "66",
-          "title": "The Planetary Prince of Urantia"
+          "title": "The Planetary Prince of Urantia",
+          "sections": 8
         },
         {
           "id": "67",
-          "title": "The Planetary Rebellion"
+          "title": "The Planetary Rebellion",
+          "sections": 8
         },
         {
           "id": "68",
-          "title": "The Dawn of Civilization"
+          "title": "The Dawn of Civilization",
+          "sections": 6
         },
         {
           "id": "69",
-          "title": "Primitive Human Institutions"
+          "title": "Primitive Human Institutions",
+          "sections": 9
         },
         {
           "id": "70",
-          "title": "The Evolution of Human Government"
+          "title": "The Evolution of Human Government",
+          "sections": 12
         },
         {
           "id": "71",
-          "title": "Development of the State"
+          "title": "Development of the State",
+          "sections": 8
         },
         {
           "id": "72",
-          "title": "Government on a Neighboring Planet"
+          "title": "Government on a Neighboring Planet",
+          "sections": 12
         },
         {
           "id": "73",
-          "title": "The Garden of Eden"
+          "title": "The Garden of Eden",
+          "sections": 7
         },
         {
           "id": "74",
-          "title": "Adam and Eve"
+          "title": "Adam and Eve",
+          "sections": 8
         },
         {
           "id": "75",
-          "title": "The Default of Adam and Eve"
+          "title": "The Default of Adam and Eve",
+          "sections": 8
         },
         {
           "id": "76",
-          "title": "The Second Garden"
+          "title": "The Second Garden",
+          "sections": 6
         },
         {
           "id": "77",
-          "title": "The Midway Creatures"
+          "title": "The Midway Creatures",
+          "sections": 9
         },
         {
           "id": "78",
-          "title": "The Violet Race After the Days of Adam"
+          "title": "The Violet Race After the Days of Adam",
+          "sections": 8
         },
         {
           "id": "79",
-          "title": "Andite Expansion in the Orient"
+          "title": "Andite Expansion in the Orient",
+          "sections": 8
         },
         {
           "id": "80",
-          "title": "Andite Expansion in the Occident"
+          "title": "Andite Expansion in the Occident",
+          "sections": 9
         },
         {
           "id": "81",
-          "title": "Development of Modern Civilization"
+          "title": "Development of Modern Civilization",
+          "sections": 6
         },
         {
           "id": "82",
-          "title": "The Evolution of Marriage"
+          "title": "The Evolution of Marriage",
+          "sections": 6
         },
         {
           "id": "83",
-          "title": "The Marriage Institution"
+          "title": "The Marriage Institution",
+          "sections": 8
         },
         {
           "id": "84",
-          "title": "Marriage and Family Life"
+          "title": "Marriage and Family Life",
+          "sections": 8
         },
         {
           "id": "85",
-          "title": "The Origins of Worship"
+          "title": "The Origins of Worship",
+          "sections": 7
         },
         {
           "id": "86",
-          "title": "Early Evolution of Religion"
+          "title": "Early Evolution of Religion",
+          "sections": 7
         },
         {
           "id": "87",
-          "title": "The Ghost Cults"
+          "title": "The Ghost Cults",
+          "sections": 7
         },
         {
           "id": "88",
-          "title": "Fetishes, Charms, and Magic"
+          "title": "Fetishes, Charms, and Magic",
+          "sections": 6
         },
         {
           "id": "89",
-          "title": "Sin, Sacrifice, and Atonement"
+          "title": "Sin, Sacrifice, and Atonement",
+          "sections": 10
         },
         {
           "id": "90",
-          "title": "Shamanism—Medicine Men and Priests"
+          "title": "Shamanism—Medicine Men and Priests",
+          "sections": 5
         },
         {
           "id": "91",
-          "title": "The Evolution of Prayer"
+          "title": "The Evolution of Prayer",
+          "sections": 9
         },
         {
           "id": "92",
-          "title": "The Later Evolution of Religion"
+          "title": "The Later Evolution of Religion",
+          "sections": 7
         },
         {
           "id": "93",
-          "title": "Machiventa Melchizedek"
+          "title": "Machiventa Melchizedek",
+          "sections": 10
         },
         {
           "id": "94",
-          "title": "The Melchizedek Teachings in the Orient"
+          "title": "The Melchizedek Teachings in the Orient",
+          "sections": 12
         },
         {
           "id": "95",
-          "title": "The Melchizedek Teachings in the Levant"
+          "title": "The Melchizedek Teachings in the Levant",
+          "sections": 7
         },
         {
           "id": "96",
-          "title": "Yahweh—God of the Hebrews"
+          "title": "Yahweh—God of the Hebrews",
+          "sections": 7
         },
         {
           "id": "97",
-          "title": "Evolution of the God Concept Among the Hebrews"
+          "title": "Evolution of the God Concept Among the Hebrews",
+          "sections": 10
         },
         {
           "id": "98",
-          "title": "The Melchizedek Teachings in the Occident"
+          "title": "The Melchizedek Teachings in the Occident",
+          "sections": 7
         },
         {
           "id": "99",
-          "title": "The Social Problems of Religion"
+          "title": "The Social Problems of Religion",
+          "sections": 7
         },
         {
           "id": "100",
-          "title": "Religion in Human Experience"
+          "title": "Religion in Human Experience",
+          "sections": 7
         },
         {
           "id": "101",
-          "title": "The Real Nature of Religion"
+          "title": "The Real Nature of Religion",
+          "sections": 10
         },
         {
           "id": "102",
-          "title": "The Foundations of Religious Faith"
+          "title": "The Foundations of Religious Faith",
+          "sections": 8
         },
         {
           "id": "103",
-          "title": "The Reality of Religious Experience"
+          "title": "The Reality of Religious Experience",
+          "sections": 9
         },
         {
           "id": "104",
-          "title": "Growth of the Trinity Concept"
+          "title": "Growth of the Trinity Concept",
+          "sections": 5
         },
         {
           "id": "105",
-          "title": "Deity and Reality"
+          "title": "Deity and Reality",
+          "sections": 7
         },
         {
           "id": "106",
-          "title": "Universe Levels of Reality"
+          "title": "Universe Levels of Reality",
+          "sections": 9
         },
         {
           "id": "107",
-          "title": "Origin and Nature of Thought Adjusters"
+          "title": "Origin and Nature of Thought Adjusters",
+          "sections": 7
         },
         {
           "id": "108",
-          "title": "Mission and Ministry of Thought Adjusters"
+          "title": "Mission and Ministry of Thought Adjusters",
+          "sections": 6
         },
         {
           "id": "109",
-          "title": "Relation of Adjusters to Universe Creatures"
+          "title": "Relation of Adjusters to Universe Creatures",
+          "sections": 7
         },
         {
           "id": "110",
-          "title": "Relation of Adjusters to Individual Mortals"
+          "title": "Relation of Adjusters to Individual Mortals",
+          "sections": 7
         },
         {
           "id": "111",
-          "title": "The Adjuster and the Soul"
+          "title": "The Adjuster and the Soul",
+          "sections": 7
         },
         {
           "id": "112",
-          "title": "Personality Survival"
+          "title": "Personality Survival",
+          "sections": 7
         },
         {
           "id": "113",
-          "title": "Seraphic Guardians of Destiny"
+          "title": "Seraphic Guardians of Destiny",
+          "sections": 7
         },
         {
           "id": "114",
-          "title": "Seraphic Planetary Government"
+          "title": "Seraphic Planetary Government",
+          "sections": 7
         },
         {
           "id": "115",
-          "title": "The Supreme Being"
+          "title": "The Supreme Being",
+          "sections": 7
         },
         {
           "id": "116",
-          "title": "The Almighty Supreme"
+          "title": "The Almighty Supreme",
+          "sections": 7
         },
         {
           "id": "117",
-          "title": "God the Supreme"
+          "title": "God the Supreme",
+          "sections": 7
         },
         {
           "id": "118",
-          "title": "Supreme and Ultimate—Time and Space"
+          "title": "Supreme and Ultimate—Time and Space",
+          "sections": 10
         },
         {
           "id": "119",
-          "title": "The Bestowals of Christ Michael"
+          "title": "The Bestowals of Christ Michael",
+          "sections": 8
         }
       ]
     },
@@ -515,311 +635,388 @@
       "papers": [
         {
           "id": "120",
-          "title": "The Bestowal of Michael on Urantia"
+          "title": "The Bestowal of Michael on Urantia",
+          "sections": 4
         },
         {
           "id": "121",
-          "title": "The Times of Michael’s Bestowal"
+          "title": "The Times of Michael’s Bestowal",
+          "sections": 8
         },
         {
           "id": "122",
-          "title": "Birth and Infancy of Jesus"
+          "title": "Birth and Infancy of Jesus",
+          "sections": 10
         },
         {
           "id": "123",
-          "title": "The Early Childhood of Jesus"
+          "title": "The Early Childhood of Jesus",
+          "sections": 6
         },
         {
           "id": "124",
-          "title": "The Later Childhood of Jesus"
+          "title": "The Later Childhood of Jesus",
+          "sections": 6
         },
         {
           "id": "125",
-          "title": "Jesus at Jerusalem"
+          "title": "Jesus at Jerusalem",
+          "sections": 6
         },
         {
           "id": "126",
-          "title": "The Two Crucial Years"
+          "title": "The Two Crucial Years",
+          "sections": 5
         },
         {
           "id": "127",
-          "title": "The Adolescent Years"
+          "title": "The Adolescent Years",
+          "sections": 6
         },
         {
           "id": "128",
-          "title": "Jesus’ Early Manhood"
+          "title": "Jesus’ Early Manhood",
+          "sections": 7
         },
         {
           "id": "129",
-          "title": "The Later Adult Life of Jesus"
+          "title": "The Later Adult Life of Jesus",
+          "sections": 4
         },
         {
           "id": "130",
-          "title": "On the Way to Rome"
+          "title": "On the Way to Rome",
+          "sections": 8
         },
         {
           "id": "131",
-          "title": "The World’s Religions"
+          "title": "The World’s Religions",
+          "sections": 10
         },
         {
           "id": "132",
-          "title": "The Sojourn at Rome"
+          "title": "The Sojourn at Rome",
+          "sections": 7
         },
         {
           "id": "133",
-          "title": "The Return from Rome"
+          "title": "The Return from Rome",
+          "sections": 9
         },
         {
           "id": "134",
-          "title": "The Transition Years"
+          "title": "The Transition Years",
+          "sections": 9
         },
         {
           "id": "135",
-          "title": "John the Baptist"
+          "title": "John the Baptist",
+          "sections": 12
         },
         {
           "id": "136",
-          "title": "Baptism and the Forty Days"
+          "title": "Baptism and the Forty Days",
+          "sections": 10
         },
         {
           "id": "137",
-          "title": "Tarrying Time in Galilee"
+          "title": "Tarrying Time in Galilee",
+          "sections": 8
         },
         {
           "id": "138",
-          "title": "Training the Kingdom’s Messengers"
+          "title": "Training the Kingdom’s Messengers",
+          "sections": 10
         },
         {
           "id": "139",
-          "title": "The Twelve Apostles"
+          "title": "The Twelve Apostles",
+          "sections": 11
         },
         {
           "id": "140",
-          "title": "The Ordination of the Twelve"
+          "title": "The Ordination of the Twelve",
+          "sections": 10
         },
         {
           "id": "141",
-          "title": "Beginning the Public Work"
+          "title": "Beginning the Public Work",
+          "sections": 9
         },
         {
           "id": "142",
-          "title": "The Passover at Jerusalem"
+          "title": "The Passover at Jerusalem",
+          "sections": 8
         },
         {
           "id": "143",
-          "title": "Going Through Samaria"
+          "title": "Going Through Samaria",
+          "sections": 7
         },
         {
           "id": "144",
-          "title": "At Gilboa and in the Decapolis"
+          "title": "At Gilboa and in the Decapolis",
+          "sections": 9
         },
         {
           "id": "145",
-          "title": "Four Eventful Days at Capernaum"
+          "title": "Four Eventful Days at Capernaum",
+          "sections": 5
         },
         {
           "id": "146",
-          "title": "First Preaching Tour of Galilee"
+          "title": "First Preaching Tour of Galilee",
+          "sections": 7
         },
         {
           "id": "147",
-          "title": "The Interlude Visit to Jerusalem"
+          "title": "The Interlude Visit to Jerusalem",
+          "sections": 8
         },
         {
           "id": "148",
-          "title": "Training Evangelists at Bethsaida"
+          "title": "Training Evangelists at Bethsaida",
+          "sections": 9
         },
         {
           "id": "149",
-          "title": "The Second Preaching Tour"
+          "title": "The Second Preaching Tour",
+          "sections": 7
         },
         {
           "id": "150",
-          "title": "The Third Preaching Tour"
+          "title": "The Third Preaching Tour",
+          "sections": 9
         },
         {
           "id": "151",
-          "title": "Tarrying and Teaching by the Seaside"
+          "title": "Tarrying and Teaching by the Seaside",
+          "sections": 6
         },
         {
           "id": "152",
-          "title": "Events Leading up to the Capernaum Crisis"
+          "title": "Events Leading up to the Capernaum Crisis",
+          "sections": 7
         },
         {
           "id": "153",
-          "title": "The Crisis at Capernaum"
+          "title": "The Crisis at Capernaum",
+          "sections": 5
         },
         {
           "id": "154",
-          "title": "Last Days at Capernaum"
+          "title": "Last Days at Capernaum",
+          "sections": 7
         },
         {
           "id": "155",
-          "title": "Fleeing Through Northern Galilee"
+          "title": "Fleeing Through Northern Galilee",
+          "sections": 6
         },
         {
           "id": "156",
-          "title": "The Sojourn at Tyre and Sidon"
+          "title": "The Sojourn at Tyre and Sidon",
+          "sections": 6
         },
         {
           "id": "157",
-          "title": "At Caesarea-Philippi"
+          "title": "At Caesarea-Philippi",
+          "sections": 7
         },
         {
           "id": "158",
-          "title": "The Mount of Transfiguration"
+          "title": "The Mount of Transfiguration",
+          "sections": 8
         },
         {
           "id": "159",
-          "title": "The Decapolis Tour"
+          "title": "The Decapolis Tour",
+          "sections": 6
         },
         {
           "id": "160",
-          "title": "Rodan of Alexandria"
+          "title": "Rodan of Alexandria",
+          "sections": 5
         },
         {
           "id": "161",
-          "title": "Further Discussions with Rodan"
+          "title": "Further Discussions with Rodan",
+          "sections": 3
         },
         {
           "id": "162",
-          "title": "At the Feast of Tabernacles"
+          "title": "At the Feast of Tabernacles",
+          "sections": 9
         },
         {
           "id": "163",
-          "title": "Ordination of the Seventy at Magadan"
+          "title": "Ordination of the Seventy at Magadan",
+          "sections": 7
         },
         {
           "id": "164",
-          "title": "At the Feast of Dedication"
+          "title": "At the Feast of Dedication",
+          "sections": 5
         },
         {
           "id": "165",
-          "title": "The Perean Mission Begins"
+          "title": "The Perean Mission Begins",
+          "sections": 6
         },
         {
           "id": "166",
-          "title": "Last Visit to Northern Perea"
+          "title": "Last Visit to Northern Perea",
+          "sections": 5
         },
         {
           "id": "167",
-          "title": "The Visit to Philadelphia"
+          "title": "The Visit to Philadelphia",
+          "sections": 7
         },
         {
           "id": "168",
-          "title": "The Resurrection of Lazarus"
+          "title": "The Resurrection of Lazarus",
+          "sections": 5
         },
         {
           "id": "169",
-          "title": "Last Teaching at Pella"
+          "title": "Last Teaching at Pella",
+          "sections": 4
         },
         {
           "id": "170",
-          "title": "The Kingdom of Heaven"
+          "title": "The Kingdom of Heaven",
+          "sections": 5
         },
         {
           "id": "171",
-          "title": "On the Way to Jerusalem"
+          "title": "On the Way to Jerusalem",
+          "sections": 8
         },
         {
           "id": "172",
-          "title": "Going into Jerusalem"
+          "title": "Going into Jerusalem",
+          "sections": 5
         },
         {
           "id": "173",
-          "title": "Monday in Jerusalem"
+          "title": "Monday in Jerusalem",
+          "sections": 5
         },
         {
           "id": "174",
-          "title": "Tuesday Morning in the Temple"
+          "title": "Tuesday Morning in the Temple",
+          "sections": 5
         },
         {
           "id": "175",
-          "title": "The Last Temple Discourse"
+          "title": "The Last Temple Discourse",
+          "sections": 4
         },
         {
           "id": "176",
-          "title": "Tuesday Evening on Mount Olivet"
+          "title": "Tuesday Evening on Mount Olivet",
+          "sections": 4
         },
         {
           "id": "177",
-          "title": "Wednesday, the Rest Day"
+          "title": "Wednesday, the Rest Day",
+          "sections": 5
         },
         {
           "id": "178",
-          "title": "Last Day at the Camp"
+          "title": "Last Day at the Camp",
+          "sections": 3
         },
         {
           "id": "179",
-          "title": "The Last Supper"
+          "title": "The Last Supper",
+          "sections": 5
         },
         {
           "id": "180",
-          "title": "The Farewell Discourse"
+          "title": "The Farewell Discourse",
+          "sections": 6
         },
         {
           "id": "181",
-          "title": "Final Admonitions and Warnings"
+          "title": "Final Admonitions and Warnings",
+          "sections": 2
         },
         {
           "id": "182",
-          "title": "In Gethsemane"
+          "title": "In Gethsemane",
+          "sections": 3
         },
         {
           "id": "183",
-          "title": "The Betrayal and Arrest of Jesus"
+          "title": "The Betrayal and Arrest of Jesus",
+          "sections": 5
         },
         {
           "id": "184",
-          "title": "Before the Sanhedrin Court"
+          "title": "Before the Sanhedrin Court",
+          "sections": 5
         },
         {
           "id": "185",
-          "title": "The Trial Before Pilate"
+          "title": "The Trial Before Pilate",
+          "sections": 8
         },
         {
           "id": "186",
-          "title": "Just Before the Crucifixion"
+          "title": "Just Before the Crucifixion",
+          "sections": 5
         },
         {
           "id": "187",
-          "title": "The Crucifixion"
+          "title": "The Crucifixion",
+          "sections": 6
         },
         {
           "id": "188",
-          "title": "The Time of the Tomb"
+          "title": "The Time of the Tomb",
+          "sections": 5
         },
         {
           "id": "189",
-          "title": "The Resurrection"
+          "title": "The Resurrection",
+          "sections": 5
         },
         {
           "id": "190",
-          "title": "Morontia Appearances of Jesus"
+          "title": "Morontia Appearances of Jesus",
+          "sections": 5
         },
         {
           "id": "191",
-          "title": "Appearances to the Apostles and Other Leaders"
+          "title": "Appearances to the Apostles and Other Leaders",
+          "sections": 6
         },
         {
           "id": "192",
-          "title": "Appearances in Galilee"
+          "title": "Appearances in Galilee",
+          "sections": 4
         },
         {
           "id": "193",
-          "title": "Final Appearances and Ascension"
+          "title": "Final Appearances and Ascension",
+          "sections": 6
         },
         {
           "id": "194",
-          "title": "Bestowal of the Spirit of Truth"
+          "title": "Bestowal of the Spirit of Truth",
+          "sections": 4
         },
         {
           "id": "195",
-          "title": "After Pentecost"
+          "title": "After Pentecost",
+          "sections": 10
         },
         {
           "id": "196",
-          "title": "The Faith of Jesus"
+          "title": "The Faith of Jesus",
+          "sections": 3
         }
       ]
     }

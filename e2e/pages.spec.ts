@@ -109,7 +109,8 @@ test("on a paper page the theme is in the reader settings, and other pages keep 
   await header.getByRole("button", { name: "Reader settings" }).click();
   await page.getByRole("dialog", { name: "Reader settings" }).getByRole("button", { name: "Dark" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
-  await page.goto("/papers");
+  // The contents page has the settings too. A page such as About keeps the moon.
+  await page.goto("/about");
   await expect(page.getByRole("banner").getByRole("button", { name: "Light theme" })).toBeVisible();
   await expect(page.getByRole("banner").getByRole("button", { name: "Reader settings" })).toBeHidden();
 });

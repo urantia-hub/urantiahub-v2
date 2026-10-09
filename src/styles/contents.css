@@ -59,7 +59,7 @@
 }
 .toc .papers a {
   display: grid;
-  grid-template-columns: 2.4rem 1fr;
+  grid-template-columns: 2.4rem 1fr auto;
   gap: 8px;
   color: var(--ink);
   text-decoration: none;
@@ -85,6 +85,21 @@
     columns: 2;
     column-gap: 44px;
   }
+}
+
+/* One quiet word beside a paper, for a signed-in reader. Green is progress: it only grows. */
+.toc .mark {
+  align-self: baseline;
+  font: 500 12px/1.75 var(--font-ui);
+  font-style: normal;
+  /* The line color of the voice: the pale `--voice` is a background, and text in it cannot be read. */
+  color: var(--voice-line);
+  white-space: nowrap;
+}
+.toc .part.fore h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
 }
 
 /* The one invitation to sign in. It shows for a signed-out reader only. */

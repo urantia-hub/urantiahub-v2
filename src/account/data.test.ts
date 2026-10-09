@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { type Gateway, readReader, savePlace, saveSettings } from "./data";
+import { type Gateway, readProgress, readReader, savePlace, saveRead, saveSettings } from "./data";
 
 const NOW = 1_800_000_000_000;
 function gateway(stored: Record<string, unknown> = {}): Gateway & { saved: Record<string, unknown>[] } {
@@ -11,6 +11,8 @@ function gateway(stored: Record<string, unknown> = {}): Gateway & { saved: Recor
     savePreferences: vi.fn(async (_token, patch) => {
       saved.push(patch);
     }),
+    markRead: vi.fn(async () => {}),
+    progress: vi.fn(async () => []),
   };
 }
 
@@ -50,5 +52,45 @@ describe("a save of the settings", () => {
     const g = gateway();
     expect(await saveSettings(g, "t", { theme: "pink", textSize: 4, at: NOW }, NOW)).toEqual({ saved: false });
     expect(g.saved).toEqual([]);
+  });
+});
+
+describe("a batch of read paragraphs", () => {
+  it("goes to the API as references of paragraphs that can exist", async () => {
+    const g = gateway();
+    expect(await saveRead(g, "t", { refs: ["1:0.1", "1:0.2", "196:10.5"] })).toEqual({ saved: 3 });
+    expect(g.markRead).toHaveBeenCalledWith("t", ["1:0.1", "1:0.2", "196:10.5"]);
+  });
+
+  it("drops what is not a reference, and each repeat", async () => {
+    const g = gateway();
+    expect(await saveRead(g, "t", { refs: ["1:0.1", "1:0.1", "999:1.1", "x", 5, "1:0.1; drop table", "1.0.1"] })).toEqual({ saved: 1 });
+    expect(g.markRead).toHaveBeenCalledWith("t", ["1:0.1"]);
+  });
+
+  it("asks the API nothing for an empty batch, or for a body of another form", async () => {
+    const g = gateway();
+    for (const bad of [null, {}, { refs: "1:0.1" }, { refs: [] }, { refs: ["nope"] }]) expect(await saveRead(g, "t", bad)).toEqual({ saved: 0 });
+    expect(g.markRead).not.toHaveBeenCalled();
+  });
+
+  it("takes 200 at most in one request", async () => {
+    const g = gateway();
+    const refs = Array.from({ length: 300 }, (_, i) => `1:${Math.floor(i / 100)}.${(i % 100) + 1}`);
+    expect(await saveRead(g, "t", { refs })).toEqual({ saved: 200 });
+  });
+});
+
+describe("which papers the reader read", () => {
+  it("is each paper with nine of ten paragraphs read, as ids only", async () => {
+    const g = gateway();
+    g.progress = vi.fn(async () => [
+      { paperId: "1", readCount: 60, totalParagraphs: 60 },
+      { paperId: "2", readCount: 55, totalParagraphs: 60 },
+      { paperId: "3", readCount: 20, totalParagraphs: 60 },
+      { paperId: "999", readCount: 5, totalParagraphs: 5 },
+      { paperId: "4", readCount: 0, totalParagraphs: 0 },
+    ]);
+    expect(await readProgress(g, "t")).toEqual({ read: ["1", "2"] });
   });
 });

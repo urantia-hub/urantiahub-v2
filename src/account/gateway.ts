@@ -21,6 +21,10 @@ export const gateway: Gateway & { profileName(accessToken: string): Promise<stri
   savePreferences: async (token, patch) => {
     await asked(api(token).me.preferences.update(patch));
   },
+  markRead: async (token, refs) => {
+    await asked(api(token).me.readingProgress.mark(refs));
+  },
+  progress: async (token) => (await asked(api(token).me.readingProgress.get())).data ?? [],
   profileName: async (token) => {
     const name = (await asked(api(token).me.get())).data?.name;
     return typeof name === "string" && name.trim() ? name.trim().slice(0, 80) : null;

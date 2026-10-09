@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { PARTS, paperPath, partNumeral } from "@/content/paper-index";
+import { PAPERS, PARTS, paperPath, partNumeral } from "@/content/paper-index";
 import { SignInInvite } from "./AccountRows";
 import { ContinueCard } from "./ContinueCard";
+import { PaperMark, ProgressLoader } from "./PaperMark";
 
 export function ContentsView() {
   const parts = PARTS.filter((part) => part.id !== "0");
@@ -11,6 +12,7 @@ export function ContentsView() {
       <p className="lead">A foreword and 196 papers, in four parts.</p>
       <ContinueCard />
       <SignInInvite />
+      <ProgressLoader />
       <nav className="jump" aria-label="Parts">
         {parts.map((part) => (
           <a key={part.id} href={`#part-${part.id}`}>
@@ -23,6 +25,7 @@ export function ContentsView() {
       <section className="part fore" id="foreword" aria-label="Foreword">
         <h2>
           <Link href={paperPath("0")}>Foreword</Link>
+          <PaperMark id="0" sections={PAPERS[0].sections} />
         </h2>
       </section>
 
@@ -38,6 +41,7 @@ export function ContentsView() {
               <li key={paper.id}>
                 <Link href={paperPath(paper.id)}>
                   <span className="n">{paper.id}</span> <span className="t">{paper.title}</span>
+                  <PaperMark id={paper.id} sections={paper.sections} />
                 </Link>
               </li>
             ))}

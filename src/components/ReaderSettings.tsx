@@ -68,7 +68,8 @@ export function ReaderSettings() {
                   </button>
                 ))}
               </div>
-              <h2>Text size</h2>
+              {/* A page with no text of a paper hides these two. See chrome.css. */}
+              <h2 className="size-title">Text size</h2>
               <div className="sizes">
                 <button type="button" aria-label="Smaller text" disabled={size === 0} onClick={() => applyTextSize(size - 1)}>
                   A
