@@ -23,6 +23,9 @@ async function signIn(page: Page) {
 }
 const savedMark = (page: Page, ref: string) => page.locator(`[id="${ref}"] .mark-saved`);
 const at = (ref: string) => ({ ref, createdAt: "2026-10-01T00:00:00.000Z" });
+const noteOf = (ref: string, text: string, createdAt = "2026-10-01T00:00:00.000Z") => ({ id: randomUUID(), ref, text, createdAt });
+const notes = (page: Page, ref: string) => page.getByRole("dialog", { name: `Your notes on ${ref}` });
+const pen = (page: Page, ref: string) => page.locator(`[id="${ref}"] .mark-notes`);
 
 test.beforeEach(async ({ page }) => {
   await stubAudio(page);
@@ -81,7 +84,7 @@ test.describe("Save, for a signed-in reader", () => {
 
   test("the marks move no text when they arrive", async ({ page, context }) => {
     const reader = await asReader(context);
-    await reader.set({ saved: [at("1:0.1"), at("1:0.3"), at("1:1.2")] });
+    await reader.set({ saved: [at("1:0.1"), at("1:0.3"), at("1:1.2")], notes: [noteOf("1:0.3", "One."), noteOf("1:0.3", "Two."), noteOf("1:2.1", "Three.")] });
     await page.goto(PAPER);
     await signIn(page);
     let release: () => void = () => {};
@@ -96,6 +99,7 @@ test.describe("Save, for a signed-in reader", () => {
     const before = await tops();
     release();
     await expect(page.locator(".mark-saved")).toHaveCount(3);
+    await expect(page.locator(".mark-notes")).toHaveCount(2);
     expect(await tops()).toEqual(before);
   });
 
@@ -142,6 +146,110 @@ test.describe("Save, for a signed-in reader", () => {
     await tap(page, "1:0.3");
     await expect(page.getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
     await expect(page.locator(".mark-saved")).toHaveCount(0);
+  });
+});
+
+test.describe("Note", () => {
+  test("asks a reader with no account to sign in", async ({ page, context }) => {
+    await asReader(context);
+    await page.goto(PAPER);
+    await tap(page, "1:0.3");
+    await page.getByRole("button", { name: "Note" }).click();
+    await expect(page.getByRole("dialog", { name: "Sign in to save this" })).toBeVisible();
+  });
+
+  test("a reader writes a note, sees its mark, changes it, and deletes it", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    await tap(page, "1:0.3");
+    await page.getByRole("button", { name: "Note" }).click();
+    const sheet = notes(page, "1:0.3");
+    await expect(sheet).toContainText("Only you see them.");
+    // With no note yet, the reader is in the field.
+    await expect(sheet.getByRole("textbox", { name: "Add a note" })).toBeFocused();
+    await page.keyboard.type("Compare with Paper 10.");
+    await sheet.getByRole("button", { name: "Save" }).click();
+    await expect(sheet.getByRole("listitem")).toHaveText(/Compare with Paper 10\./);
+    await expect(pen(page, "1:0.3")).toHaveAccessibleName("1 note on 1:0.3");
+    await expect.poll(async () => (await reader.seen()).notes.map((n: { text: string }) => n.text)).toEqual(["Compare with Paper 10."]);
+
+    // After a reload, the pen opens the notes and marks the paragraph.
+    await page.reload();
+    await pen(page, "1:0.3").click();
+    await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
+    await notes(page, "1:0.3").getByRole("button", { name: "Edit" }).click();
+    const field = notes(page, "1:0.3").getByRole("textbox", { name: "Your note" });
+    await expect(field).toHaveValue("Compare with Paper 10.");
+    await field.fill("Compare with Paper 10 and Paper 3.");
+    await notes(page, "1:0.3").getByRole("button", { name: "Save" }).click();
+    await expect(notes(page, "1:0.3").getByRole("listitem")).toHaveText(/Paper 10 and Paper 3\./);
+
+    await notes(page, "1:0.3").getByRole("button", { name: "Delete" }).click();
+    await notes(page, "1:0.3").getByRole("group", { name: "Delete this note?" }).getByRole("button", { name: "Delete" }).click();
+    await expect(notes(page, "1:0.3").getByRole("listitem")).toHaveCount(0);
+    await expect(pen(page, "1:0.3")).toHaveCount(0);
+    await expect.poll(async () => (await reader.seen()).notes).toEqual([]);
+    // Nothing of a note is in the browser's storage.
+    expect(await page.evaluate(() => `${document.cookie} ${JSON.stringify({ ...localStorage })}`)).not.toContain("Paper 10");
+  });
+
+  test("the notes of a paragraph are a thread, the oldest first, with the field at the end", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.3", "The newer one.", "2026-10-05T00:00:00.000Z"), noteOf("1:0.3", "The older one.", "2026-10-01T00:00:00.000Z"), noteOf("1:0.5", "Elsewhere.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(pen(page, "1:0.3")).toHaveText("2");
+    await pen(page, "1:0.3").click();
+    await expect(notes(page, "1:0.3").locator(".note-text")).toHaveText(["The older one.", "The newer one."]);
+    const order = await notes(page, "1:0.3").evaluate((el) => [...el.querySelectorAll(".note-text, textarea")].map((x) => x.tagName));
+    expect(order).toEqual(["P", "P", "TEXTAREA"]);
+  });
+
+  test("a note that does not save stays in its field", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    await tap(page, "1:0.3");
+    await page.getByRole("button", { name: "Note" }).click();
+    await reader.set({ mode: "down" });
+    await notes(page, "1:0.3").getByRole("textbox", { name: "Add a note" }).fill("Do not lose me.");
+    await notes(page, "1:0.3").getByRole("button", { name: "Save" }).click();
+    await expect(notes(page, "1:0.3").getByRole("alert")).toHaveText("The note did not save. Try again.");
+    await expect(notes(page, "1:0.3").getByRole("textbox", { name: "Add a note" })).toHaveValue("Do not lose me.");
+    await reader.set({ mode: "ok" });
+    await notes(page, "1:0.3").getByRole("button", { name: "Save" }).click();
+    await expect(notes(page, "1:0.3").getByRole("listitem")).toHaveText(/Do not lose me\./);
+  });
+
+  test("a note with markup characters and a very long word stays inside the sheet", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.3", `<img src=x onerror="document.title='broken'"> ${"w".repeat(400)}`)] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await pen(page, "1:0.3").click();
+    const sheet = notes(page, "1:0.3");
+    await expect(sheet.locator(".note-text")).toContainText("<img src=x");
+    expect(await page.title()).not.toBe("broken");
+    expect(await sheet.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  });
+
+  test("the next person on the same browser sees no pen and no note", async ({ page, context }) => {
+    const first = await asReader(context);
+    await first.set({ notes: [noteOf("1:0.3", "Mine only.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(pen(page, "1:0.3")).toBeVisible();
+    await page.getByRole("button", { name: "Account and settings" }).click();
+    await settings(page).getByRole("button", { name: "Sign out" }).click();
+    await expect(page.locator(".mark-notes")).toHaveCount(0);
+    await asReader(context);
+    await page.keyboard.press("Escape");
+    await signIn(page);
+    await tap(page, "1:0.3");
+    await page.getByRole("button", { name: "Note" }).click();
+    await expect(notes(page, "1:0.3")).toBeVisible();
+    await expect(page.getByText("Mine only.")).toHaveCount(0);
   });
 });
 

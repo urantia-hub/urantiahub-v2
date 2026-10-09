@@ -80,6 +80,20 @@ html[data-reader] .para {
 .mark-saved {
   display: block;
 }
+/* The pen and the number of notes. Its press area is larger than its picture, and adds no height. */
+.mark-notes {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin: -10px -8px;
+  padding: 10px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 500 11px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
 .ref {
   font: 400 11.5px/1 var(--font-ui);
   font-variant-numeric: tabular-nums;

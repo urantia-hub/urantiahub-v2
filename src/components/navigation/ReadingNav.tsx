@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { noSaved, savedState, subscribeToSaved, toggleBookmark } from "@/account/saved";
 import { track } from "@/analytics";
@@ -15,6 +15,9 @@ import { saveLastRead } from "@/reader/last-read";
 import { shareParagraph } from "@/reader/share";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
+
+// Only a signed-in reader opens the notes, so their code loads at the first use.
+const NoteSheet = lazy(() => import("@/components/reader/NoteSheet"));
 
 type Props = {
   paper: { id: string; title: string };
@@ -53,7 +56,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // The small panel above the row: the two more actions, or the question for a reader with no account.
-  const [panel, setPanel] = useState<"more" | "ask" | null>(null);
+  const [panel, setPanel] = useState<"more" | "ask" | "notes" | null>(null);
   const [askHref, setAskHref] = useState("");
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
@@ -61,6 +64,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const termsOpenRef = useRef(false);
   const moreTile = useRef<HTMLButtonElement>(null);
   const saveTile = useRef<HTMLButtonElement>(null);
+  const noteTile = useRef<HTMLButtonElement>(null);
+  // The tile that gets the focus back when the question closes.
+  const askedFrom = useRef<"save" | "note">("save");
   const toastTimer = useRef(0);
   const roundButton = useRef<HTMLButtonElement>(null);
 
@@ -189,6 +195,14 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       if (mouse.metaKey || mouse.ctrlKey || mouse.shiftKey || mouse.altKey || mouse.button > 0) return;
       const para = target.closest<HTMLElement>(".para");
       if (!para) return;
+      // The small pen beside a reference opens the reader's notes on that paragraph.
+      if (target.closest(".mark-notes")) {
+        setPicked(para.id);
+        setHidden(false);
+        setTermsOpen(false);
+        setPanel("notes");
+        return;
+      }
       // The reference is a real link for a reader with no JavaScript. Here it acts as a tap.
       if (target.closest("a.ref")) event.preventDefault();
       else if (target.closest("a")) return;
@@ -353,7 +367,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   }
 
   function closePanel() {
-    const tile = panel === "ask" ? saveTile : moreTile;
+    const tile = panel === "notes" || (panel === "ask" && askedFrom.current === "note") ? noteTile : panel === "ask" ? saveTile : moreTile;
     setPanel(null);
     window.requestAnimationFrame(() => tile.current?.focus({ preventScroll: true }));
   }
@@ -364,15 +378,25 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     toastTimer.current = window.setTimeout(() => setToast(null), 2200);
   }
 
+  // A reader with no account gets the question. Nothing is kept in the browser.
+  function ask(from: "save" | "note") {
+    askedFrom.current = from;
+    // The sign-in returns to this paragraph, and the row opens again.
+    setAskHref(`/api/auth/start?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}#${picked}`)}`);
+    setPanel("ask");
+  }
+
   async function onSave() {
     if (!picked) return;
-    // A reader with no account gets the question. Nothing is kept in the browser.
-    if (account.status !== "in") {
-      // The sign-in returns to this paragraph, and the row opens again.
-      setAskHref(`/api/auth/start?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}#${picked}`)}`);
-      return setPanel("ask");
-    }
+    if (account.status !== "in") return ask("save");
     if (!(await toggleBookmark(picked))) say("This did not save. Try again.");
+  }
+
+  function onNote() {
+    if (!picked) return;
+    if (account.status !== "in") return ask("note");
+    setTermsOpen(false);
+    setPanel((was) => (was === "notes" ? null : "notes"));
   }
 
   async function onCopyText() {
@@ -512,6 +536,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                     {isSaved ? "Saved" : "Save"}
                   </button>
                 )}
+                {account.status !== "off" && (
+                  <button type="button" className="tile" aria-haspopup="dialog" aria-expanded={panel === "notes"} onClick={onNote} ref={noteTile}>
+                    <Icon name="note" />
+                    Note
+                  </button>
+                )}
                 <button type="button" className="tile" onClick={onShare}>
                   <Icon name="share" />
                   Share
@@ -584,6 +614,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
             Copy the text
           </button>
         </Sheet>
+      )}
+      {panel === "notes" && picked && (
+        <Suspense fallback={null}>
+          <NoteSheet reference={picked} paperId={paper.id} onClose={closePanel} />
+        </Suspense>
       )}
       {panel === "ask" && picked && (
         <Sheet label="Sign in to save this" onClose={closePanel}>

@@ -130,6 +130,43 @@ export function toggleBookmark(ref: string): Promise<boolean> {
   return run;
 }
 
+export type NoteResult = { ok: true } | { ok: false; why: "failed" | "gone" };
+const FAILED: NoteResult = { ok: false, why: "failed" };
+type NoteAnswer = { ok?: unknown; why?: unknown; note?: SavedNote } | null;
+
+// A note shows on the page when the account took it. Until then the reader's text stays in its field.
+async function sendNote(path: string, init: RequestInit, done: (answer: NonNullable<NoteAnswer>) => readonly SavedNote[] | null): Promise<NoteResult> {
+  const key = accountKey();
+  if (!key) return FAILED;
+  own(key);
+  const at = life;
+  const answer = (await ask(key, path, init)) as NoteAnswer;
+  if (life !== at || !answer) return FAILED;
+  const gone = answer.ok === false && answer.why === "gone";
+  if (answer.ok !== true && !gone) return FAILED;
+  const notes = done(answer);
+  if (notes) set({ ...state, notes });
+  return gone ? { ok: false, why: "gone" } : { ok: true };
+}
+
+const without = (id: string) => state.notes.filter((note) => note.id !== id);
+
+export function addNote(ref: string, text: string): Promise<NoteResult> {
+  return sendNote("/api/me/notes", { method: "POST", body: JSON.stringify({ ref, text }) }, (answer) => (answer.note ? [...state.notes, answer.note] : null));
+}
+
+export function changeNote(id: string, text: string): Promise<NoteResult> {
+  return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ text }) }, (answer) => {
+    const changed = answer.note;
+    // A note that is gone in the account leaves the page too.
+    return changed ? state.notes.map((note) => (note.id === id ? changed : note)) : without(id);
+  });
+}
+
+export function deleteNote(id: string): Promise<NoteResult> {
+  return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "DELETE" }, () => without(id));
+}
+
 export function resetSavedForTest(): void {
   clear();
 }

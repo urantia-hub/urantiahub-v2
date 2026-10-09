@@ -829,3 +829,77 @@ describe("Save", () => {
     expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
   });
 });
+
+describe("Note", () => {
+  const clearCookies = () => {
+    for (const part of document.cookie.split(";")) document.cookie = `${part.split("=")[0].trim()}=; max-age=0; path=/`;
+  };
+  beforeEach(() => {
+    clearCookies();
+    resetSyncForTest();
+    resetSavedForTest();
+  });
+  afterEach(() => {
+    resetAccountForTest(false);
+    clearCookies();
+  });
+
+  it("is not in the row while the site has no sign-in", async () => {
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    expect(screen.queryByRole("button", { name: "Note" })).toBeNull();
+  });
+
+  it("asks a reader with no account to sign in, and gives the focus back to its tile", async () => {
+    resetAccountForTest(true);
+    vi.stubGlobal("fetch", vi.fn());
+    await act(async () => startAccount());
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Note" }));
+    expect(screen.getByRole("dialog", { name: "Sign in to save this" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Not now" }));
+    await act(async () => {
+      await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    });
+    expect(screen.getByRole("button", { name: "Note" })).toHaveFocus();
+  });
+
+  it("opens the notes of the marked paragraph for a signed-in reader, and Escape closes them first", async () => {
+    document.cookie = "hub_in=1; path=/";
+    resetAccountForTest(true);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => (url === "/api/auth/session" ? Response.json({ user: { name: "Ana", email: null, key: "k1" } }) : Response.json({ bookmarks: [], notes: [{ id: "n1", ref: "1:0.2", text: "A note.", at: "2026-10-01T00:00:00.000Z" }] }))),
+    );
+    await act(async () => {
+      await startAccount();
+      await loadSaved("1");
+    });
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Note" }));
+    expect(await screen.findByRole("dialog", { name: "Your notes on 1:0.2" })).toHaveTextContent("A note.");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("opens from the small pen of a paragraph, and marks that paragraph", async () => {
+    document.cookie = "hub_in=1; path=/";
+    resetAccountForTest(true);
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => (url === "/api/auth/session" ? Response.json({ user: { name: "Ana", email: null, key: "k1" } }) : Response.json({ bookmarks: [], notes: [] }))));
+    await act(async () => {
+      await startAccount();
+    });
+    renderNav();
+    // The pen is drawn by another component. The controls own each press on a paragraph.
+    const pen = document.createElement("button");
+    pen.className = "mark-notes";
+    para("1:1.1").querySelector("a")!.after(pen);
+    await userEvent.click(pen);
+    expect(para("1:1.1")).toHaveAttribute("data-picked");
+    expect(await screen.findByRole("dialog", { name: "Your notes on 1:1.1" })).toBeInTheDocument();
+  });
+});
+
