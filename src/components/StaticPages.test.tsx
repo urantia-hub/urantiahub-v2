@@ -1,9 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import AboutPage from "@/app/about/page";
 import NotFound from "@/app/not-found";
 import PrivacyPage from "@/app/privacy/page";
-import { BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -17,6 +17,37 @@ describe("About", () => {
   it("makes no claim about the text", () => {
     const { container } = render(<AboutPage />);
     expect(container.textContent).not.toMatch(/revelation|revealed|truth|divine|inspired|groundbreaking|revolutionary/i);
+  });
+});
+
+// The page states what is true of the live site. Accounts are on or off by one setting, so the page
+// says nothing of accounts while they are off, and states each fact of them when they are on.
+describe("Privacy, about accounts", () => {
+  const text = () => render(<PrivacyPage />).container.textContent ?? "";
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("says nothing of a sign-in while the sign-in is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "");
+    const page = text();
+    expect(page).not.toMatch(/sign in|signed in|UrantiaHub account/i);
+    expect(page).toContain("accounts, saved places, and notes are planned");
+    expect(page).toContain(PRIVACY_UPDATED);
+  });
+
+  it("states what an account holds, the cookies, the companies, and the way to delete it", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    const page = text();
+    expect(page).toContain(ACCOUNT_UPDATED);
+    expect(page).toContain("An account is optional");
+    for (const item of ACCOUNT_ITEMS) expect(page).toContain(item);
+    for (const vendor of ACCOUNT_VENDORS) expect(page).toContain(vendor.name);
+    expect(page).toMatch(/One cookie holds your sign-in/);
+    expect(page).toMatch(/delete the account/);
+    expect(page).toContain("accounts.urantiahub.com");
+    // The old promise is not true any more for a signed-in reader.
+    expect(page).not.toContain("They do not leave your device.");
+    expect(page).not.toContain("accounts, saved places, and notes are planned");
+    expect(page).toMatch(/You can read and listen with no account/);
   });
 });
 

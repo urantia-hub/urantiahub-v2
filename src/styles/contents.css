@@ -87,6 +87,40 @@
   }
 }
 
+/* The one invitation to sign in. It shows for a signed-out reader only. */
+.toc .invite {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 30rem;
+  margin: -12px auto 26px;
+  padding: 14px 16px;
+  border: 1px dashed var(--rule);
+  border-radius: 14px;
+  font: 400 13.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.toc .invite p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.toc .invite strong {
+  display: block;
+  font-weight: 500;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.toc .invite a {
+  flex: none;
+  padding: 9px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 14px/1 var(--font-ui);
+  text-decoration: none;
+}
 /* The way back to the place the reader left. It shows only when this browser holds one. */
 .toc .continue {
   display: flex;

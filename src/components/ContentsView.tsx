@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PARTS, paperPath, partNumeral } from "@/content/paper-index";
+import { SignInInvite } from "./AccountRows";
 import { ContinueCard } from "./ContinueCard";
 
 export function ContentsView() {
@@ -9,6 +10,7 @@ export function ContentsView() {
       <h1>Papers</h1>
       <p className="lead">A foreword and 196 papers, in four parts.</p>
       <ContinueCard />
+      <SignInInvite />
       <nav className="jump" aria-label="Parts">
         {parts.map((part) => (
           <a key={part.id} href={`#part-${part.id}`}>

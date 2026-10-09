@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Icon, type IconName } from "./icons";
 
 const PLAYER: IconName[] = ["play", "pause", "previous", "next"];
-const TOOLS: IconName[] = ["share", "close", "paperBefore", "paperAfter", "search", "list", "moon", "sun", "back", "arrow", "clock", "question", "page", "settings", "terms"];
+const TOOLS: IconName[] = ["share", "close", "paperBefore", "paperAfter", "search", "list", "moon", "sun", "back", "arrow", "clock", "question", "page", "settings", "terms", "person", "external", "signOut"];
 
 describe("Icon", () => {
   it.each(PLAYER)("draws the player icon %s as a solid shape", (name) => {

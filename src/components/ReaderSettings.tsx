@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { AccountRows } from "@/components/AccountRows";
 import { Icon } from "@/components/icons";
 import { applyTextSize, currentTextSize, DEFAULT_STEP, SCALES, subscribeToTextSize } from "@/lib/text-size";
 import { applyTheme, currentTheme, subscribeToTheme, type Theme } from "@/lib/theme";
@@ -9,8 +10,8 @@ import { applyTheme, currentTheme, subscribeToTheme, type Theme } from "@/lib/th
 const serverTheme = (): Theme => "light";
 const serverSize = () => DEFAULT_STEP;
 
-// The settings of the reader, behind one icon in the header of a paper: the theme and the text size.
-// Later steps add rows here: translation, and parallels for the paper.
+// The settings of the reader, behind one icon in the header of a paper: the theme, the text size, and
+// the reader's account. Later steps add rows here: translation, and parallels for the paper.
 export function ReaderSettings() {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -81,6 +82,7 @@ export function ReaderSettings() {
                   A
                 </button>
               </div>
+              <AccountRows />
             </div>
           </>,
           document.body,
