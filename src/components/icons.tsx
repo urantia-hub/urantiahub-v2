@@ -9,6 +9,8 @@ const SOLID = {
   next: ["M15.8 6H18v12h-2.2z", "M4 6l9.5 6L4 18z"],
   // The one solid icon that is not the voice: a paragraph that the reader saved.
   saved: ["M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"],
+  // Three dots, large enough to read as a control beside the line icons.
+  more: ["M5.5 10.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2z", "M12 10.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2z", "M18.5 10.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2z"],
 } as const;
 
 const LINE = {
@@ -18,7 +20,6 @@ const LINE = {
   save: ["M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"],
   // A pen: the reader's notes on a paragraph.
   note: ["M5 19l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L9 18l-4 1z", "M14.5 6.5l3 3"],
-  more: ["M6 12h.01", "M12 12h.01", "M18 12h.01"],
   copy: ["M10 8h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z", "M5 15V6a1 1 0 0 1 1-1h9"],
   paperBefore: ["M14.5 6l-6 6 6 6"],
   paperAfter: ["M9.5 6l6 6-6 6"],

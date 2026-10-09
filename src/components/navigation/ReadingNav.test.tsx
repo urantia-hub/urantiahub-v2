@@ -823,6 +823,15 @@ describe("Save", () => {
     expect(track).toHaveBeenCalledWith("bookmark_removed", { paper_id: "1" });
   });
 
+  it("says that there are too many requests when the save is refused for that", async () => {
+    await signedIn(() => new Response("", { status: 429 }));
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Too many requests for now. Wait a minute, then try again.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("goes back and says so when the save fails", async () => {
     await signedIn(() => new Response("", { status: 503 }));
     renderNav();

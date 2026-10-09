@@ -63,7 +63,16 @@ export function ReaderSettings() {
         createPortal(
           <>
             <div className="settings-scrim" />
-            <div className="settings-panel" role="dialog" aria-label="Account and settings" ref={panel}>
+            <div
+              className="settings-panel"
+              role="dialog"
+              aria-label="Account and settings"
+              ref={panel}
+              // A link in the panel goes to another page. The panel does not stay open over it.
+              onClick={(event) => {
+                if ((event.target as HTMLElement).closest("a")) setOpen(false);
+              }}
+            >
               <h2>Theme</h2>
               <div className="segment">
                 {(["light", "dark"] as const).map((name) => (

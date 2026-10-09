@@ -2,6 +2,7 @@
 // Nothing of this goes into the browser's storage: it lives for the life of the page, for one reader.
 
 import { accountKey, markSignedOut, subscribeToAccount } from "./client";
+import { noteStatus } from "./limited";
 import type { PaperSaved, SavedNote } from "./saved-data";
 import { readerChanged } from "./sync";
 
@@ -66,12 +67,14 @@ async function ask(key: string, path: string, init: RequestInit = {}): Promise<u
   const at = life;
   try {
     const response = await fetch(path, { ...init, headers: { accept: "application/json", "content-type": "application/json", "x-hub-reader": key } });
+    noteStatus(response.status);
     if (life !== at) return null;
     if (response.status === 401) markSignedOut();
     else if (response.status === 409) void readerChanged();
     if (!response.ok) return null;
     return (await response.json()) as unknown;
   } catch {
+    noteStatus(null);
     return null;
   }
 }

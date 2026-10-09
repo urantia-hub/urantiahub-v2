@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { track } from "@/analytics";
+import { failureWords } from "@/account/limited";
 import { addNote, changeNote, deleteNote, loadSaved, type NoteResult, noSaved, savedState, subscribeToSaved } from "@/account/saved";
 import { NoteThread } from "./NoteThread";
 import { Sheet } from "./Sheet";
@@ -37,7 +38,7 @@ export default function NoteSheet({ reference, paperId, onClose }: Props) {
       )}
       {saved.status === "failed" && (
         <p className="note-problem" role="alert">
-          Your notes did not load.{" "}
+          {failureWords("Your notes did not load.")}{" "}
           <button type="button" onClick={() => void loadSaved(paperId)}>
             Try again
           </button>

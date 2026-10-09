@@ -237,6 +237,50 @@ test.describe("Note", () => {
     await expect(page.getByTestId("picked-ref")).toHaveText("1:0.3");
   });
 
+  // The firewall of the site refuses an address that asks too often, with status 429, for a short time.
+  test("too many requests: the page says so, keeps the text, and works again after the wait", async ({ page, context }) => {
+    await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    let limited = true;
+    await page.route("**/api/me/**", (route) => (limited ? route.fulfill({ status: 429, body: "" }) : route.continue()));
+    await tap(page, "1:0.3");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Too many requests for now. Wait a minute, then try again.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveAttribute("aria-pressed", "false");
+    await page.getByRole("button", { name: "Note", exact: true }).click();
+    await notes(page, "1:0.3").getByRole("textbox", { name: "Add a note" }).fill("Keep me.");
+    await notes(page, "1:0.3").getByRole("button", { name: "Save", exact: true }).click();
+    await expect(notes(page, "1:0.3").getByRole("alert")).toHaveText("Too many requests for now. Wait a minute, then try again.");
+    await expect(notes(page, "1:0.3").getByRole("textbox", { name: "Add a note" })).toHaveValue("Keep me.");
+    // The reader is still signed in, and the same press works after the wait.
+    limited = false;
+    await notes(page, "1:0.3").getByRole("button", { name: "Save", exact: true }).click();
+    await expect(notes(page, "1:0.3").getByRole("listitem")).toHaveText(/Keep me\./);
+    await page.goto("/saved");
+    limited = true;
+    await page.reload();
+    await expect(page.locator(".saved-page [role=alert]")).toContainText("Too many requests for now.");
+    limited = false;
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.locator(".saved-entry")).toHaveCount(1);
+  });
+
+  test("a text that is too long shows how much, and saves after a trim", async ({ page, context }) => {
+    await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    await openNotes(page, "1:0.3");
+    const field = notes(page, "1:0.3").getByRole("textbox", { name: "Add a note" });
+    await field.fill("x".repeat(5232));
+    await expect(notes(page, "1:0.3").getByRole("status", { name: "232 characters too many" })).toHaveText("-232");
+    await expect(notes(page, "1:0.3").getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+    await field.fill("x".repeat(4990));
+    await expect(notes(page, "1:0.3").getByRole("status", { name: "10 characters left" })).toHaveText("10");
+    await notes(page, "1:0.3").getByRole("button", { name: "Save", exact: true }).click();
+    await expect(notes(page, "1:0.3").getByRole("listitem")).toHaveCount(1);
+  });
+
   test("a note that does not save stays in its field", async ({ page, context }) => {
     const reader = await asReader(context);
     await page.goto(PAPER);
@@ -375,6 +419,23 @@ test.describe("the notes in the margin", () => {
     await expect(card(page, "1:0.3")).toBeVisible();
   });
 
+  // A long note above must not push the note of the paragraph that the reader works on far down the page.
+  test("the card of the marked paragraph sits at its paragraph, and a long card scrolls in its place", async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
+    const reader = await asReader(context);
+    await reader.set({ notes: [noteOf("1:0.2", "This is really interesting. ".repeat(180)), noteOf("1:0.3", "The note below.")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await card(page, "1:0.2").getByRole("button", { name: "Read more" }).click();
+    const gap = (ref: string) => page.evaluate((ref) => Math.abs(Math.round(document.querySelector(`.margin-card[data-for="${ref}"]`)!.getBoundingClientRect().top - document.getElementById(ref)!.getBoundingClientRect().top)), ref);
+    // The open card has a limit, so the next card stays within one screen of its paragraph.
+    expect((await card(page, "1:0.2").boundingBox())!.height).toBeLessThanOrEqual(342);
+    await tap(page, "1:0.3");
+    await expect.poll(() => gap("1:0.3")).toBe(0);
+    await tap(page, "1:0.2");
+    await expect.poll(() => gap("1:0.2")).toBe(0);
+  });
+
   test("a larger text size moves the card with its paragraph", async ({ page, context }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "the margin is for a wide screen");
     const reader = await asReader(context);
@@ -412,6 +473,8 @@ test.describe("the Saved page", () => {
     await page.getByRole("button", { name: "Account and settings" }).click();
     await settings(page).getByRole("link", { name: "Saved" }).click();
     await page.waitForURL("**/saved");
+    // The settings do not stay open over the page.
+    await expect(settings(page)).toHaveCount(0);
     await expect(entries(page)).toHaveCount(3);
     await page.goto("/papers");
     await page.locator(".toc").getByRole("link", { name: "Saved" }).click();

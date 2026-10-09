@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteFooter() {
   return (
@@ -11,7 +10,6 @@ export function SiteFooter() {
         </span>
         <Link href="/about">About</Link>
         <Link href="/privacy">Privacy</Link>
-        <ThemeToggle />
       </span>
     </footer>
   );

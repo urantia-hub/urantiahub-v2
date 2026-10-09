@@ -77,14 +77,16 @@ test("a new visitor gets the light theme, even with a dark system setting", asyn
 
 test("the theme control changes the theme, and the choice stays after a reload", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("contentinfo").getByRole("button", { name: "Dark theme" }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Dark theme" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#17150f");
 
   await page.goto("/papers/paper-1-the-universal-father");
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
 
-  await page.getByRole("contentinfo").getByRole("button", { name: "Light theme" }).click();
+  // On a paper the theme is in the reader settings.
+  await page.getByRole("button", { name: "Account and settings" }).click();
+  await page.getByRole("dialog", { name: "Account and settings" }).getByRole("button", { name: "Light" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", LIGHT);
   await page.reload();
   await expect(page.locator("body")).toHaveCSS("background-color", LIGHT);
@@ -233,7 +235,7 @@ test("the header shows the bookmark mark beside the name, in the theme colors", 
   await expect(brand.locator("svg.mark")).toBeVisible();
   await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(38, 34, 28)");
   await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(251, 248, 242)");
-  await page.getByRole("contentinfo").getByRole("button", { name: "Dark theme" }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Dark theme" }).click();
   await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(230, 223, 208)");
   await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(23, 21, 15)");
 });

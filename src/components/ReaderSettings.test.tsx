@@ -70,4 +70,16 @@ describe("ReaderSettings", () => {
     await userEvent.click(screen.getByText("the text"));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  // A link in the panel goes to another page. The panel must not stay open over that page.
+  it("closes when the reader follows a link in it", async () => {
+    render(<ReaderSettings />);
+    const panel = await openPanel();
+    const link = document.createElement("a");
+    link.href = "#somewhere";
+    link.textContent = "Somewhere";
+    panel.append(link);
+    await userEvent.click(link);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
 });
