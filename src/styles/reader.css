@@ -225,6 +225,17 @@ html:not([data-reader]) .para:target .ref {
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+  /* More of the card is below: its last lines fade. The fade stays at the end of the frame while the card scrolls. */
+  .margin-card[data-more]::after {
+    content: "";
+    position: sticky;
+    bottom: -2px;
+    display: block;
+    height: 44px;
+    margin-top: -44px;
+    background: linear-gradient(to top, var(--raised) 12%, transparent);
+    pointer-events: none;
+  }
   .margin-card button {
     border: 0;
     padding: 0;
