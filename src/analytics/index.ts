@@ -54,17 +54,23 @@ export function initAnalytics(): void {
   });
 }
 
-type Bags = { properties?: Record<string, unknown>; $set?: Record<string, unknown>; $set_once?: Record<string, unknown> };
+type Bags = { event?: string; properties?: Record<string, unknown>; $set?: Record<string, unknown>; $set_once?: Record<string, unknown> };
+type Cut = (text: string) => string;
 
-// A search address in plain form, and inside another address in encoded form.
-const cutSearchText = (text: string) =>
-  text.replace(/\/search\?[^#\s]*/g, "/search").replace(/%2Fsearch%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2Fsearch");
+// A search address in plain form, and inside another address in encoded form. The same for the Saved
+// page, whose address can name one paragraph: /saved?ref=1:0.3.
+const cutSearchText: Cut = (text) =>
+  text.replace(/\/(search|saved)\?[^#\s]*/g, "/$1").replace(/%2F(search|saved)%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2F$1");
 
-function scrubValue(value: unknown): unknown {
-  if (typeof value === "string") return cutSearchText(value);
-  if (Array.isArray(value)) return value.map(scrubValue);
+// The address of a paper can name a paragraph after "#". A count of a saved thing holds the paper only.
+const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted"]);
+const cutParagraph: Cut = (text) => cutSearchText(text).replace(/(\/papers\/[^#\s?]*(?:\?[^#\s]*)?)#[^\s]*/g, "$1");
+
+function scrubValue(value: unknown, cut: Cut): unknown {
+  if (typeof value === "string") return cut(value);
+  if (Array.isArray(value)) return value.map((inner) => scrubValue(inner, cut));
   if (value && typeof value === "object") {
-    return Object.fromEntries(Object.entries(value).map(([name, inner]) => [cutSearchText(name), scrubValue(inner)]));
+    return Object.fromEntries(Object.entries(value).map(([name, inner]) => [cut(name), scrubValue(inner, cut)]));
   }
   return value;
 }
@@ -73,8 +79,9 @@ function scrubValue(value: unknown): unknown {
 // the address before it, and the first address of a visit. This cuts the text from each one, at each depth.
 export function scrubSearchText<E extends Bags | null>(event: E): E {
   if (!event) return event;
+  const cut = event.event !== undefined && SAVED_EVENTS.has(event.event) ? cutParagraph : cutSearchText;
   for (const bag of ["properties", "$set", "$set_once"] as const) {
-    if (event[bag]) event[bag] = scrubValue(event[bag]) as Record<string, unknown>;
+    if (event[bag]) event[bag] = scrubValue(event[bag], cut) as Record<string, unknown>;
   }
   return event;
 }

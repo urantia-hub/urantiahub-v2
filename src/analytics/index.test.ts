@@ -145,6 +145,38 @@ describe("analytics", () => {
     expect(scrubSearchText(null)).toBeNull();
   });
 
+  // The page of one paragraph names the paragraph in its address: /saved?ref=1:0.3. The Privacy page and
+  // the events promise that a count of a saved thing holds no reference.
+  it("cuts the paragraph from the address of the Saved page, in plain and in encoded form", async () => {
+    const { scrubSearchText } = await import("./index");
+    const out = scrubSearchText({
+      event: "$pageview",
+      properties: {
+        $current_url: "https://next.urantiahub.com/saved?ref=1%3A0.3",
+        $referrer: "https://other.test/go?to=https%3A%2F%2Fx.test%2Fsaved%3Fref%3D1%253A0.3&x=1",
+        $pathname: "/saved",
+      },
+      $set_once: { $initial_current_url: "https://next.urantiahub.com/saved?ref=12:4.5#top" },
+    });
+    expect(out.properties.$current_url).toBe("https://next.urantiahub.com/saved");
+    expect(out.properties.$referrer).toBe("https://other.test/go?to=https%3A%2F%2Fx.test%2Fsaved&x=1");
+    expect(out.$set_once.$initial_current_url).toBe("https://next.urantiahub.com/saved#top");
+    expect(JSON.stringify(out)).not.toMatch(/0\.3|4\.5/);
+  });
+
+  it("cuts the paragraph from the address of a paper, for a count of a saved thing only", async () => {
+    const { scrubSearchText } = await import("./index");
+    const address = "https://next.urantiahub.com/papers/paper-1-the-universal-father#1:0.3";
+    for (const event of ["bookmark_added", "bookmark_removed", "note_saved", "note_deleted"]) {
+      const out = scrubSearchText({ event, properties: { $current_url: address, $referrer: address, paper_id: "1" }, $set: { $current_url: address } });
+      expect(JSON.stringify(out)).not.toContain("0.3");
+      expect(out.properties.$current_url).toBe("https://next.urantiahub.com/papers/paper-1-the-universal-father");
+      expect(out.properties.paper_id).toBe("1");
+    }
+    // Another event keeps the address as it is, as before.
+    expect(scrubSearchText({ event: "$pageview", properties: { $current_url: address } }).properties.$current_url).toBe(address);
+  });
+
   it("gives PostHog that rule at the start", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     const { initAnalytics } = await import("./index");
