@@ -1,4 +1,4 @@
-import { BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
 import { pageMetadata } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
@@ -11,15 +11,20 @@ const Email = () => <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>;
 
 // The lists of vendors and browser items are in src/content/privacy.ts. Each statement here must be true of
 // the code that is live. When a statement changes, change the date in that file.
+// A reader can sign in only while this setting is on. The page states the facts of accounts only then,
+// so each statement is true of the live site in both cases.
 export default function PrivacyPage() {
+  const accountsOn = process.env.NEXT_PUBLIC_SIGN_IN === "on";
+  const vendors = accountsOn ? [...VENDORS, ...ACCOUNT_VENDORS] : VENDORS;
   return (
     <div className="prose privacy">
       <h1>Privacy</h1>
-      <p className="updated">Last updated: {PRIVACY_UPDATED}</p>
+      <p className="updated">Last updated: {accountsOn ? ACCOUNT_UPDATED : PRIVACY_UPDATED}</p>
 
       <h2>The short version</h2>
       <ul>
         <li>You can read and listen with no account. The site does not ask for your name or your email address.</li>
+        {accountsOn && <li>An account is optional. With one, your place and your reader settings follow you to each device.</li>}
         <li>The site shows no advertising, and it sells no data.</li>
         <li>It counts which pages and features readers use, with no cookie and no identifier.</li>
         <li>It records what readers search for, with no link to the reader.</li>
@@ -63,8 +68,41 @@ export default function PrivacyPage() {
         page holds the words of the search.
       </p>
 
+      {accountsOn && (
+        <>
+          <h3>If you sign in</h3>
+          <p>
+            You can sign in with a UrantiaHub account. It is optional, and nothing on the site needs it for reading or
+            listening. If you sign in, the account holds these things, so that they are the same on each of your
+            devices:
+          </p>
+          <ul>
+            {ACCOUNT_ITEMS.map((item) => (
+              <li key={item}>{item}.</li>
+            ))}
+          </ul>
+          <p>
+            One cookie holds your sign-in. It is encrypted, and a script on the page cannot read it. A second cookie
+            says only that you are signed in, so that the page can show the right controls. We use neither one for
+            analytics or advertising. Analytics events have no link to your account.
+          </p>
+          <p>
+            When you sign out on a device, the last place that you read leaves that browser. Your account still holds
+            it.
+          </p>
+          <p>
+            On <a href="https://accounts.urantiahub.com">accounts.urantiahub.com</a> you can see each app that has
+            access to your account, remove one, or delete the account. When you delete the account, we delete what it
+            holds.
+          </p>
+        </>
+      )}
+
       <h2>What stays in your browser</h2>
-      <p>The site keeps these things in your browser. They do not leave your device.</p>
+      <p>
+        The site keeps these things in your browser.{" "}
+        {accountsOn ? "If you sign in, the place, the theme, and the text size also go to your account. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
+      </p>
       <ul>
         {BROWSER_ITEMS.map((item) => (
           <li key={item.name}>
@@ -86,7 +124,7 @@ export default function PrivacyPage() {
             </tr>
           </thead>
           <tbody>
-            {VENDORS.map((vendor) => (
+            {vendors.map((vendor) => (
               <tr key={vendor.name}>
                 <th scope="row">
                   {vendor.name}
@@ -118,8 +156,9 @@ export default function PrivacyPage() {
 
       <h2>Changes to this page</h2>
       <p>
-        The site will grow: accounts, saved places, and notes are planned. When this page changes, the date at the top
-        changes, and this page says what is new.
+        {accountsOn
+          ? "The site will grow: bookmarks and notes are planned. New on this date: you can sign in with a UrantiaHub account. When this page changes, the date at the top changes, and this page says what is new."
+          : "The site will grow: accounts, saved places, and notes are planned. When this page changes, the date at the top changes, and this page says what is new."}
       </p>
 
       <h2>Contact</h2>

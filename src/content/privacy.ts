@@ -1,6 +1,8 @@
 // The facts of the Privacy page, as lists. A new vendor or a new thing in the browser is one entry here.
 // Each entry must be true of the code that is live. Change the date when the page changes.
 export const PRIVACY_UPDATED = "October 8, 2026";
+// The date of the page while a reader can sign in. See `accountsOn` in the page.
+export const ACCOUNT_UPDATED = "October 9, 2026";
 export const PRIVACY_EMAIL = "privacy@urantiahub.com";
 // The company that runs the site. Kelson gave this name on 2026-10-08.
 export const PRIVACY_OPERATOR = "Adams Technologies LLC";
@@ -43,4 +45,33 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
   { name: "Your text size", why: "so a paper opens at the size that you chose" },
   { name: "The last place that you read", why: "so the contents page can offer to continue there" },
   { name: "Your last five searches", why: "so you can run one again; the Clear control on the search page removes them" },
+];
+
+// What an account holds for the Hub. Each entry is one thing that `src/account` writes.
+export const ACCOUNT_ITEMS: readonly string[] = [
+  "Your email address, and your name if your account has one",
+  "The last place that you read",
+  "Your theme and your text size",
+];
+
+// The companies that handle the data of an account. They are in the table only while a reader can sign in.
+export const ACCOUNT_VENDORS: readonly Vendor[] = [
+  {
+    name: "Supabase",
+    purpose: "Holds the accounts, and what an account keeps.",
+    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, and your theme and text size.",
+    policy: "https://supabase.com/privacy",
+  },
+  {
+    name: "Resend",
+    purpose: "Sends the email with the sign-in code.",
+    receives: "Your email address and the code.",
+    policy: "https://resend.com/legal/privacy-policy",
+  },
+  {
+    name: "Google",
+    purpose: "Signs you in, only if you choose “Continue with Google”.",
+    receives: "That you signed in to UrantiaHub. Google gives us your email address, your name, and your picture.",
+    policy: "https://policies.google.com/privacy",
+  },
 ];
