@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LAST_READ_KEY, saveLastRead } from "@/reader/last-read";
-import { resetAccountForTest, startAccount } from "./client";
+import { refreshAccount, resetAccountForTest, startAccount } from "./client";
 import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, pullFromAccount, queueRead, resetSyncForTest, SETTINGS_AT_KEY, startSync } from "./sync";
 
 const place = (paperId: string, at: number) => JSON.stringify({ paperId, sectionId: "1", label: null, at });
@@ -161,5 +161,39 @@ describe("the paragraphs that the reader read", () => {
     expect(bodyOf(reads(fetch)[0]).refs).toHaveLength(200);
     await flushRead();
     expect(bodyOf(reads(fetch)[1]).refs).toHaveLength(50);
+  });
+});
+
+// The reader can change with no sign-out on this page: another tab signed out, and another person
+// signed in there. What this page collected is the first reader's, and must not go out under the second.
+describe("what a page collected for one reader", () => {
+  async function becomes(key: string, fetch: ReturnType<typeof vi.fn>) {
+    fetch.mockImplementation(async (url: string) => (url === "/api/auth/session" ? Response.json({ enabled: true, user: { name: "Ben", email: null, key } }) : Response.json({ saved: 1, place: null, settings: null })));
+    await refreshAccount();
+  }
+
+  it("does not go out as read paragraphs of the next reader", async () => {
+    const fetch = await signedInAs("k1", async () => Response.json({ saved: 1 }));
+    queueRead(["5:1.1", "5:1.2"]);
+    await becomes("k2", fetch);
+    queueRead(["9:2.1"]);
+    await flushRead();
+    const sent = fetch.mock.calls.filter(([url]) => url === "/api/me/read").map(([, init]) => JSON.parse(String((init as RequestInit).body)).refs);
+    expect(sent).toEqual([["9:2.1"]]);
+  });
+
+  it("does not go out as the place of the next reader", async () => {
+    startSync();
+    const fetch = await signedInAs("k1", async () => Response.json({ saved: true }));
+    saveLastRead({ paperId: "5", sectionId: "1", label: null });
+    saveLastRead({ paperId: "5", sectionId: "2", label: null });
+    const before = fetch.mock.calls.filter(([url]) => url === "/api/me/place").length;
+    await becomes("k2", fetch);
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+    await Promise.resolve();
+    expect(fetch.mock.calls.filter(([url]) => url === "/api/me/place").length).toBe(before);
   });
 });

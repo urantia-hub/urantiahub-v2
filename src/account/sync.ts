@@ -32,8 +32,32 @@ let readTimer: number | undefined;
 // before that is for a reader who is gone, and is dropped.
 let epoch = 0;
 
-// A request can go out only when the page knows which reader it speaks for.
-const ready = () => accountKey() !== null;
+// The reader that the waiting place and the waiting read marks belong to.
+let collectedFor: string | null = null;
+
+// A request can go out only when the page knows which reader it speaks for. The reader can change with
+// no sign-out on this page: another tab signed out, and another person signed in there. What this page
+// collected is then the first reader's. It is dropped here, before anything is added or sent.
+function ready(): boolean {
+  const key = accountKey();
+  if (key !== collectedFor) {
+    dropCollected();
+    collectedFor = key;
+  }
+  return key !== null;
+}
+
+function dropCollected(): void {
+  epoch += 1;
+  window.clearTimeout(placeTimer);
+  placeTimer = undefined;
+  placeWaiting = null;
+  placeSentAt = 0;
+  window.clearTimeout(readTimer);
+  readTimer = undefined;
+  readWaiting.clear();
+  clearProgress();
+}
 
 function settingsAt(): number {
   try {
@@ -63,7 +87,7 @@ async function readerChanged(): Promise<void> {
 
 async function send(path: string, value: unknown, keepalive = false): Promise<void> {
   const key = accountKey();
-  if (!key) return;
+  if (!key || !ready()) return;
   try {
     const response = await fetch(path, { method: "PUT", headers: { "content-type": "application/json", "x-hub-reader": key }, body: JSON.stringify(value), keepalive });
     if (response.status === 401) markSignedOut();
@@ -76,9 +100,11 @@ async function send(path: string, value: unknown, keepalive = false): Promise<vo
 function sendPlaceNow(keepalive = false) {
   window.clearTimeout(placeTimer);
   placeTimer = undefined;
+  // The check of the reader comes first: it drops a place that waits for the reader before.
+  if (!ready()) return;
   const place = placeWaiting;
   placeWaiting = null;
-  if (!place || !ready()) return;
+  if (!place) return;
   placeSentAt = Date.now();
   void send("/api/me/place", place, keepalive);
 }
@@ -102,8 +128,9 @@ export function queueRead(refs: readonly string[]): void {
 export async function flushRead(keepalive = false): Promise<void> {
   window.clearTimeout(readTimer);
   readTimer = undefined;
+  if (!ready() || readWaiting.size === 0) return;
   const key = accountKey();
-  if (!key || readWaiting.size === 0) return;
+  if (!key) return;
   const refs = [...readWaiting].slice(0, READ_BATCH);
   for (const ref of refs) readWaiting.delete(ref);
   const at = epoch;
@@ -150,15 +177,7 @@ export function markAccountData(key: string): void {
 // first person's place must not show to them or go into their account. The account still holds it.
 // The theme and the text size stay: they are not personal, and the page must not flash.
 export function forgetAccountData(): void {
-  epoch += 1;
-  window.clearTimeout(placeTimer);
-  placeTimer = undefined;
-  placeWaiting = null;
-  placeSentAt = 0;
-  window.clearTimeout(readTimer);
-  readTimer = undefined;
-  readWaiting.clear();
-  clearProgress();
+  dropCollected();
   try {
     if (window.localStorage.getItem(ACCOUNT_DATA_KEY) === null) return;
     window.localStorage.removeItem(SETTINGS_AT_KEY);
@@ -185,7 +204,7 @@ function applyFromAccount(run: () => void) {
 
 async function pull(): Promise<void> {
   const key = accountKey();
-  if (!key) return;
+  if (!key || !ready()) return;
   // What this browser holds can be from the reader before: their session ended, and this reader signed
   // in with no page load in between. It is not this reader's, so it goes first.
   let owner: string | null = null;
@@ -262,4 +281,5 @@ export function resetSyncForTest(): void {
   readWaiting.clear();
   applying = false;
   epoch = 0;
+  collectedFor = null;
 }

@@ -9,10 +9,11 @@ import { ReadTracker } from "@/reader/read-tracker";
 // of the screen. It draws nothing, and it does nothing for a reader with no account.
 export function ReadMarks({ paperId }: { paperId: string }) {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
-  const ready = account.status === "in" && Boolean(account.user?.key);
+  // The key names the reader. With another reader, the time in view starts again.
+  const key = account.status === "in" ? (account.user?.key ?? null) : null;
 
   useEffect(() => {
-    if (!ready || !("IntersectionObserver" in window)) return;
+    if (!key || !("IntersectionObserver" in window)) return;
     const tracker = new ReadTracker();
     // The reading zone: the middle of the screen, away from the bars at the top and the bottom.
     const observer = new IntersectionObserver(
@@ -44,7 +45,7 @@ export function ReadMarks({ paperId }: { paperId: string }) {
       observer.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [ready, paperId]);
+  }, [key, paperId]);
 
   return null;
 }
