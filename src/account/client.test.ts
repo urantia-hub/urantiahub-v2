@@ -51,15 +51,31 @@ describe("who is signed in, in the browser", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("signs out with one request, and is signed out also when the request fails", async () => {
+  it("signs out with one request", async () => {
     document.cookie = "hub_in=1; path=/";
     const fetch = vi.fn(async () => Response.json({ enabled: true, user: { name: null, email: "a@b.c" } }));
     vi.stubGlobal("fetch", fetch);
     await startAccount();
-    fetch.mockImplementationOnce(async () => { throw new Error("offline"); });
-    await signOut();
+    fetch.mockImplementationOnce(async () => Response.json({ signedOut: true }));
+    expect(await signOut()).toBe(true);
     expect(fetch).toHaveBeenLastCalledWith("/api/auth/signout", expect.objectContaining({ method: "POST" }));
     expect(accountState()).toEqual({ status: "out" });
+  });
+
+  // The session is a cookie that only the server can end. If the server did not end it, the reader is
+  // still signed in, and the page must not say something else: on a shared computer that is a risk.
+  it("stays signed in when the sign-out did not reach the server, or the server refused it", async () => {
+    document.cookie = "hub_in=1; path=/";
+    const user = { name: null, email: "a@b.c" };
+    const fetch = vi.fn(async () => Response.json({ enabled: true, user }));
+    vi.stubGlobal("fetch", fetch);
+    await startAccount();
+    fetch.mockImplementationOnce(async () => { throw new Error("offline"); });
+    expect(await signOut()).toBe(false);
+    expect(accountState()).toEqual({ status: "in", user });
+    fetch.mockImplementationOnce(async () => Response.json({ detail: "no" }, { status: 403 }));
+    expect(await signOut()).toBe(false);
+    expect(accountState()).toEqual({ status: "in", user });
   });
 });
 

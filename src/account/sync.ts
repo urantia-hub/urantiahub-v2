@@ -4,12 +4,14 @@
 
 import { applyTextSize, currentTextSize, subscribeToTextSize } from "@/lib/text-size";
 import { applyTheme, currentTheme, subscribeToTheme } from "@/lib/theme";
-import { readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
+import { clearLastRead, readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
 import { accountState, markSignedOut } from "./client";
 import { newer, parsePlace, parseSettings, type Place, type Settings } from "./reader-data";
 
 // When the reader last changed a setting in this browser.
 export const SETTINGS_AT_KEY = "hub:reader-at";
+// Set while the place and the settings in this browser are those of a signed-in reader.
+export const ACCOUNT_DATA_KEY = "hub:account-data";
 const PLACE_EVERY_MS = 20_000;
 
 let running = false;
@@ -80,6 +82,38 @@ function onSetting() {
   if (signedIn()) void send("/api/me/settings", { ...browserSettings(), at });
 }
 
+export function markAccountData(): void {
+  try {
+    window.localStorage.setItem(ACCOUNT_DATA_KEY, "1");
+  } catch {
+    // Storage is blocked. Then nothing of the reader is kept here.
+  }
+}
+
+// When a signed-in reader is signed out, by a press or because the session ended: the reader's place
+// leaves this browser, and so does the time of the settings. A second person can sign in here, and the
+// first person's place must not show to them or go into their account. The account still holds it.
+// The theme and the text size stay: they are not personal, and the page must not flash.
+export function forgetAccountData(): void {
+  window.clearTimeout(placeTimer);
+  placeTimer = undefined;
+  placeWaiting = null;
+  placeSentAt = 0;
+  try {
+    if (window.localStorage.getItem(ACCOUNT_DATA_KEY) === null) return;
+    window.localStorage.removeItem(SETTINGS_AT_KEY);
+    window.localStorage.removeItem(ACCOUNT_DATA_KEY);
+  } catch {
+    return;
+  }
+  applying = true;
+  try {
+    clearLastRead();
+  } finally {
+    applying = false;
+  }
+}
+
 function applyFromAccount(run: () => void) {
   applying = true;
   try {
@@ -99,6 +133,9 @@ async function pull(): Promise<void> {
   } catch {
     return;
   }
+
+  // From here on, what this browser holds is this reader's.
+  markAccountData();
 
   const place = newer<Place>(readLastRead(), parsePlace(body.place));
   if (place.from === "account" && place.value) {

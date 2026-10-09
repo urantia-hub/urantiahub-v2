@@ -57,6 +57,16 @@ export function storeLastRead(place: LastRead): void {
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
+// Removes the place from this browser.
+export function clearLastRead(): void {
+  try {
+    window.localStorage.removeItem(LAST_READ_KEY);
+  } catch {
+    return;
+  }
+  window.dispatchEvent(new Event(CHANGE_EVENT));
+}
+
 export function subscribeToLastRead(listener: () => void): () => void {
   window.addEventListener(CHANGE_EVENT, listener);
   window.addEventListener("storage", listener);

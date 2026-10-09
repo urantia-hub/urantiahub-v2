@@ -57,13 +57,17 @@ export function markSignedOut(): void {
   if (state.status === "in") set(OUT);
 }
 
-export async function signOut(): Promise<void> {
+// True when the server ended the session. Only the server can end it: the session is a cookie that a
+// script cannot read. If the server did not, the reader is still signed in, and the page says so.
+export async function signOut(): Promise<boolean> {
   try {
-    await fetch("/api/auth/signout", { method: "POST", headers: { accept: "application/json" } });
+    const response = await fetch("/api/auth/signout", { method: "POST", headers: { accept: "application/json" } });
+    if (!response.ok) return false;
   } catch {
-    // The request did not leave. The page still shows "signed out"; the cookie ends at the next sign-out.
+    return false;
   }
   set(OUT);
+  return true;
 }
 
 // The link to the sign-in. It is a plain link, so it works with no script too.

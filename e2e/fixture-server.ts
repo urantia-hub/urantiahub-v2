@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { createServer, type IncomingMessage } from "node:http";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { account } from "./account-standin";
 
 const dir = fileURLToPath(new URL("./fixtures", import.meta.url));
 
@@ -57,8 +58,16 @@ function read(request: IncomingMessage): Promise<string> {
 }
 
 createServer(async (request, response) => {
-  const path = new URL(request.url ?? "/", "http://localhost").pathname;
-  const text = request.method === "POST" ? await read(request) : "";
+  const url = new URL(request.url ?? "/", "http://localhost");
+  const path = url.pathname;
+  const text = request.method === "POST" || request.method === "PUT" ? await read(request) : "";
+  // The accounts site and the reader's own data are a stand-in too.
+  const forAccount = account(request, url, text);
+  if (forAccount) {
+    response.writeHead(forAccount.status, { "content-type": "application/json", ...forAccount.headers });
+    response.end(forAccount.body);
+    return;
+  }
   // The text "slow search" takes a second and a half, for the test of the sign that a search runs.
   if (text.includes('"slow search"')) await new Promise((resolve) => setTimeout(resolve, 1500));
   const { status, body } =

@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, useSyncExternalStore } from "react";
+import { type MouseEvent, useState, useSyncExternalStore } from "react";
 import { accountState, never, noSignInProblem, serverAccountState, signInHref, signInProblem, signOut, subscribeToAccount } from "@/account/client";
 import { Icon } from "@/components/icons";
 
@@ -15,6 +15,7 @@ const useProblem = () => useSyncExternalStore(never, signInProblem, noSignInProb
 export function AccountRows() {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const problem = useProblem();
+  const [stuck, setStuck] = useState(false);
   if (account.status === "off") return null;
 
   if (account.status === "out") {
@@ -47,10 +48,11 @@ export function AccountRows() {
         </span>
         <Icon name="external" />
       </a>
-      <button type="button" className="account-row" onClick={() => void signOut()}>
+      <button type="button" className="account-row" onClick={() => void signOut().then((done) => setStuck(!done))}>
         <Icon name="signOut" />
         <span>Sign out</span>
       </button>
+      {stuck && <p role="status">The sign-out did not finish, so you are still signed in. Try again.</p>}
     </div>
   );
 }
