@@ -3,7 +3,8 @@
 
 import { paperById } from "@/content/paper-index";
 
-export const NOTE_MAX = 5000;
+export { NOTE_MAX } from "./note-limit";
+import { NOTE_MAX } from "./note-limit";
 const PAGE = 100;
 const MOST = 2000;
 const REF = /^(\d{1,3}):\d{1,3}\.\d{1,3}$/;

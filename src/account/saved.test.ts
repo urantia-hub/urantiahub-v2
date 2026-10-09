@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { markSignedOut, resetAccountForTest, startAccount } from "./client";
-import { loadSaved, resetSavedForTest, savedState, subscribeToSaved, toggleBookmark } from "./saved";
+import { addNote, changeNote, deleteNote, loadSaved, resetSavedForTest, savedState, subscribeToSaved, toggleBookmark } from "./saved";
 import { resetSyncForTest } from "./sync";
 
 type Other = (url: string, init?: RequestInit) => Promise<Response> | Response;
@@ -132,5 +132,67 @@ describe("a press on Save", () => {
     expect(await toggleBookmark("1:0.3")).toBe(false);
     await vi.waitFor(() => expect(fetch.mock.calls.filter(([url]) => url === "/api/auth/session")).toHaveLength(2));
     await vi.waitFor(() => expect(savedState().bookmarks.size).toBe(0));
+  });
+});
+
+describe("a note", () => {
+  const note = (id: string, text: string, at = "2026-10-05T00:00:00.000Z") => ({ id, ref: "1:0.3", text, at });
+
+  it("is added at the end when the account took it", async () => {
+    const fetch = await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : Response.json({ ok: true, note: note("n2", "Second.") })));
+    await loadSaved("1");
+    expect(await addNote("1:0.3", "Second.")).toEqual({ ok: true });
+    expect(savedState().notes.map((n) => n.id)).toEqual(["n1", "n2"]);
+    const [, init] = fetch.mock.calls.find(([url]) => url === "/api/me/notes")!;
+    expect(init).toMatchObject({ method: "POST", body: JSON.stringify({ ref: "1:0.3", text: "Second." }) });
+  });
+
+  it("is not added when the account did not take it", async () => {
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : new Response("", { status: 503 })));
+    await loadSaved("1");
+    expect(await addNote("1:0.3", "Second.")).toEqual({ ok: false, why: "failed" });
+    expect(savedState().notes).toHaveLength(1);
+  });
+
+  it("is changed in its place", async () => {
+    const fetch = await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : Response.json({ ok: true, note: note("n1", "New text.", "2026-10-02T00:00:00.000Z") })));
+    await loadSaved("1");
+    expect(await changeNote("n1", "New text.")).toEqual({ ok: true });
+    expect(savedState().notes).toEqual([note("n1", "New text.", "2026-10-02T00:00:00.000Z")]);
+    expect(calls(fetch).slice(1)).toEqual(["PUT /api/me/notes/n1"]);
+  });
+
+  it("leaves the page when the account says that it is gone", async () => {
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : Response.json({ ok: false, why: "gone" })));
+    await loadSaved("1");
+    expect(await changeNote("n1", "New text.")).toEqual({ ok: false, why: "gone" });
+    expect(savedState().notes).toEqual([]);
+  });
+
+  it("is deleted", async () => {
+    const fetch = await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : Response.json({ ok: true })));
+    await loadSaved("1");
+    expect(await deleteNote("n1")).toEqual({ ok: true });
+    expect(savedState().notes).toEqual([]);
+    expect(calls(fetch).slice(1)).toEqual(["DELETE /api/me/notes/n1"]);
+  });
+
+  it("stays when the delete fails", async () => {
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : new Response("", { status: 503 })));
+    await loadSaved("1");
+    expect(await deleteNote("n1")).toEqual({ ok: false, why: "failed" });
+    expect(savedState().notes).toHaveLength(1);
+  });
+
+  it("is not added to the page of another reader", async () => {
+    let answer: (response: Response) => void = () => {};
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : new Promise<Response>((resolve) => (answer = resolve))));
+    await loadSaved("1");
+    const adding = addNote("1:0.3", "Second.");
+    await vi.waitFor(() => expect(answer).not.toBeUndefined());
+    markSignedOut();
+    answer(Response.json({ ok: true, note: note("n2", "Second.") }));
+    expect(await adding).toEqual({ ok: false, why: "failed" });
+    expect(savedState().notes).toEqual([]);
   });
 });

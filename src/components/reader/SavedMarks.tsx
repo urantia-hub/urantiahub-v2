@@ -18,13 +18,27 @@ export function SavedMarks({ paperId }: { paperId: string }) {
   }, [key, paperId]);
 
   if (saved.paperId !== paperId) return null;
-  return [...saved.bookmarks].map((ref) => {
+  const notes = new Map<string, number>();
+  for (const note of saved.notes) notes.set(note.ref, (notes.get(note.ref) ?? 0) + 1);
+  return [...new Set([...saved.bookmarks, ...notes.keys()])].map((ref) => {
     const place = document.getElementById(ref)?.querySelector(".marks");
+    const count = notes.get(ref) ?? 0;
     return place
       ? createPortal(
-          <span className="mark-saved" role="img" aria-label="Saved">
-            <Icon name="saved" />
-          </span>,
+          <>
+            {saved.bookmarks.has(ref) && (
+              <span className="mark-saved" role="img" aria-label="Saved">
+                <Icon name="saved" />
+              </span>
+            )}
+            {/* The controls of the paper open the notes: they own each press on a paragraph. */}
+            {count > 0 && (
+              <button type="button" className="mark-notes" aria-label={`${count} ${count === 1 ? "note" : "notes"} on ${ref}`}>
+                <Icon name="note" />
+                {count}
+              </button>
+            )}
+          </>,
           place,
           ref,
         )

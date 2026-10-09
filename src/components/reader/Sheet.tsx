@@ -15,7 +15,8 @@ export function Sheet({ label, onClose, className, children }: Props) {
   });
 
   useEffect(() => {
-    box.current?.focus({ preventScroll: true });
+    // A field inside can take the focus first. Then it keeps it.
+    if (!box.current?.contains(document.activeElement)) box.current?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       // The sheet takes Escape. The controls below it keep the marked paragraph.

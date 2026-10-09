@@ -88,3 +88,106 @@
     box-shadow: 0 12px 34px var(--shade);
   }
 }
+
+/* The reader's notes on a paragraph. */
+.panel.notes h2 + p {
+  margin-bottom: 14px;
+}
+.note-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.note-list li {
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+}
+.panel .note-text {
+  color: var(--ink);
+  font-size: 14.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.panel .note-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 5px;
+  font-size: 12.5px;
+}
+.panel .note-meta button {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.note-ask {
+  margin-top: 8px;
+  font-size: 13.5px;
+}
+.note-ask .panel-actions,
+.note-list .panel-actions,
+.note-add .panel-actions {
+  margin-top: 10px;
+}
+.note-list .panel-button,
+.note-ask .panel-button {
+  padding: 8px 15px;
+  font-size: 13.5px;
+}
+/* The field has no frame of its own until the reader is in it, and no handle: it grows with its text. */
+.note-field {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  max-height: 40dvh;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-ui);
+  resize: none;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+.note-field::placeholder {
+  color: var(--muted);
+}
+.note-field:focus {
+  border-color: var(--ink);
+  background: var(--raised);
+}
+.note-add {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.panel .note-problem {
+  margin: 4px 0 12px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.panel .note-problem button {
+  text-decoration: underline;
+}
+.panel .note-limit {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+.panel .panel-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.panel .waiting {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 16px;
+}
+.panel .waiting span {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--rule);
+}
+.panel .waiting span:last-child {
+  width: 60%;
+}
