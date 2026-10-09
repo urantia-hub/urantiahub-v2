@@ -1,6 +1,7 @@
 // A stand-in for the accounts site and for the reader's part of the API, for the browser tests.
 // Each test is one reader: the test sets the cookie `e2e_reader` to an id of its own, and the stand-in
 // keeps the data of each id apart. So the tests can run at the same time.
+import { randomUUID } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 
 type Reader = {
@@ -19,12 +20,25 @@ type Reader = {
   batches: string[][];
   // What the API says of each paper, when the test sets it.
   progress: { paperId: string; readCount: number; totalParagraphs: number }[];
+  // The paragraphs that the reader saved, and the reader's notes.
+  saved: { ref: string; createdAt: string }[];
+  notes: { id: string; ref: string; text: string; createdAt: string }[];
 };
+
+// What the API answers for a paragraph. The text is made up: the tests of the Papers use the fixtures.
+const paragraph = (ref: string) => ({ standardReferenceId: ref, paperId: ref.split(":")[0], paperTitle: `Paper ${ref.split(":")[0]}`, text: `Text of ${ref}.` });
+function listed<T extends { ref: string }>(all: T[], url: URL, shape: (item: T) => object) {
+  const paperId = url.searchParams.get("paperId");
+  const page = Number(url.searchParams.get("page") ?? 0);
+  const limit = Number(url.searchParams.get("limit") ?? 20);
+  const of = paperId ? all.filter((item) => item.ref.startsWith(`${paperId}:`)) : all;
+  return { data: of.slice(page * limit, page * limit + limit).map(shape), pagination: { page, limit, total: of.length } };
+}
 
 const readers = new Map<string, Reader>();
 const reader = (id: string): Reader => {
   let found = readers.get(id);
-  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], batches: [], progress: [] }));
+  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], batches: [], progress: [], saved: [], notes: [] }));
   return found;
 };
 
@@ -104,6 +118,40 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
         return json(200, { data: { marked: refs.length, alreadyRead: 0, total: refs.length } });
       }
       return json(200, { data: r.progress });
+    }
+    if (path === "/me/bookmarks") {
+      if (request.method === "POST") {
+        const ref = String(body.ref);
+        const found = r.saved.find((b) => b.ref === ref) ?? { ref, createdAt: new Date().toISOString() };
+        if (!r.saved.includes(found)) r.saved.push(found);
+        return json(201, { data: { id: randomUUID(), category: null, createdAt: found.createdAt, updatedAt: found.createdAt, paragraph: paragraph(ref) } });
+      }
+      return json(200, listed(r.saved, url, (b) => ({ id: randomUUID(), category: null, createdAt: b.createdAt, updatedAt: b.createdAt, paragraph: paragraph(b.ref) })));
+    }
+    if (path.startsWith("/me/bookmarks/") && request.method === "DELETE") {
+      const ref = decodeURIComponent(path.slice("/me/bookmarks/".length));
+      const before = r.saved.length;
+      r.saved = r.saved.filter((b) => b.ref !== ref);
+      return r.saved.length < before ? { status: 204, body: "" } : json(404, { detail: "Bookmark not found." });
+    }
+    const noteShape = (n: Reader["notes"][number]) => ({ id: n.id, text: n.text, format: "plain", createdAt: n.createdAt, updatedAt: n.createdAt, paragraph: paragraph(n.ref) });
+    if (path === "/me/notes") {
+      if (request.method === "POST") {
+        const made = { id: randomUUID(), ref: String(body.ref), text: String(body.text), createdAt: new Date().toISOString() };
+        r.notes.push(made);
+        return json(201, { data: noteShape(made) });
+      }
+      return json(200, listed(r.notes, url, noteShape));
+    }
+    if (path.startsWith("/me/notes/")) {
+      const found = r.notes.find((n) => n.id === path.slice("/me/notes/".length));
+      if (!found) return json(404, { detail: "Note not found." });
+      if (request.method === "DELETE") {
+        r.notes = r.notes.filter((n) => n !== found);
+        return { status: 204, body: "" };
+      }
+      if (request.method === "PUT") found.text = String(body.text);
+      return json(200, { data: noteShape(found) });
     }
     if (path === "/me/preferences") {
       if (request.method === "PUT") {
