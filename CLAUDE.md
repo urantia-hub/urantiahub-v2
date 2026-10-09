@@ -39,6 +39,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - A change of the pill's job must call `setHidden(false)`. The page scrolls down to follow the voice, so without it a pause hides the controls.
 - The navigator lists the sections of this paper only. "All papers" goes to the contents page, which shows a "Continue" card from `src/reader/last-read.ts` (this browser; for a signed-in reader also the account). The theme control is an icon in the header and a text link in the footer, not in the navigator.
 - Search (`/search`): the server runs both searches through the content gateway and keeps each result (`searchExact`, `searchRelated`). The browser never calls the API, so the security policy has no API host.
+- The search screen has no site header, so it ends with "Browse all papers", a link to the contents page, with and without a search (Kelson, 2026-10-09).
 - A search snippet is a list of text parts from `src/search/snippet.ts`. React renders the marks. No snippet reaches the page as an HTML string.
 - `/search` stays out of each search engine: a `noindex` meta at each index setting, and a `Disallow` in `robots.txt`.
 - Analytics never sends the typed text of a search. Events carry labels and count ranges, and `scrubSearchText` cuts the text from each address that PostHog records.

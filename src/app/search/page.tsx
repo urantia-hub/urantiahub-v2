@@ -82,6 +82,13 @@ async function SearchContent({ searchParams }: Props) {
           {params.all === "exact" ? <AllExact q={q} page={page} /> : <TwoGroups q={q} record={record} />}
         </div>
       )}
+      {/* This screen has no site header, so this is the way to the list for a reader who wants to look around. */}
+      <p className="search-wrap search-browse">
+        <Link href="/papers">
+          <Icon name="list" />
+          Browse all papers
+        </Link>
+      </p>
     </>
   );
 }
