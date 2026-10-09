@@ -4,7 +4,7 @@ import { Activity } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio } from "../../../test/fake-audio";
 import type { Track } from "@/audio/tracks";
-import { resetAccountForTest, startAccount } from "@/account/client";
+import { markSignedOut, resetAccountForTest, startAccount } from "@/account/client";
 import { loadSaved, resetSavedForTest } from "@/account/saved";
 import { resetSyncForTest } from "@/account/sync";
 import { ReadingNav } from "./ReadingNav";
@@ -887,6 +887,52 @@ describe("Note", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  async function withNotesOpen() {
+    document.cookie = "hub_in=1; path=/";
+    resetAccountForTest(true);
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => (url === "/api/auth/session" ? Response.json({ user: { name: "Ana", email: null, key: "k1" } }) : Response.json({ bookmarks: [], notes: [] }))));
+    await act(async () => {
+      await startAccount();
+      await loadSaved("1");
+    });
+    renderNav();
+  }
+
+  // The voice clears the mark of a paragraph when it reaches it. A reader who writes a note must keep the sheet.
+  it("keeps the notes open, with the text in the field, when the voice reaches the marked paragraph", async () => {
+    await withNotesOpen();
+    await userEvent.click(round());
+    await sound("playing");
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Note" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: "Add a note" }), "Half a thought");
+    await sound("ended");
+    await sound("playing");
+    expect(screen.getByRole("dialog", { name: "Your notes on 1:0.2" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Add a note" })).toHaveValue("Half a thought");
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
+  it("closes the notes when the reader is signed out, so that a text cannot go to the next reader", async () => {
+    await withNotesOpen();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Note" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: "Add a note" }), "Mine");
+    act(() => markSignedOut());
+    expect(screen.queryByRole("dialog", { name: /Your notes/ })).toBeNull();
+  });
+
+  it("starts with an empty field on another paragraph", async () => {
+    await withNotesOpen();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Note" }));
+    await userEvent.type(await screen.findByRole("textbox", { name: "Add a note" }), "For 1:0.2");
+    window.history.replaceState(null, "", "#1:1.1");
+    await act(async () => window.dispatchEvent(new HashChangeEvent("hashchange")));
+    expect(await screen.findByRole("dialog", { name: "Your notes on 1:1.1" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Add a note" })).toHaveValue("");
   });
 
   it("opens from the small pen of a paragraph, and marks that paragraph", async () => {

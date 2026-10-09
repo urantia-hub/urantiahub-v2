@@ -117,6 +117,37 @@ describe("a press on Save", () => {
     expect(savedState().bookmarks.has("1:0.3")).toBe(true);
   });
 
+  it("shows what the account holds when two presses both fail", async () => {
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : new Response("", { status: 503 })));
+    await loadSaved("1");
+    const first = toggleBookmark("1:0.3");
+    const second = toggleBookmark("1:0.3");
+    expect([await first, await second]).toEqual([false, false]);
+    // The paragraph was not saved before the presses, and no press reached the account.
+    expect(savedState().bookmarks.has("1:0.3")).toBe(false);
+  });
+
+  it("keeps a finished press when an older answer of the load arrives after it", async () => {
+    let answerLoad: (response: Response) => void = () => {};
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? new Promise<Response>((resolve) => (answerLoad = resolve)) : Response.json({ ok: true })));
+    const loading = loadSaved("1");
+    // The reader removes a paragraph that the load, which started first, still lists. And saves another.
+    expect(await toggleBookmark("1:0.5")).toBe(true);
+    answerLoad(saved(["1:0.3"]));
+    await loading;
+    expect([...savedState().bookmarks].sort()).toEqual(["1:0.3", "1:0.5"]);
+    expect(await toggleBookmark("1:0.3")).toBe(true);
+    expect(await toggleBookmark("1:0.5")).toBe(true);
+    let answerSecond: (response: Response) => void = () => {};
+    vi.stubGlobal("fetch", vi.fn((url: string) => (url.startsWith("/api/me/saved") ? new Promise<Response>((resolve) => (answerSecond = resolve)) : Promise.resolve(Response.json({ ok: true })))));
+    const again = loadSaved("1");
+    expect(await toggleBookmark("1:0.7")).toBe(true);
+    // This answer is older than each press of this page.
+    answerSecond(saved(["1:0.3", "1:0.5"]));
+    await again;
+    expect([...savedState().bookmarks]).toEqual(["1:0.7"]);
+  });
+
   it("does nothing for a reader with no account", async () => {
     const fetch = vi.fn();
     vi.stubGlobal("fetch", fetch);
@@ -182,6 +213,16 @@ describe("a note", () => {
     await loadSaved("1");
     expect(await deleteNote("n1")).toEqual({ ok: false, why: "failed" });
     expect(savedState().notes).toHaveLength(1);
+  });
+
+  it("stays on the page when an older answer of the load arrives after it", async () => {
+    let answerLoad: (response: Response) => void = () => {};
+    await signedIn((url) => (url.startsWith("/api/me/saved") ? new Promise<Response>((resolve) => (answerLoad = resolve)) : Response.json({ ok: true, note: note("n2", "Written during the load.") })));
+    const loading = loadSaved("1");
+    expect(await addNote("1:0.3", "Written during the load.")).toEqual({ ok: true });
+    answerLoad(saved());
+    await loading;
+    expect(savedState().notes.map((n) => n.id)).toEqual(["n1", "n2"]);
   });
 
   it("is not added to the page of another reader", async () => {

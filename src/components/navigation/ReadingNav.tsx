@@ -62,6 +62,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
   const [termsOpen, setTermsOpen] = useState(false);
   const termsOpenRef = useRef(false);
+  const panelRef = useRef(false);
   const moreTile = useRef<HTMLButtonElement>(null);
   const saveTile = useRef<HTMLButtonElement>(null);
   const noteTile = useRef<HTMLButtonElement>(null);
@@ -120,8 +121,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         return;
       }
       // When the voice reaches a marked paragraph, the mark goes and the player shows.
-      // While the reader has the terms of that paragraph open, the mark stays, and so do the terms.
-      setPicked((was) => (was === ref && !termsOpenRef.current ? null : was));
+      // While the reader has the terms or a panel of that paragraph open, the mark stays, and so does the
+      // panel: a reader can be in the middle of a note.
+      setPicked((was) => (was === ref && !termsOpenRef.current && !panelRef.current ? null : was));
       if (ref !== lastVoiceRef.current) {
         // The reader scrolled, but can see the paragraph that just ended: follow again.
         if (!following.current && inView(lastVoiceRef.current)) following.current = true;
@@ -158,6 +160,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   // The terms belong to the marked paragraph. With no mark, there is no sheet.
   if (termsOpen && !picked) setTermsOpen(false);
   if (panel && !picked) setPanel(null);
+  // The notes belong to one reader. After a sign-out, or with another reader, the sheet goes.
+  const readerKey = account.status === "in" ? (account.user?.key ?? null) : null;
+  if (panel === "notes" && !readerKey) setPanel(null);
 
   useEffect(() => mark("data-picked", picked), [picked]);
   useEffect(() => mark("data-voice", sounding ? voiceRef : null), [sounding, voiceRef]);
@@ -307,6 +312,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   useEffect(() => {
     termsOpenRef.current = termsOpen;
+    panelRef.current = panel !== null;
     latest.current = input;
     onRoundRef.current = onRound;
   });
@@ -621,7 +627,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       )}
       {panel === "notes" && picked && (
         <Suspense fallback={null}>
-          <NoteSheet reference={picked} paperId={paper.id} onClose={closePanel} />
+          {/* Another reader, or another paragraph: a new sheet, with an empty field. */}
+          <NoteSheet key={`${readerKey}:${picked}`} reference={picked} paperId={paper.id} onClose={closePanel} />
         </Suspense>
       )}
       {panel === "ask" && picked && (

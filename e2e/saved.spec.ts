@@ -87,6 +87,21 @@ test.describe("Save, for a signed-in reader", () => {
     expect(await page.evaluate(() => `${document.cookie} ${JSON.stringify({ ...localStorage })}`)).not.toContain("1:0.3");
   });
 
+  // Another device removed the paragraph. This page still shows "Saved", and a press must not be stuck.
+  test("a removal of a paragraph that is gone in the account counts as done", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({ saved: [at("1:0.3")] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(savedMark(page, "1:0.3")).toBeVisible();
+    await reader.set({ saved: [] });
+    await tap(page, "1:0.3");
+    await page.getByRole("button", { name: "Saved" }).click();
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByText("This did not save. Try again.")).toHaveCount(0);
+    await expect(savedMark(page, "1:0.3")).toHaveCount(0);
+  });
+
   test("the marks move no text when they arrive", async ({ page, context }) => {
     const reader = await asReader(context);
     await reader.set({ saved: [at("1:0.1"), at("1:0.3"), at("1:1.2")], notes: [noteOf("1:0.3", "One."), noteOf("1:0.3", "Two."), noteOf("1:2.1", "Three.")] });

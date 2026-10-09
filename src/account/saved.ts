@@ -21,6 +21,10 @@ let owner: string | null = null;
 let life = 0;
 // What the account holds for a paragraph, as far as this page knows.
 const held = new Map<string, boolean>();
+// What this page changed in the account, in this life. It is newer than each answer of a load, which
+// can arrive after a change that was asked later.
+const changed = new Map<string, boolean>();
+const changedNotes = new Map<string, SavedNote | null>();
 const chains = new Map<string, Promise<boolean>>();
 const listeners = new Set<() => void>();
 
@@ -41,6 +45,8 @@ function clear() {
   life += 1;
   owner = null;
   held.clear();
+  changed.clear();
+  changedNotes.clear();
   chains.clear();
   if (state !== NONE) set(NONE);
 }
@@ -87,12 +93,17 @@ export async function loadSaved(paperId: string): Promise<void> {
   const body = (await ask(key, `/api/me/saved?paper=${encodeURIComponent(paperId)}`)) as Partial<PaperSaved> | null;
   if (life !== at || state.paperId !== paperId) return;
   if (!body || !Array.isArray(body.bookmarks) || !Array.isArray(body.notes)) return set({ ...state, status: "failed" });
-  // A press on Save during the load is newer than the answer.
   const bookmarks = new Set(body.bookmarks);
-  for (const ref of body.bookmarks) if (!chains.has(ref)) held.set(ref, true);
-  for (const ref of chains.keys()) if (state.bookmarks.has(ref)) bookmarks.add(ref);
-  else bookmarks.delete(ref);
-  set({ status: "ready", paperId, bookmarks, notes: body.notes });
+  for (const ref of body.bookmarks) if (!chains.has(ref) && !changed.has(ref)) held.set(ref, true);
+  // A press on Save, finished or on its way, is newer than the answer.
+  const put = (ref: string, on: boolean) => (on ? bookmarks.add(ref) : bookmarks.delete(ref));
+  for (const [ref, on] of changed) if (ref.startsWith(`${paperId}:`)) put(ref, on);
+  for (const ref of chains.keys()) put(ref, state.bookmarks.has(ref));
+  // The same for a note that this page added, changed, or deleted.
+  const notes = body.notes.filter((note) => !changedNotes.has(note.id));
+  for (const note of changedNotes.values()) if (note && note.ref.startsWith(`${paperId}:`)) notes.push(note);
+  notes.sort((a, b) => a.at.localeCompare(b.at));
+  set({ status: "ready", paperId, bookmarks, notes });
 }
 
 function show(ref: string, on: boolean) {
@@ -110,6 +121,8 @@ export function toggleBookmark(ref: string): Promise<boolean> {
   own(key);
   const at = life;
   const want = !state.bookmarks.has(ref);
+  // Before the first press, the account holds what the page shows.
+  if (!chains.has(ref) && !held.has(ref)) held.set(ref, !want);
   show(ref, want);
   // Two fast presses go to the account in their order.
   const run: Promise<boolean> = (chains.get(ref) ?? Promise.resolve(true)).then(async () => {
@@ -119,7 +132,10 @@ export function toggleBookmark(ref: string): Promise<boolean> {
       : ask(key, `/api/me/bookmarks?ref=${encodeURIComponent(ref)}`, { method: "DELETE" }))) as { ok?: unknown } | null;
     if (life !== at) return false;
     const ok = body?.ok === true;
-    if (ok) held.set(ref, want);
+    if (ok) {
+      held.set(ref, want);
+      changed.set(ref, want);
+    }
     if (chains.get(ref) === run) {
       chains.delete(ref);
       if (!ok) show(ref, held.get(ref) ?? !want);
@@ -152,19 +168,27 @@ async function sendNote(path: string, init: RequestInit, done: (answer: NonNulla
 const without = (id: string) => state.notes.filter((note) => note.id !== id);
 
 export function addNote(ref: string, text: string): Promise<NoteResult> {
-  return sendNote("/api/me/notes", { method: "POST", body: JSON.stringify({ ref, text }) }, (answer) => (answer.note ? [...state.notes, answer.note] : null));
+  return sendNote("/api/me/notes", { method: "POST", body: JSON.stringify({ ref, text }) }, (answer) => {
+    if (!answer.note) return null;
+    changedNotes.set(answer.note.id, answer.note);
+    return [...state.notes.filter((note) => note.id !== answer.note?.id), answer.note];
+  });
 }
 
 export function changeNote(id: string, text: string): Promise<NoteResult> {
   return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ text }) }, (answer) => {
-    const changed = answer.note;
+    const next = answer.note ?? null;
+    changedNotes.set(id, next);
     // A note that is gone in the account leaves the page too.
-    return changed ? state.notes.map((note) => (note.id === id ? changed : note)) : without(id);
+    return next ? state.notes.map((note) => (note.id === id ? next : note)) : without(id);
   });
 }
 
 export function deleteNote(id: string): Promise<NoteResult> {
-  return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "DELETE" }, () => without(id));
+  return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "DELETE" }, () => {
+    changedNotes.set(id, null);
+    return without(id);
+  });
 }
 
 export function resetSavedForTest(): void {

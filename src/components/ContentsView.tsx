@@ -8,7 +8,9 @@ import { PaperMark, ProgressLoader } from "./PaperMark";
 
 // Runs before the first paint. It says which cards this reader gets, so that the page keeps their room
 // and the list below does not move when they arrive. The cards set the same marks after they start.
-const CARDS_INIT_SCRIPT = `try{var d=document.documentElement;if(localStorage.getItem("${LAST_READ_KEY}"))d.dataset.place="";if(${process.env.NEXT_PUBLIC_SIGN_IN === "on"})d.dataset[/(^|; )${IN_COOKIE}=1/.test(document.cookie)?"member":"guest"]=""}catch(e){}`;
+// A signed-in reader gets the room of "Continue" too: the place can come from the account a moment
+// later. Storage can be blocked, so each check stands alone.
+const CARDS_INIT_SCRIPT = `var d=document.documentElement;try{if(localStorage.getItem("${LAST_READ_KEY}"))d.dataset.place=""}catch(e){}try{if(${process.env.NEXT_PUBLIC_SIGN_IN === "on"}){var m=/(^|; )${IN_COOKIE}=1/.test(document.cookie);d.dataset[m?"member":"guest"]="";if(m)d.dataset.place=""}}catch(e){}`;
 
 export function ContentsView() {
   const parts = PARTS.filter((part) => part.id !== "0");

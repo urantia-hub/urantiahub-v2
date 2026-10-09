@@ -55,6 +55,45 @@ test.describe("the contents page does not move when its cards arrive", () => {
     expect(after).toBe(before);
   });
 
+  // The way back from the invitation: the reader signs in on this page. The browser holds no place
+  // then, and the place comes from the account a moment after the page.
+  test("for a signed-in reader whose place comes from the account", async ({ page, context }) => {
+    const id = randomUUID();
+    await context.addCookies([{ name: "e2e_reader", value: id, url: STANDIN }]);
+    await context.request.post(`${STANDIN}/__reader/${id}`, { data: { preferences: { "hub.place": { paperId: "2", sectionId: "3", label: "3. Justice and Righteousness", at: Date.now() - 60_000 } } } });
+    await page.goto("/papers");
+    await page.locator(".toc .invite").getByRole("link", { name: "Sign in" }).click();
+    await page.waitForURL((url) => url.pathname === "/papers");
+    await expect(page.locator(".toc .continue")).toBeVisible();
+    await page.evaluate(() => window.localStorage.removeItem("hub:last-read"));
+    const { before, after } = await jumpBeforeAndAfter(page, ".toc .continue");
+    expect(after).toBe(before);
+  });
+
+  test("for a signed-in reader with no place at all: the room goes when the account answers", async ({ page, context }) => {
+    await context.addCookies([{ name: "e2e_reader", value: randomUUID(), url: STANDIN }]);
+    await page.goto("/papers");
+    await page.locator(".toc .invite").getByRole("link", { name: "Sign in" }).click();
+    await page.waitForURL((url) => url.pathname === "/papers");
+    await expect(page.locator(".toc .saved-way")).toBeVisible();
+    await page.reload();
+    await expect(page.locator(".toc .saved-way")).toBeVisible();
+    const gap = () => page.evaluate(() => document.querySelector(".toc .saved-way")!.getBoundingClientRect().top - document.querySelector(".toc .lead")!.getBoundingClientRect().bottom);
+    await expect.poll(gap).toBeLessThan(40);
+  });
+
+  test("a long title of a paper does not make the card taller than its room", async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem("hub:last-read", JSON.stringify({ paperId: "2", sectionId: "3", label: "3. A very long name of a section that does not fit on one line of a narrow phone at all", at: 1_790_000_000_000 })));
+    const { before, after } = await jumpBeforeAndAfter(page, ".toc .continue");
+    expect(after).toBe(before);
+  });
+
+  test("blocked storage does not stop the invitation from its room", async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(window, "localStorage", { get: () => { throw new Error("blocked"); } }));
+    const { before, after } = await jumpBeforeAndAfter(page, ".toc .invite");
+    expect(after).toBe(before);
+  });
+
   test("a place that names no paper leaves no empty room", async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem("hub:last-read", JSON.stringify({ paperId: "900", sectionId: "1", label: null, at: 5 })));
     await page.goto("/papers");

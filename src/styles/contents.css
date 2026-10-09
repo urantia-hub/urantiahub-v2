@@ -197,6 +197,13 @@ html[data-place] .toc .continue-slot {
   color: var(--accent);
   margin-bottom: 7px;
 }
+/* One line each, so that the card has one height, which the page keeps from its first paint. */
+.toc .continue strong,
+.toc .continue em {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .toc .continue strong {
   display: block;
   font: 500 17px/1.25 var(--font-text);

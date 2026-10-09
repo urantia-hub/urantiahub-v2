@@ -206,7 +206,27 @@ function applyFromAccount(run: () => void) {
   }
 }
 
+// True when the account answered about the place of the reader of this page, or could not. Until then
+// the contents page keeps the room of "Continue" for a signed-in reader.
+let placeKnown = false;
+const placeListeners = new Set<() => void>();
+export const accountPlaceKnown = (): boolean => placeKnown;
+export const accountPlaceUnknown = (): boolean => false;
+export function subscribeToAccountPlace(listener: () => void): () => void {
+  placeListeners.add(listener);
+  return () => placeListeners.delete(listener);
+}
+
 async function pull(): Promise<void> {
+  try {
+    await pullNow();
+  } finally {
+    placeKnown = true;
+    for (const listener of placeListeners) listener();
+  }
+}
+
+async function pullNow(): Promise<void> {
   const key = accountKey();
   if (!key || !ready()) return;
   // What this browser holds can be from the reader before: their session ended, and this reader signed
@@ -293,6 +313,7 @@ export function startSync(): void {
 export const pullFromAccount = pull;
 
 export function resetSyncForTest(): void {
+  placeKnown = false;
   window.clearTimeout(placeTimer);
   placeTimer = undefined;
   placeWaiting = null;
