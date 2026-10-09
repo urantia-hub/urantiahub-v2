@@ -3,7 +3,7 @@ import { AuthError } from "@urantia/auth/server";
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 import { Refused } from "./call";
-import { type Deps, handleCallback, handleReader, handleSession, handleSignOut, handleStart } from "./handlers";
+import { type Deps, handleCallback, handleReader, handleSession, handleSignOut, handleStart, readerKey } from "./handlers";
 import { ASK_COOKIE, IN_COOKIE, PROBLEM_COOKIE, seal, SESSION_COOKIE, type Session, START_COOKIE, unseal, writeStart } from "./session";
 
 const ORIGIN = "https://next.urantiahub.com";
@@ -110,10 +110,11 @@ describe("the return from the accounts site", () => {
 
 describe("who is signed in", () => {
   it("is the reader of the cookie, with no token in the answer", async () => {
-    const response = await handleSession(await request("/api/auth/session", { session }), deps());
+    const response = await handleSession(await request("/api/auth/session", { session: { ...session, accessToken: "ACCESS-TOKEN", refreshToken: "REFRESH-TOKEN" } }), deps());
     const body = await response.text();
-    expect(JSON.parse(body)).toEqual({ enabled: true, user: { name: "Ana", email: "ana@example.com" } });
-    expect(body).not.toContain("a1");
+    expect(JSON.parse(body)).toEqual({ enabled: true, user: { name: "Ana", email: "ana@example.com", key: await readerKey(SECRET, "u1") } });
+    expect(body).not.toContain("u1");
+    expect(body).not.toMatch(/ACCESS-TOKEN|REFRESH-TOKEN/);
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
@@ -157,6 +158,30 @@ describe("a sign-out", () => {
 
 describe("a request for the reader's data", () => {
   const run = vi.fn(async (token: string) => ({ token }));
+  const mine = async () => ({ "x-hub-reader": await readerKey(SECRET, "u1") });
+
+  // A page can be open from before a sign-out, in a second tab. Another person can be signed in now.
+  // The page says which reader it believes is signed in, and the server refuses when that is not so:
+  // one reader's place must never go into another reader's account.
+  it("is refused when the page speaks for another reader than the session, or for none", async () => {
+    const calls = vi.fn(async () => ({}));
+    const other = { "x-hub-reader": await readerKey(SECRET, "u2") };
+    for (const headers of [other, {}, { "x-hub-reader": "" }]) {
+      const read = await handleReader(await request("/api/me/reader", { session, headers }), deps(), calls);
+      expect(read.status).toBe(409);
+      expect(await read.json()).toEqual({ changed: true });
+      const write = await handleReader(await request("/api/me/place", { session, method: "PUT", body: {}, headers: { ...headers, origin: ORIGIN } }), deps(), calls);
+      expect(write.status).toBe(409);
+    }
+    expect(calls).not.toHaveBeenCalled();
+  });
+
+  it("gives each reader another key, and never the id itself", async () => {
+    const key = await readerKey(SECRET, "u1");
+    expect(key).toMatch(/^[0-9a-f]{24}$/);
+    expect(key).not.toBe(await readerKey(SECRET, "u2"));
+    expect(key).not.toBe(await readerKey(`${SECRET}x`, "u1"));
+  });
 
   it("needs a session", async () => {
     const response = await handleReader(await request("/api/me/reader"), deps(), run);
@@ -165,7 +190,7 @@ describe("a request for the reader's data", () => {
   });
 
   it("answers with the data, and never with a cache", async () => {
-    const response = await handleReader(await request("/api/me/reader", { session }), deps(), run);
+    const response = await handleReader(await request("/api/me/reader", { session, headers: await mine() }), deps(), run);
     expect(await response.json()).toEqual({ token: "a1" });
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(cookieOf(response, SESSION_COOKIE)).toBeUndefined();
@@ -173,18 +198,18 @@ describe("a request for the reader's data", () => {
 
   it("saves the new session after a refresh", async () => {
     const old = { ...session, expiresAt: "2000-01-01T00:00:00.000Z" };
-    const response = await handleReader(await request("/api/me/reader", { session: old }), deps(), run);
+    const response = await handleReader(await request("/api/me/reader", { session: old, headers: await mine() }), deps(), run);
     expect(await response.json()).toEqual({ token: "a2" });
     const kept = await unseal(cookieOf(response, SESSION_COOKIE)?.value, SECRET);
     expect(kept).toMatchObject({ accessToken: "a2", refreshToken: "r2", user: { name: "Ana" } });
   });
 
   it("signs the reader out when the API refuses, and keeps the reader in for an outage", async () => {
-    const refused = await handleReader(await request("/api/me/reader", { session }), deps({ refresh: async () => { throw new AuthError("refused", "no"); } }), async () => { throw new Refused(); });
+    const refused = await handleReader(await request("/api/me/reader", { session, headers: await mine() }), deps({ refresh: async () => { throw new AuthError("refused", "no"); } }), async () => { throw new Refused(); });
     expect(refused.status).toBe(401);
     expect(cookieOf(refused, SESSION_COOKIE)?.maxAge).toBe(0);
     expect(cookieOf(refused, IN_COOKIE)?.maxAge).toBe(0);
-    const down = await handleReader(await request("/api/me/reader", { session }), deps(), async () => { throw new Error("500"); });
+    const down = await handleReader(await request("/api/me/reader", { session, headers: await mine() }), deps(), async () => { throw new Error("500"); });
     expect(down.status).toBe(503);
     expect(cookieOf(down, SESSION_COOKIE)).toBeUndefined();
   });
@@ -196,6 +221,6 @@ describe("a request for the reader's data", () => {
     expect((await handleReader(await request("/api/me/place", { session, method: "PUT", body: {} }), d, calls)).status).toBe(403);
     expect((await handleReader(await request("/api/me/place", { session, method: "PUT", body: {}, headers: { origin: "https://evil.example" } }), d, calls)).status).toBe(403);
     expect(calls).not.toHaveBeenCalled();
-    expect((await handleReader(await request("/api/me/place", { session, method: "PUT", body: {}, headers: { origin: ORIGIN } }), d, calls)).status).toBe(200);
+    expect((await handleReader(await request("/api/me/place", { session, method: "PUT", body: {}, headers: { origin: ORIGIN, ...(await mine()) } }), d, calls)).status).toBe(200);
   });
 });

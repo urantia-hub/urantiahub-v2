@@ -178,6 +178,30 @@ test.describe("a browser that two people use", () => {
     expect((await second.seen()).writes).toBe(0);
   });
 
+  // A tab from before the sign-out can still be open. It speaks for the first reader.
+  test("refuses a write from a page that still speaks for the reader before", async ({ page, context }) => {
+    await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    const firstKey = (await (await page.request.get("/api/auth/session")).json()).user.key as string;
+    await sheet(page).getByRole("button", { name: "Sign out" }).click();
+    await expect(sheet(page).getByRole("link", { name: /^Sign in/ })).toBeVisible();
+
+    const second = await asReader(context);
+    await sheet(page).getByRole("link", { name: /^Sign in/ }).click();
+    await page.waitForURL((url) => url.pathname === PAPER);
+    await expect.poll(async () => (await second.seen()).preferences["hub.place"]?.paperId).toBe("1");
+    const writes = (await second.seen()).writes;
+
+    const status = await page.evaluate(async (key) => {
+      const place = { paperId: "5", sectionId: "1", label: null, at: Date.now() + 1000 };
+      return (await fetch("/api/me/place", { method: "PUT", headers: { "content-type": "application/json", "x-hub-reader": key }, body: JSON.stringify(place) })).status;
+    }, firstKey);
+    expect(status).toBe(409);
+    expect((await second.seen()).writes).toBe(writes);
+    expect((await second.seen()).preferences["hub.place"].paperId).toBe("1");
+  });
+
   test("says that the reader is still signed in when the sign-out does not reach the server", async ({ page, context }) => {
     await asReader(context);
     await page.goto(PAPER);

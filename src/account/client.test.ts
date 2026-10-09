@@ -25,7 +25,7 @@ describe("who is signed in, in the browser", () => {
     const started = startAccount();
     expect(accountState()).toEqual({ status: "in", user: null });
     await started;
-    expect(accountState()).toEqual({ status: "in", user: { name: "Ana", email: "ana@example.com" } });
+    expect(accountState()).toEqual({ status: "in", user: { name: "Ana", email: "ana@example.com", key: null } });
   });
 
   it("is no one when the server says so, and stays as it is when the server does not answer", async () => {
@@ -66,7 +66,7 @@ describe("who is signed in, in the browser", () => {
   // still signed in, and the page must not say something else: on a shared computer that is a risk.
   it("stays signed in when the sign-out did not reach the server, or the server refused it", async () => {
     document.cookie = "hub_in=1; path=/";
-    const user = { name: null, email: "a@b.c" };
+    const user = { name: null, email: "a@b.c", key: "k1" };
     const fetch = vi.fn(async () => Response.json({ enabled: true, user }));
     vi.stubGlobal("fetch", fetch);
     await startAccount();

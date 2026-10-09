@@ -3,7 +3,8 @@
 
 import { IN_COOKIE, PROBLEM_COOKIE } from "./cookies";
 
-export type AccountUser = { name: string | null; email: string | null };
+// `key` names the reader for the server. See `readerKey` in handlers.ts.
+export type AccountUser = { name: string | null; email: string | null; key: string | null };
 export type AccountState =
   // "off": the sign-in is not set up on this site. Nothing of it shows.
   | { status: "off" }
@@ -44,12 +45,21 @@ export function startAccount(): Promise<void> {
       const response = await fetch("/api/auth/session", { headers: { accept: "application/json" } });
       if (!response.ok) return;
       const body = (await response.json()) as { user: AccountUser | null };
-      set(body.user ? { status: "in", user: { name: body.user.name ?? null, email: body.user.email ?? null } } : OUT);
+      set(body.user ? { status: "in", user: { name: body.user.name ?? null, email: body.user.email ?? null, key: typeof body.user.key === "string" ? body.user.key : null } } : OUT);
     } catch {
       // No answer. The reader stays as the mark says; the next page load asks again.
     }
   })();
   return started;
+}
+
+// The key of the reader that this page believes is signed in.
+export const accountKey = (): string | null => (state.status === "in" ? (state.user?.key ?? null) : null);
+
+// Asks again who is signed in: another tab signed out, or another reader signed in.
+export function refreshAccount(): Promise<void> {
+  started = null;
+  return startAccount();
 }
 
 // The server said that the session is gone (the reader removed the access, or deleted the account).

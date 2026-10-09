@@ -35,6 +35,13 @@ export type Deps = {
 };
 
 const enabled = (deps: Deps) => deps.secret.length >= 32;
+
+// A name for the signed-in reader that a page can hold: not the id, and not a secret. A page sends it
+// with each request for the reader's data, so the server knows which reader the page speaks for.
+export async function readerKey(secret: string, userId: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`hub-reader-key:${secret}:${userId}`));
+  return Array.from(new Uint8Array(digest).slice(0, 12), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 const NO_STORE = { "cache-control": "no-store" };
 
 function redirect(deps: Deps, path: string): NextResponse {
@@ -115,7 +122,7 @@ export async function handleCallback(request: NextRequest, deps: Deps): Promise<
 export async function handleSession(request: NextRequest, deps: Deps): Promise<NextResponse> {
   const session = await readSession(request, deps);
   const response = NextResponse.json(
-    { enabled: enabled(deps), user: session ? { name: session.user.name, email: session.user.email } : null },
+    { enabled: enabled(deps), user: session ? { name: session.user.name, email: session.user.email, key: await readerKey(deps.secret, session.user.id) } : null },
     { headers: NO_STORE },
   );
   // The mark of a sign-in that is gone (the cookie ended, or the secret changed) must go too.
@@ -143,6 +150,9 @@ export async function handleReader<T>(request: NextRequest, deps: Deps, run: (ac
   if (request.method !== "GET" && !isSameOrigin(request)) return refuse(403, { detail: "Not from this site." });
   const session = await readSession(request, deps);
   if (!session) return refuse(401, { signedOut: true });
+  // A page from before a sign-out can still be open, in a second tab, while another reader is signed in.
+  // One reader's place must never go into another reader's account.
+  if (request.headers.get("x-hub-reader") !== (await readerKey(deps.secret, session.user.id))) return refuse(409, { changed: true });
 
   const called = await callForReader(session, {
     run,

@@ -5,12 +5,12 @@
 import { applyTextSize, currentTextSize, subscribeToTextSize } from "@/lib/text-size";
 import { applyTheme, currentTheme, subscribeToTheme } from "@/lib/theme";
 import { clearLastRead, readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
-import { accountState, markSignedOut } from "./client";
+import { accountKey, markSignedOut, refreshAccount } from "./client";
 import { newer, parsePlace, parseSettings, type Place, type Settings } from "./reader-data";
 
 // When the reader last changed a setting in this browser.
 export const SETTINGS_AT_KEY = "hub:reader-at";
-// Set while the place and the settings in this browser are those of a signed-in reader.
+// While the place and the settings in this browser are those of a signed-in reader: the key of that reader.
 export const ACCOUNT_DATA_KEY = "hub:account-data";
 const PLACE_EVERY_MS = 20_000;
 
@@ -20,8 +20,12 @@ let applying = false;
 let placeSentAt = 0;
 let placeTimer: number | undefined;
 let placeWaiting: Place | null = null;
+// Goes up each time the reader's data is removed from this browser. An answer that was on its way
+// before that is for a reader who is gone, and is dropped.
+let epoch = 0;
 
-const signedIn = () => accountState().status === "in";
+// A request can go out only when the page knows which reader it speaks for.
+const ready = () => accountKey() !== null;
 
 function settingsAt(): number {
   try {
@@ -42,10 +46,20 @@ function stampSettings(at: number) {
   }
 }
 
+// The server says that the session is not this page's reader any more: another tab signed out, or
+// another reader signed in. Nothing of the reader before stays, and the page asks who is here now.
+async function readerChanged(): Promise<void> {
+  forgetAccountData();
+  await refreshAccount();
+}
+
 async function send(path: string, value: unknown, keepalive = false): Promise<void> {
+  const key = accountKey();
+  if (!key) return;
   try {
-    const response = await fetch(path, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(value), keepalive });
+    const response = await fetch(path, { method: "PUT", headers: { "content-type": "application/json", "x-hub-reader": key }, body: JSON.stringify(value), keepalive });
     if (response.status === 401) markSignedOut();
+    if (response.status === 409) await readerChanged();
   } catch {
     // No connection. The browser holds the value, and the next change or visit sends it.
   }
@@ -56,7 +70,7 @@ function sendPlaceNow(keepalive = false) {
   placeTimer = undefined;
   const place = placeWaiting;
   placeWaiting = null;
-  if (!place || !signedIn()) return;
+  if (!place || !ready()) return;
   placeSentAt = Date.now();
   void send("/api/me/place", place, keepalive);
 }
@@ -70,7 +84,8 @@ function queuePlace(place: Place) {
 }
 
 function onPlace() {
-  if (applying || !signedIn()) return;
+  // Before the server said who is signed in, the place only stays in the browser. The pull sends it.
+  if (applying || !ready()) return;
   const place = readLastRead();
   if (place && place.at > 0) queuePlace(place);
 }
@@ -79,12 +94,12 @@ function onSetting() {
   if (applying) return;
   const at = Date.now();
   stampSettings(at);
-  if (signedIn()) void send("/api/me/settings", { ...browserSettings(), at });
+  if (ready()) void send("/api/me/settings", { ...browserSettings(), at });
 }
 
-export function markAccountData(): void {
+export function markAccountData(key: string): void {
   try {
-    window.localStorage.setItem(ACCOUNT_DATA_KEY, "1");
+    window.localStorage.setItem(ACCOUNT_DATA_KEY, key);
   } catch {
     // Storage is blocked. Then nothing of the reader is kept here.
   }
@@ -95,6 +110,7 @@ export function markAccountData(): void {
 // first person's place must not show to them or go into their account. The account still holds it.
 // The theme and the text size stay: they are not personal, and the page must not flash.
 export function forgetAccountData(): void {
+  epoch += 1;
   window.clearTimeout(placeTimer);
   placeTimer = undefined;
   placeWaiting = null;
@@ -124,18 +140,34 @@ function applyFromAccount(run: () => void) {
 }
 
 async function pull(): Promise<void> {
+  const key = accountKey();
+  if (!key) return;
+  // What this browser holds can be from the reader before: their session ended, and this reader signed
+  // in with no page load in between. It is not this reader's, so it goes first.
+  let owner: string | null = null;
+  try {
+    owner = window.localStorage.getItem(ACCOUNT_DATA_KEY);
+  } catch {
+    // Storage is blocked: nothing is kept here.
+  }
+  if (owner !== null && owner !== key) forgetAccountData();
+  // The mark comes before the request: a pull that fails still leaves it, and a sign-out cleans up by it.
+  markAccountData(key);
+  const at = epoch;
+  const stale = () => epoch !== at || accountKey() !== key;
+
   let body: { place?: unknown; settings?: unknown };
   try {
-    const response = await fetch("/api/me/reader", { headers: { accept: "application/json" } });
+    const response = await fetch("/api/me/reader", { headers: { accept: "application/json", "x-hub-reader": key } });
     if (response.status === 401) return markSignedOut();
+    if (response.status === 409) return readerChanged();
     if (!response.ok) return;
     body = (await response.json()) as typeof body;
   } catch {
     return;
   }
-
-  // From here on, what this browser holds is this reader's.
-  markAccountData();
+  // The reader was signed out, or changed, while the answer was on its way.
+  if (stale()) return;
 
   const place = newer<Place>(readLastRead(), parsePlace(body.place));
   if (place.from === "account" && place.value) {
@@ -166,6 +198,19 @@ export function startSync(): void {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") sendPlaceNow(true);
   });
+  // Another tab signed out, or another reader signed in there: this tab asks who is here now.
+  window.addEventListener("storage", (event) => {
+    if (event.key === ACCOUNT_DATA_KEY && event.newValue !== accountKey()) void refreshAccount();
+  });
 }
 
 export const pullFromAccount = pull;
+
+export function resetSyncForTest(): void {
+  window.clearTimeout(placeTimer);
+  placeTimer = undefined;
+  placeWaiting = null;
+  placeSentAt = 0;
+  applying = false;
+  epoch = 0;
+}
