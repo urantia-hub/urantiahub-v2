@@ -379,6 +379,66 @@ test.describe("when the service has a problem", () => {
   });
 });
 
+test.describe("what the reader saved", () => {
+  // The call of a page of this site, for the reader who is signed in.
+  const call = (page: Page, method: string, path: string, body?: object) =>
+    page.evaluate(
+      async ([method, path, body]) => {
+        const key = ((await (await fetch("/api/auth/session")).json()) as { user: { key: string } }).user.key;
+        const response = await fetch(path as string, { method: method as string, headers: { "content-type": "application/json", "x-hub-reader": key }, body: body ? JSON.stringify(body) : undefined });
+        return { status: response.status, body: (await response.json()) as Record<string, unknown> };
+      },
+      [method, path, body] as const,
+    );
+
+  test("a paragraph and its notes go to the account and come back", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+
+    expect((await call(page, "POST", "/api/me/bookmarks", { ref: "1:0.3" })).body).toEqual({ ok: true });
+    const added = await call(page, "POST", "/api/me/notes", { ref: "1:0.3", text: " A first note. " });
+    const note = added.body.note as { id: string; text: string };
+    expect(note.text).toBe("A first note.");
+    await call(page, "POST", "/api/me/notes", { ref: "2:0.1", text: "On another paper." });
+
+    const inPaper = (await call(page, "GET", "/api/me/saved?paper=1")).body;
+    expect(inPaper.bookmarks).toEqual(["1:0.3"]);
+    expect(inPaper.notes).toEqual([expect.objectContaining({ id: note.id, ref: "1:0.3", text: "A first note." })]);
+    const all = (await call(page, "GET", "/api/me/saved")).body as { entries: { ref: string; savedAt: string | null }[]; cut: boolean };
+    expect(all.entries.map((entry) => [entry.ref, entry.savedAt !== null])).toEqual([["1:0.3", true], ["2:0.1", false]]);
+
+    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Changed." })).body).toMatchObject({ ok: true, note: { text: "Changed." } });
+    expect((await call(page, "DELETE", `/api/me/notes/${note.id}`)).body).toEqual({ ok: true });
+    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Too late." })).body).toEqual({ ok: false, why: "gone" });
+    expect((await call(page, "DELETE", "/api/me/bookmarks?ref=1:0.3")).body).toEqual({ ok: true });
+    const seen = await reader.seen();
+    expect(seen.saved).toEqual([]);
+    expect(seen.notes.map((n: { text: string }) => n.text)).toEqual(["On another paper."]);
+  });
+
+  test("a value that is not a paragraph or a note does not reach the API", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    expect((await call(page, "POST", "/api/me/bookmarks", { ref: "900:1.1" })).body).toEqual({ ok: false, why: "bad" });
+    expect((await call(page, "POST", "/api/me/notes", { ref: "1:0.3", text: "x".repeat(5001) })).body).toEqual({ ok: false, why: "bad" });
+    expect((await call(page, "DELETE", "/api/me/notes/..%2Fbookmarks")).body).toEqual({ ok: false, why: "bad" });
+    const seen = await reader.seen();
+    expect([seen.saved, seen.notes]).toEqual([[], []]);
+  });
+
+  test("an outage says so and keeps the reader signed in", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await page.goto(PAPER);
+    await signIn(page);
+    await reader.set({ mode: "down" });
+    expect((await call(page, "POST", "/api/me/bookmarks", { ref: "1:0.3" })).status).toBe(503);
+    await reader.set({ mode: "ok" });
+    expect((await call(page, "POST", "/api/me/bookmarks", { ref: "1:0.3" })).status).toBe(200);
+  });
+});
+
 test.describe("the account routes", () => {
   test("answer nothing of a reader to a request with no session", async ({ request }) => {
     expect((await request.get("/api/me/reader")).status()).toBe(401);
