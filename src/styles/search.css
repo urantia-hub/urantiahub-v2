@@ -63,7 +63,26 @@ body:has(.search:not([style*="display: none"])) .site-header {
   padding: 0 18px;
 }
 .search-wrap.results {
+  padding-bottom: 28px;
+}
+.search-browse {
+  margin-top: 22px;
   padding-bottom: 80px;
+}
+.search-browse a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font: 500 14px/1 var(--font-ui);
+  text-decoration: none;
+}
+.search-browse a:hover {
+  color: var(--ink);
+}
+.search-browse .icon {
+  width: 18px;
+  height: 18px;
 }
 .search-label {
   display: flex;

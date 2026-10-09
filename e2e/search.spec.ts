@@ -22,6 +22,19 @@ test("a paper page header has icons only, and the search icon opens the search s
   await expect(page.getByRole("banner")).toBeHidden();
 });
 
+// The search screen has no site header. A reader who wants to look around needs a way to the list.
+test("the search page links to the list of all papers, with and without a search", async ({ page }) => {
+  await openSearch(page, "/search");
+  const browse = page.getByRole("link", { name: "Browse all papers" });
+  await expect(browse).toBeVisible();
+  await expect(browse).toHaveAttribute("href", "/papers");
+  await openSearch(page, "/search?q=thought%20adjuster");
+  await expect(page.getByRole("link", { name: "Browse all papers" })).toBeVisible();
+  await page.getByRole("link", { name: "Browse all papers" }).click();
+  await expect(page).toHaveURL("/papers");
+  await expect(page.getByRole("heading", { level: 1, name: "Papers" })).toBeVisible();
+});
+
 test("other pages keep their links and gain the search icon", async ({ page }) => {
   await page.goto("/about");
   const header = page.getByRole("banner");
