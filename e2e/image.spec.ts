@@ -35,7 +35,6 @@ test("Image makes a 4 by 5 image of the paragraph, with its reference and the na
   await expect(maker(page, "1:0.3").getByRole("img")).toHaveAccessibleName(/^Image with the text: The enlightened worlds/);
   // The paragraph stays marked behind the maker.
   await expect(page.locator('[id="1:0.3"]')).toHaveAttribute("data-picked", "");
-  await page.screenshot({ path: `/private/tmp/claude-501/-Users-kelsonic-Desktop-business-urantia/d0387052-dd1d-49d5-9cfd-4b3e90e07ab6/scratchpad/m-${test.info().project.name}.png` });
 });
 
 test("the reader chooses the look and the sentences", async ({ page }) => {
