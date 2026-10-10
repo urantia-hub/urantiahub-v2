@@ -175,6 +175,12 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
           Show {list.length - shown.length} more
         </button>
       )}
+      {state.status === "ready" && (
+        <Link className="parallel-study" href={`/parallels?ref=${encodeURIComponent(reference)}`} prefetch={false}>
+          Study these parallels
+          <Icon name="paperAfter" />
+        </Link>
+      )}
       {state.status === "ready" && <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. A parallel is not a source.</p>}
     </div>
     </>,

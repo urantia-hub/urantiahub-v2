@@ -155,10 +155,12 @@ describe("analytics", () => {
         $current_url: "https://next.urantiahub.com/saved?ref=1%3A0.3",
         $referrer: "https://other.test/go?to=https%3A%2F%2Fx.test%2Fsaved%3Fref%3D1%253A0.3&x=1",
         $pathname: "/saved",
+        $prev: "https://next.urantiahub.com/parallels?ref=12:4.5",
       },
       $set_once: { $initial_current_url: "https://next.urantiahub.com/saved?ref=12:4.5#top" },
     });
     expect(out.properties.$current_url).toBe("https://next.urantiahub.com/saved");
+    expect(out.properties.$prev).toBe("https://next.urantiahub.com/parallels");
     expect(out.properties.$referrer).toBe("https://other.test/go?to=https%3A%2F%2Fx.test%2Fsaved&x=1");
     expect(out.$set_once.$initial_current_url).toBe("https://next.urantiahub.com/saved#top");
     expect(JSON.stringify(out)).not.toMatch(/0\.3|4\.5/);

@@ -25,6 +25,7 @@ export type AnalyticsEvents = {
   // The passages near in meaning to a paragraph. Counts and labels only: no reference, no text.
   parallels_opened: { paper_id: string; outside: "0" | "1-5" | "6+"; papers: "0" | "1-5" | "6+" };
   parallels_tab: { tab: "outside" | "papers" };
+  parallels_study_opened: { paper_id: string };
   parallel_opened: { kind: "outside" | "papers" };
   // An image of a paragraph. The paper and the look only.
   image_opened: { paper_id: string };
@@ -67,7 +68,7 @@ type Cut = (text: string) => string;
 // A search address in plain form, and inside another address in encoded form. The same for the Saved
 // page, whose address can name one paragraph: /saved?ref=1:0.3.
 const cutSearchText: Cut = (text) =>
-  text.replace(/\/(search|saved)\?[^#\s]*/g, "/$1").replace(/%2F(search|saved)%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2F$1");
+  text.replace(/\/(search|saved|parallels)\?[^#\s]*/g, "/$1").replace(/%2F(search|saved|parallels)%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2F$1");
 
 // The address of a paper can name a paragraph after "#". A count of a saved thing holds the paper only.
 // The same for the parallels of a paragraph: their events promise no reference.

@@ -8,10 +8,11 @@ const track = vi.hoisted(() => vi.fn());
 vi.mock("@/analytics", () => ({ track }));
 
 const LONG = "A long passage of another work. ".repeat(12).trim();
-const outside = (ref: string, percent: number, more: Partial<Parallel> = {}): Parallel => ({ ref, source: "World English Bible", text: `Text of ${ref}.`, percent, href: `https://ebible.org/eng-web/${ref}`, ...more });
+const outside = (ref: string, percent: number, more: Partial<Parallel> = {}): Parallel => ({ ref, work: "Bible", source: "World English Bible", text: `Text of ${ref}.`, percent, href: `https://ebible.org/eng-web/${ref}`, ...more });
 const ANSWER: ParallelsAnswer = {
+  text: "The paragraph.",
   outside: [outside("Bhagavad Gita 7.22-24", 46, { source: "Besant, 1922", text: LONG, href: "https://en.wikisource.org/wiki/x#:~:text=He" }), outside("Tobit 13:4", 42), outside("Sirach 18:1", 41, { href: null })],
-  papers: [{ ref: "56:9.10", source: "Universal Unity", text: "And God the Father is the personal source.", percent: 73, href: "/papers/paper-56-universal-unity#56:9.10" }],
+  papers: [{ ref: "56:9.10", work: "The Urantia Papers", source: "Universal Unity", text: "And God the Father is the personal source.", percent: 73, href: "/papers/paper-56-universal-unity#56:9.10" }],
 };
 const fetchMock = vi.fn();
 const answers = (body: unknown, status = 200) => fetchMock.mockImplementation(async () => Response.json(body, { status }));
@@ -42,6 +43,7 @@ describe("the parallels of a paragraph", () => {
     expect(first).toHaveTextContent("Besant, 1922");
     expect(first).toHaveTextContent("46%");
     expect(sheet()).toHaveTextContent("A parallel is not a source.");
+    expect(within(sheet()).getByRole("link", { name: "Study these parallels" })).toHaveAttribute("href", "/parallels?ref=1%3A0.3");
   });
 
   it("shows the passages of the Papers in the other half", async () => {
@@ -74,7 +76,7 @@ describe("the parallels of a paragraph", () => {
 
   // A link to the same page with another "#" sends no event that the controls of the paper hear.
   it("tells the controls of the paper which paragraph a passage of the Papers opens", async () => {
-    answers({ outside: [], papers: [{ ref: "1:0.1", source: "The Universal Father", text: "THE Universal Father.", percent: 72, href: "/papers/paper-1-the-universal-father#1:0.1" }] });
+    answers({ outside: [], papers: [{ ref: "1:0.1", work: "The Urantia Papers", source: "The Universal Father", text: "THE Universal Father.", percent: 72, href: "/papers/paper-1-the-universal-father#1:0.1" }] });
     open();
     await userEvent.click(await within(sheet()).findByRole("button", { name: "In the Papers" }));
     within(sheet()).getByRole("link", { name: /^Open/ }).addEventListener("click", (event) => event.preventDefault());
