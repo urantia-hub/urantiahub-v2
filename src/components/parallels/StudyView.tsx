@@ -8,7 +8,7 @@ import { Icon } from "@/components/icons";
 import { Score } from "@/components/parallels/Score";
 import { paperById, paperPath } from "@/content/paper-index";
 import { WORKS } from "@/parallels-works";
-import type { Parallel, ParallelsAnswer } from "@/server/parallels";
+import type { Parallel, ParallelsAnswer, Work } from "@/server/parallels";
 
 type State = { for: string; status: "loading" | "failed" } | { for: string; status: "ready"; answer: ParallelsAnswer };
 const REFERENCE = /^(\d{1,3}):\d{1,2}\.\d{1,3}$/;
@@ -60,7 +60,11 @@ export function StudyView() {
   const all: Parallel[] = state.status === "ready" ? [...state.answer.outside, ...state.answer.papers].sort((a, b) => b.percent - a.percent) : [];
   // Each work that the Hub compares, the one with the most passages first. A work with none is in the list, not in use.
   const count = (work: string) => all.filter((p) => p.work === work).length;
-  const listed = [...new Set<string>([...WORKS, ...all.map((p) => p.work)])].map((work) => ({ work, n: count(work) })).sort((a, b) => b.n - a.n || a.work.localeCompare(b.work));
+  // An answer that a cache kept from before has no list of works: then the names that this code knows.
+  const known: Work[] = state.status === "ready" && state.answer.works?.length ? state.answer.works : WORKS.map((work) => ({ work, source: "", href: null }));
+  const listed = [...known, ...[...new Set(all.map((p) => p.work))].filter((work) => !known.some((k) => k.work === work)).map((work) => ({ work, source: "", href: null }))]
+    .map((w) => ({ ...w, n: count(w.work) }))
+    .sort((a, b) => b.n - a.n || a.work.localeCompare(b.work));
   const works = listed.filter((w) => w.n > 0).map((w) => w.work);
   const shown = all.filter((p) => !off.has(p.work) && p.percent >= strength);
   const worksName = off.size === 0 ? "All works" : works.length - off.size === 1 ? (works.find((w) => !off.has(w)) ?? "") : `${works.length - off.size} works`;
@@ -105,12 +109,23 @@ export function StudyView() {
                   <Icon name="paperAfter" />
                 </summary>
                 <div role="group" aria-label="Works">
-                  {listed.map(({ work, n }) => (
-                    <label key={work} className={n === 0 ? "none" : undefined}>
-                      <input type="checkbox" disabled={n === 0} checked={n > 0 && !off.has(work)} onChange={() => setOff((was) => new Set(was.has(work) ? [...was].filter((w) => w !== work) : [...was, work]))} />
-                      <span>{work}</span>
-                      <small aria-label={n === 1 ? "1 passage" : `${n} passages`}>{n}</small>
-                    </label>
+                  {listed.map(({ work, source, href, n }) => (
+                    <div key={work} className={n === 0 ? "work none" : "work"}>
+                      <label>
+                        <input type="checkbox" disabled={n === 0} checked={n > 0 && !off.has(work)} onChange={() => setOff((was) => new Set(was.has(work) ? [...was].filter((w) => w !== work) : [...was, work]))} />
+                        <span>
+                          {work}
+                          {source && <small>{source}</small>}
+                        </span>
+                      </label>
+                      <b aria-label={n === 1 ? "1 passage" : `${n} passages`}>{n}</b>
+                      {/* The page of the source, so a reader can see each text that the Hub compares. */}
+                      {href !== null && work !== "The Urantia Papers" && (
+                        <a href={href} target="_blank" rel="noopener noreferrer" aria-label={`The source of ${work} (opens in a new tab)`} title="Open the source">
+                          <Icon name="external" />
+                        </a>
+                      )}
+                    </div>
                   ))}
                 </div>
               </details>

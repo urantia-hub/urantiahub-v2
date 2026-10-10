@@ -13,6 +13,7 @@ const ANSWER: ParallelsAnswer = {
   text: "The paragraph.",
   outside: [outside("Bhagavad Gita 7.22-24", 46, { source: "Besant, 1922", text: LONG, href: "https://en.wikisource.org/wiki/x#:~:text=He" }), outside("Tobit 13:4", 42), outside("Sirach 18:1", 41, { href: null })],
   weaker: [],
+  works: [],
   papers: [{ ref: "56:9.10", work: "The Urantia Papers", source: "Universal Unity", text: "And God the Father is the personal source.", percent: 73, href: "/papers/paper-56-universal-unity#56:9.10" }],
 };
 const fetchMock = vi.fn();

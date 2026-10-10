@@ -246,15 +246,22 @@ test.describe("the study page", () => {
     const menu = page.locator(".study-works");
     await expect(menu.locator("summary")).toHaveText("All works");
     await menu.locator("summary").click();
-    await expect(menu.locator("label")).toHaveCount(11);
-    const counts = await menu.locator("label small").evaluateAll((all) => all.map((el) => Number(el.textContent)));
+    await expect(menu.locator(".work")).toHaveCount(11);
+    const counts = await menu.locator(".work b").evaluateAll((all) => all.map((el) => Number(el.textContent)));
     expect(counts).toEqual([...counts].sort((a, b) => b - a));
     expect(counts.reduce((a, b) => a + b, 0)).toBe(first.length);
     // A work with no passage for this paragraph is in the list, gray, and not in use.
-    const none = menu.locator("label.none");
+    const none = menu.locator(".work.none");
     expect(await none.count()).toBeGreaterThan(0);
     await expect(none.first().locator("input")).toBeDisabled();
-    const names = await menu.locator("label:not(.none)").allTextContents();
+    // Each work but the Papers has a link to the page of its source, on a site of the list.
+    const sources = await menu.locator(".work a").evaluateAll((all) => all.map((a) => [a.getAttribute("href")!, a.getAttribute("target")]));
+    expect(sources).toHaveLength(10);
+    for (const [href, target] of sources) {
+      expect(href).toMatch(/^https:\/\/(ebible\.org|en\.wikisource\.org|www\.gutenberg\.org)\//);
+      expect(target).toBe("_blank");
+    }
+    const names = await menu.locator(".work:not(.none) label").allTextContents();
     await menu.getByLabel("The Urantia Papers").uncheck();
     expect(Math.max(...(await scores()))).toBeLessThan(60);
     await expect(menu.locator("summary")).toHaveText(`${names.length - 1} works`);

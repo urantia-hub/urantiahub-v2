@@ -1,6 +1,7 @@
 import { ParagraphNotFound } from "@/content/fetchers";
 import { paperById, paperPath } from "@/content/paper-index";
-import type { RawCorpus, RawParallels } from "@/content/parallels";
+import type { RawCorpus, RawParallels, RawWork } from "@/content/parallels";
+import { WORKS } from "@/parallels-works";
 
 // The exact form of a paragraph reference. Anything else is refused before any work.
 const REFERENCE = /^(\d{1,3}):(\d{1,2})\.(\d{1,3})$/;
@@ -13,7 +14,9 @@ export type Parallel = { ref: string; work: string; source: string; text: string
 // `text` is the paragraph itself, for the study page.
 // `weaker` holds the nearest passages of other works below the floor. The reader sees them only on request,
 // when no passage is near.
-export type ParallelsAnswer = { text: string; outside: Parallel[]; weaker: Parallel[]; papers: Parallel[] };
+// `works` is each work that the Hub compares, with the page of its source, for the study page.
+export type Work = { work: string; source: string; href: string | null };
+export type ParallelsAnswer = { text: string; outside: Parallel[]; weaker: Parallel[]; papers: Parallel[]; works: Work[] };
 
 // A passage of another work below this score is not near in meaning, and the reader does not see it.
 // Set on 2026-10-10 from the results for 35 paragraphs across the Papers: from 0.46 up each passage was
@@ -74,7 +77,7 @@ export function shapeParallels(raw: RawParallels, text = ""): ParallelsAnswer {
       ...raw.bible.filter((b) => b.similarity >= least && b.similarity < below).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
       ...raw.scripture
         .filter((s) => s.similarity >= least && s.similarity < below)
-        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: WORK_NAMES[s.corpus.id] ?? NAMES[s.corpus.id] ?? s.corpus.title, source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
+        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: workName(s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
     ].sort(nearestFirst);
   const outside = from(OUTSIDE_FLOOR, Number.POSITIVE_INFINITY);
   const weaker = from(WEAK_FLOOR, OUTSIDE_FLOOR).slice(0, WEAK_MOST);
@@ -82,13 +85,31 @@ export function shapeParallels(raw: RawParallels, text = ""): ParallelsAnswer {
     .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
     .map((p) => ({ ref: p.reference, work: "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
     .sort(nearestFirst);
-  return { text, outside, weaker, papers };
+  return { text, outside, weaker, papers, works: [] };
 }
+
+const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
+const OWN: Work[] = [
+  { work: "The Urantia Papers", source: "", href: "/papers" },
+  { work: "Bible", source: "World English Bible", href: "https://ebible.org/eng-web/" },
+];
+
+// Each work that the Hub compares: the Papers, the Bible, and each text that the API lists.
+export function shapeWorks(corpora: readonly RawWork[]): Work[] {
+  return [...OWN, ...corpora.map((c) => ({ work: workName(c), source: `${surname(c.translator)}, ${c.year}`, href: outsideHref(c.sourceUrl) }))];
+}
+// The list of the API did not load: the names that this code knows, with no page of a source.
+const knownWorks = (): Work[] => WORKS.map((work) => OWN.find((own) => own.work === work) ?? { work, source: "", href: null });
 
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });
 
 // The passages that are near in meaning to one paragraph, for the Parallels sheet of the reader.
-export async function handleParallels(ref: string, load: (ref: string) => Promise<RawParallels>, loadText?: (paperId: string, ref: string) => Promise<string>): Promise<Response> {
+export async function handleParallels(
+  ref: string,
+  load: (ref: string) => Promise<RawParallels>,
+  loadText?: (paperId: string, ref: string) => Promise<string>,
+  loadWorks?: () => Promise<readonly RawWork[]>,
+): Promise<Response> {
   const parsed = REFERENCE.exec(ref);
   if (!parsed || Number(parsed[1]) > LAST_PAPER) return refuse(400, "This is not a paragraph reference.");
   // "001:0.1" has the right form, but it is not the name of a paragraph. One paragraph has one address.
@@ -103,5 +124,7 @@ export async function handleParallels(ref: string, load: (ref: string) => Promis
     return error instanceof ParagraphNotFound ? refuse(404, "The paper has no such paragraph.") : refuse(502, "The parallels did not load.");
   }
   // The parallels change only when the API computes them again, so a shared cache can keep the answer for a day.
-  return Response.json(shapeParallels(raw, text), { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
+  // The list of the works is extra. With no list, the answer stands with the names that this code knows.
+  const works = loadWorks ? await loadWorks().then(shapeWorks, knownWorks) : knownWorks();
+  return Response.json({ ...shapeParallels(raw, text), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

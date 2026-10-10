@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ContentError, ParagraphNotFound } from "@/content/fetchers";
 import type { RawParallels } from "@/content/parallels";
 import { WORKS } from "@/parallels-works";
-import { handleParallels, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, WEAK_FLOOR } from "./parallels";
+import { handleParallels, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, shapeWorks, WEAK_FLOOR } from "./parallels";
 
 const corpus = (id: string, refPrefix: string, translator: string, year: number) => ({ id, refPrefix, title: id, translator, year });
 const GITA = corpus("bhagavad-gita-besant-1922", "BG", "Annie Besant (4th edition)", 1922);
@@ -26,6 +26,37 @@ const RAW: RawParallels = {
     { reference: "1:2.2", paperId: "1", paperTitle: "The Universal Father", text: "x", similarity: 0.49 },
   ],
 };
+
+describe("the works that the Hub compares", () => {
+  const CORPORA = [
+    { id: "koran-pickthall-1930", title: "The Meaning of the Glorious Koran", translator: "Marmaduke Pickthall", year: 1930, sourceUrl: "https://www.gutenberg.org/ebooks/16955" },
+    { id: "bhagavad-gita-besant-1922", title: "The Bhagavad Gita", translator: "Annie Besant (4th edition)", year: 1922, sourceUrl: "https://evil.example/x" },
+    { id: "a-new-text-2027", title: "A New Text", translator: "Ann Lee", year: 1900, sourceUrl: "https://en.wikisource.org/wiki/A_New_Text" },
+  ];
+
+  it("lists the Papers, the Bible, and each text of the API, with the short name, the translation, and the page of the source", () => {
+    expect(shapeWorks(CORPORA)).toEqual([
+      { work: "The Urantia Papers", source: "", href: "/papers" },
+      { work: "Bible", source: "World English Bible", href: "https://ebible.org/eng-web/" },
+      { work: "Koran", source: "Pickthall, 1930", href: "https://www.gutenberg.org/ebooks/16955" },
+      // An address of a site that is not on the list is not a link.
+      { work: "Bhagavad Gita", source: "Besant, 1922", href: null },
+      // A text that the API got after this code has its own title.
+      { work: "A New Text", source: "Lee, 1900", href: "https://en.wikisource.org/wiki/A_New_Text" },
+    ]);
+  });
+
+  it("is in the answer, and the answer stands with the names only when the list did not load", async () => {
+    const load = vi.fn().mockResolvedValue(RAW);
+    const good = (await (await handleParallels("1:0.3", load, undefined, async () => CORPORA)).json()) as ParallelsAnswer;
+    expect(good.works.map((w) => w.work)).toEqual(["The Urantia Papers", "Bible", "Koran", "Bhagavad Gita", "A New Text"]);
+    const bad = await handleParallels("1:0.3", load, undefined, async () => Promise.reject(new Error("down")));
+    expect(bad.status).toBe(200);
+    const works = ((await bad.json()) as ParallelsAnswer).works;
+    expect(works.map((w) => w.work)).toEqual([...WORKS]);
+    expect(works.every((w) => w.href === null || w.work === "The Urantia Papers" || w.work === "Bible")).toBe(true);
+  });
+});
 
 describe("the parallels of a paragraph, as the reader sees them", () => {
   it("gives each passage a work that is in the list of the study page", () => {
