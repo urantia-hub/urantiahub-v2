@@ -220,3 +220,105 @@
   font: 500 13px/1.3 var(--font-ui);
   text-underline-offset: 2px;
 }
+
+/* The image maker. The preview is the image itself. */
+.panel.image h2 {
+  margin-bottom: 12px;
+}
+.image-preview {
+  position: sticky;
+  top: -22px;
+  z-index: 1;
+  margin: 0 -22px;
+  padding: 10px 22px 12px;
+  background: var(--raised);
+  text-align: center;
+}
+.image-preview canvas {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: min(42dvh, 400px);
+  aspect-ratio: 4 / 5;
+  margin: 0 auto;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px var(--shade);
+}
+.panel .image-note {
+  margin: 4px 0 10px;
+  color: var(--ink);
+  font-weight: 500;
+  text-align: center;
+}
+.image-looks {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 16px;
+}
+.panel .image-looks button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  font: 500 14px/1 var(--font-text);
+}
+.panel .image-looks button[aria-pressed="true"] {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.panel .image-help {
+  margin-bottom: 8px;
+}
+.panel .image-sentences {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font: 400 15.5px/1.7 var(--font-text);
+}
+.panel .image-sentences button {
+  display: inline;
+  padding: 2px 0;
+  border-radius: 4px;
+  text-align: left;
+  opacity: 0.45;
+}
+.panel .image-sentences button[aria-pressed="true"] {
+  opacity: 1;
+  background: var(--mark);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.image-actions {
+  position: sticky;
+  bottom: -24px;
+  align-items: center;
+  margin: 12px -22px 0;
+  padding: 12px 22px calc(4px + env(safe-area-inset-bottom));
+  background: var(--raised);
+  border-top: 1px solid var(--rule);
+}
+.image-said {
+  color: var(--ref);
+  font-size: 13px;
+}
+.panel.image[data-more]::after {
+  display: none;
+}
+@media (max-width: 767px) {
+  .panel.image {
+    max-height: 92dvh;
+  }
+}
+@media (min-width: 768px) {
+  .panel.image {
+    bottom: 50%;
+    width: 520px;
+    max-height: 90dvh;
+    margin-left: -260px;
+    transform: translateY(50%);
+  }
+  .image-preview canvas {
+    height: min(46dvh, 440px);
+  }
+}
