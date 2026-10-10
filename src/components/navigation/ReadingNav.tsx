@@ -625,6 +625,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
       {panel === "more" && picked && (
         <Sheet label="More" onClose={closePanel}>
+          {/* The action that a reader uses most is at the end, near the thumb. */}
+          <button type="button" className="panel-line" onClick={() => setPanel("image")}>
+            <Icon name="image" />
+            Make an image
+          </button>
           <button
             type="button"
             className="panel-line"
@@ -652,10 +657,6 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
           <button type="button" className="panel-line" onClick={onCopyText}>
             <Icon name="copy" />
             Copy the text
-          </button>
-          <button type="button" className="panel-line" onClick={() => setPanel("image")}>
-            <Icon name="image" />
-            Make an image
           </button>
         </Sheet>
       )}

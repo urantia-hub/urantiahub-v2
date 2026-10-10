@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { Score } from "@/components/parallels/Score";
 import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
@@ -26,6 +27,8 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   const [state, setState] = useState<State>({ for: reference, status: "loading" });
   const [half, setHalf] = useState<Half>("outside");
   const [all, setAll] = useState(false);
+  // The reader asked for the passages below the floor.
+  const [weak, setWeak] = useState(false);
   const [whole, setWhole] = useState<ReadonlySet<string>>(new Set());
   const [attempt, setAttempt] = useState(0);
   const scroll = useMoreBelow<HTMLDivElement>();
@@ -36,6 +39,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   if (state.for !== reference) {
     setState({ for: reference, status: "loading" });
     setAll(false);
+    setWeak(false);
     setWhole(new Set());
   }
 
@@ -79,7 +83,10 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     track("parallels_tab", { tab: next });
   }
 
-  const list = state.status === "ready" ? state.answer[half] : [];
+  const near = state.status === "ready" ? state.answer[half] : [];
+  // An answer that a cache kept from before can have no `weaker`.
+  const weaker = state.status === "ready" && half === "outside" && near.length === 0 ? (state.answer.weaker ?? []) : [];
+  const list = weak && near.length === 0 ? weaker : near;
   const shown = all ? list : list.slice(0, FIRST);
 
   const item = (p: Parallel) => {
@@ -92,9 +99,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
         <div className="parallel-where">
           <b>{p.ref}</b>
           <small>{p.source}</small>
-          <span className="parallel-score">
-            {p.percent}%<span className="sr-only"> near in meaning</span>
-          </span>
+          <Score percent={p.percent} />
         </div>
         <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
         <div className="parallel-acts">
@@ -165,7 +170,19 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
           </button>
         </p>
       )}
-      {state.status === "ready" && list.length === 0 && <p className="terms-empty">{half === "outside" ? "No near passage was found in other works." : "No near passage was found in the Papers."}</p>}
+      {state.status === "ready" && near.length === 0 && <p className="terms-empty">{half === "outside" ? "No near passage was found in other works." : "No near passage was found in the Papers."}</p>}
+      {weaker.length > 0 && !weak && (
+        <button
+          type="button"
+          className="parallel-weaker"
+          onClick={() => {
+            setWeak(true);
+            track("parallels_weaker_shown", { paper_id: paperId });
+          }}
+        >
+          See passages that are likely not related
+        </button>
+      )}
       {shown.length > 0 && <ul className="parallel-list">{shown.map(item)}</ul>}
       {list.length > shown.length && (
         <button type="button" className="parallel-more" onClick={() => setAll(true)}>
@@ -178,7 +195,6 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
           <Icon name="paperAfter" />
         </Link>
       )}
-      {state.status === "ready" && <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. It does not show that one passage came from the other.</p>}
     </div>
     </>,
     document.body,

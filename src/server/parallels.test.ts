@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ContentError, ParagraphNotFound } from "@/content/fetchers";
 import type { RawParallels } from "@/content/parallels";
-import { handleParallels, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels } from "./parallels";
+import { handleParallels, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, WEAK_FLOOR } from "./parallels";
 
 const corpus = (id: string, refPrefix: string, translator: string, year: number) => ({ id, refPrefix, title: id, translator, year });
 const GITA = corpus("bhagavad-gita-besant-1922", "BG", "Annie Besant (4th edition)", 1922);
@@ -35,6 +35,15 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
       ["Tobit 13:4", 42],
       ["Quran 12.39-40", 40],
     ]);
+  });
+
+  // A reader who finds no near passage can ask for these. Far below the floor a passage shares nothing.
+  it("keeps the nearest passages below the floor apart, down to a second floor, five at most", () => {
+    const { weaker } = shapeParallels(RAW);
+    expect(WEAK_FLOOR).toBe(0.3);
+    expect(weaker.map((p) => [p.ref, p.percent])).toEqual([["Sirach 18:1", 39]]);
+    const many = shapeParallels({ ...RAW, bible: Array.from({ length: 8 }, (_, i) => ({ reference: `Job 1:${i + 1}`, text: "x", similarity: 0.31 + i / 100, url: null })) });
+    expect(many.weaker.map((p) => p.percent)).toEqual([38, 37, 36, 35, 34]);
   });
 
   it("names each work in a short form, with the translator and the year", () => {

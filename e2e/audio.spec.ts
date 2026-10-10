@@ -57,7 +57,8 @@ test("Share copies the paragraph link where the browser has no share sheet", asy
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`http://localhost:3100${PAPER_1}#1:0.2`);
 });
 
-test("Share gives the share sheet the link and a title", async ({ page }) => {
+test("Share gives the share sheet the link and a title on a phone, and copies the link on a computer", async ({ page, context }, testInfo) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await stubAudio(page);
   await page.goto(PAPER_1);
   await page.evaluate(() => {
@@ -69,6 +70,11 @@ test("Share gives the share sheet the link and a title", async ({ page }) => {
   });
   await tap(page, "1:0.2");
   await page.getByRole("button", { name: "Share" }).click();
+  if (testInfo.project.name === "desktop") {
+    await expect(page.getByText("Link copied")).toBeVisible();
+    expect(await page.evaluate(() => (window as unknown as { shared: unknown }).shared)).toBeNull();
+    return;
+  }
   expect(await page.evaluate(() => (window as unknown as { shared: unknown }).shared)).toEqual({
     title: "1:0.2 · Paper 1, The Universal Father",
     url: `http://localhost:3100${PAPER_1}#1:0.2`,

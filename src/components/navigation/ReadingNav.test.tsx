@@ -247,9 +247,10 @@ describe("Share", () => {
     expect(para("1:0.2")).not.toHaveAttribute("data-picked");
   });
 
-  it("gives the share sheet the link and a title with the reference and the paper", async () => {
+  it("on a touch device, gives the share sheet the link and a title with the reference and the paper", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { value: share, configurable: true });
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(pointer: coarse)", addEventListener() {}, removeEventListener() {} }));
     renderNav();
     await userEvent.click(text("1:0.2"));
     await userEvent.click(screen.getByRole("button", { name: "Share" }));

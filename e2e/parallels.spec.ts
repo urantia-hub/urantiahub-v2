@@ -27,7 +27,13 @@ test("Parallels lists the near passages of other works, the nearest first, with 
   await expect(list.getByText("Diogenes Laertius")).toHaveCount(0);
   await expect(list.locator("li").first()).toContainText("Bhagavad Gita");
   await expect(list.locator("li").first()).toContainText("Besant, 1922");
-  await expect(list).toContainText("It does not show that one passage came from the other.");
+  // The number says what it is on a press.
+  const number = list.locator(".parallel-score button").first();
+  await expect(list.locator(".score-tip").first()).toBeHidden();
+  await number.click();
+  await expect(list.locator(".score-tip").first()).toBeVisible();
+  await expect(list.locator(".score-tip").first()).toHaveText("How near in meaning this passage is to the paragraph. A computer measures it.");
+  await number.click();
   // The paragraph stays marked while the list is open.
   await expect(page.locator('[id="1:0.3"]')).toHaveAttribute("data-picked", "");
 });
