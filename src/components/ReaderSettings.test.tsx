@@ -1,8 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { saveLastRead } from "@/reader/last-read";
 import { SCALES } from "@/lib/text-size";
 import { ReaderSettings } from "./ReaderSettings";
+
+const path = vi.hoisted(() => vi.fn(() => "/papers"));
+vi.mock("next/navigation", () => ({ usePathname: path }));
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -81,5 +85,18 @@ describe("ReaderSettings", () => {
     panel.append(link);
     await userEvent.click(link);
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("has the way back to the place that the reader left, and not on that paper itself", async () => {
+    saveLastRead({ paperId: "38", sectionId: "1", label: "1. Origin of Seraphim" });
+    path.mockReturnValue("/papers");
+    const { unmount } = render(<ReaderSettings />);
+    const row = within(await openPanel()).getByRole("link", { name: /Continue/ });
+    expect(row).toHaveAttribute("href", "/papers/paper-38-ministering-spirits-of-the-local-universe#38:1");
+    expect(row).toHaveTextContent("Paper 38 · 1. Origin of Seraphim");
+    unmount();
+    path.mockReturnValue("/papers/paper-38-ministering-spirits-of-the-local-universe");
+    render(<ReaderSettings />);
+    expect(within(await openPanel()).queryByRole("link", { name: /Continue/ })).toBeNull();
   });
 });

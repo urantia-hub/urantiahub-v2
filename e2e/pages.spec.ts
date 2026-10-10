@@ -250,3 +250,40 @@ test("the Foreword on the contents page looks like a part title: same left edge,
   expect(Math.abs(a!.x - b!.x)).toBeLessThanOrEqual(1);
   expect(await foreword.evaluate((el) => getComputedStyle(el).fontSize)).toBe(await part.evaluate((el) => getComputedStyle(el).fontSize));
 });
+
+test.describe("the way back to the reader's place", () => {
+  const PLACE = { paperId: "2", sectionId: "1", label: "1. The Infinity of God", at: 1 };
+
+  test("the home page of a new visitor has Read the Papers, and no Continue", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("link", { name: "Read the Papers" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Continue reading" })).toBeHidden();
+    await expect(page.locator(".home .all-papers")).toBeHidden();
+  });
+
+  test("the home page of a reader with a place has Continue reading first, and it goes to the place", async ({ page }) => {
+    await page.addInitScript((place) => window.localStorage.setItem("hub:last-read", JSON.stringify(place)), PLACE);
+    await page.goto("/");
+    const go = page.getByRole("link", { name: "Continue reading" });
+    await expect(go).toBeVisible();
+    await expect(page.getByRole("link", { name: "Read the Papers" })).toBeHidden();
+    await expect(page.locator(".home-place")).toHaveText("Paper 2 · The Nature of God · 1. The Infinity of God");
+    await expect(page.locator(".home .all-papers")).toBeVisible();
+    await go.click();
+    await page.waitForURL((url) => url.pathname === "/papers/paper-2-the-nature-of-god" && url.hash === "#2:1");
+  });
+
+  test("the settings have Continue on the contents page, and the header of a paper has the way to all papers", async ({ page }) => {
+    await page.addInitScript((place) => window.localStorage.getItem("hub:last-read") ?? window.localStorage.setItem("hub:last-read", JSON.stringify(place)), PLACE);
+    await page.goto("/papers");
+    await page.getByRole("button", { name: "Account and settings" }).click();
+    const row = page.getByRole("dialog", { name: "Account and settings" }).getByRole("link", { name: /Continue/ });
+    await expect(row).toContainText("Paper 2 · 1. The Infinity of God");
+    // The contents page is the list itself: it has no icon to it.
+    await expect(page.getByRole("link", { name: "All papers", exact: true })).toBeHidden();
+    await row.click();
+    await page.waitForURL((url) => url.pathname === "/papers/paper-2-the-nature-of-god");
+    await page.locator(".site-header").getByRole("link", { name: "All papers" }).click();
+    await page.waitForURL((url) => url.pathname === "/papers");
+  });
+});

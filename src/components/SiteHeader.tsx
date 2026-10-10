@@ -20,6 +20,10 @@ export function SiteHeader() {
           <Icon name="search" />
         </Link>
         <SearchShortcut />
+        {/* Where the header has icons only: the way to the list of all papers. */}
+        <Link className="icon-link contents-link" href="/papers" aria-label="All papers" title="All papers">
+          <Icon name="list" />
+        </Link>
         <ThemeToggle icon />
         <ReaderSettings />
       </nav>

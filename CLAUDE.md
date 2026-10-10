@@ -138,3 +138,9 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - "Share" opens the share sheet of the device on a touch device only. On a computer it copies the link and says "Link copied": the share window of a desktop browser is odd.
 - "More" has the action that a reader uses most at its END, near the thumb. The order is a guess until the events say more: Make an image, Terms, Parallels, Copy the text.
 - On a phone each row of the controls has one height (60 px), so nothing jumps when the reader marks a paragraph.
+
+## The way back to the reader's place (2026-10-10)
+
+- The place that the reader left shows in three places: the "Continue" card of the contents page, a "Continue" row in the settings (`ContinueRow`; not on the paper of the place itself), and "Continue reading" on the home page (`HomeContinue`), with "All papers" beside it and the place named below.
+- The home page and the contents page run `PLACE_INIT_SCRIPT` (`src/reader/place-script.ts`) before the first paint. Both variants of the home buttons are in the server's HTML and CSS shows one, so nothing moves.
+- Where the header has icons only (a paper, the saved page, the study page), a list icon goes to the list of all papers. The mark goes home.

@@ -1,16 +1,10 @@
 import Link from "next/link";
-import { IN_COOKIE } from "@/account/cookies";
 import { PAPERS, PARTS, paperPath, partNumeral } from "@/content/paper-index";
-import { LAST_READ_KEY } from "@/reader/last-read";
+import { PLACE_INIT_SCRIPT } from "@/reader/place-script";
 import { SavedLink, SignInInvite } from "./AccountRows";
 import { ContinueCard } from "./ContinueCard";
 import { PaperMark, ProgressLoader } from "./PaperMark";
 
-// Runs before the first paint. It says which cards this reader gets, so that the page keeps their room
-// and the list below does not move when they arrive. The cards set the same marks after they start.
-// A signed-in reader gets the room of "Continue" too: the place can come from the account a moment
-// later. Storage can be blocked, so each check stands alone.
-const CARDS_INIT_SCRIPT = `var d=document.documentElement;try{if(localStorage.getItem("${LAST_READ_KEY}"))d.dataset.place=""}catch(e){}try{if(${process.env.NEXT_PUBLIC_SIGN_IN === "on"}){var m=/(^|; )${IN_COOKIE}=1/.test(document.cookie);d.dataset[m?"member":"guest"]="";if(m)d.dataset.place=""}}catch(e){}`;
 
 export function ContentsView() {
   const parts = PARTS.filter((part) => part.id !== "0");
@@ -18,7 +12,7 @@ export function ContentsView() {
     <div className="toc">
       <h1>Papers</h1>
       <p className="lead">A foreword and 196 papers, in four parts.</p>
-      <script dangerouslySetInnerHTML={{ __html: CARDS_INIT_SCRIPT }} />
+      <script dangerouslySetInnerHTML={{ __html: PLACE_INIT_SCRIPT }} />
       <ContinueCard />
       <SignInInvite />
       <SavedLink />

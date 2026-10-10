@@ -13,8 +13,10 @@ const refs = (page: Page, name: string) => group(page, name).locator(".result fo
 test("a paper page header has icons only, and the search icon opens the search screen", async ({ page }) => {
   await page.goto(PAPER_1);
   const header = page.getByRole("banner");
-  await expect(header.getByRole("link", { name: "Papers" })).toBeHidden();
+  await expect(header.getByRole("link", { name: "Papers", exact: true })).toBeHidden();
   await expect(header.getByRole("link", { name: "About" })).toBeHidden();
+  // The icon to the list of all papers has the place of the "Papers" link.
+  await expect(header.getByRole("link", { name: "All papers" })).toBeVisible();
   await header.getByRole("link", { name: "Search" }).click();
   await expect(page).toHaveURL("/search");
   await expect(page.locator(".search-bar[data-ready]")).toBeVisible();
