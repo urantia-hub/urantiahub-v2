@@ -24,6 +24,14 @@ describe("handleRevalidate", () => {
     expect(await response.json()).toEqual({ revalidated: ["paper:12", "passages"] });
   });
 
+  // An address of a parallel that the API corrected must not stay in the Hub for weeks.
+  it("refreshes the parallels, and tells no search engine about it, because no page changed", async () => {
+    const { response, revalidate, notify } = await call({ tags: ["parallels"] });
+    expect(response.status).toBe(200);
+    expect(revalidate.mock.calls).toEqual([["parallels"]]);
+    expect(notify).toHaveBeenCalledWith([]);
+  });
+
   it.each([
     ["no header", null],
     ["a wrong secret", "Bearer wrong"],

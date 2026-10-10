@@ -7,7 +7,9 @@ import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
 
-type Props = { reference: string; paperId: string; onClose: () => void };
+// `onGo` tells the controls of the paper that a passage of this paper opens: a link to the same page
+// with another "#" sends no event that they hear.
+type Props = { reference: string; paperId: string; onClose: () => void; onGo?: (reference: string) => void };
 type Half = "outside" | "papers";
 type State = { for: string; status: "loading" } | { for: string; status: "failed" } | { for: string; status: "ready"; answer: ParallelsAnswer };
 
@@ -18,7 +20,7 @@ const HALVES: [Half, string][] = [["outside", "Other works"], ["papers", "In the
 
 // The passages that are near in meaning to one paragraph, in two halves: the other works, and the Papers.
 // It has the place of the terms: a sheet on a phone, a card in the right margin on a wide screen.
-export default function ParallelsSheet({ reference, paperId, onClose }: Props) {
+export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Props) {
   const [state, setState] = useState<State>({ for: reference, status: "loading" });
   const [half, setHalf] = useState<Half>("outside");
   const [all, setAll] = useState(false);
@@ -91,8 +93,8 @@ export default function ParallelsSheet({ reference, paperId, onClose }: Props) {
         <div className="parallel-where">
           <b>{p.ref}</b>
           <small>{p.source}</small>
-          <span className="parallel-score" aria-label={`${p.percent} percent near`}>
-            {p.percent}%
+          <span className="parallel-score">
+            {p.percent}%<span className="sr-only"> near in meaning</span>
           </span>
         </div>
         <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
@@ -105,7 +107,15 @@ export default function ParallelsSheet({ reference, paperId, onClose }: Props) {
           {/* A passage of the Papers is a page of this site. Another work opens beside it, so the reader keeps the place. */}
           {p.href !== null &&
             (half === "papers" ? (
-              <Link className="parallel-open" href={p.href} prefetch={false} onClick={opened}>
+              <Link
+                className="parallel-open"
+                href={p.href}
+                prefetch={false}
+                onClick={() => {
+                  opened();
+                  onGo?.(p.ref);
+                }}
+              >
                 Open
                 <span className="sr-only"> {p.ref}</span>
                 <Icon name="paperAfter" />

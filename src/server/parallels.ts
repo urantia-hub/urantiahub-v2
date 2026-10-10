@@ -2,6 +2,10 @@ import { ParagraphNotFound } from "@/content/fetchers";
 import { paperById, paperPath } from "@/content/paper-index";
 import type { RawCorpus, RawParallels } from "@/content/parallels";
 
+// The exact form of a paragraph reference. Anything else is refused before any work.
+const REFERENCE = /^(\d{1,3}):(\d{1,2})\.(\d{1,3})$/;
+const LAST_PAPER = 196;
+
 // One passage as the reader sees it. `percent` is the score of the comparison, as the API gives it.
 // `href` is the page of the passage: a paragraph of this site, or the public page of another work.
 export type Parallel = { ref: string; source: string; text: string; percent: number; href: string | null };
@@ -36,8 +40,12 @@ const SITES = new Set(["ebible.org", "en.wikisource.org", "www.gutenberg.org"]);
 function outsideHref(url: string | null): string | null {
   if (!url) return null;
   try {
+    // "https:ebible.org/x" has no "//": a browser reads it as a path of this site.
+    if (!url.startsWith("https://")) return null;
     const parsed = new URL(url);
-    return parsed.protocol === "https:" && SITES.has(parsed.hostname) ? url : null;
+    const plain = parsed.protocol === "https:" && parsed.port === "" && parsed.username === "" && parsed.password === "";
+    // The address as the parser read it, so the server and the browser mean the same place.
+    return plain && SITES.has(parsed.hostname) ? parsed.href : null;
   } catch {
     return null;
   }
@@ -54,15 +62,12 @@ export function shapeParallels(raw: RawParallels): ParallelsAnswer {
       .map((s) => ({ ref: outsideRef(s.reference, s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
   ].sort(nearestFirst);
   const papers: Parallel[] = raw.papers
-    .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && p.reference.startsWith(`${p.paperId}:`))
+    .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
     .map((p) => ({ ref: p.reference, source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
     .sort(nearestFirst);
   return { outside, papers };
 }
 
-// The exact form of a paragraph reference. Anything else is refused before any work.
-const REFERENCE = /^(\d{1,3}):(\d{1,2})\.(\d{1,3})$/;
-const LAST_PAPER = 196;
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });
 
 // The passages that are near in meaning to one paragraph, for the Parallels sheet of the reader.

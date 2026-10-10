@@ -336,7 +336,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       const target = event.target as HTMLElement | null;
       // Space with Shift scrolls up. That belongs to the browser.
       const plain = !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey;
-      if (event.key === " " && plain && tracks && !target?.closest("a,button,input,textarea,select,[contenteditable]")) {
+      // In a sheet or a panel, Space scrolls the list. It does not start the voice behind it.
+      if (event.key === " " && plain && tracks && !target?.closest('a,button,input,textarea,select,[contenteditable],[role="dialog"]')) {
         event.preventDefault();
         // A held key repeats. Only the first press counts.
         if (!event.repeat) onRoundRef.current();
@@ -397,6 +398,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   // A reader with no account gets the question. Nothing is kept in the browser.
   function ask(from: "save" | "note") {
     askedFrom.current = from;
+    setTermsOpen(false);
+    setParallelsOpen(false);
     // The sign-in returns to this paragraph, and the row opens again.
     setAskHref(`/api/auth/start?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}#${picked}`)}`);
     setPanel("ask");
@@ -671,7 +674,18 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />}
       {parallelsOpen && picked && (
         <Suspense fallback={null}>
-          <ParallelsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />
+          <ParallelsSheet
+            reference={picked}
+            paperId={paper.id}
+            onClose={closeTerms}
+            // A passage of this paper: the list goes, and the mark moves to the paragraph that opens.
+            onGo={(reference) => {
+              if (!document.getElementById(reference)) return;
+              setParallelsOpen(false);
+              setPicked(reference);
+              setHidden(false);
+            }}
+          />
         </Suspense>
       )}
       <Navigator

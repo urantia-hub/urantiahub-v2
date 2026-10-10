@@ -167,7 +167,7 @@ describe("analytics", () => {
   it("cuts the paragraph from the address of a paper, for a count of a saved thing only", async () => {
     const { scrubSearchText } = await import("./index");
     const address = "https://next.urantiahub.com/papers/paper-1-the-universal-father#1:0.3";
-    for (const event of ["bookmark_added", "bookmark_removed", "note_saved", "note_deleted"]) {
+    for (const event of ["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallel_opened"]) {
       const out = scrubSearchText({ event, properties: { $current_url: address, $referrer: address, paper_id: "1" }, $set: { $current_url: address } });
       expect(JSON.stringify(out)).not.toContain("0.3");
       expect(out.properties.$current_url).toBe("https://next.urantiahub.com/papers/paper-1-the-universal-father");

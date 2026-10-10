@@ -751,6 +751,35 @@ describe("More", () => {
     expect(screen.queryByRole("dialog", { name: /Parallels for/ })).toBeNull();
   });
 
+  it("keeps the parallels open when the reader presses Space in the list", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "More" }));
+    await userEvent.click(screen.getByRole("button", { name: "Parallels" }));
+    const list = await screen.findByRole("dialog", { name: "Parallels for 1:0.2" });
+    list.focus();
+    await userEvent.keyboard(" ");
+    expect(screen.getByRole("dialog", { name: "Parallels for 1:0.2" })).toBeInTheDocument();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+    expect(job()).toBe("paragraph");
+  });
+
+  it("closes the parallels when the question to sign in opens, so that one Escape closes one thing", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    resetAccountForTest(true);
+    await act(async () => startAccount());
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "More" }));
+    await userEvent.click(screen.getByRole("button", { name: "Parallels" }));
+    await screen.findByRole("dialog", { name: "Parallels for 1:0.2" });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByRole("dialog", { name: "Sign in to save this" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /Parallels for/ })).toBeNull();
+    resetAccountForTest(false);
+  });
+
   it("keeps the parallels open when the voice reaches the marked paragraph", async () => {
     vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
     renderNav();

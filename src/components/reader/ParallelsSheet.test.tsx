@@ -16,7 +16,8 @@ const ANSWER: ParallelsAnswer = {
 const fetchMock = vi.fn();
 const answers = (body: unknown, status = 200) => fetchMock.mockImplementation(async () => Response.json(body, { status }));
 const onClose = vi.fn();
-const open = () => render(<ParallelsSheet reference="1:0.3" paperId="1" onClose={onClose} />);
+const onGo = vi.fn();
+const open = () => render(<ParallelsSheet reference="1:0.3" paperId="1" onClose={onClose} onGo={onGo} />);
 const sheet = () => screen.getByRole("dialog", { name: "Parallels for 1:0.3" });
 const refs = () => within(sheet()).queryAllByRole("listitem").map((li) => li.querySelector("b")?.textContent);
 const tab = (name: string) => within(sheet()).getByRole("button", { name });
@@ -69,6 +70,23 @@ describe("the parallels of a paragraph", () => {
     const inside = within(sheet()).getByRole("link", { name: /^Open/ });
     expect(inside).toHaveAttribute("href", "/papers/paper-56-universal-unity#56:9.10");
     expect(inside).not.toHaveAttribute("target");
+  });
+
+  // A link to the same page with another "#" sends no event that the controls of the paper hear.
+  it("tells the controls of the paper which paragraph a passage of the Papers opens", async () => {
+    answers({ outside: [], papers: [{ ref: "1:0.1", source: "The Universal Father", text: "THE Universal Father.", percent: 72, href: "/papers/paper-1-the-universal-father#1:0.1" }] });
+    open();
+    await userEvent.click(await within(sheet()).findByRole("button", { name: "In the Papers" }));
+    within(sheet()).getByRole("link", { name: /^Open/ }).addEventListener("click", (event) => event.preventDefault());
+    await userEvent.click(within(sheet()).getByRole("link", { name: /^Open/ }));
+    expect(onGo).toHaveBeenCalledWith("1:0.1");
+  });
+
+  it("says the number in words for a screen reader", async () => {
+    answers(ANSWER);
+    open();
+    await within(sheet()).findByText("Tobit 13:4");
+    expect(within(sheet()).getAllByRole("listitem")[0]).toHaveTextContent("46% near in meaning");
   });
 
   it("cuts a long passage until Read more", async () => {

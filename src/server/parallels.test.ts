@@ -19,6 +19,10 @@ const RAW: RawParallels = {
     { reference: "1:0.1", paperId: "1", paperTitle: "The Universal Father", text: "THE Universal Father is the God of all creation.", similarity: 0.72 },
     { reference: "56:9.10", paperId: "56", paperTitle: "Universal Unity", text: "And God the Father is the personal source.", similarity: 0.73 },
     { reference: "900:1.1", paperId: "900", paperTitle: "No such paper", text: "x", similarity: 0.9 },
+    // A reference that is not of its paper, one that is not in the form of a reference, and a weak one.
+    { reference: "2:1.1", paperId: "1", paperTitle: "The Universal Father", text: "x", similarity: 0.9 },
+    { reference: "1:1.1#x", paperId: "1", paperTitle: "The Universal Father", text: "x", similarity: 0.9 },
+    { reference: "1:2.2", paperId: "1", paperTitle: "The Universal Father", text: "x", similarity: 0.49 },
   ],
 };
 
@@ -58,6 +62,12 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
     expect(odd("http://ebible.org/eng-web/JHN01.htm")).toBeNull();
     expect(odd("https://ebible.org.evil.example/x")).toBeNull();
     expect(odd(null)).toBeNull();
+    // A form that a browser reads as a path of this site, and an address with a port or a name in it.
+    expect(odd("https:ebible.org/x")).toBeNull();
+    expect(odd("https:/ebible.org/x")).toBeNull();
+    expect(odd("https://ebible.org:8443/x")).toBeNull();
+    expect(odd("https://u:p@ebible.org/x")).toBeNull();
+    expect(odd("https://ebible.org@evil.example/")).toBeNull();
   });
 
   it("lists the passages of the Papers, the nearest first, each with its paper and the way to its paragraph", () => {
