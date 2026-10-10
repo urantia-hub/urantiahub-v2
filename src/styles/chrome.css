@@ -259,6 +259,12 @@ body:has(.paper:not([style*="display: none"])) .site-header .theme-icon {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* The way back to the reader's place stands above the account, with one line between them. */
+.place-rows + .account-rows {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
 .account-rows .account-row small {
   display: block;
   margin-top: 2px;
@@ -429,4 +435,13 @@ body:not(:has(.paper:not([style*="display: none"]))) .settings-panel .sizes {
 body:not(:has(.paper:not([style*="display: none"]))) .settings-panel .account-rows:first-child,
 body:not(:has(.paper:not([style*="display: none"]))) .settings-panel h2:first-child {
   margin-top: 0;
+}
+
+/* The icon for the list of all papers shows where the header has no "Papers" link: on a paper, on the
+   saved page, and on the study page. */
+.site-header .contents-link {
+  display: none;
+}
+body:has(:is(.paper, .saved-page, .study-page):not([style*="display: none"])) .site-header .contents-link {
+  display: grid;
 }

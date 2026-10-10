@@ -5,6 +5,7 @@ export type AnalyticsEvents = {
   paper_opened: { paper_id: string };
   home_passage_shown: { ref: string; position: number };
   home_read_clicked: undefined;
+  home_continue_clicked: undefined;
   paragraph_picked: { paper_id: string };
   paragraph_shared: { ref: string; method: "sheet" | "copy" };
   audio_started: { paper_id: string; from: "bar" | "paragraph" };

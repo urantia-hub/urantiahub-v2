@@ -75,6 +75,19 @@
   align-items: center;
   flex-wrap: wrap;
 }
+/* A reader with a place gets "Continue reading" first, and "All papers" beside it. The page carries
+   the mark of a place before its first paint, so nothing moves. */
+html:not([data-place]) .home :is(.home-continue, .all-papers, .home-place),
+html[data-place] .home .actions .btn:not(.home-continue) {
+  display: none;
+}
+.home .home-place {
+  min-height: 1.4em;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font: 400 13.5px/1.4 var(--font-ui);
+  text-align: center;
+}
 
 @media (min-width: 768px) {
   .home {

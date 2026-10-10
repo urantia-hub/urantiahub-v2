@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { AccountRows } from "@/components/AccountRows";
+import { ContinueRow } from "@/components/ContinueRow";
 import { Icon } from "@/components/icons";
 import { applyTextSize, currentTextSize, DEFAULT_STEP, SCALES, subscribeToTextSize } from "@/lib/text-size";
 import { applyTheme, currentTheme, subscribeToTheme, type Theme } from "@/lib/theme";
@@ -96,6 +97,7 @@ export function ReaderSettings() {
                   A
                 </button>
               </div>
+              <ContinueRow />
               <AccountRows />
             </div>
           </>,
