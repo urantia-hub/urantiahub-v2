@@ -152,3 +152,54 @@ test.describe("the row of a marked paragraph on a phone", () => {
     await expect(page.getByTestId("reading-bar")).toHaveAttribute("data-job", "reading");
   });
 });
+
+test.describe("a sheet over the text", () => {
+  test("fades at its end while more is below, and not at the end of the list", async ({ page }) => {
+    await page.goto(PAPER_1);
+    await openParallels(page, "1:0.3");
+    const list = sheet(page, "1:0.3");
+    await expect(list.locator("li").first()).toBeVisible();
+    await expect(list).toHaveAttribute("data-more", "");
+    await list.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+    await expect(list).not.toHaveAttribute("data-more");
+  });
+
+  test("on a phone it darkens the text behind it, holds the page still, and a tap outside closes it", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "phone", "on a desktop the list is a card beside the text");
+    await page.goto(PAPER_1);
+    await openParallels(page, "1:0.3");
+    await expect(sheet(page, "1:0.3").locator("li").first()).toBeVisible();
+    const scrim = page.locator(".terms-scrim");
+    await expect(scrim).toBeVisible();
+    expect(await scrim.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+    // The page behind the sheet does not scroll.
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY)).toBe("hidden");
+    await scrim.click({ position: { x: 20, y: 80 } });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY)).not.toBe("hidden");
+    // The terms have the same.
+    await page.getByRole("button", { name: "More" }).click();
+    await page.getByRole("button", { name: "Terms in this paragraph" }).click();
+    await expect(page.locator(".terms-scrim")).toBeVisible();
+  });
+
+  test("on a desktop the text stays free behind the card", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "a phone has the scrim");
+    await page.goto(PAPER_1);
+    await openParallels(page, "1:0.3");
+    await expect(sheet(page, "1:0.3")).toBeVisible();
+    await expect(page.locator(".terms-scrim")).toBeHidden();
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY)).not.toBe("hidden");
+  });
+
+  test("keeps the source of a passage on one line in a narrow window", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "phone", "a narrow window");
+    await page.setViewportSize({ width: 330, height: 700 });
+    await page.goto(PAPER_1);
+    await openParallels(page, "1:0.3");
+    await expect(sheet(page, "1:0.3").locator("li").first()).toBeVisible();
+    const heights = await sheet(page, "1:0.3").locator(".parallel-where").evaluateAll((all) => all.map((el) => el.getBoundingClientRect().height));
+    expect(Math.max(...heights)).toBeLessThanOrEqual(22);
+  });
+});
+

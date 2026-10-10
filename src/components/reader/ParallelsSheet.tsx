@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { useMoreBelow } from "@/lib/use-more-below";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
 
 // `onGo` tells the controls of the paper that a passage of this paper opens: a link to the same page
@@ -26,7 +27,8 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   const [all, setAll] = useState(false);
   const [whole, setWhole] = useState<ReadonlySet<string>>(new Set());
   const [attempt, setAttempt] = useState(0);
-  const box = useRef<HTMLDivElement>(null);
+  const scroll = useMoreBelow<HTMLDivElement>();
+  const box = scroll.ref;
   const close = useRef(onClose);
 
   // The mark moved to another paragraph: the sheet follows it.
@@ -71,7 +73,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, []);
+  }, [box]);
 
   function choose(next: Half) {
     if (next === half) return;
@@ -133,7 +135,10 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   };
 
   return createPortal(
-    <div className="terms-sheet parallels" role="dialog" aria-label={`Parallels for ${reference}`} tabIndex={-1} ref={box}>
+    <>
+    {/* On a phone the sheet covers the text: the text behind it is darker, and a tap there closes the sheet. */}
+    <div className="terms-scrim" onClick={onClose} />
+    <div className="terms-sheet parallels" role="dialog" aria-label={`Parallels for ${reference}`} tabIndex={-1} {...scroll}>
       <button type="button" className="terms-close" aria-label="Close the parallels" onClick={onClose}>
         <Icon name="close" />
       </button>
@@ -171,7 +176,8 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
         </button>
       )}
       {state.status === "ready" && <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. A parallel is not a source.</p>}
-    </div>,
+    </div>
+    </>,
     document.body,
   );
 }
