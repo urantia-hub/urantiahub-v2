@@ -734,6 +734,38 @@ describe("More", () => {
     expect(para("1:0.2")).toHaveAttribute("data-picked");
   });
 
+  it("opens the parallels of the marked paragraph, in the place of the terms", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    renderNav();
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "More" }));
+    await userEvent.click(screen.getByRole("button", { name: "Parallels" }));
+    expect(await screen.findByRole("dialog", { name: "Parallels for 1:0.2" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "More" })).toBeNull();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+    // The terms take the place of the parallels, and the mark stays.
+    await userEvent.click(screen.getByRole("button", { name: "More" }));
+    expect(screen.queryByRole("dialog", { name: /Parallels for/ })).toBeNull();
+    await openTerms();
+    expect(screen.getByRole("dialog", { name: "Terms in 1:0.2" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /Parallels for/ })).toBeNull();
+  });
+
+  it("keeps the parallels open when the voice reaches the marked paragraph", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    renderNav();
+    await userEvent.click(round());
+    await sound("playing");
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "More" }));
+    await userEvent.click(screen.getByRole("button", { name: "Parallels" }));
+    await screen.findByRole("dialog", { name: "Parallels for 1:0.2" });
+    await sound("ended");
+    await sound("playing");
+    expect(screen.getByRole("dialog", { name: "Parallels for 1:0.2" })).toBeInTheDocument();
+    expect(para("1:0.2")).toHaveAttribute("data-picked");
+  });
+
   it("copies the text of the paragraph with its reference", async () => {
     const writeText = vi.fn(async () => {});
     vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });

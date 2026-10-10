@@ -2,6 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
+import { fetchParallels, type RawParallels } from "./parallels";
 import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
 // The only place in the app that talks to api.urantia.dev.
@@ -37,6 +38,21 @@ export async function getParagraphText(paperId: string, ref: string): Promise<st
   const texts = await paragraphTexts(paperId);
   if (!Object.hasOwn(texts, ref)) throw new ParagraphNotFound(ref);
   return texts[ref];
+}
+
+// The passages that are near in meaning to one paragraph. The API computes them ahead of time, so the
+// answer is kept for weeks in the store that all server instances share. The check for a missing
+// paragraph is outside the cached call, as for the terms.
+export async function getParallels(ref: string): Promise<RawParallels> {
+  await getParagraphText(ref.split(":")[0], ref);
+  return cachedParallels(ref);
+}
+
+async function cachedParallels(ref: string): Promise<RawParallels> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("parallels");
+  return fetchParallels(client, ref);
 }
 
 export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";

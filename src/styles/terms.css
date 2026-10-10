@@ -156,3 +156,115 @@
     box-shadow: 0 12px 34px var(--shade);
   }
 }
+
+/* The parallels of a paragraph have the place of the terms. */
+.parallel-lead {
+  margin: 0 0 12px;
+  color: var(--ref);
+  font-size: 13px;
+}
+/* Two halves of one control, as the theme in the reader settings. */
+.parallel-halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.terms-sheet .parallel-halves button {
+  height: 38px;
+  border-radius: 9px;
+  color: var(--muted);
+  font: 500 13.5px/1 var(--font-ui);
+}
+.terms-sheet .parallel-halves button[aria-pressed="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: 0 1px 4px var(--shade);
+}
+.parallel-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.parallel-list li {
+  padding: 13px 0;
+  border-top: 1px solid var(--rule);
+}
+.parallel-list li:first-child {
+  border-top: 0;
+}
+.parallel-where {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.parallel-where b {
+  font: 600 12.5px/1.3 var(--font-ui);
+}
+.parallel-where small {
+  flex: 1;
+  min-width: 0;
+  color: var(--ref);
+  font: 400 12px/1.3 var(--font-ui);
+}
+.parallel-score {
+  color: var(--ref);
+  font: 600 12px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.parallel-list p {
+  margin: 0;
+  font: 400 15px/1.55 var(--font-text);
+  overflow-wrap: anywhere;
+}
+.parallel-list p.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.parallel-acts {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 22px;
+  margin-top: 6px;
+  color: var(--ref);
+  font: 500 12.5px/1 var(--font-ui);
+}
+.terms-sheet .parallel-acts button,
+.terms-sheet .parallel-more {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.parallel-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--ref);
+  text-decoration: none;
+}
+.terms-sheet .parallel-open .icon {
+  width: 14px;
+  height: 14px;
+}
+.terms-sheet .parallel-more {
+  display: block;
+  width: 100%;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--rule);
+  color: var(--ref);
+  font: 500 13px/1 var(--font-ui);
+  text-align: left;
+}
+.parallel-foot {
+  margin: 14px 0 0;
+  color: var(--ref);
+  font-size: 12.5px;
+}

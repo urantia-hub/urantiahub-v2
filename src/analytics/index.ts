@@ -22,6 +22,10 @@ export type AnalyticsEvents = {
   bookmark_removed: { paper_id: string };
   note_saved: { paper_id: string; kind: "new" | "change" };
   note_deleted: { paper_id: string };
+  // The passages near in meaning to a paragraph. Counts and labels only: no reference, no text.
+  parallels_opened: { paper_id: string; outside: "0" | "1-5" | "6+"; papers: "0" | "1-5" | "6+" };
+  parallels_tab: { tab: "outside" | "papers" };
+  parallel_opened: { kind: "outside" | "papers" };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };
