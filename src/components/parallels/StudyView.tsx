@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { Score } from "@/components/parallels/Score";
 import { paperById, paperPath } from "@/content/paper-index";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
 
@@ -125,9 +126,7 @@ export function StudyView() {
                       <div className="parallel-where">
                         <b>{p.ref}</b>
                         <small>{p.source}</small>
-                        <span className="parallel-score">
-                          {p.percent}%<span className="sr-only"> near in meaning</span>
-                        </span>
+                        <Score percent={p.percent} />
                       </div>
                       <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
                       <div className="parallel-acts">
@@ -153,7 +152,6 @@ export function StudyView() {
                   );
                 })}
               </ul>
-              <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. It does not show that one passage came from the other.</p>
             </>
           )}
         </div>

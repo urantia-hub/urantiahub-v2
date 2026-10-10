@@ -4,10 +4,14 @@ type Nav = {
   clipboard?: { writeText(text: string): Promise<void> };
 };
 
-// Sends a paragraph link: the share sheet where the browser has one, the clipboard where it has not.
+// A phone or a tablet: the share sheet of the device is what its reader knows.
+const touch = () => typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches ?? false);
+
+// Sends a paragraph link: the share sheet on a touch device that has one, the clipboard on each other.
+// On a computer the share window of the browser is odd, and a copied link is what a reader expects.
 // Returns what happened, so the caller can report it and show "Link copied".
-export async function shareParagraph(data: ShareData, nav: Nav = navigator): Promise<"sheet" | "copy" | "none"> {
-  if (typeof nav.share === "function") {
+export async function shareParagraph(data: ShareData, nav: Nav = navigator, sheet: boolean = touch()): Promise<"sheet" | "copy" | "none"> {
+  if (sheet && typeof nav.share === "function") {
     try {
       await nav.share(data);
       return "sheet";

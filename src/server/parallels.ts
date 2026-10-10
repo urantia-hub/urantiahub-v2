@@ -11,12 +11,17 @@ const LAST_PAPER = 196;
 // `work` is the name of the work, for the filter of the study page.
 export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null };
 // `text` is the paragraph itself, for the study page.
-export type ParallelsAnswer = { text: string; outside: Parallel[]; papers: Parallel[] };
+// `weaker` holds the nearest passages of other works below the floor. The reader sees them only on request,
+// when no passage is near.
+export type ParallelsAnswer = { text: string; outside: Parallel[]; weaker: Parallel[]; papers: Parallel[] };
 
 // A passage of another work below this score is not near in meaning, and the reader does not see it.
 // Set on 2026-10-10 from the results for 35 paragraphs across the Papers: from 0.46 up each passage was
 // near, from 0.40 to 0.46 most were, and below 0.40 most shared a word and no meaning.
 export const OUTSIDE_FLOOR = 0.4;
+// Below the floor, down to here, a passage can still share a subject. Lower than this it shares nothing.
+export const WEAK_FLOOR = 0.3;
+const WEAK_MOST = 5;
 // Paragraphs of the Papers score higher among themselves. The API gives the ten nearest.
 export const PAPERS_FLOOR = 0.5;
 
@@ -64,17 +69,20 @@ const percent = (similarity: number) => Math.round(similarity * 100);
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
 export function shapeParallels(raw: RawParallels, text = ""): ParallelsAnswer {
-  const outside: Parallel[] = [
-    ...raw.bible.filter((b) => b.similarity >= OUTSIDE_FLOOR).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
-    ...raw.scripture
-      .filter((s) => s.similarity >= OUTSIDE_FLOOR)
-      .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: WORK_NAMES[s.corpus.id] ?? NAMES[s.corpus.id] ?? s.corpus.title, source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
-  ].sort(nearestFirst);
+  const from = (least: number, below: number): Parallel[] =>
+    [
+      ...raw.bible.filter((b) => b.similarity >= least && b.similarity < below).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
+      ...raw.scripture
+        .filter((s) => s.similarity >= least && s.similarity < below)
+        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: WORK_NAMES[s.corpus.id] ?? NAMES[s.corpus.id] ?? s.corpus.title, source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
+    ].sort(nearestFirst);
+  const outside = from(OUTSIDE_FLOOR, Number.POSITIVE_INFINITY);
+  const weaker = from(WEAK_FLOOR, OUTSIDE_FLOOR).slice(0, WEAK_MOST);
   const papers: Parallel[] = raw.papers
     .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
     .map((p) => ({ ref: p.reference, work: "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
     .sort(nearestFirst);
-  return { text, outside, papers };
+  return { text, outside, weaker, papers };
 }
 
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });

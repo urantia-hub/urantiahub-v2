@@ -206,8 +206,9 @@
    has its reference above it and the yellow mark, so the row does not repeat it. A tap on the
    paragraph closes the row, so the X is for a screen reader and a keyboard only. */
 @media (max-width: 767px) {
-  .dock[data-job="paragraph"] .pill {
-    height: 62px;
+  /* One height for each row, so the controls do not jump when the reader marks a paragraph. */
+  .dock .pill {
+    height: 60px;
   }
   .dock .row.pick {
     grid-template-columns: 1fr;
@@ -222,7 +223,7 @@
   .dock .row.pick .tile {
     flex: 1;
     width: auto;
-    height: 62px;
+    height: 60px;
     gap: 5px;
     font-size: 11.5px;
   }

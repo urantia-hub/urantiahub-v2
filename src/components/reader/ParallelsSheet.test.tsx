@@ -12,6 +12,7 @@ const outside = (ref: string, percent: number, more: Partial<Parallel> = {}): Pa
 const ANSWER: ParallelsAnswer = {
   text: "The paragraph.",
   outside: [outside("Bhagavad Gita 7.22-24", 46, { source: "Besant, 1922", text: LONG, href: "https://en.wikisource.org/wiki/x#:~:text=He" }), outside("Tobit 13:4", 42), outside("Sirach 18:1", 41, { href: null })],
+  weaker: [],
   papers: [{ ref: "56:9.10", work: "The Urantia Papers", source: "Universal Unity", text: "And God the Father is the personal source.", percent: 73, href: "/papers/paper-56-universal-unity#56:9.10" }],
 };
 const fetchMock = vi.fn();
@@ -42,7 +43,7 @@ describe("the parallels of a paragraph", () => {
     const first = within(sheet()).getAllByRole("listitem")[0];
     expect(first).toHaveTextContent("Besant, 1922");
     expect(first).toHaveTextContent("46%");
-    expect(sheet()).toHaveTextContent("It does not show that one passage came from the other.");
+    expect(sheet()).not.toHaveTextContent("came from the other");
     expect(within(sheet()).getByRole("link", { name: "Study these parallels" })).toHaveAttribute("href", "/parallels?ref=1%3A0.3");
   });
 
@@ -84,11 +85,17 @@ describe("the parallels of a paragraph", () => {
     expect(onGo).toHaveBeenCalledWith("1:0.1");
   });
 
-  it("says the number in words for a screen reader", async () => {
+  it("says what the number is when the reader presses it, and hides that on a second press", async () => {
     answers(ANSWER);
     open();
     await within(sheet()).findByText("Tobit 13:4");
-    expect(within(sheet()).getAllByRole("listitem")[0]).toHaveTextContent("46% near in meaning");
+    const number = within(sheet()).getByRole("button", { name: "46% near in meaning. What is this number?" });
+    expect(number).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(number);
+    expect(number).toHaveAttribute("aria-expanded", "true");
+    expect(within(sheet()).getAllByRole("listitem")[0]).toHaveTextContent("How near in meaning this passage is to the paragraph. A computer measures it.");
+    await userEvent.click(number);
+    expect(number).toHaveAttribute("aria-expanded", "false");
   });
 
   it("cuts a long passage until Read more", async () => {
@@ -117,6 +124,27 @@ describe("the parallels of a paragraph", () => {
     expect(await within(sheet()).findByText("No near passage was found in other works.")).toBeInTheDocument();
     await userEvent.click(tab("In the Papers"));
     expect(refs()).toEqual(["56:9.10"]);
+  });
+
+  it("offers the passages below the floor when no passage is near, and shows them on a press", async () => {
+    answers({ outside: [], weaker: [outside("Hebrews 1:14", 36)], papers: [] });
+    open();
+    expect(await within(sheet()).findByText("No near passage was found in other works.")).toBeInTheDocument();
+    expect(refs()).toEqual([]);
+    await userEvent.click(within(sheet()).getByRole("button", { name: "See passages that are likely not related" }));
+    expect(refs()).toEqual(["Hebrews 1:14"]);
+    expect(within(sheet()).queryByRole("button", { name: "See passages that are likely not related" })).toBeNull();
+    expect(track).toHaveBeenCalledWith("parallels_weaker_shown", { paper_id: "1" });
+    // The Papers have no such list.
+    await userEvent.click(tab("In the Papers"));
+    expect(within(sheet()).queryByRole("button", { name: "See passages that are likely not related" })).toBeNull();
+  });
+
+  it("makes no such offer when a passage is near, or when none is below the floor", async () => {
+    answers({ ...ANSWER, weaker: [outside("Hebrews 1:14", 36)] });
+    open();
+    await within(sheet()).findByText("Tobit 13:4");
+    expect(within(sheet()).queryByRole("button", { name: "See passages that are likely not related" })).toBeNull();
   });
 
   it("offers Try again when the list does not load", async () => {

@@ -41,3 +41,22 @@ test("the row of a marked paragraph and the navigator come with a move", async (
   await page.getByRole("button", { name: /Open the navigator/ }).click();
   expect(await page.getByRole("dialog", { name: "Navigator" }).evaluate((el) => el.getAnimations().length)).toBeGreaterThan(0);
 });
+
+test("on a phone the controls keep their height when the reader marks a paragraph", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "phone", "the tiles are larger on a phone only");
+  await page.goto(PAPER_1);
+  const pill = page.locator(".dock .pill");
+  const before = (await pill.boundingBox())!;
+  await tap(page, "1:0.3");
+  await expect(page.locator(".dock .row.pick")).toBeVisible();
+  const after = (await pill.boundingBox())!;
+  expect(after.height).toBe(before.height);
+  expect(after.y).toBe(before.y);
+});
+
+test("More has the action that a reader uses most at its end, near the thumb", async ({ page }) => {
+  await page.goto(PAPER_1);
+  await tap(page, "1:0.3");
+  await page.getByRole("button", { name: "More" }).click();
+  await expect(page.getByRole("dialog", { name: "More" }).getByRole("button")).toHaveText(["Make an image", "Terms in this paragraph", "Parallels", "Copy the text"]);
+});
