@@ -21,7 +21,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - This repo is public. No secret or DSN in the code.
 - Text from the Papers always comes from the API. Never type a quotation. The one place where the repo holds text is `src/content/passages.ts`: a home passage is one or more whole sentences of a paragraph, copied from the API response, and the build fails if it differs from the API by one character (`excerptPassage`).
 - The Hub's own copy makes no belief statement and no claim about the text.
-- `SITE_INDEXABLE` stays off until the cutover to www.
+- The site is `www.urantiahub.com` since the cutover of 2026-10-10. `SITE_ORIGIN` is that address and `SITE_INDEXABLE` is on. `next.urantiahub.com` redirects to www. A preview or a local run has neither setting, so it is never indexable.
 - Paragraph references use the `--ref` token (darker than `--muted`), which meets WCAG AA. Kelson's rule: the design wins over a contrast score, so a change to `--ref` is a design decision, not a compliance one.
 - `CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" bun run lighthouse` on this Mac. Lighthouse does not find Chrome without it.
 - PostHog loads after the page load, when the browser is idle (`src/lib/when-idle.ts`). A static import of it in client code puts it back on the path to the first paint and fails the Lighthouse gate.
@@ -47,7 +47,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Request-time content arrives as a stream, and a stream needs JavaScript to show. So search results need JavaScript. With none, `/search` gives a plain form, and the proxy sends a reference to its paper.
 - The fixture server answers a search from `e2e/fixtures/search_*.json` and `semantic_*.json`. Other text gets an empty result, and the text "fail related" makes the semantic search fail.
 - The server records each search with `logSearch` (`src/server/search-log.ts`): the text, the kind, and the counts, under one fixed name, with no link to a reader. The browser never sends the text. The Privacy page states both facts: change it when either one changes. The log skips a reader whose browser sends `Sec-GPC: 1` or `DNT: 1`. The browser analytics do not start for that reader (`initAnalytics`). The two must stay in step, because the Privacy page promises both. Its time is the date only, but PostHog also keeps the time of receipt, so the Privacy page makes no promise about time.
-- The two search functions use `'use cache: remote'`, because the API has one rate limit for the whole site and each new text costs it two requests. Open before the cutover to www: a rate rule for `/search` in the Vercel firewall.
+- The two search functions use `'use cache: remote'`, because the API has one rate limit for the whole site and each new text costs it two requests. The Vercel firewall has a rate rule for `/search` (and for the terms, the reader data, and the parallels).
 - Next.js keeps the last pages alive but hidden, with an inline `display: none`. A CSS rule of the form `body:has(.some-page)` then stays true on each later page. Write `:has(.some-page:not([style*="display: none"]))`, and hold it with a browser test that moves between pages by links.
 - A link to `/search?q=...` has `prefetch={false}`. A prefetch would run the search, and the firewall counts each request with `q` against the limit of 20 searches a minute for each IP address (rule "Rate limit search" in the Vercel firewall).
 - A press that starts a search must show the grey rows at once (`useTransition` in `SearchBox`, and the `key` on the results wrapper in the page).
@@ -151,7 +151,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - A page that sets `openGraph` loses the image of the layout, so `pageMetadata` names `SHARE_IMAGE` again. A page with an `opengraph-image` file beside it passes `ownImage`.
 - A browser test in `e2e/pages.spec.ts` reads the tags of each page and loads its image.
 
-## Addresses of the old Hub (2026-10-10, for the cutover to www)
+## Addresses of the old Hub (2026-10-10, the day of the cutover to www)
 
 - `src/old-addresses.ts` is the one list of the addresses of the Hub before this one and where each goes. `next.config.ts` serves it as redirects. A line whose page is still to come is not permanent. `/auth/callback` is a route of this Hub: never add `/auth/:path*`.
 - `/api/redirect/papers/by-standard-reference-id/{ref}` (in old emails) goes to the paragraph.
