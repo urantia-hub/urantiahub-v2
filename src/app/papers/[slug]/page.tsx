@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: describe(paper.sections[0].paragraphs[0].text),
     path: paperPath(entry.id),
     type: "article",
+    ownImage: true,
   });
 }
 

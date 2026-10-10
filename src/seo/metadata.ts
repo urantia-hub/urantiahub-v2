@@ -16,16 +16,23 @@ type PageInput = {
   path: string;
   type?: "website" | "article";
   absoluteTitle?: boolean;
+  // A page with an image of its own (an `opengraph-image` file beside it) takes that one.
+  ownImage?: boolean;
 };
 
-export function pageMetadata({ title, description, path, type = "website", absoluteTitle = false }: PageInput): Metadata {
+// The image of each page that has none of its own: `src/app/opengraph-image.tsx`.
+export const SHARE_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: "The Urantia Papers on UrantiaHub" };
+
+export function pageMetadata({ title, description, path, type = "website", absoluteTitle = false, ownImage = false }: PageInput): Metadata {
   const url = absoluteUrl(path);
+  // A page that sets `openGraph` loses the image of the layout, so each page names it again.
+  const images = ownImage ? {} : { images: [SHARE_IMAGE] };
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, siteName: site.name, type, locale: "en_US" },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { title, description, url, siteName: site.name, type, locale: "en_US", ...images },
+    twitter: { card: "summary_large_image", title, description, ...images },
   };
 }
 

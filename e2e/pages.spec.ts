@@ -287,3 +287,29 @@ test.describe("the way back to the reader's place", () => {
     await page.waitForURL((url) => url.pathname === "/papers");
   });
 });
+
+// A shared link shows a title, a description, and an image. Each page must have all three.
+for (const [path, title] of [
+  ["/", "Read the Urantia Papers online | UrantiaHub"],
+  ["/papers", "All 196 Urantia Papers: table of contents | UrantiaHub"],
+  ["/about", "What are the Urantia Papers? | UrantiaHub"],
+  ["/privacy", "Privacy | UrantiaHub"],
+  ["/papers/paper-1-the-universal-father", "Paper 1: The Universal Father | UrantiaHub"],
+  ["/search", "Search | UrantiaHub"],
+  ["/parallels?ref=1:0.3", "Parallels | UrantiaHub"],
+] as const) {
+  test(`a shared link to ${path} has a title, a description, and an image that loads`, async ({ page, request }) => {
+    await page.goto(path);
+    await expect(page).toHaveTitle(title);
+    const content = (selector: string) => page.locator(selector).first().getAttribute("content");
+    expect((await content('meta[name="description"]'))!.length).toBeGreaterThan(40);
+    expect(await content('meta[property="og:site_name"]')).toBe("UrantiaHub");
+    expect(await content('meta[name="twitter:card"]')).toBe("summary_large_image");
+    const image = (await content('meta[property="og:image"]'))!;
+    expect(await content('meta[name="twitter:image"]')).toBe(image);
+    expect(await content('meta[property="og:image:width"]')).toBe("1200");
+    const answer = await request.get(new URL(image).pathname + new URL(image).search);
+    expect(answer.status()).toBe(200);
+    expect(answer.headers()["content-type"]).toBe("image/png");
+  });
+}

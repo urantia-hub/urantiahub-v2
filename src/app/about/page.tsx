@@ -2,8 +2,8 @@ import Link from "next/link";
 import { pageMetadata } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
-  title: "About",
-  description: "What the Urantia Papers are, and what UrantiaHub is.",
+  title: "What are the Urantia Papers?",
+  description: "What the Urantia Papers are, how they are arranged, and what UrantiaHub is: a free place to read and study them.",
   path: "/about",
 });
 
