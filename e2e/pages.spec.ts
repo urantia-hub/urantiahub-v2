@@ -313,3 +313,43 @@ for (const [path, title] of [
     expect(answer.headers()["content-type"]).toBe("image/png");
   });
 }
+
+// The addresses of the Hub before this one. A link in an old email, a bookmark of a browser, and a
+// result of a search engine must each go to a page.
+for (const [from, to, status] of [
+  ["/en", "/", 308],
+  ["/en/papers/paper-1-the-universal-father", "/papers/paper-1-the-universal-father", 308],
+  ["/en/about", "/about", 308],
+  ["/my-library", "/saved", 308],
+  ["/my-library/bookmarks", "/saved", 308],
+  ["/progress", "/papers", 308],
+  ["/explore", "/papers", 308],
+  ["/settings", "/papers", 308],
+  ["/watch/paper-1-the-universal-father", "/papers/paper-1-the-universal-father", 308],
+  ["/privacy-policy", "/privacy", 308],
+  ["/cookie-policy", "/privacy", 308],
+  ["/auth/sign-in", "/papers", 308],
+  ["/terms-of-service", "/about", 307],
+  ["/changelog", "/about", 307],
+  ["/community-resources", "/about", 307],
+  ["/api/user/unsubscribe?token=abc", "/emails?token=abc", 307],
+  ["/api/redirect/papers/by-standard-reference-id/1:0.3", "/papers/paper-1-the-universal-father#1:0.3", 308],
+  ["/api/redirect/papers/by-standard-reference-id/999:1.1", "/papers", 307],
+] as const) {
+  test(`the old address ${from} goes to ${to}`, async ({ request }) => {
+    const answer = await request.get(from, { maxRedirects: 0 });
+    expect(answer.status()).toBe(status);
+    const location = new URL(answer.headers().location, "http://localhost:3100");
+    expect(location.pathname + location.search + location.hash).toBe(to);
+  });
+}
+
+test("an old unsubscribe link lands on a page that says no daily email comes, and the sign-in callback is not taken", async ({ page, request }) => {
+  await page.goto("/api/user/unsubscribe?token=abc");
+  await expect(page.getByRole("heading", { name: "Emails" })).toBeVisible();
+  await expect(page.getByText("UrantiaHub sends no daily emails at this time.")).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  // `/auth/callback` is a route of this Hub: it must not go where the old sign-in pages go.
+  const callback = await request.get("/auth/callback", { maxRedirects: 0 });
+  expect(callback.headers().location ?? "").not.toMatch(/\/papers$/);
+});
