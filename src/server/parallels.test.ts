@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ContentError, ParagraphNotFound } from "@/content/fetchers";
 import type { RawParallels } from "@/content/parallels";
+import { WORKS } from "@/parallels-works";
 import { handleParallels, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, WEAK_FLOOR } from "./parallels";
 
 const corpus = (id: string, refPrefix: string, translator: string, year: number) => ({ id, refPrefix, title: id, translator, year });
@@ -27,6 +28,11 @@ const RAW: RawParallels = {
 };
 
 describe("the parallels of a paragraph, as the reader sees them", () => {
+  it("gives each passage a work that is in the list of the study page", () => {
+    const answer = shapeParallels(RAW);
+    for (const p of [...answer.outside, ...answer.weaker, ...answer.papers]) expect(WORKS).toContain(p.work);
+  });
+
   it("puts the other works in one list, the nearest first, and hides each passage below the floor", () => {
     const { outside } = shapeParallels(RAW);
     expect(OUTSIDE_FLOOR).toBe(0.4);

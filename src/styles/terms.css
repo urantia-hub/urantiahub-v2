@@ -463,6 +463,22 @@
   border-top: 1px solid var(--rule);
   cursor: pointer;
 }
+.study-works label span {
+  flex: 1;
+}
+.study-works label small {
+  color: var(--ref);
+  font: 500 12.5px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+/* A work with no passage for this paragraph. */
+.study-works label.none {
+  color: var(--muted);
+  cursor: default;
+}
+.study-works label.none small {
+  color: var(--muted);
+}
 .study-works label:first-child {
   border-top: 0;
 }

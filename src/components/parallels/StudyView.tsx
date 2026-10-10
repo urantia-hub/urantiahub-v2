@@ -7,6 +7,7 @@ import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import { Score } from "@/components/parallels/Score";
 import { paperById, paperPath } from "@/content/paper-index";
+import { WORKS } from "@/parallels-works";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
 
 type State = { for: string; status: "loading" | "failed" } | { for: string; status: "ready"; answer: ParallelsAnswer };
@@ -57,7 +58,10 @@ export function StudyView() {
   }
 
   const all: Parallel[] = state.status === "ready" ? [...state.answer.outside, ...state.answer.papers].sort((a, b) => b.percent - a.percent) : [];
-  const works = [...new Set(all.map((p) => p.work))].sort((a, b) => a.localeCompare(b));
+  // Each work that the Hub compares, the one with the most passages first. A work with none is in the list, not in use.
+  const count = (work: string) => all.filter((p) => p.work === work).length;
+  const listed = [...new Set<string>([...WORKS, ...all.map((p) => p.work)])].map((work) => ({ work, n: count(work) })).sort((a, b) => b.n - a.n || a.work.localeCompare(b.work));
+  const works = listed.filter((w) => w.n > 0).map((w) => w.work);
   const shown = all.filter((p) => !off.has(p.work) && p.percent >= strength);
   const worksName = off.size === 0 ? "All works" : works.length - off.size === 1 ? (works.find((w) => !off.has(w)) ?? "") : `${works.length - off.size} works`;
   const top = Math.max(FLOOR, ...all.map((p) => p.percent));
@@ -101,10 +105,11 @@ export function StudyView() {
                   <Icon name="paperAfter" />
                 </summary>
                 <div role="group" aria-label="Works">
-                  {works.map((work) => (
-                    <label key={work}>
-                      <input type="checkbox" checked={!off.has(work)} onChange={() => setOff((was) => new Set(was.has(work) ? [...was].filter((w) => w !== work) : [...was, work]))} />
-                      {work}
+                  {listed.map(({ work, n }) => (
+                    <label key={work} className={n === 0 ? "none" : undefined}>
+                      <input type="checkbox" disabled={n === 0} checked={n > 0 && !off.has(work)} onChange={() => setOff((was) => new Set(was.has(work) ? [...was].filter((w) => w !== work) : [...was, work]))} />
+                      <span>{work}</span>
+                      <small aria-label={n === 1 ? "1 passage" : `${n} passages`}>{n}</small>
                     </label>
                   ))}
                 </div>
