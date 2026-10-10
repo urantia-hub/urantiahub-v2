@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openNavigator } from "./audio";
+import { openNavigator, still } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 
@@ -132,6 +132,7 @@ test("on a phone, the navigator stands on the bottom edge of the screen", async 
   test.skip(testInfo.project.name !== "phone", "the sheet is a bottom sheet on a phone only");
   await page.goto("/papers/paper-2-the-nature-of-god");
   await openNavigator(page);
+  await still(page);
   const sheet = (await page.getByRole("dialog", { name: "Navigator" }).boundingBox())!;
   const height = page.viewportSize()!.height;
   expect(Math.abs(sheet.y + sheet.height - height)).toBeLessThanOrEqual(1);

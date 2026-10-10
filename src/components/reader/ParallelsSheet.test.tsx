@@ -42,7 +42,7 @@ describe("the parallels of a paragraph", () => {
     const first = within(sheet()).getAllByRole("listitem")[0];
     expect(first).toHaveTextContent("Besant, 1922");
     expect(first).toHaveTextContent("46%");
-    expect(sheet()).toHaveTextContent("A parallel is not a source.");
+    expect(sheet()).toHaveTextContent("It does not show that one passage came from the other.");
     expect(within(sheet()).getByRole("link", { name: "Study these parallels" })).toHaveAttribute("href", "/parallels?ref=1%3A0.3");
   });
 

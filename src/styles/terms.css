@@ -314,14 +314,14 @@
     position: fixed;
     inset: 0;
     z-index: 24;
-    background: color-mix(in srgb, var(--ink) 28%, transparent);
   }
-  html:has(.terms-sheet) {
+  /* A sheet of a page that the reader left stays in the document, not shown. It must not stop the scroll. */
+  html:has(.terms-sheet:not([style*="display: none"])) {
     overflow: hidden;
   }
 }
 @media (max-width: 767px) {
-  html:has(.panel) {
+  html:has(.panel:not([style*="display: none"])) {
     overflow: hidden;
   }
 }

@@ -1,12 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
-import { stubAudio, tap } from "./audio";
+import { still, stubAudio, tap } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 const maker = (page: Page, ref: string) => page.getByRole("dialog", { name: `Image of ${ref}` });
 async function openImage(page: Page, ref: string) {
   await tap(page, ref);
   await page.getByRole("button", { name: "More" }).click();
-  await page.getByRole("button", { name: "Image", exact: true }).click();
+  await page.getByRole("button", { name: "Make an image" }).click();
   await expect(maker(page, ref).getByRole("button", { name: "Save the image" })).toBeEnabled();
 }
 // The color of one point of the image, and a short mark of all of it.
@@ -50,7 +50,8 @@ test("the reader chooses the look and the sentences", async ({ page }) => {
   await first.click();
   await expect(first).toHaveAttribute("aria-pressed", "false");
   await expect.poll(() => print(page)).not.toBe(before);
-  await expect(m.getByRole("img")).toHaveAccessibleName(/^Image with the text: … /);
+  // The image starts at the second sentence, with no mark for the part before it.
+  await expect(m.getByRole("img")).toHaveAccessibleName(/^Image with the text: (?!…|The enlightened)/);
 });
 
 test("too much text, or none, cannot be saved, and the maker says why", async ({ page }) => {
@@ -79,6 +80,7 @@ test("Save the image gives a PNG file with the reference in its name", async ({ 
 test("Escape closes the maker first, and the maker fits the window", async ({ page }) => {
   await page.goto(PAPER_1);
   await openImage(page, "1:0.3");
+  await still(page);
   const box = (await maker(page, "1:0.3").boundingBox())!;
   const view = page.viewportSize()!;
   expect(box.y).toBeGreaterThanOrEqual(0);
@@ -87,4 +89,24 @@ test("Escape closes the maker first, and the maker fits the window", async ({ pa
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator('[id="1:0.3"]')).toHaveAttribute("data-picked", "");
+});
+
+test("the buttons of the maker stay in their place while its content scrolls, and the page behind is darker", async ({ page }) => {
+  await page.goto(PAPER_1);
+  await openImage(page, "1:0.3");
+  const m = maker(page, "1:0.3");
+  const save = m.getByRole("button", { name: "Save the image" });
+  const body = m.locator(".panel-body");
+  await still(page);
+  const before = (await save.boundingBox())!;
+  await body.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+  expect(await body.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  expect((await save.boundingBox())!.y).toBe(before.y);
+  // The maker itself does not scroll: only its content does.
+  expect(await m.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+  // On each width the page behind the maker is darker.
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body, "::after").opacity)).toBe("1");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body, "::after").opacity)).toBe("0");
 });

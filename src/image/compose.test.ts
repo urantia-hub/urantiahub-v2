@@ -30,9 +30,13 @@ describe("the text of the image", () => {
   it("is the chosen sentences in the order of the paragraph", () => {
     expect(chosenText(all, new Set([0, 1, 2, 3]))).toBe(TEXT);
   });
-  it("marks each part that the reader left out", () => {
-    expect(chosenText(all, new Set([0, 2]))).toBe("The enlightened worlds all recognize the Father. … “Be you perfect, even as I am perfect.” …");
-    expect(chosenText(all, new Set([1]))).toBe("… The will creatures have embarked upon the journey; it is long. …");
+  it("marks a part that the reader left out between two sentences", () => {
+    expect(chosenText(all, new Set([0, 2, 3]))).toBe("The enlightened worlds all recognize the Father. … “Be you perfect, even as I am perfect.” In love the messengers carry it.");
+  });
+  // A quote that starts or stops in a paragraph needs no mark: "Deity. …" reads odd.
+  it("has no mark before the first chosen sentence or after the last", () => {
+    expect(chosenText(all, new Set([0, 2]))).toBe("The enlightened worlds all recognize the Father. … “Be you perfect, even as I am perfect.”");
+    expect(chosenText(all, new Set([1]))).toBe("The will creatures have embarked upon the journey; it is long.");
   });
   it("is empty when no sentence is chosen", () => {
     expect(chosenText(all, new Set())).toBe("");

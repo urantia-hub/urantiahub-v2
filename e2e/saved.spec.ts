@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import { stubAudio, tap } from "./audio";
+import { still, stubAudio, tap } from "./audio";
 
 const STANDIN = "http://localhost:4010";
 const PAPER = "/papers/paper-1-the-universal-father";
@@ -345,6 +345,7 @@ test.describe("the notes in the margin", () => {
     await expect(card(page, "1:0.3")).toBeVisible();
     await expect(pen(page, "1:0.3")).toBeHidden();
     await expect(card(page, "1:0.3").locator(".margin-text")).toHaveText(["Newer."]);
+    await still(page);
     // The card starts at the top of its paragraph, at the right of the text, inside the window.
     const boxes = await page.evaluate(() => {
       const box = (el: Element) => el.getBoundingClientRect();
@@ -413,6 +414,7 @@ test.describe("the notes in the margin", () => {
     await page.locator(".pager .next").click();
     await page.waitForURL("**/papers/paper-2-**");
     await expect(card(page, "2:0.1")).toBeVisible();
+    await still(page);
     const gap = await page.evaluate(() => Math.abs(document.querySelector('.margin-card[data-for="2:0.1"]')!.getBoundingClientRect().top - document.getElementById("2:0.1")!.getBoundingClientRect().top));
     expect(gap).toBeLessThanOrEqual(1);
     await page.goBack();

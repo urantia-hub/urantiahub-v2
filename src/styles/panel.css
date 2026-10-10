@@ -1,9 +1,9 @@
 /* A small panel above the controls of a paper: a sheet on a phone, a card on a wide screen. */
+/* A press here closes the panel. The dark of the page behind is one layer for all sheets: see motion.css. */
 .panel-scrim {
   position: fixed;
   inset: 0;
   z-index: 24;
-  background: color-mix(in srgb, var(--ink) 28%, transparent);
 }
 .panel {
   position: fixed;
@@ -73,9 +73,6 @@
   color: var(--bg);
 }
 @media (min-width: 768px) {
-  .panel-scrim {
-    background: none;
-  }
   .panel {
     left: 50%;
     right: auto;
@@ -289,21 +286,41 @@
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
-.image-actions {
-  position: sticky;
-  bottom: -24px;
-  align-items: center;
-  margin: 12px -22px 0;
-  padding: 12px 22px calc(4px + env(safe-area-inset-bottom));
-  background: var(--raised);
-  border-top: 1px solid var(--rule);
-}
 .image-said {
   color: var(--ref);
   font-size: 13px;
 }
-.panel.image[data-more]::after {
-  display: none;
+/* A panel with a foot: the content scrolls and the foot keeps its place. */
+.panel.has-foot {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 22px 16px;
+}
+.panel-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rule);
+}
+.panel-body[data-more]::after {
+  content: "";
+  position: sticky;
+  bottom: -16px;
+  display: block;
+  height: 48px;
+  margin-top: -48px;
+  background: linear-gradient(to top, var(--raised) 10%, transparent);
+  pointer-events: none;
 }
 @media (max-width: 767px) {
   .panel.image {

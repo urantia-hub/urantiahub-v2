@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { stubAudio, tap } from "./audio";
+import { still, stubAudio, tap } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 const sheet = (page: Page, ref: string) => page.getByRole("dialog", { name: `Terms in ${ref}` });
@@ -102,6 +102,8 @@ test("on a phone the terms are a bottom sheet, and on a desktop a card in the ri
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
   await openTerms(page);
+  await expect(sheet(page, "1:0.3")).toBeVisible();
+  await still(page);
   const box = (await sheet(page, "1:0.3").boundingBox())!;
   const view = page.viewportSize()!;
   if (testInfo.project.name === "phone") {

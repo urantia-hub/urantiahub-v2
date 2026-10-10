@@ -153,7 +153,7 @@ export function StudyView() {
                   );
                 })}
               </ul>
-              <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. A parallel is not a source.</p>
+              <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. It does not show that one passage came from the other.</p>
             </>
           )}
         </div>

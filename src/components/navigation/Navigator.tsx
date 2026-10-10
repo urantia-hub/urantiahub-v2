@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import { paperById, referenceHref } from "@/content/paper-index";
+import { useMoreBelow } from "@/lib/use-more-below";
 import { parseReference, referenceProblem } from "@/lib/paper-url";
 import { normalizeQuery, searchHref } from "@/search/query";
 import { saveRecent } from "@/search/recent";
@@ -44,6 +45,11 @@ export function Navigator({
   navigate = (href, replace) => (replace ? window.location.replace(href) : window.location.assign(href)),
 }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const secs = useMoreBelow<HTMLUListElement>();
+  const look = useRef(secs.onScroll);
+  useEffect(() => {
+    look.current = secs.onScroll;
+  });
   const leaving = useRef(false);
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +90,8 @@ export function Navigator({
       leaving.current = false;
       el.showModal();
       window.history.pushState({ navigator: true }, "");
+      // The list has a size only now: see if more of it is below.
+      look.current();
     }
     if (!open && el.open) el.close();
   }, [open]);
@@ -178,7 +186,7 @@ export function Navigator({
           </p>
         )}
 
-        <ul className="secs">
+        <ul className="secs" {...secs}>
           {sections.map((section) => (
             <li key={section.id}>
               <button
