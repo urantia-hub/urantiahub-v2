@@ -150,3 +150,9 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Each page has a title, a description, and a share image of 1200 by 630. A paper has its own image; each other page has the image of the site (`src/app/opengraph-image.tsx`). Both come from `shareImage` in `src/seo/share-image.tsx`.
 - A page that sets `openGraph` loses the image of the layout, so `pageMetadata` names `SHARE_IMAGE` again. A page with an `opengraph-image` file beside it passes `ownImage`.
 - A browser test in `e2e/pages.spec.ts` reads the tags of each page and loads its image.
+
+## Addresses of the old Hub (2026-10-10, for the cutover to www)
+
+- `src/old-addresses.ts` is the one list of the addresses of the Hub before this one and where each goes. `next.config.ts` serves it as redirects. A line whose page is still to come is not permanent. `/auth/callback` is a route of this Hub: never add `/auth/:path*`.
+- `/api/redirect/papers/by-standard-reference-id/{ref}` (in old emails) goes to the paragraph.
+- `/emails` is where an old "unsubscribe" link lands. It says that no daily email comes. Change its words in the same change that starts an email.

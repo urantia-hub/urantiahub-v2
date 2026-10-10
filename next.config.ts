@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { OLD_ADDRESSES } from "./src/old-addresses";
 import { securityHeaders } from "./src/security-headers";
 
 const nextConfig: NextConfig = {
@@ -13,6 +14,10 @@ const nextConfig: NextConfig = {
   // The share image reads this font file at request time, so the function bundle must hold it.
   outputFileTracingIncludes: {
     "/papers/[slug]/opengraph-image": ["./node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"],
+  },
+  // No link to the Hub before this one breaks.
+  async redirects() {
+    return OLD_ADDRESSES;
   },
   async headers() {
     return [
