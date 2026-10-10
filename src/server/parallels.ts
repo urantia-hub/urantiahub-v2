@@ -8,8 +8,10 @@ const LAST_PAPER = 196;
 
 // One passage as the reader sees it. `percent` is the score of the comparison, as the API gives it.
 // `href` is the page of the passage: a paragraph of this site, or the public page of another work.
-export type Parallel = { ref: string; source: string; text: string; percent: number; href: string | null };
-export type ParallelsAnswer = { outside: Parallel[]; papers: Parallel[] };
+// `work` is the name of the work, for the filter of the study page.
+export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null };
+// `text` is the paragraph itself, for the study page.
+export type ParallelsAnswer = { text: string; outside: Parallel[]; papers: Parallel[] };
 
 // A passage of another work below this score is not near in meaning, and the reader does not see it.
 // Set on 2026-10-10 from the results for 35 paragraphs across the Papers: from 0.46 up each passage was
@@ -19,6 +21,13 @@ export const OUTSIDE_FLOOR = 0.4;
 export const PAPERS_FLOOR = 0.5;
 
 // A short prefix of a reference, in words that a reader knows.
+const WORK_NAMES: Record<string, string> = {
+  "koran-pickthall-1930": "Koran",
+  "analects-legge-1861": "Analects",
+  "epictetus-3-22-oldfather-1928": "Epictetus",
+  "japji-macauliffe-1909": "Japji",
+  "shinto-oracles-aston-1905": "Shinto oracles",
+};
 const NAMES: Record<string, string> = {
   "bhagavad-gita-besant-1922": "Bhagavad Gita",
   "diogenes-laertius-6-hicks-1925": "Diogenes Laertius",
@@ -54,35 +63,37 @@ function outsideHref(url: string | null): string | null {
 const percent = (similarity: number) => Math.round(similarity * 100);
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
-export function shapeParallels(raw: RawParallels): ParallelsAnswer {
+export function shapeParallels(raw: RawParallels, text = ""): ParallelsAnswer {
   const outside: Parallel[] = [
-    ...raw.bible.filter((b) => b.similarity >= OUTSIDE_FLOOR).map((b) => ({ ref: b.reference, source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
+    ...raw.bible.filter((b) => b.similarity >= OUTSIDE_FLOOR).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
     ...raw.scripture
       .filter((s) => s.similarity >= OUTSIDE_FLOOR)
-      .map((s) => ({ ref: outsideRef(s.reference, s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
+      .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: WORK_NAMES[s.corpus.id] ?? NAMES[s.corpus.id] ?? s.corpus.title, source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
   ].sort(nearestFirst);
   const papers: Parallel[] = raw.papers
     .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
-    .map((p) => ({ ref: p.reference, source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
+    .map((p) => ({ ref: p.reference, work: "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
     .sort(nearestFirst);
-  return { outside, papers };
+  return { text, outside, papers };
 }
 
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });
 
 // The passages that are near in meaning to one paragraph, for the Parallels sheet of the reader.
-export async function handleParallels(ref: string, load: (ref: string) => Promise<RawParallels>): Promise<Response> {
+export async function handleParallels(ref: string, load: (ref: string) => Promise<RawParallels>, loadText?: (paperId: string, ref: string) => Promise<string>): Promise<Response> {
   const parsed = REFERENCE.exec(ref);
   if (!parsed || Number(parsed[1]) > LAST_PAPER) return refuse(400, "This is not a paragraph reference.");
   // "001:0.1" has the right form, but it is not the name of a paragraph. One paragraph has one address.
   if (ref !== `${Number(parsed[1])}:${Number(parsed[2])}.${Number(parsed[3])}`) return refuse(400, "This is not a paragraph reference.");
 
   let raw: RawParallels;
+  let text = "";
   try {
     raw = await load(ref);
+    if (loadText) text = await loadText(String(Number(parsed[1])), ref);
   } catch (error) {
     return error instanceof ParagraphNotFound ? refuse(404, "The paper has no such paragraph.") : refuse(502, "The parallels did not load.");
   }
   // The parallels change only when the API computes them again, so a shared cache can keep the answer for a day.
-  return Response.json(shapeParallels(raw), { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
+  return Response.json(shapeParallels(raw, text), { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

@@ -18,6 +18,7 @@ test("Parallels lists the near passages of other works, the nearest first, with 
   await openParallels(page, "1:0.3");
   const list = sheet(page, "1:0.3");
   await expect(list.getByRole("button", { name: "Other works" })).toHaveAttribute("aria-pressed", "true");
+  await expect(list.locator("li").first()).toBeVisible();
   const scores = await list.locator(".parallel-score").evaluateAll((all) => all.map((el) => Number.parseInt(el.textContent!, 10)));
   expect(scores.length).toBeGreaterThan(3);
   expect(scores).toEqual([...scores].sort((a, b) => b - a));
@@ -200,6 +201,44 @@ test.describe("a sheet over the text", () => {
     await expect(sheet(page, "1:0.3").locator("li").first()).toBeVisible();
     const heights = await sheet(page, "1:0.3").locator(".parallel-where").evaluateAll((all) => all.map((el) => el.getBoundingClientRect().height));
     expect(Math.max(...heights)).toBeLessThanOrEqual(22);
+  });
+});
+
+test.describe("the study page", () => {
+  test("opens from the list, shows the whole paragraph beside all its parallels, and filters them", async ({ page }) => {
+    await page.goto(PAPER_1);
+    await openParallels(page, "1:0.3");
+    await sheet(page, "1:0.3").getByRole("link", { name: "Study these parallels" }).click();
+    await page.waitForURL((url) => url.pathname === "/parallels" && url.searchParams.get("ref") === "1:0.3");
+    await expect(page.getByRole("heading", { name: "Parallels for 1:0.3" })).toBeVisible();
+    await expect(page.locator(".study-quote")).toContainText("The enlightened worlds all recognize");
+    const items = page.locator(".study-page .parallel-list li");
+    const scores = () => items.locator(".parallel-score").evaluateAll((all) => all.map((el) => Number.parseInt(el.textContent!, 10)));
+    // One list of the Papers and of other works, the nearest first.
+    const first = await scores();
+    expect(first).toEqual([...first].sort((a, b) => b - a));
+    expect(first[0]).toBeGreaterThanOrEqual(70);
+    expect(Math.min(...first)).toBeGreaterThanOrEqual(40);
+    // The works are one menu, in the order of the alphabet.
+    const menu = page.locator(".study-works");
+    await expect(menu.locator("summary")).toHaveText("All works");
+    await menu.locator("summary").click();
+    const names = await menu.locator("label").allTextContents();
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    await menu.getByLabel("The Urantia Papers").uncheck();
+    expect(Math.max(...(await scores()))).toBeLessThan(60);
+    await expect(menu.locator("summary")).toHaveText(`${names.length - 1} works`);
+    await page.locator(".study-strength input").fill("45");
+    expect(Math.min(...(await scores()))).toBeGreaterThanOrEqual(45);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await page.locator(".study-back a").click();
+    await page.waitForURL((url) => url.pathname === PAPER_1 && url.hash === "#1:0.3");
+  });
+
+  test("says what to do for an address with no paragraph", async ({ page }) => {
+    await page.goto("/parallels?ref=<b>x");
+    await expect(page.getByRole("link", { name: "Browse all papers" })).toBeVisible();
+    await expect(page.locator(".study-page")).not.toContainText("<b>");
   });
 });
 

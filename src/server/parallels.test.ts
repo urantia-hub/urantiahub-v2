@@ -40,6 +40,9 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
   it("names each work in a short form, with the translator and the year", () => {
     const { outside } = shapeParallels(RAW);
     expect(outside.map((p) => p.source)).toEqual(["Besant, 1922", "World English Bible", "Pickthall, 1930"]);
+    // The name of the work, for the filter of the study page.
+    expect(outside.map((p) => p.work)).toEqual(["Bhagavad Gita", "Bible", "Koran"]);
+    expect(shapeParallels(RAW).papers.every((p) => p.work === "The Urantia Papers")).toBe(true);
   });
 
   it("writes a readable name for a short prefix", () => {
@@ -73,8 +76,8 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
   it("lists the passages of the Papers, the nearest first, each with its paper and the way to its paragraph", () => {
     const { papers } = shapeParallels(RAW);
     expect(papers).toEqual([
-      { ref: "56:9.10", source: "Universal Unity", text: "And God the Father is the personal source.", percent: 73, href: "/papers/paper-56-universal-unity#56:9.10" },
-      { ref: "1:0.1", source: "The Universal Father", text: "THE Universal Father is the God of all creation.", percent: 72, href: "/papers/paper-1-the-universal-father#1:0.1" },
+      { ref: "56:9.10", work: "The Urantia Papers", source: "Universal Unity", text: "And God the Father is the personal source.", percent: 73, href: "/papers/paper-56-universal-unity#56:9.10" },
+      { ref: "1:0.1", work: "The Urantia Papers", source: "The Universal Father", text: "THE Universal Father is the God of all creation.", percent: 72, href: "/papers/paper-1-the-universal-father#1:0.1" },
     ]);
   });
 });
