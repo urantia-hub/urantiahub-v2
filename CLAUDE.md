@@ -117,4 +117,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - A link in a sheet to another paragraph of the SAME paper sends no `hashchange`, so `ReadingNav` does not hear it. The sheet tells it (`onGo` of `ParallelsSheet`): the list goes and the mark moves.
 - Space inside a sheet or a panel (`[role="dialog"]`) scrolls the list. It does not start the voice.
 - An address from the API becomes a link only as `https://` on one of the three sites, with no port and no name in it, and the link is the address as the parser read it (`outsideHref`).
+- A sheet that scrolls inside (terms, parallels, the small panel, a margin card) fades at its end while more is below (`useMoreBelow`, `data-more`). Kelson asked for it twice: a new box that scrolls inside gets it too.
+- Below 1100 px the terms and the parallels are a sheet over the text: the text behind is darker (`.terms-scrim`, a tap there closes the sheet) and the page does not scroll (`html:has(.terms-sheet)`). From 1100 px they are a card beside the text, and the text stays free.
+- Before a screen is called done, put its picture beside the picture of its mock (Kelson, 2026-10-10). The first build of the parallels had no dark layer and another title style, and the tests did not see it.
 

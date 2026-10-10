@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { useMoreBelow } from "@/lib/use-more-below";
 import { searchHref } from "@/search/query";
 import type { Term, TermsAnswer } from "@/server/terms";
 
@@ -19,7 +20,8 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
   const [state, setState] = useState<State>({ for: reference, status: "loading" });
   const [open, setOpen] = useState<Term | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const box = useRef<HTMLDivElement>(null);
+  const scroll = useMoreBelow<HTMLDivElement>();
+  const box = scroll.ref;
 
   // A new paragraph starts again. React permits this change of state during a render.
   if (state.for !== reference) {
@@ -59,7 +61,7 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
   // Each of those removes the control that had the focus.
   useEffect(() => {
     box.current?.focus({ preventScroll: true });
-  }, [open]);
+  }, [open, box]);
 
   const onKey = useCallback(
     (event: KeyboardEvent) => {
@@ -103,7 +105,9 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
     );
 
   return createPortal(
-    <div className="terms-sheet" role="dialog" aria-label={`Terms in ${reference}`} tabIndex={-1} ref={box}>
+    <>
+    <div className="terms-scrim" onClick={onClose} />
+    <div className="terms-sheet" role="dialog" aria-label={`Terms in ${reference}`} tabIndex={-1} {...scroll}>
       <button type="button" className="terms-close" aria-label="Close the terms" onClick={onClose}>
         <Icon name="close" />
       </button>
@@ -162,7 +166,8 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
           )}
         </>
       )}
-    </div>,
+    </div>
+    </>,
     document.body,
   );
 }

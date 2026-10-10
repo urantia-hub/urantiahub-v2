@@ -268,3 +268,60 @@
   color: var(--ref);
   font-size: 12.5px;
 }
+
+/* A sheet that scrolls fades at its end while more is below. */
+.terms-sheet[data-more]::after,
+.panel[data-more]::after {
+  content: "";
+  position: sticky;
+  bottom: calc(-27px - env(safe-area-inset-bottom));
+  display: block;
+  height: 56px;
+  margin-top: -56px;
+  background: linear-gradient(to top, var(--raised) 18%, transparent);
+  pointer-events: none;
+}
+/* A sheet does not pass its scroll on to the page behind it. */
+.terms-sheet,
+.panel {
+  overscroll-behavior: contain;
+}
+.terms-scrim {
+  display: none;
+}
+/* The parallels have a title in the text face, as in the mock that Kelson approved. */
+.parallels .terms-title {
+  margin: 0 44px 3px 0;
+  color: var(--ink);
+  font: 500 17px/1.3 var(--font-text);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.parallel-where b,
+.parallel-where small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.parallel-where b {
+  flex: none;
+  max-width: 62%;
+}
+/* Below the width of the side card, a sheet covers the text: the text is darker and stays still. */
+@media (max-width: 1099px) {
+  .terms-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 24;
+    background: color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  html:has(.terms-sheet) {
+    overflow: hidden;
+  }
+}
+@media (max-width: 767px) {
+  html:has(.panel) {
+    overflow: hidden;
+  }
+}
