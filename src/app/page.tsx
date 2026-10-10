@@ -9,10 +9,11 @@ import { JsonLd } from "@/seo/JsonLd";
 import { pageMetadata, websiteJsonLd } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
-  title: "The Urantia Papers",
+  // The template of the layout does not reach a page of the same folder, so the name of the site is here.
+  title: "Read the Urantia Papers online | UrantiaHub",
+  absoluteTitle: true,
   description: "Read the Urantia Papers: the full text of the foreword and all 196 papers, free and with no account.",
   path: "/",
-  absoluteTitle: true,
 });
 
 export default async function HomePage() {

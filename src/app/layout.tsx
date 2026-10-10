@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TEXT_SIZE_INIT_SCRIPT } from "@/lib/text-size";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { SHARE_IMAGE } from "@/seo/metadata";
 import { site } from "@/site";
 import "./globals.css";
 
@@ -26,6 +27,10 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 export const metadata: Metadata = {
   metadataBase: new URL(site.origin),
   title: { default: "The Urantia Papers | UrantiaHub", template: "%s | UrantiaHub" },
+  // For a page that sets none of its own: search, the saved page, and the study page.
+  description: "Read the Urantia Papers: the full text of the foreword and all 196 papers, free and with no account.",
+  openGraph: { siteName: site.name, type: "website", locale: "en_US", images: [SHARE_IMAGE] },
+  twitter: { card: "summary_large_image", images: [SHARE_IMAGE] },
   robots: site.indexable ? undefined : { index: false, follow: false },
 };
 

@@ -106,6 +106,7 @@ test("the two neighbor cards start their text at the same height, and line up wi
   await openNavigator(page);
   const navigator = page.getByRole("dialog", { name: "Navigator" });
   const cards = navigator.locator(".hop button");
+  await still(page);
   await cards.first().evaluate((el) => ((el.lastChild as Text).textContent = "A title that is long enough to take two lines here"));
   const [a, b] = await Promise.all([cards.nth(0).locator("small").boundingBox(), cards.nth(1).locator("small").boundingBox()]);
   expect(Math.abs(a!.y - b!.y)).toBeLessThanOrEqual(1);
