@@ -455,32 +455,55 @@
   background: var(--raised);
   box-shadow: 0 12px 34px var(--shade);
 }
+.study-works .work {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--rule);
+}
+.study-works .work:first-child {
+  border-top: 0;
+}
 .study-works label {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 0;
-  border-top: 1px solid var(--rule);
   cursor: pointer;
 }
-.study-works label span {
-  flex: 1;
-}
 .study-works label small {
+  margin-left: 8px;
+  color: var(--ref);
+  font: 400 12.5px/1.3 var(--font-ui);
+}
+.study-works .work b {
   color: var(--ref);
   font: 500 12.5px/1 var(--font-ui);
   font-variant-numeric: tabular-nums;
 }
-/* A work with no passage for this paragraph. */
-.study-works label.none {
+.study-works .work a {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-right: -8px;
+  color: var(--muted);
+}
+.study-works .work a:hover {
+  color: var(--ink);
+}
+.study-works .work a .icon {
+  width: 15px;
+  height: 15px;
+}
+/* A work with no passage for this paragraph. Its source stays a link. */
+.study-works .work.none label,
+.study-works .work.none b,
+.study-works .work.none small {
   color: var(--muted);
   cursor: default;
-}
-.study-works label.none small {
-  color: var(--muted);
-}
-.study-works label:first-child {
-  border-top: 0;
 }
 .study-works input {
   width: 16px;

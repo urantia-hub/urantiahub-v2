@@ -18,6 +18,8 @@ function answer(url: string) {
   } catch {
     return json(400, JSON.stringify({ error: "bad path" }));
   }
+  // The list of the texts that the API compares with the Papers.
+  if (path === "scriptures") return json(200, readFileSync(join(dir, "scriptures.json")));
   if (!/^[a-z]+\/[0-9:.]+$/.test(path)) return json(400, JSON.stringify({ error: "bad path" }));
   const file = join(dir, `${path.replace(/[/:]/g, "_")}.json`);
   if (!existsSync(file)) return json(404, JSON.stringify({ error: "not recorded" }));

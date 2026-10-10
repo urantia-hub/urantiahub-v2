@@ -2,7 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
-import { fetchParallels, type RawParallels } from "./parallels";
+import { fetchParallels, fetchWorks, type RawParallels, type RawWork } from "./parallels";
 import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
 // The only place in the app that talks to api.urantia.dev.
@@ -53,6 +53,14 @@ async function cachedParallels(ref: string): Promise<RawParallels> {
   cacheLife("weeks");
   cacheTag("parallels");
   return fetchParallels(client, ref);
+}
+
+// Each text that the API compares with the Papers. The list changes only when the API gets a new text.
+export async function getWorks(): Promise<RawWork[]> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("parallels");
+  return fetchWorks(process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev");
 }
 
 export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";
