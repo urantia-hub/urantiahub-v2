@@ -20,6 +20,8 @@ const LINE = {
   save: ["M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"],
   // Two lines side by side, each with a tie to the other: passages that are near in meaning.
   parallels: ["M8 5v14", "M16 5v14", "M4 9h4", "M16 15h4"],
+  // A frame with a hill and a sun: an image of the paragraph to share.
+  image: ["M6 5h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z", "M4 16l4.5-4.5 4 4 2.5-2.5 5 5", "M15.5 9.5h.01"],
   // A pen: the reader's notes on a paragraph.
   note: ["M5 19l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L9 18l-4 1z", "M14.5 6.5l3 3"],
   copy: ["M10 8h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z", "M5 15V6a1 1 0 0 1 1-1h9"],
