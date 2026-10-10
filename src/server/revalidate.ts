@@ -3,7 +3,7 @@ import { z } from "zod";
 import { paperPath } from "@/content/paper-index";
 import { absoluteUrl } from "@/site";
 
-const TAG = /^(?:paper:(?:\d|[1-9]\d|1[0-8]\d|19[0-6])|passages)$/;
+const TAG = /^(?:paper:(?:\d|[1-9]\d|1[0-8]\d|19[0-6])|passages|parallels)$/;
 const Body = z.object({ tags: z.array(z.string().regex(TAG)).min(1).max(200) });
 
 type Deps = {
@@ -18,8 +18,10 @@ function sameSecret(given: string, expected: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-function urlForTag(tag: string): string {
-  return tag === "passages" ? absoluteUrl("/") : absoluteUrl(paperPath(tag.slice("paper:".length)));
+// The parallels are data behind a button. No page changes with them, so a search engine hears nothing.
+function urlsForTag(tag: string): string[] {
+  if (tag === "parallels") return [];
+  return [tag === "passages" ? absoluteUrl("/") : absoluteUrl(paperPath(tag.slice("paper:".length)))];
 }
 
 // Refreshes pages by tag. The caller must send the shared secret.
@@ -38,12 +40,12 @@ export async function handleRevalidate(request: Request, { secret, revalidate, n
   }
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
-    return Response.json({ error: "tags must be paper:{0-196} or passages" }, { status: 400 });
+    return Response.json({ error: "tags must be paper:{0-196}, passages, or parallels" }, { status: 400 });
   }
 
   const { tags } = parsed.data;
   for (const tag of tags) revalidate(tag);
   // A fault in IndexNow must not fail a refresh that already happened.
-  await notify(tags.map(urlForTag)).catch(() => undefined);
+  await notify(tags.flatMap(urlsForTag)).catch(() => undefined);
   return Response.json({ revalidated: tags });
 }

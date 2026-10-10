@@ -67,7 +67,8 @@ const cutSearchText: Cut = (text) =>
   text.replace(/\/(search|saved)\?[^#\s]*/g, "/$1").replace(/%2F(search|saved)%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2F$1");
 
 // The address of a paper can name a paragraph after "#". A count of a saved thing holds the paper only.
-const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted"]);
+// The same for the parallels of a paragraph: their events promise no reference.
+const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallel_opened"]);
 const cutParagraph: Cut = (text) => cutSearchText(text).replace(/(\/papers\/[^#\s?]*(?:\?[^#\s]*)?)#[^\s]*/g, "$1");
 
 function scrubValue(value: unknown, cut: Cut): unknown {

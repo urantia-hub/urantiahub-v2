@@ -18,7 +18,7 @@ test("Parallels lists the near passages of other works, the nearest first, with 
   await openParallels(page, "1:0.3");
   const list = sheet(page, "1:0.3");
   await expect(list.getByRole("button", { name: "Other works" })).toHaveAttribute("aria-pressed", "true");
-  const scores = await list.locator(".parallel-score").evaluateAll((all) => all.map((el) => Number(el.textContent!.replace("%", ""))));
+  const scores = await list.locator(".parallel-score").evaluateAll((all) => all.map((el) => Number.parseInt(el.textContent!, 10)));
   expect(scores.length).toBeGreaterThan(3);
   expect(scores).toEqual([...scores].sort((a, b) => b - a));
   // The floor: no passage below 40 percent, so the weak ones of the record do not show.
@@ -48,6 +48,20 @@ test("each passage of another work opens its page in a new tab, and a passage of
   await expect(first.locator("b")).toHaveText("56:9.10");
   await expect(first).toContainText("Universal Unity");
   await expect(first.getByRole("link", { name: /^Open/ })).toHaveAttribute("href", "/papers/paper-56-universal-unity#56:9.10");
+});
+
+// A link to the same page with another "#" must still move the mark and take the list away.
+test("Open on a passage of the same paper goes to that paragraph, marks it, and closes the list", async ({ page }) => {
+  await page.goto(PAPER_1);
+  await openParallels(page, "1:0.3");
+  const list = sheet(page, "1:0.3");
+  await list.getByRole("button", { name: "In the Papers" }).click();
+  await list.locator("li", { has: page.locator("b", { hasText: /^1:0\.1$/ }) }).getByRole("link", { name: /^Open/ }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator('[id="1:0.1"]')).toHaveAttribute("data-picked", "");
+  await expect(page.locator('[id="1:0.3"]')).not.toHaveAttribute("data-picked");
+  await expect(page.locator('[id="1:0.1"]')).toBeInViewport();
+  expect(new URL(page.url()).hash).toBe("#1:0.1");
 });
 
 test("a paragraph with no near passage says so in each half", async ({ page }) => {
@@ -111,6 +125,21 @@ test.describe("the row of a marked paragraph on a phone", () => {
     expect((await close.boundingBox())!.width).toBeLessThanOrEqual(2);
     // A tap on the paragraph closes the row.
     await tap(page, "1:0.3");
+    await expect(page.getByTestId("reading-bar")).toHaveAttribute("data-job", "reading");
+  });
+
+  test("shows the Close button to a reader who reaches it with the keyboard", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "phone", "the desktop row shows the X at each moment");
+    await page.goto(PAPER_1);
+    await tap(page, "1:0.3");
+    const close = page.getByRole("button", { name: "Close", exact: true });
+    await page.getByRole("button", { name: "More" }).focus();
+    await page.keyboard.press("Tab");
+    await expect(close).toBeFocused();
+    const box = (await close.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(40);
+    expect(box.height).toBeGreaterThanOrEqual(40);
+    await page.keyboard.press("Enter");
     await expect(page.getByTestId("reading-bar")).toHaveAttribute("data-job", "reading");
   });
 

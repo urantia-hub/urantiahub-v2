@@ -113,4 +113,8 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - The source of a passage is short: "Bhagavad Gita 7.22-24" and "Besant, 1922". A passage of the Papers shows its reference and the title of its paper.
 - On a phone (below 768 px) the row of a marked paragraph is four tiles of equal width, 62 px tall, with no reference and no X to see (Kelson, 2026-10-10: the tiles were too small). A tap on the paragraph closes the row. The Close button stays in the page for a screen reader and a keyboard.
 - The fixture server answers `/paragraphs/1:0.3` (a real record with parallels) and `/paragraphs/1:0.2` (the same with low scores, for the empty state).
+- The Hub keeps the parallels of a paragraph for weeks. After the API corrects a parallel or its address, refresh them: the revalidate route takes the tag `parallels`.
+- A link in a sheet to another paragraph of the SAME paper sends no `hashchange`, so `ReadingNav` does not hear it. The sheet tells it (`onGo` of `ParallelsSheet`): the list goes and the mark moves.
+- Space inside a sheet or a panel (`[role="dialog"]`) scrolls the list. It does not start the voice.
+- An address from the API becomes a link only as `https://` on one of the three sites, with no port and no name in it, and the link is the address as the parser read it (`outsideHref`).
 
