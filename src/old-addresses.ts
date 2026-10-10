@@ -18,5 +18,6 @@ export const OLD_ADDRESSES: OldAddress[] = [
   // A link in an email that a reader still has.
   ...to("/emails", false, "/api/user/unsubscribe"),
   // These pages are to come.
-  ...to("/about", false, "/terms-of-service", "/changelog", "/changelog.xml", "/community-resources", "/blockchain-archive"),
+  ...to("/terms", true, "/terms-of-service"),
+  ...to("/about", false, "/changelog", "/changelog.xml", "/community-resources", "/blockchain-archive"),
 ];
