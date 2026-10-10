@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
 
@@ -29,7 +30,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   const [attempt, setAttempt] = useState(0);
   const scroll = useMoreBelow<HTMLDivElement>();
   const box = scroll.ref;
-  const close = useRef(onClose);
+  const { leaving, leave } = useLeave(onClose);
 
   // The mark moved to another paragraph: the sheet follows it.
   if (state.for !== reference) {
@@ -37,10 +38,6 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     setAll(false);
     setWhole(new Set());
   }
-
-  useEffect(() => {
-    close.current = onClose;
-  });
 
   useEffect(() => {
     let current = true;
@@ -69,11 +66,11 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
-      close.current();
+      leave();
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
-  }, [box]);
+  }, [box, leave]);
 
   function choose(next: Half) {
     if (next === half) return;
@@ -137,9 +134,9 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   return createPortal(
     <>
     {/* On a phone the sheet covers the text: the text behind it is darker, and a tap there closes the sheet. */}
-    <div className="terms-scrim" onClick={onClose} />
-    <div className="terms-sheet parallels" role="dialog" aria-label={`Parallels for ${reference}`} tabIndex={-1} {...scroll}>
-      <button type="button" className="terms-close" aria-label="Close the parallels" onClick={onClose}>
+    <div className="terms-scrim" data-leaving={leaving ? "" : undefined} onClick={leave} />
+    <div className="terms-sheet parallels" role="dialog" aria-label={`Parallels for ${reference}`} tabIndex={-1} data-leaving={leaving ? "" : undefined} {...scroll}>
+      <button type="button" className="terms-close" aria-label="Close the parallels" onClick={leave}>
         <Icon name="close" />
       </button>
       <h2 className="terms-title">Parallels for {reference}</h2>
@@ -181,7 +178,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
           <Icon name="paperAfter" />
         </Link>
       )}
-      {state.status === "ready" && <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. A parallel is not a source.</p>}
+      {state.status === "ready" && <p className="parallel-foot">A computer compares the meaning of each passage and gives the number. It does not show that one passage came from the other.</p>}
     </div>
     </>,
     document.body,

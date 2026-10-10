@@ -1,0 +1,164 @@
+/* Motion: each thing that comes or goes does it with a short move. The rule at the end of globals.css
+   stops them all for a reader who asked for less motion. The moves use `translate`, which leaves a
+   `transform` of the same element as it is. */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --scrim: #26221c47;
+}
+:root[data-theme="dark"] {
+  --scrim: #00000099;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+@keyframes sink-out {
+  to {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+@keyframes sheet-in {
+  from {
+    translate: 0 100%;
+  }
+}
+@keyframes sheet-out {
+  to {
+    translate: 0 100%;
+  }
+}
+
+/* A sheet comes up from the bottom of a phone, and goes back there. The time of the way out is LEAVE_MS. */
+.panel,
+.terms-sheet,
+.settings-panel {
+  animation: sheet-in 0.34s var(--ease-out);
+}
+.panel[data-leaving],
+.terms-sheet[data-leaving] {
+  animation: sheet-out 0.18s ease-in forwards;
+  pointer-events: none;
+}
+.panel-scrim[data-leaving],
+.terms-scrim[data-leaving] {
+  pointer-events: none;
+}
+/* A card on a wide screen comes up a little and gets clear. */
+@media (min-width: 768px) {
+  .panel,
+  .settings-panel {
+    animation: rise-in 0.2s var(--ease-out);
+  }
+  .panel[data-leaving] {
+    animation: sink-out 0.18s ease-in forwards;
+  }
+}
+@media (min-width: 1100px) {
+  .terms-sheet {
+    animation: rise-in 0.2s var(--ease-out);
+  }
+  .terms-sheet[data-leaving] {
+    animation: sink-out 0.18s ease-in forwards;
+  }
+}
+.settings-scrim {
+  animation: fade-in 0.25s ease;
+}
+
+/* The dark of the page behind a sheet is one layer, so it stays when one sheet opens from another.
+   A sheet of a page that the reader left stays in the document, not shown: it does not count. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  background: var(--scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+body:has(.panel.image:not([data-leaving], [style*="display: none"]))::after {
+  opacity: 1;
+}
+@media (max-width: 1099px) {
+  body:has(.terms-sheet:not([data-leaving], [style*="display: none"]))::after {
+    opacity: 1;
+  }
+}
+@media (max-width: 767px) {
+  body:has(.panel:not([data-leaving], [style*="display: none"]))::after {
+    opacity: 1;
+  }
+}
+
+/* The navigator is a dialog of the browser. It comes as a sheet, and goes where the browser can show that. */
+.navigator[open] {
+  animation: sheet-in 0.34s var(--ease-out);
+}
+.navigator[open]::backdrop {
+  animation: fade-in 0.25s ease;
+}
+.navigator {
+  transition:
+    translate 0.18s ease-in,
+    opacity 0.18s ease-in,
+    display 0.18s allow-discrete,
+    overlay 0.18s allow-discrete;
+}
+.navigator:not([open]) {
+  translate: 0 100%;
+}
+.navigator::backdrop {
+  transition:
+    opacity 0.18s ease-in,
+    display 0.18s allow-discrete,
+    overlay 0.18s allow-discrete;
+}
+.navigator:not([open])::backdrop {
+  opacity: 0;
+}
+@media (min-width: 768px) {
+  .navigator[open] {
+    animation: rise-in 0.2s var(--ease-out);
+  }
+  .navigator:not([open]) {
+    translate: 0 8px;
+    opacity: 0;
+  }
+}
+
+/* The controls at the bottom: a new row gets clear in its place. */
+.dock .row {
+  animation: fade-in 0.22s ease;
+}
+.dock-toast,
+.back-to-voice {
+  animation: rise-in 0.22s var(--ease-out);
+}
+
+/* What arrives after the page: the notes, the marks, and each list that loads. */
+.margin-card,
+.note-list li,
+.term-entry,
+.terms-list,
+.parallel-list,
+.terms-empty,
+.saved-list,
+.saved-empty,
+.study-quote {
+  animation: rise-in 0.28s var(--ease-out);
+}
+.marks > *,
+.note-problem,
+.image-note,
+.image-said {
+  animation: fade-in 0.25s ease;
+}

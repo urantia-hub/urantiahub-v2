@@ -101,8 +101,25 @@ export default function ImageSheet({ reference, paperId, text, onClose }: Props)
   }
 
   const ready = fonts !== null && ok && words !== "";
+  const foot = (
+    <>
+      {canShare && (
+        <button type="button" className="panel-button dark" disabled={!ready} onClick={() => void share()}>
+          Share
+        </button>
+      )}
+      <button type="button" className={`panel-button${canShare ? "" : " dark"}`} disabled={!ready} onClick={() => void save()}>
+        Save the image
+      </button>
+      {note && (
+        <span className="image-said" role="status">
+          {note}
+        </span>
+      )}
+    </>
+  );
   return (
-    <Sheet label={`Image of ${reference}`} onClose={onClose} className="image">
+    <Sheet label={`Image of ${reference}`} onClose={onClose} className="image" foot={foot}>
       <h2>Image of {reference}</h2>
       <div className="image-preview">
         <canvas ref={canvas} role="img" aria-label={words ? `Image with the text: ${words}` : "Image with no text"} />
@@ -135,21 +152,6 @@ export default function ImageSheet({ reference, paperId, text, onClose }: Props)
         </>
       )}
 
-      <div className="panel-actions image-actions">
-        {canShare && (
-          <button type="button" className="panel-button dark" disabled={!ready} onClick={() => void share()}>
-            Share
-          </button>
-        )}
-        <button type="button" className={`panel-button${canShare ? "" : " dark"}`} disabled={!ready} onClick={() => void save()}>
-          Save the image
-        </button>
-        {note && (
-          <span className="image-said" role="status">
-            {note}
-          </span>
-        )}
-      </div>
     </Sheet>
   );
 }

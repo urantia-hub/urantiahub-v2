@@ -655,7 +655,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
           </button>
           <button type="button" className="panel-line" onClick={() => setPanel("image")}>
             <Icon name="image" />
-            Image
+            Make an image
           </button>
         </Sheet>
       )}

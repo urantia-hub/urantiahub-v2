@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { stubAudio, tap } from "./audio";
+import { still, stubAudio, tap } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 const sheet = (page: Page, ref: string) => page.getByRole("dialog", { name: `Parallels for ${ref}` });
@@ -27,7 +27,7 @@ test("Parallels lists the near passages of other works, the nearest first, with 
   await expect(list.getByText("Diogenes Laertius")).toHaveCount(0);
   await expect(list.locator("li").first()).toContainText("Bhagavad Gita");
   await expect(list.locator("li").first()).toContainText("Besant, 1922");
-  await expect(list).toContainText("A parallel is not a source.");
+  await expect(list).toContainText("It does not show that one passage came from the other.");
   // The paragraph stays marked while the list is open.
   await expect(page.locator('[id="1:0.3"]')).toHaveAttribute("data-picked", "");
 });
@@ -90,6 +90,8 @@ test("Escape closes the parallels first, and the list follows the mark to anothe
 test("on a phone the list is a bottom sheet, and on a desktop a card in the right margin", async ({ page }, testInfo) => {
   await page.goto(PAPER_1);
   await openParallels(page, "1:0.3");
+  await expect(sheet(page, "1:0.3")).toBeVisible();
+  await still(page);
   const box = (await sheet(page, "1:0.3").boundingBox())!;
   const view = page.viewportSize()!;
   if (testInfo.project.name === "phone") expect(Math.round(box.y + box.height)).toBe(view.height);
@@ -172,16 +174,19 @@ test.describe("a sheet over the text", () => {
     await expect(sheet(page, "1:0.3").locator("li").first()).toBeVisible();
     const scrim = page.locator(".terms-scrim");
     await expect(scrim).toBeVisible();
-    expect(await scrim.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+    const dark = () => page.evaluate(() => getComputedStyle(document.body, "::after").opacity);
+    await expect.poll(dark).toBe("1");
     // The page behind the sheet does not scroll.
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY)).toBe("hidden");
     await scrim.click({ position: { x: 20, y: 80 } });
     await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect.poll(dark).toBe("0");
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY)).not.toBe("hidden");
     // The terms have the same.
     await page.getByRole("button", { name: "More" }).click();
     await page.getByRole("button", { name: "Terms in this paragraph" }).click();
     await expect(page.locator(".terms-scrim")).toBeVisible();
+    await expect.poll(dark).toBe("1");
   });
 
   test("on a desktop the text stays free behind the card", async ({ page }, testInfo) => {
@@ -205,6 +210,18 @@ test.describe("a sheet over the text", () => {
 });
 
 test.describe("the study page", () => {
+  // The sheet that the reader came from stopped the scroll of the page. The study page must scroll.
+  test("scrolls after the reader comes from the list", async ({ page }) => {
+    await page.goto(PAPER_1);
+    await openParallels(page, "1:0.3");
+    await sheet(page, "1:0.3").getByRole("link", { name: "Study these parallels" }).click();
+    await page.waitForURL((url) => url.pathname === "/parallels");
+    await expect(page.locator(".study-page .parallel-list li").first()).toBeVisible();
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflowY)).not.toBe("hidden");
+    await page.mouse.wheel(0, 600);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  });
+
   test("opens from the list, shows the whole paragraph beside all its parallels, and filters them", async ({ page }) => {
     await page.goto(PAPER_1);
     await openParallels(page, "1:0.3");

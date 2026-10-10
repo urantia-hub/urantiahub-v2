@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 import { searchHref } from "@/search/query";
 import type { Term, TermsAnswer } from "@/server/terms";
@@ -22,6 +23,7 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
   const [attempt, setAttempt] = useState(0);
   const scroll = useMoreBelow<HTMLDivElement>();
   const box = scroll.ref;
+  const { leaving, leave } = useLeave(onClose);
 
   // A new paragraph starts again. React permits this change of state during a render.
   if (state.for !== reference) {
@@ -68,9 +70,9 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
       if (event.key !== "Escape") return;
       // Escape closes the terms and stops there. The paragraph stays marked.
       event.preventDefault();
-      onClose();
+      leave();
     },
-    [onClose],
+    [leave],
   );
   useEffect(() => {
     document.addEventListener("keydown", onKey, true);
@@ -106,9 +108,9 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
 
   return createPortal(
     <>
-    <div className="terms-scrim" onClick={onClose} />
-    <div className="terms-sheet" role="dialog" aria-label={`Terms in ${reference}`} tabIndex={-1} {...scroll}>
-      <button type="button" className="terms-close" aria-label="Close the terms" onClick={onClose}>
+    <div className="terms-scrim" data-leaving={leaving ? "" : undefined} onClick={leave} />
+    <div className="terms-sheet" role="dialog" aria-label={`Terms in ${reference}`} tabIndex={-1} data-leaving={leaving ? "" : undefined} {...scroll}>
+      <button type="button" className="terms-close" aria-label="Close the terms" onClick={leave}>
         <Icon name="close" />
       </button>
 

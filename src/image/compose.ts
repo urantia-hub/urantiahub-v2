@@ -19,19 +19,18 @@ export function sentences(text: string): string[] {
   return found;
 }
 
-/** The chosen sentences in their order, with "…" for each part that is left out. */
+/** The chosen sentences in their order, with "…" for each part that is left out between two of them. */
 export function chosenText(all: readonly string[], chosen: ReadonlySet<number>): string {
   const parts: string[] = [];
   let gap = false;
   all.forEach((sentence, i) => {
     if (chosen.has(i)) {
-      if (gap) parts.push("…");
+      // No mark before the first sentence or after the last: a quote can start and stop in a paragraph.
+      if (gap && parts.length > 0) parts.push("…");
       parts.push(sentence);
       gap = false;
     } else gap = true;
   });
-  if (parts.length === 0) return "";
-  if (gap) parts.push("…");
   return parts.join(" ");
 }
 

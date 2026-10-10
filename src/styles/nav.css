@@ -300,7 +300,7 @@
   font-family: var(--font-ui);
 }
 .navigator::backdrop {
-  background: #00000066;
+  background: var(--scrim);
 }
 .navigator .sheet {
   display: flex;
@@ -409,6 +409,17 @@
   list-style: none;
   margin: 0;
   padding: 4px 22px 6px;
+}
+/* More sections are below: the list fades at its end. */
+.navigator .secs[data-more]::after {
+  content: "";
+  position: sticky;
+  bottom: -6px;
+  display: block;
+  height: 44px;
+  margin-top: -44px;
+  background: linear-gradient(to top, var(--raised) 12%, transparent);
+  pointer-events: none;
 }
 .navigator .secs button {
   display: flex;
