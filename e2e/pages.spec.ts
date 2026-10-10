@@ -294,6 +294,7 @@ for (const [path, title] of [
   ["/papers", "All 196 Urantia Papers: table of contents | UrantiaHub"],
   ["/about", "What are the Urantia Papers? | UrantiaHub"],
   ["/privacy", "Privacy | UrantiaHub"],
+  ["/terms", "Terms | UrantiaHub"],
   ["/papers/paper-1-the-universal-father", "Paper 1: The Universal Father | UrantiaHub"],
   ["/search", "Search | UrantiaHub"],
   ["/parallels?ref=1:0.3", "Parallels | UrantiaHub"],
@@ -329,7 +330,7 @@ for (const [from, to, status] of [
   ["/privacy-policy", "/privacy", 308],
   ["/cookie-policy", "/privacy", 308],
   ["/auth/sign-in", "/papers", 308],
-  ["/terms-of-service", "/about", 307],
+  ["/terms-of-service", "/terms", 308],
   ["/changelog", "/about", 307],
   ["/community-resources", "/about", 307],
   ["/api/user/unsubscribe?token=abc", "/emails?token=abc", 307],
@@ -352,4 +353,14 @@ test("an old unsubscribe link lands on a page that says no daily email comes, an
   // `/auth/callback` is a route of this Hub: it must not go where the old sign-in pages go.
   const callback = await request.get("/auth/callback", { maxRedirects: 0 });
   expect(callback.headers().location ?? "").not.toMatch(/\/papers$/);
+});
+
+test("the terms page names who runs the site and the law that applies, and the footer links to it", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".site-footer").getByRole("link", { name: "Terms" }).click();
+  await page.waitForURL("**/terms");
+  await expect(page.getByRole("heading", { level: 1, name: "Terms" })).toBeVisible();
+  await expect(page.getByText("Adams Technologies LLC, a Texas limited liability company, runs UrantiaHub.")).toBeVisible();
+  await expect(page.getByText("It is not affiliated with, endorsed by, or sponsored by Urantia Foundation.")).toBeVisible();
+  await expect(page.getByText("The laws of the State of Texas, United States, govern these terms.")).toBeVisible();
 });

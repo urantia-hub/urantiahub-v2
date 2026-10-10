@@ -156,3 +156,4 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - `src/old-addresses.ts` is the one list of the addresses of the Hub before this one and where each goes. `next.config.ts` serves it as redirects. A line whose page is still to come is not permanent. `/auth/callback` is a route of this Hub: never add `/auth/:path*`.
 - `/api/redirect/papers/by-standard-reference-id/{ref}` (in old emails) goes to the paragraph.
 - `/emails` is where an old "unsubscribe" link lands. It says that no daily email comes. Change its words in the same change that starts an email.
+- `/terms` is the terms page (2026-10-10): the terms of the old Hub in plain words, for the features of this Hub. Each statement must be true of the live code; change `TERMS_UPDATED` with it. No lawyer read it (Kelson's ruling: not a blocker).

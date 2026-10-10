@@ -10,6 +10,7 @@ export function SiteFooter() {
         </span>
         <Link href="/about">About</Link>
         <Link href="/privacy">Privacy</Link>
+        <Link href="/terms">Terms</Link>
       </span>
     </footer>
   );
