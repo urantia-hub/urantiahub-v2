@@ -242,12 +242,19 @@ test.describe("the study page", () => {
     expect(first).toEqual([...first].sort((a, b) => b - a));
     expect(first[0]).toBeGreaterThanOrEqual(70);
     expect(Math.min(...first)).toBeGreaterThanOrEqual(40);
-    // The works are one menu, in the order of the alphabet.
+    // The works are one menu: each work that the Hub compares, with its count, the most passages first.
     const menu = page.locator(".study-works");
     await expect(menu.locator("summary")).toHaveText("All works");
     await menu.locator("summary").click();
-    const names = await menu.locator("label").allTextContents();
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    await expect(menu.locator("label")).toHaveCount(11);
+    const counts = await menu.locator("label small").evaluateAll((all) => all.map((el) => Number(el.textContent)));
+    expect(counts).toEqual([...counts].sort((a, b) => b - a));
+    expect(counts.reduce((a, b) => a + b, 0)).toBe(first.length);
+    // A work with no passage for this paragraph is in the list, gray, and not in use.
+    const none = menu.locator("label.none");
+    expect(await none.count()).toBeGreaterThan(0);
+    await expect(none.first().locator("input")).toBeDisabled();
+    const names = await menu.locator("label:not(.none)").allTextContents();
     await menu.getByLabel("The Urantia Papers").uncheck();
     expect(Math.max(...(await scores()))).toBeLessThan(60);
     await expect(menu.locator("summary")).toHaveText(`${names.length - 1} works`);
