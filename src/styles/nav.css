@@ -202,14 +202,40 @@
 .dock .tile[aria-pressed="true"] {
   font-weight: 600;
 }
-/* A narrow phone: the paragraph has its reference above it, and the yellow mark. The row keeps its tiles. */
-@media (max-width: 379px) {
+/* A phone: four tiles of equal width, large enough for a thumb (Kelson, 2026-10-10). The paragraph
+   has its reference above it and the yellow mark, so the row does not repeat it. A tap on the
+   paragraph closes the row, so the X is for a screen reader and a keyboard only. */
+@media (max-width: 767px) {
+  .dock[data-job="paragraph"] .pill {
+    height: 62px;
+  }
+  .dock .row.pick {
+    grid-template-columns: 1fr;
+    padding: 0 8px;
+  }
   .dock .row.pick .pref {
     display: none;
   }
-  .dock .row.pick {
-    grid-template-columns: 1fr 40px;
-    padding-left: 6px;
+  .dock .row.pick .tiles {
+    gap: 0;
+  }
+  .dock .row.pick .tile {
+    flex: 1;
+    width: auto;
+    height: 62px;
+    gap: 5px;
+    font-size: 11.5px;
+  }
+  .dock .row.pick .tile .icon {
+    width: 23px;
+    height: 23px;
+  }
+  .dock .row.pick .close {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 }
 .dock .fill {

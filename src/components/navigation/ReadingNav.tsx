@@ -19,6 +19,8 @@ import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-
 
 // Only a signed-in reader opens the notes, so their code loads at the first use.
 const NoteSheet = lazy(() => import("@/components/reader/NoteSheet"));
+// The parallels load at the first use too: most readers never open them.
+const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
 
 type Props = {
   paper: { id: string; title: string };
@@ -62,6 +64,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [parallelsOpen, setParallelsOpen] = useState(false);
   const termsOpenRef = useRef(false);
   const panelRef = useRef(false);
   const moreTile = useRef<HTMLButtonElement>(null);
@@ -160,6 +163,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   // The terms belong to the marked paragraph. With no mark, there is no sheet.
   if (termsOpen && !picked) setTermsOpen(false);
+  if (parallelsOpen && !picked) setParallelsOpen(false);
   if (panel && !picked) setPanel(null);
   // The notes belong to one reader. After a sign-out, or with another reader, the sheet goes.
   const readerKey = account.status === "in" ? (account.user?.key ?? null) : null;
@@ -208,6 +212,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         setPicked(para.id);
         setHidden(false);
         setTermsOpen(false);
+        setParallelsOpen(false);
         setPanel("notes");
         return;
       }
@@ -312,7 +317,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   }
 
   useEffect(() => {
-    termsOpenRef.current = termsOpen;
+    // The terms and the parallels have the same place, and the same right to stay open under the voice.
+    termsOpenRef.current = termsOpen || parallelsOpen;
     panelRef.current = panel !== null;
     latest.current = input;
     onRoundRef.current = onRound;
@@ -372,6 +378,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   // The sheet goes, and the focus returns to the tile that opened it.
   function closeTerms() {
     setTermsOpen(false);
+    setParallelsOpen(false);
     window.requestAnimationFrame(() => moreTile.current?.focus({ preventScroll: true }));
   }
 
@@ -407,6 +414,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     if (!picked) return;
     if (account.status !== "in") return ask("note");
     setTermsOpen(false);
+    setParallelsOpen(false);
     setPanel((was) => (was === "notes" ? null : "notes"));
   }
 
@@ -561,10 +569,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                   type="button"
                   className="tile"
                   aria-haspopup="dialog"
-                  aria-expanded={panel === "more" || termsOpen}
+                  aria-expanded={panel === "more" || termsOpen || parallelsOpen}
                   onClick={() => {
                     setTermsOpen(false);
-                    setPanel((was) => (was === "more" || termsOpen ? null : "more"));
+                    setParallelsOpen(false);
+                    setPanel((was) => (was === "more" || termsOpen || parallelsOpen ? null : "more"));
                   }}
                   ref={moreTile}
                 >
@@ -614,11 +623,24 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
             className="panel-line"
             onClick={() => {
               setPanel(null);
+              setParallelsOpen(false);
               setTermsOpen(true);
             }}
           >
             <Icon name="terms" />
             Terms in this paragraph
+          </button>
+          <button
+            type="button"
+            className="panel-line"
+            onClick={() => {
+              setPanel(null);
+              setTermsOpen(false);
+              setParallelsOpen(true);
+            }}
+          >
+            <Icon name="parallels" />
+            Parallels
           </button>
           <button type="button" className="panel-line" onClick={onCopyText}>
             <Icon name="copy" />
@@ -647,6 +669,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
         </Sheet>
       )}
       {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />}
+      {parallelsOpen && picked && (
+        <Suspense fallback={null}>
+          <ParallelsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />
+        </Suspense>
+      )}
       <Navigator
         open={open}
         onClose={() => setOpen(false)}
