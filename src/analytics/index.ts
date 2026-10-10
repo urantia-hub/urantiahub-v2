@@ -27,6 +27,9 @@ export type AnalyticsEvents = {
   parallels_tab: { tab: "outside" | "papers" };
   parallels_study_opened: { paper_id: string };
   parallel_opened: { kind: "outside" | "papers" };
+  // An image of a paragraph. The paper and the look only.
+  image_opened: { paper_id: string };
+  image_made: { paper_id: string; look: string; method: "share" | "save" };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };
@@ -69,7 +72,7 @@ const cutSearchText: Cut = (text) =>
 
 // The address of a paper can name a paragraph after "#". A count of a saved thing holds the paper only.
 // The same for the parallels of a paragraph: their events promise no reference.
-const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallel_opened"]);
+const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallel_opened", "image_opened", "image_made"]);
 const cutParagraph: Cut = (text) => cutSearchText(text).replace(/(\/papers\/[^#\s?]*(?:\?[^#\s]*)?)#[^\s]*/g, "$1");
 
 function scrubValue(value: unknown, cut: Cut): unknown {

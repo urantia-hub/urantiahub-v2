@@ -20,6 +20,8 @@ import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-
 // Only a signed-in reader opens the notes, so their code loads at the first use.
 const NoteSheet = lazy(() => import("@/components/reader/NoteSheet"));
 // The parallels load at the first use too: most readers never open them.
+// The image maker draws on a canvas. A reader who makes no image does not download it.
+const ImageSheet = lazy(() => import("@/components/reader/ImageSheet"));
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
 
 type Props = {
@@ -33,6 +35,8 @@ type Props = {
 
 const IDLE: VoiceState = { status: "idle", index: -1, time: 0, speed: 1 };
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+
+const paragraphText = (ref: string) => document.getElementById(ref)?.querySelector(":scope > .text, :scope > span:last-child")?.textContent?.trim() ?? "";
 
 // Paragraphs are server HTML. The dock marks them with an attribute: one at a time for each kind of mark.
 function mark(attribute: "data-picked" | "data-voice", ref: string | null) {
@@ -59,7 +63,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // The small panel above the row: the two more actions, or the question for a reader with no account.
-  const [panel, setPanel] = useState<"more" | "ask" | "notes" | null>(null);
+  const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | null>(null);
   const [askHref, setAskHref] = useState("");
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
@@ -423,7 +427,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   async function onCopyText() {
     if (!picked) return;
-    const text = document.getElementById(picked)?.querySelector(":scope > .text, :scope > span:last-child")?.textContent?.trim();
+    const text = paragraphText(picked);
     closePanel();
     if (!text) return;
     try {
@@ -649,7 +653,16 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
             <Icon name="copy" />
             Copy the text
           </button>
+          <button type="button" className="panel-line" onClick={() => setPanel("image")}>
+            <Icon name="image" />
+            Image
+          </button>
         </Sheet>
+      )}
+      {panel === "image" && picked && (
+        <Suspense fallback={null}>
+          <ImageSheet key={picked} reference={picked} paperId={paper.id} text={paragraphText(picked)} onClose={closePanel} />
+        </Suspense>
       )}
       {panel === "notes" && picked && (
         <Suspense fallback={null}>
