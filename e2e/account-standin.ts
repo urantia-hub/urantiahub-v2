@@ -17,7 +17,7 @@ type Reader = {
   tokens: number;
   // The paragraphs that the reader read, and each batch as it arrived.
   read: string[];
-  notices: { email: Record<string, boolean>; hour: number; zone: string; asked: boolean } | null;
+  notices: { email: Record<string, boolean>; push?: Record<string, boolean>; hour: number; zone: string; asked: boolean } | null;
   devices: { endpoint: string; p256dh: string; auth: string; kinds: string[]; label: string }[];
   batches: string[][];
   // What the API says of each paper, when the test sets it.
@@ -113,7 +113,10 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
     if (r.mode === "down") return json(500, { detail: "recorded failure" });
     if (path === "/me") return json(200, { data: { id: `user-${id}`, email: `${id}@example.com`, name: r.name } });
     if (path === "/me/notices") {
-      if (request.method === "PUT") r.notices = { ...(r.notices ?? { email: {}, hour: 7, zone: "UTC", asked: false }), ...body, email: { ...(r.notices?.email ?? {}), ...((body.email as object) ?? {}) } };
+      if (request.method === "PUT") {
+        const was = r.notices ?? { email: {}, hour: 7, zone: "UTC", asked: false };
+        r.notices = { ...was, ...body, email: { ...was.email, ...((body.email as object) ?? {}) }, push: { ...(was.push ?? {}), ...((body.push as object) ?? {}) } };
+      }
       const devices = r.devices.map((d, i) => ({ id: `device-${i}`, label: d.label, kinds: d.kinds, endpointHash: createHash("sha256").update(d.endpoint).digest("hex") }));
       return json(200, { data: { settings: r.notices, devices } });
     }

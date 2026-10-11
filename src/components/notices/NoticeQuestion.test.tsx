@@ -9,7 +9,7 @@ const world = vi.hoisted(() => ({
   calls: [] as unknown[],
   saves: true,
   device: "allowed" as string,
-  turned: { ok: true, device: { id: "h", label: "Chrome on Android", kinds: ["daily"], endpointHash: "h" } } as object,
+  joins: true,
   pushed: [] as string[],
   states: {} as Record<string, object>,
   out: { status: "out" },
@@ -25,12 +25,12 @@ vi.mock("@/account/client", () => ({
 }));
 vi.mock("@/account/reader-call", () => ({
   readerCall: vi.fn(async (_path: string, init?: RequestInit) => {
-    if (!init?.method) return { settings: { email: { daily: false, reminder: false, releases: false }, hour: 7, zone: null, asked: world.asked }, devices: [] };
+    if (!init?.method) return { settings: { email: { daily: false, reminder: false, releases: false }, push: { daily: false, reminder: false, releases: false }, hour: 7, zone: null, asked: world.asked }, devices: [] };
     world.calls.push(JSON.parse(String(init.body)));
     return world.saves ? { saved: true } : null;
   }),
 }));
-vi.mock("@/notices/device-on", () => ({ turnOnDevice: vi.fn(async () => world.turned) }));
+vi.mock("@/notices/device-end", () => ({ registerDevice: vi.fn(async () => world.joins) }));
 vi.mock("@/notices/push", () => ({ deviceState: () => world.device }));
 vi.stubEnv("NEXT_PUBLIC_NOTICES", "on");
 const { NoticeQuestion } = await import("./NoticeQuestion");
@@ -50,7 +50,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   document.querySelector(".test-sheet")?.remove();
-  Object.assign(world, { key: "k", path: "/papers", asked: false, calls: [], saves: true, device: "allowed", pushed: [] });
+  Object.assign(world, { key: "k", path: "/papers", asked: false, calls: [], saves: true, device: "allowed", pushed: [], joins: true });
 });
 
 describe("the question after the first sign-in", () => {
@@ -81,17 +81,25 @@ describe("the question after the first sign-in", () => {
     expect(await screen.findByRole("status")).toHaveTextContent("The passage comes by email each day at 7:00 AM in your time zone.");
   });
 
-  it("turns this device on, and keeps that the reader was asked", async () => {
+  it("adds this device and turns the daily push on", async () => {
     await shown();
-    await user.click(await screen.findByRole("button", { name: "Send it to this device" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("The passage comes to this device");
+    await user.click(await screen.findByRole("button", { name: "Send it as a push" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("The passage comes as a push");
+    expect(world.calls).toEqual([{ push: { daily: true }, asked: true, zone: ZONE }]);
+  });
+
+  it("turns no push on when the device did not join, and keeps that the reader was asked", async () => {
+    world.joins = false;
+    await shown();
+    await user.click(await screen.findByRole("button", { name: "Send it as a push" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Nothing was changed.");
     expect(world.calls).toEqual([{ asked: true, zone: ZONE }]);
   });
 
   it("sends a reader whose device cannot ask here to the settings, where the steps are", async () => {
     world.device = "ios";
     await shown();
-    await user.click(await screen.findByRole("button", { name: "Send it to this device" }));
+    await user.click(await screen.findByRole("button", { name: "Send it as a push" }));
     expect(world.pushed).toEqual(["/notifications"]);
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });

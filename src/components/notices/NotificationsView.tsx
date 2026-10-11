@@ -7,9 +7,8 @@ import { NOTICE_KINDS, type NoticeKind, type Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
 import { SignInLink } from "@/components/SignInLink";
-import { DEVICE_EVENT, rememberDevice } from "@/notices/device-end";
-import { turnOnDevice } from "@/notices/device-on";
-import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps, unsubscribeDevice } from "@/notices/push";
+import { DEVICE_EVENT, registerDevice } from "@/notices/device-end";
+import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps } from "@/notices/push";
 
 
 const NOTICES: Record<NoticeKind, { title: string; about: string }> = {
@@ -29,16 +28,18 @@ function zones(current: string): string[] {
 type Data = { for: string | null; status: "loading" | "ready" | "failed"; notices: Notices | null };
 const NOTHING: Data = { for: null, status: "loading", notices: null };
 type Line = { kind: "saved" | "problem"; text: string } | null;
+type Channel = "email" | "push";
 
-// The notices of the signed-in reader: each one by email, on this device, both, or not at all.
+// The notices of the signed-in reader: each one by email, as a push, both, or not at all.
+// A push goes to each device of the reader where the browser allows notices.
 export function NotificationsView() {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const key = account.status === "in" ? (account.user?.key ?? null) : null;
   const [data, setData] = useState<Data>(NOTHING);
   const [attempt, setAttempt] = useState(0);
   const [device, setDevice] = useState<DeviceState>("none");
-  // The hash of the address of this device, when it is one that gets notices.
-  const [here, setHere] = useState<string | null>(null);
+  // This device is one of the devices of the account.
+  const [here, setHere] = useState(false);
   const [line, setLine] = useState<Line>(null);
   const [busy, setBusy] = useState(false);
   if (data.for !== key) setData({ ...NOTHING, for: key });
@@ -51,17 +52,18 @@ export function NotificationsView() {
       const hash = endpoint ? await sha256Hex(endpoint) : null;
       if (!current) return;
       const notices = body as Notices | null;
+      const ok = notices && Array.isArray(notices.devices) && notices.settings;
       setDevice(deviceState());
-      setHere(hash);
-      setData(notices && Array.isArray(notices.devices) && notices.settings ? { for: key, status: "ready", notices } : { for: key, status: "failed", notices: null });
+      setHere(Boolean(ok && hash && notices.devices.some((d) => d.endpointHash === hash)));
+      setData(ok ? { for: key, status: "ready", notices } : { for: key, status: "failed", notices: null });
     })();
     return () => {
       current = false;
     };
   }, [key, attempt]);
 
-  // The device can change with no press on this page: it comes back after a sign-in, and the site as
-  // an app and the browser are one device. So the page reads again when it shows, and when the device changed.
+  // The devices can change with no press on this page: a device joins after a sign-in, and the site
+  // as an app and the browser are one device. So the page reads again when it shows, and when a device joined.
   useEffect(() => {
     const again = () => {
       if (document.visibilityState === "visible") setAttempt((n) => n + 1);
@@ -77,7 +79,6 @@ export function NotificationsView() {
   const signedOut = account.status !== "in";
   const notices = data.notices;
   const zone = notices?.settings.zone ?? deviceZone();
-  const onDevice = notices?.devices.find((d) => here !== null && d.endpointHash === here)?.kinds ?? [];
   const change = (next: (was: Notices) => Notices) => setData((was) => (was.notices ? { ...was, notices: next(was.notices) } : was));
 
   // Each change goes to the account at once. When the account did not take it, the page goes back.
@@ -100,48 +101,43 @@ export function NotificationsView() {
     // The first change also keeps the time zone of this device.
     save("/api/me/notices", "PUT", { zone, ...patch }, apply, "The change was not saved. Try again.");
 
-  const email = (kind: NoticeKind) => {
-    if (!notices) return;
-    const on = !notices.settings.email[kind];
-    void save("/api/me/notices", "PUT", { zone, email: { [kind]: on } }, (was) => ({ ...was, settings: { ...was.settings, zone, email: { ...was.settings.email, [kind]: on } } }), "The change was not saved. Try again.");
-  };
+  const choose = (channel: Channel, kind: NoticeKind, on: boolean) =>
+    save("/api/me/notices", "PUT", { zone, [channel]: { [kind]: on } }, (was) => ({ ...was, settings: { ...was.settings, zone, [channel]: { ...was.settings[channel], [kind]: on } } }), "The change was not saved. Try again.");
 
-  async function thisDevice(kind: NoticeKind) {
+  async function push(kind: NoticeKind) {
     const mine = accountKey();
     if (!notices || busy || !mine) return;
-    setBusy(true);
-    setLine(null);
-    const turned = await turnOnDevice(mine, notices.devices, (had) => (had.includes(kind) ? had.filter((k) => k !== kind) : [...had, kind]));
-    setDevice(deviceState());
-    setBusy(false);
-    if (!turned.ok) {
-      // A reader who blocked the question sees the steps under "This device". A change of reader shows by itself.
-      const silent = turned.why === "changed" || (turned.why === "refused" && deviceState() === "blocked");
-      if (!silent) setLine({ kind: "problem", text: turned.why === "save" ? "This device was not saved. Try again." : "This device did not turn on. Try again." });
-      return;
+    const on = !notices.settings.push[kind];
+    // A push needs a device. This one joins the account at the first push that the reader turns on.
+    if (on && !here && (device === "ask" || device === "allowed")) {
+      setBusy(true);
+      setLine(null);
+      const joined = await registerDevice(mine);
+      setDevice(deviceState());
+      setBusy(false);
+      if (accountKey() !== mine) return;
+      if (!joined) {
+        // A reader who blocked the question sees the steps under "Push on this device".
+        if (deviceState() !== "blocked") setLine({ kind: "problem", text: "This device did not turn on. Try again." });
+        return;
+      }
+      setHere(true);
     }
-    const mineNow = turned.device;
-    setHere(mineNow.endpointHash);
-    change((was) => ({ ...was, devices: [...was.devices.filter((d) => d.endpointHash !== mineNow.endpointHash), mineNow] }));
-    setLine({ kind: "saved", text: "Saved." });
-    // The zone goes with the first choice of the reader, also when it is a device.
-    if (notices.settings.zone === null) void readerCall("/api/me/notices", { method: "PUT", body: JSON.stringify({ zone }) });
+    await choose("push", kind, on);
   }
 
   async function allOff() {
     if (!notices) return;
     const none = { daily: false, reminder: false, releases: false };
-    const emails = await save("/api/me/notices", "PUT", { zone, email: none }, (was) => ({ ...was, settings: { ...was.settings, email: none } }), "The emails are still on. Try again.");
-    if (!emails) return;
-    const devices = await save("/api/me/notices/device", "DELETE", { all: true }, (was) => ({ ...was, devices: [] }), "The devices are still on. Try again.");
-    if (!devices) return;
-    await unsubscribeDevice();
-    // "All off" is a choice: the device does not come back by itself after the next sign-in.
-    const mine = accountKey();
-    if (mine) rememberDevice(mine, []);
+    const off = await save("/api/me/notices", "PUT", { zone, email: none, push: none }, (was) => ({ ...was, settings: { ...was.settings, email: none, push: none } }), "The notices are still on. Try again.");
+    if (!off) return;
+    const gone = await save("/api/me/notices/device", "DELETE", { all: true }, (was) => ({ ...was, devices: [] }), "The devices are still on. Try again.");
+    if (gone) setHere(false);
   }
 
-  const noDevice = device === "none" || device === "ios" || device === "blocked";
+  // A push can be turned on here when this device can get one, or when another device of the reader does.
+  const canPush = here || device === "ask" || device === "allowed" || (notices?.devices.length ?? 0) > 0;
+  const others = (notices?.devices.length ?? 0) - (here ? 1 : 0);
   return (
     <div className="saved-page notices-page">
       <p className="saved-back">
@@ -155,9 +151,7 @@ export function NotificationsView() {
         <div className="saved-empty">
           <b>A passage each day, and more</b>
           Sign in to choose what UrantiaHub sends you.
-          {account.status === "out" && (
-            <SignInLink className="saved-button" />
-          )}
+          {account.status === "out" && <SignInLink className="saved-button" />}
         </div>
       )}
       {!signedOut && data.status === "loading" && <p className="progress-wait" role="status" aria-label="Loading your notifications" />}
@@ -184,13 +178,13 @@ export function NotificationsView() {
                 <small>{NOTICES[kind].about}</small>
               </span>
               <div className="notice-chips">
-                <button type="button" className="notice-chip" aria-pressed={notices.settings.email[kind]} onClick={() => email(kind)}>
+                <button type="button" className="notice-chip" aria-pressed={notices.settings.email[kind]} onClick={() => void choose("email", kind, !notices.settings.email[kind])}>
                   <Icon name="check" />
                   Email
                 </button>
-                <button type="button" className="notice-chip wide" aria-pressed={onDevice.includes(kind)} disabled={noDevice || busy} onClick={() => void thisDevice(kind)}>
+                <button type="button" className="notice-chip" aria-pressed={notices.settings.push[kind]} aria-busy={busy || undefined} disabled={busy || (!canPush && !notices.settings.push[kind])} onClick={() => void push(kind)}>
                   <Icon name="check" />
-                  This device
+                  Push
                 </button>
               </div>
             </div>
@@ -221,8 +215,8 @@ export function NotificationsView() {
             </select>
           </label>
 
-          <h2>This device</h2>
-          <DeviceLine state={device} />
+          <h2>Push</h2>
+          <DeviceLine state={device} here={here} others={others} />
 
           <p className="notices-foot">
             {account.user?.email ? `Email goes to ${account.user.email}. ` : ""}Your sign-in code always comes by email. These settings do not change that.{" "}
@@ -236,13 +230,14 @@ export function NotificationsView() {
   );
 }
 
-function DeviceLine({ state }: { state: DeviceState }) {
-  if (state === "allowed") return <p className="notice-device">Notifications are allowed in this browser on this device.</p>;
-  if (state === "ask") return <p className="notice-device">This browser did not ask you yet. Press a “This device” button, then press “Allow” in the question of the browser.</p>;
+function DeviceLine({ state, here, others }: { state: DeviceState; here: boolean; others: number }) {
+  const elsewhere = others > 0 ? ` A push also goes to ${others === 1 ? "one other device" : `${others} other devices`} where you turned it on.` : "";
+  if (here) return <p className="notice-device">A push comes to this device, and to each other device where you are signed in and allowed notifications.</p>;
+  if (state === "allowed" || state === "ask") return <p className="notice-device">A push comes to each device where you are signed in and allowed notifications. Turn one on, and this device asks you.{elsewhere}</p>;
   if (state === "ios")
     return (
       <div className="notice-device">
-        <p>An iPhone or iPad shows notifications of a website only after the site is on the home screen. Apple gives a website no button for that, so these are the steps:</p>
+        <p>An iPhone or iPad shows a push of a website only after the site is on the home screen. Apple gives a website no button for that, so these are the steps:{elsewhere}</p>
         <ol>
           <li>Press <b>Share</b> in Safari.</li>
           <li>Press <b>Add to Home Screen</b>.</li>
@@ -253,7 +248,7 @@ function DeviceLine({ state }: { state: DeviceState }) {
   if (state === "blocked")
     return (
       <div className="notice-device">
-        <p>Notifications are blocked for UrantiaHub in this browser. A website cannot remove a block, so these are the steps:</p>
+        <p>Notifications are blocked for UrantiaHub in this browser. A website cannot remove a block, so these are the steps:{elsewhere}</p>
         <ol>
           {unblockSteps(navigator.userAgent).map((step) => (
             <li key={step}>{step}</li>
@@ -262,5 +257,5 @@ function DeviceLine({ state }: { state: DeviceState }) {
         <p>Then load this page again.</p>
       </div>
     );
-  return <p className="notice-device">This browser cannot show notifications of UrantiaHub. You can choose Email.</p>;
+  return <p className="notice-device">This browser cannot show a push of UrantiaHub. You can choose Email.{elsewhere}</p>;
 }

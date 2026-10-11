@@ -4,7 +4,7 @@ import { CONTACT_EMAIL } from "@/content/contact";
 export function SiteFooter() {
   return (
     <footer className="site-footer">
-      <span>UrantiaHub is an independent project. It is not affiliated with Urantia Foundation.</span>
+      <span>UrantiaHub is a free place to read, listen to, and study the Urantia Papers. It is an independent project, not affiliated with Urantia Foundation.</span>
       <nav className="links" aria-label="About UrantiaHub">
         <Link href="/about">About</Link>
         <Link href="/resources">Resources</Link>

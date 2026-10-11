@@ -112,7 +112,8 @@ export default function PrivacyPage() {
           <h3>If you turn on a notice</h3>
           <p>
             A signed-in reader can get a passage each day, one reminder of a place, and a note about a new release.
-            Each one is off until you turn it on, and you choose email, a device, or both. If you turn one on, the
+            Each one is off until you turn it on, and you choose email, a push, or both. A push goes to each
+            device where you are signed in and allowed notifications. If you turn one on, the
             account also holds these things:
           </p>
           <ul>
@@ -126,12 +127,11 @@ export default function PrivacyPage() {
             account and that notice, and nothing more.
           </p>
           <p>
-            A notice to a device goes through the push service of your browser: Google for Chrome, Apple for Safari,
-            Mozilla for Firefox. The notice is encrypted for your device, so that service cannot read it. It sees the
-            address of your device at that service, and the time. Your browser keeps a small program that shows the
-            notice, and a mark that says which account the device belongs to and which notices it gets. A notice
-            shows only for that account, and only while you are signed in on that device. When you sign out on a
-            device, the device gets no more notices. They come back when you sign in again on that device.
+            A push goes through the push service of your browser: Google for Chrome, Apple for Safari, Mozilla for
+            Firefox. It is encrypted for your device, so that service cannot read it. It sees the address of your
+            device at that service, and the time. Your browser keeps a small program that shows the push. A push
+            shows only while you are signed in on that device. When you sign out on a device, we remove that device
+            from your account. It comes back when you sign in again there.
           </p>
           <p>
             You can turn each notice off on the Notifications page, and “Turn all off” there removes each device.

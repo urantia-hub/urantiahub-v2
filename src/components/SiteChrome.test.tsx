@@ -34,11 +34,10 @@ describe("SiteFooter", () => {
     expect(header.querySelector("button[aria-label='Dark theme']")).toBeNull();
   });
 
-  it("states that the project is independent", () => {
+  // The footer is on the home page too. It names the site and says what it is for.
+  it("says what the site is, and that the project is independent", () => {
     render(<SiteFooter />);
-    expect(
-      screen.getByText("UrantiaHub is an independent project. It is not affiliated with Urantia Foundation."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("UrantiaHub is a free place to read, listen to, and study the Urantia Papers. It is an independent project, not affiliated with Urantia Foundation.")).toBeInTheDocument();
   });
   it("links to urantia.dev and to the privacy page", () => {
     render(<SiteFooter />);

@@ -25,8 +25,6 @@ export default async function HomePage() {
     <div className="home">
       <JsonLd data={websiteJsonLd()} />
       <h1>The Urantia Papers</h1>
-      {/* What the site is, in one line, with its name. A visitor needs it, and so does the review of the sign-in. */}
-      <p className="home-purpose">UrantiaHub is a free place to read, listen to, and study the Urantia Papers.</p>
       <PassageStage passages={passages} />
       {/* A reader who has a place gets "Continue reading" first. The page knows it before its first paint. */}
       <script dangerouslySetInnerHTML={{ __html: PLACE_INIT_SCRIPT }} />

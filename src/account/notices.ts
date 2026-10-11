@@ -6,8 +6,9 @@ export type NoticeKind = (typeof NOTICE_KINDS)[number];
 export const DEFAULT_HOUR = 7;
 
 // `zone` is null until the reader made a choice: the page then shows the zone of the device.
-export type NoticeSettings = { email: Record<NoticeKind, boolean>; hour: number; zone: string | null; asked: boolean };
+export type NoticeSettings = { email: Record<NoticeKind, boolean>; push: Record<NoticeKind, boolean>; hour: number; zone: string | null; asked: boolean };
 // The address of a device never comes back from the API. The browser finds its own row by the hash.
+// `kinds` is from an earlier form, and is empty: a push goes to each device of the reader.
 export type NoticeDevice = { id: string; label: string; kinds: NoticeKind[]; endpointHash: string };
 export type Notices = { settings: NoticeSettings; devices: NoticeDevice[] };
 export type DeviceInput = { endpoint: string; p256dh: string; auth: string; kinds: NoticeKind[]; label: string };
@@ -28,11 +29,15 @@ const isZone = (value: unknown): value is string => typeof value === "string" &&
 export function parseNotices(answer: unknown): Notices {
   const given = isRecord(answer) ? answer : {};
   const settings = isRecord(given.settings) ? given.settings : {};
-  const email = isRecord(settings.email) ? settings.email : {};
+  const flags = (given: unknown): Record<NoticeKind, boolean> => {
+    const of = isRecord(given) ? given : {};
+    return { daily: of.daily === true, reminder: of.reminder === true, releases: of.releases === true };
+  };
   const devices = Array.isArray(given.devices) ? given.devices : [];
   return {
     settings: {
-      email: { daily: email.daily === true, reminder: email.reminder === true, releases: email.releases === true },
+      email: flags(settings.email),
+      push: flags(settings.push),
       hour: isHour(settings.hour) ? settings.hour : DEFAULT_HOUR,
       zone: isRecord(given.settings) && isZone(settings.zone) ? settings.zone : null,
       asked: settings.asked === true,
@@ -52,9 +57,11 @@ export async function readNotices(gateway: NoticesGateway, accessToken: string):
 export async function changeNotices(gateway: NoticesGateway, accessToken: string, value: unknown): Promise<{ saved: boolean }> {
   if (!isRecord(value)) return { saved: false };
   const patch: Record<string, unknown> = {};
-  if (isRecord(value.email)) {
-    const email = Object.fromEntries(Object.entries(value.email).filter(([kind, on]) => isKind(kind) && typeof on === "boolean"));
-    if (Object.keys(email).length > 0) patch.email = email;
+  for (const channel of ["email", "push"] as const) {
+    const given = value[channel];
+    if (!isRecord(given)) continue;
+    const flags = Object.fromEntries(Object.entries(given).filter(([kind, on]) => isKind(kind) && typeof on === "boolean"));
+    if (Object.keys(flags).length > 0) patch[channel] = flags;
   }
   if (isHour(value.hour)) patch.hour = value.hour;
   if (isZone(value.zone)) patch.zone = value.zone;

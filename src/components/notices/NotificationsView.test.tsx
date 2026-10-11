@@ -10,19 +10,15 @@ const world = vi.hoisted(() => ({
   fail: false,
   device: "allowed" as string,
   endpoint: null as string | null,
-  subscribed: { endpoint: "https://fcm.googleapis.com/fcm/send/abc", p256dh: "BKey_0123456789", auth: "auth_0123456789", label: "Chrome on Android" } as null | object,
-  unsubscribed: 0,
-  claimed: [] as string[],
-  canClaim: true,
-  ended: 0,
-  whileAsking: null as null | (() => void),
-  remembered: [] as [string, string[]][],
+  joins: true,
+  joined: [] as string[],
 }));
 vi.mock("@/notices/device-end", () => ({
-  claimDevice: vi.fn(async (key: string) => (world.canClaim ? (void world.claimed.push(key), true) : false)),
-  endDevice: vi.fn(async () => void world.ended++),
   DEVICE_EVENT: "hub:device",
-  rememberDevice: vi.fn((owner: string, kinds: string[]) => void world.remembered.push([owner, kinds])),
+  registerDevice: vi.fn(async (key: string) => {
+    world.joined.push(key);
+    return world.joins;
+  }),
 }));
 vi.mock("@/account/client", () => ({
   accountKey: () => world.account.user?.key ?? null,
@@ -43,35 +39,22 @@ vi.mock("@/notices/push", () => ({
   deviceState: () => world.device,
   currentEndpoint: async () => world.endpoint,
   sha256Hex: async (value: string) => `hash-of-${value}`,
-  subscribeDevice: async () => {
-    world.whileAsking?.();
-    return world.subscribed;
-  },
-  unsubscribeDevice: async () => void world.unsubscribed++,
   unblockSteps: () => ["Step one.", "Step two."],
 }));
 
 import { hourLabel, NotificationsView } from "./NotificationsView";
 
 const OFF = { daily: false, reminder: false, releases: false };
-const fresh = (over: Partial<Notices["settings"]> = {}, devices: Notices["devices"] = []): Notices => ({ settings: { email: OFF, hour: 7, zone: null, asked: false, ...over }, devices });
+const ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const other = { id: "o", label: "Safari on Mac", kinds: [], endpointHash: "hash-of-another" };
+const mine = { id: "a", label: "Chrome on Android", kinds: [], endpointHash: "hash-of-e" };
+const fresh = (over: Partial<Notices["settings"]> = {}, devices: Notices["devices"] = []): Notices => ({ settings: { email: OFF, push: OFF, hour: 7, zone: null, asked: false, ...over }, devices });
 const group = (name: string) => screen.findByRole("group", { name });
 const chip = async (notice: string, name: string) => within(await group(notice)).getByRole("button", { name });
 
 afterEach(() => {
-  world.claimed = [];
-  world.canClaim = true;
-  world.ended = 0;
-  world.whileAsking = null;
-  world.remembered = [];
   world.account = { status: "in", user: { key: "k", email: "reader@example.com", name: null } };
-  world.notices = null;
-  world.calls = [];
-  world.fail = false;
-  world.device = "allowed";
-  world.endpoint = null;
-  world.subscribed = { endpoint: "https://fcm.googleapis.com/fcm/send/abc", p256dh: "BKey_0123456789", auth: "auth_0123456789", label: "Chrome on Android" };
-  world.unsubscribed = 0;
+  Object.assign(world, { notices: null, calls: [], fail: false, device: "allowed", endpoint: null, joins: true, joined: [] });
 });
 
 describe("the Notifications page", () => {
@@ -87,7 +70,7 @@ describe("the Notifications page", () => {
     render(<NotificationsView />);
     for (const notice of ["A passage each day", "A reminder of your place", "New releases"]) {
       expect(await chip(notice, "Email")).toHaveAttribute("aria-pressed", "false");
-      expect(await chip(notice, "This device")).toHaveAttribute("aria-pressed", "false");
+      expect(await chip(notice, "Push")).toHaveAttribute("aria-pressed", "false");
     }
     expect(screen.getByText(/Email goes to reader@example.com/)).toBeInTheDocument();
     expect(screen.getByText(/Your sign-in code always comes by email/)).toBeInTheDocument();
@@ -98,9 +81,9 @@ describe("the Notifications page", () => {
     render(<NotificationsView />);
     await userEvent.click(await chip("A passage each day", "Email"));
     expect(await chip("A passage each day", "Email")).toHaveAttribute("aria-pressed", "true");
-    expect(world.calls).toEqual([{ path: "/api/me/notices", method: "PUT", body: { zone: Intl.DateTimeFormat().resolvedOptions().timeZone, email: { daily: true } } }]);
+    expect(world.calls).toEqual([{ path: "/api/me/notices", method: "PUT", body: { zone: ZONE, email: { daily: true } } }]);
     expect(await screen.findByText("Saved.")).toBeInTheDocument();
-    expect(await chip("New releases", "Email")).toHaveAttribute("aria-pressed", "false");
+    expect(world.joined).toEqual([]);
   });
 
   it("goes back and says so when the account did not take a change", async () => {
@@ -112,69 +95,70 @@ describe("the Notifications page", () => {
     expect(await chip("New releases", "Email")).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("makes this device one that gets a notice, with the kinds that it had", async () => {
-    world.notices = fresh({ zone: "Europe/Berlin" }, [{ id: "a", label: "Chrome on Android", kinds: ["releases"], endpointHash: "hash-of-https://fcm.googleapis.com/fcm/send/abc" }]);
-    world.endpoint = "https://fcm.googleapis.com/fcm/send/abc";
+  // A push is a setting of the account. It is the same on each device of the reader.
+  it("shows a push that is on, on each device, also one that is not in the account", async () => {
+    world.notices = fresh({ push: { ...OFF, daily: true } }, [other]);
+    world.device = "blocked";
     render(<NotificationsView />);
-    expect(await chip("New releases", "This device")).toHaveAttribute("aria-pressed", "true");
-    await userEvent.click(await chip("A passage each day", "This device"));
-    await waitFor(() => expect(world.calls).toHaveLength(1));
-    expect(world.calls[0]).toEqual({ path: "/api/me/notices/device", method: "PUT", body: { ...world.subscribed, kinds: ["releases", "daily"] } });
-    // The browser keeps whose device this is, so a later reader of this browser does not get the notices.
-    expect(world.claimed).toEqual(["k"]);
-    // And what the device gets, so the same reader has it back after the next sign-in.
-    expect(world.remembered).toEqual([["k", ["releases", "daily"]]]);
-    expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "true");
+    expect(await chip("A passage each day", "Push")).toHaveAttribute("aria-pressed", "true");
+    expect(await chip("New releases", "Push")).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("shows a choice of another device as off here", async () => {
-    world.notices = fresh({}, [{ id: "a", label: "Safari on Mac", kinds: ["daily"], endpointHash: "hash-of-another" }]);
-    render(<NotificationsView />);
-    expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
-  });
-
-  // The question of the browser can stay open for a long time. The reader can sign out in it.
-  it("turns nothing on when the reader changed while the browser asked", async () => {
+  it("adds this device at the first push, then saves the push", async () => {
     world.notices = fresh({ zone: "UTC" });
-    world.whileAsking = () => void (world.account = { status: "in", user: { key: "another", email: "b@example.com", name: null } });
     render(<NotificationsView />);
-    await userEvent.click(await chip("A passage each day", "This device"));
-    await waitFor(() => expect(world.unsubscribed).toBe(1));
-    expect(world.claimed).toEqual([]);
-    expect(world.calls).toEqual([]);
+    await userEvent.click(await chip("A passage each day", "Push"));
+    expect(world.joined).toEqual(["k"]);
+    expect(world.calls).toEqual([{ path: "/api/me/notices", method: "PUT", body: { zone: "UTC", push: { daily: true } } }]);
+    expect(await chip("A passage each day", "Push")).toHaveAttribute("aria-pressed", "true");
+    // The device is in the account now. A second push asks for nothing more.
+    await userEvent.click(await chip("New releases", "Push"));
+    expect(world.joined).toEqual(["k"]);
+    expect(await screen.findByText(/A push comes to this device/)).toBeInTheDocument();
   });
 
-  it("turns nothing on when the browser cannot keep whose device it is", async () => {
+  it("does not add a device that is in the account already, and none to turn a push off", async () => {
+    world.notices = fresh({ zone: "UTC", push: { ...OFF, daily: true } }, [mine]);
+    world.endpoint = "e";
+    render(<NotificationsView />);
+    await userEvent.click(await chip("New releases", "Push"));
+    await userEvent.click(await chip("A passage each day", "Push"));
+    expect(world.joined).toEqual([]);
+    expect(world.calls.map((call) => call.body)).toEqual([{ zone: "UTC", push: { releases: true } }, { zone: "UTC", push: { daily: false } }]);
+  });
+
+  it("says so when the device did not turn on, and saves nothing", async () => {
     world.notices = fresh({ zone: "UTC" });
-    world.canClaim = false;
-    render(<NotificationsView />);
-    await userEvent.click(await chip("A passage each day", "This device"));
-    expect(await screen.findByText("This device did not turn on. Try again.")).toBeInTheDocument();
-    expect(world.ended).toBe(1);
-    expect(world.calls).toEqual([]);
-  });
-
-  it("says so when the reader did not allow the device, and saves nothing", async () => {
-    world.notices = fresh();
     world.device = "ask";
-    world.subscribed = null;
+    world.joins = false;
     render(<NotificationsView />);
-    await userEvent.click(await chip("A passage each day", "This device"));
+    await userEvent.click(await chip("A passage each day", "Push"));
     expect(await screen.findByText("This device did not turn on. Try again.")).toBeInTheDocument();
     expect(world.calls).toEqual([]);
+    expect(await chip("A passage each day", "Push")).toHaveAttribute("aria-pressed", "false");
   });
 
   it.each([
     ["ios", /Add to Home Screen/],
     ["blocked", /A website cannot remove a block/],
-    ["none", /cannot show notifications of UrantiaHub/],
-  ])("has no device button to press in the case %s, and says why", async (state, words) => {
+    ["none", /cannot show a push of UrantiaHub/],
+  ])("has no push to turn on in the case %s with no other device, and says why", async (state, words) => {
     world.notices = fresh();
     world.device = state;
     render(<NotificationsView />);
-    expect(await chip("A passage each day", "This device")).toBeDisabled();
+    expect(await chip("A passage each day", "Push")).toBeDisabled();
     expect(await chip("A passage each day", "Email")).toBeEnabled();
     expect(screen.getByText(words)).toBeInTheDocument();
+  });
+
+  it("lets a reader turn a push on from a device that cannot get one, for the other devices", async () => {
+    world.notices = fresh({ zone: "UTC" }, [other]);
+    world.device = "blocked";
+    render(<NotificationsView />);
+    await userEvent.click(await chip("A passage each day", "Push"));
+    expect(world.joined).toEqual([]);
+    expect(world.calls.map((call) => call.body)).toEqual([{ zone: "UTC", push: { daily: true } }]);
+    expect(screen.getByText(/A push also goes to one other device/)).toBeInTheDocument();
   });
 
   it("saves the hour and the time zone", async () => {
@@ -188,34 +172,31 @@ describe("the Notifications page", () => {
     expect(hourLabel(21)).toBe("9:00 PM");
   });
 
-  it("turns each email off and removes each device with “Turn all off”", async () => {
-    world.notices = fresh({ email: { daily: true, reminder: true, releases: false }, zone: "UTC" }, [{ id: "a", label: "x", kinds: ["daily"], endpointHash: "hash-of-e" }]);
+  it("turns each email and each push off, and removes each device, with “Turn all off”", async () => {
+    world.notices = fresh({ email: { ...OFF, daily: true }, push: { ...OFF, reminder: true }, zone: "UTC" }, [mine, other]);
     world.endpoint = "e";
     render(<NotificationsView />);
     await userEvent.click(await screen.findByRole("button", { name: "Turn all off" }));
-    await waitFor(() => expect(world.unsubscribed).toBe(1));
+    await waitFor(() => expect(world.calls).toHaveLength(2));
     expect(world.calls).toEqual([
-      { path: "/api/me/notices", method: "PUT", body: { zone: "UTC", email: OFF } },
+      { path: "/api/me/notices", method: "PUT", body: { zone: "UTC", email: OFF, push: OFF } },
       { path: "/api/me/notices/device", method: "DELETE", body: { all: true } },
     ]);
     expect(await chip("A passage each day", "Email")).toHaveAttribute("aria-pressed", "false");
-    expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
-    // "All off" is a choice. The device does not come back by itself.
-    expect(world.remembered).toEqual([["k", []]]);
+    expect(await chip("A reminder of your place", "Push")).toHaveAttribute("aria-pressed", "false");
   });
 
-  // The device comes back by itself after a sign-in, a moment after the page read the account.
-  it("reads the account again when the device changed, and when the page shows again", async () => {
+  // A device joins by itself after a sign-in, a moment after the page read the account.
+  it("reads the account again when a device joined, and when the page shows again", async () => {
     world.notices = fresh({ zone: "UTC" });
-    world.endpoint = "e";
     render(<NotificationsView />);
-    expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
-    world.notices = fresh({ zone: "UTC" }, [{ id: "a", label: "x", kinds: ["daily"], endpointHash: "hash-of-e" }]);
+    expect(await chip("A passage each day", "Push")).toHaveAttribute("aria-pressed", "false");
+    world.notices = fresh({ zone: "UTC", push: { ...OFF, daily: true } }, [mine]);
     act(() => void window.dispatchEvent(new Event("hub:device")));
-    await waitFor(async () => expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "true"));
+    await waitFor(async () => expect(await chip("A passage each day", "Push")).toHaveAttribute("aria-pressed", "true"));
     world.notices = fresh({ zone: "UTC" });
     act(() => void document.dispatchEvent(new Event("visibilitychange")));
-    await waitFor(async () => expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false"));
+    await waitFor(async () => expect(await chip("A passage each day", "Push")).toHaveAttribute("aria-pressed", "false"));
   });
 
   it("says so when the notices did not load", async () => {

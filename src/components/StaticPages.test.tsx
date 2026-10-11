@@ -95,8 +95,9 @@ describe("Privacy, about notices", () => {
     expect(page).toMatch(/turns that email off with one press and no sign-in/);
     expect(page).toMatch(/Google for Chrome, Apple for Safari,\s+Mozilla for Firefox/);
     expect(page).toMatch(/encrypted for your device/);
-    expect(page).toMatch(/a mark that says which account the device belongs to/);
-    expect(page).toMatch(/When you sign out on a device, the device gets no more notices/);
+    expect(page).toMatch(/A push goes to each\s+device where you are signed in and allowed notifications/);
+    expect(page).toMatch(/A push\s+shows only while you are signed in on that device/);
+    expect(page).toMatch(/When you sign out on a device, we remove that device\s+from your account/);
     expect(page).toMatch(/We keep it for 90 days/);
     expect(page).toMatch(/When you delete the account, we delete all of this/);
   });

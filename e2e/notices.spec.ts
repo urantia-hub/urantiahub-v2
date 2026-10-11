@@ -80,13 +80,13 @@ test("the hour and the time zone are saved, and “Turn all off” turns each em
   await expect.poll(async () => (await reader.seen()).notices.email).toEqual({ daily: false, reminder: false, releases: false });
 });
 
-test("a test browser has no push service: the device buttons cannot be pressed, and the page says why", async ({ page, context }) => {
+test("a test browser has no push service: no push can be turned on, and the page says why", async ({ page, context }) => {
   await asReader(context);
   await page.goto(PAPER);
   await signIn(page);
   await page.goto("/notifications");
-  await expect(chip(page, "A passage each day", "This device")).toBeDisabled();
-  await expect(page.getByText(/cannot show notifications of UrantiaHub/)).toBeVisible();
+  await expect(chip(page, "A passage each day", "Push")).toBeDisabled();
+  await expect(page.getByText(/cannot show a push of UrantiaHub/)).toBeVisible();
 });
 
 test("the service worker is served, and it keeps no page", async ({ request }) => {
