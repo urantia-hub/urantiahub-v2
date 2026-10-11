@@ -3,6 +3,8 @@
 export const PRIVACY_UPDATED = "October 8, 2026";
 // The date of the page while a reader can sign in. See `accountsOn` in the page.
 export const ACCOUNT_UPDATED = "October 9, 2026";
+// The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
+export const NOTICES_UPDATED = "October 11, 2026";
 export const PRIVACY_EMAIL = "privacy@urantiahub.com";
 // The company that runs the site. Kelson gave this name on 2026-10-08.
 export const PRIVACY_OPERATOR = "Adams Technologies LLC";
@@ -78,3 +80,20 @@ export const ACCOUNT_VENDORS: readonly Vendor[] = [
     policy: "https://policies.google.com/privacy",
   },
 ];
+
+// What an account holds for the notices, while a reader can turn one on. Each entry is one thing
+// that the notice routes of the API store.
+export const NOTICE_ITEMS: readonly string[] = [
+  "Which notices you turned on, and if each one goes by email",
+  "The hour of the daily passage, and your time zone",
+  "For each device that you turned on: its address at the push service of the browser, two keys that encrypt a notice for that device, a short name such as “Chrome on Android”, and which notices go to it",
+  "A record of each notice that we sent you: which notice, for which day, and by email or to a device. We keep it for 90 days, so that no notice goes out two times",
+];
+
+// With the notices on, Resend also sends the emails that a reader chose.
+export const NOTICE_RESEND: Vendor = {
+  name: "Resend",
+  purpose: "Sends the email with the sign-in code, and the notices that you chose to get by email.",
+  receives: "Your email address, and the text of the email.",
+  policy: "https://resend.com/legal/privacy-policy",
+};

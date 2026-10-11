@@ -1,4 +1,4 @@
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
 import { pageMetadata } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
@@ -15,11 +15,14 @@ const Email = () => <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>;
 // so each statement is true of the live site in both cases.
 export default function PrivacyPage() {
   const accountsOn = process.env.NEXT_PUBLIC_SIGN_IN === "on";
-  const vendors = accountsOn ? [...VENDORS, ...ACCOUNT_VENDORS] : VENDORS;
+  // A notice needs an account. While the notices are off, the page says nothing of them.
+  const noticesOn = accountsOn && process.env.NEXT_PUBLIC_NOTICES === "on";
+  const accountVendors = noticesOn ? ACCOUNT_VENDORS.map((vendor) => (vendor.name === NOTICE_RESEND.name ? NOTICE_RESEND : vendor)) : ACCOUNT_VENDORS;
+  const vendors = accountsOn ? [...VENDORS, ...accountVendors] : VENDORS;
   return (
     <div className="prose privacy">
       <h1>Privacy</h1>
-      <p className="updated">Last updated: {accountsOn ? ACCOUNT_UPDATED : PRIVACY_UPDATED}</p>
+      <p className="updated">Last updated: {noticesOn ? NOTICES_UPDATED : accountsOn ? ACCOUNT_UPDATED : PRIVACY_UPDATED}</p>
 
       <h2>The short version</h2>
       <ul>
@@ -100,6 +103,38 @@ export default function PrivacyPage() {
             On <a href="https://accounts.urantiahub.com">accounts.urantiahub.com</a> you can see each app that has
             access to your account, remove one, or delete the account. When you delete the account, we delete what it
             holds.
+          </p>
+        </>
+      )}
+
+      {noticesOn && (
+        <>
+          <h3>If you turn on a notice</h3>
+          <p>
+            A signed-in reader can get a passage each day, one reminder of a place, and a note about a new release.
+            Each one is off until you turn it on, and you choose email, a device, or both. If you turn one on, the
+            account also holds these things:
+          </p>
+          <ul>
+            {NOTICE_ITEMS.map((item) => (
+              <li key={item}>{item}.</li>
+            ))}
+          </ul>
+          <p>
+            An email of a notice loads no picture and has no tracking link, so we do not see if you open it. Each one
+            has a link that turns that email off with one press and no sign-in. The link holds a code that names your
+            account and that notice, and nothing more.
+          </p>
+          <p>
+            A notice to a device goes through the push service of your browser: Google for Chrome, Apple for Safari,
+            Mozilla for Firefox. The notice is encrypted for your device, so that service cannot read it. It sees the
+            address of your device at that service, and the time. Your browser keeps a small program that shows the
+            notice, and a mark that says which account the device belongs to. A notice shows only for that account.
+            When you sign out on a device, the device gets no more notices.
+          </p>
+          <p>
+            You can turn each notice off on the Notifications page, and “Turn all off” there removes each device.
+            When you delete the account, we delete all of this.
           </p>
         </>
       )}
