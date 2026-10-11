@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { endDevice, forgetDevice } from "./device-end";
+import { checkDevice, claimDevice, endDevice } from "./device-end";
 
 function device(endpoint: string | null) {
   const unsubscribe = vi.fn(async () => true);
@@ -10,6 +10,7 @@ function device(endpoint: string | null) {
 const calls = () => vi.mocked(fetch).mock.calls.map(([path, init]) => ({ path, method: init?.method, body: JSON.parse(String(init?.body)), reader: (init?.headers as Record<string, string>)["x-hub-reader"] }));
 
 afterEach(() => {
+  localStorage.clear();
   vi.unstubAllGlobals();
   Reflect.deleteProperty(navigator, "serviceWorker");
 });
@@ -30,12 +31,24 @@ describe("the end of this device as one that gets notices", () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it("ends the device with no call when the session is gone", async () => {
-    vi.stubGlobal("fetch", vi.fn());
+  it("keeps the device of the reader who is signed in", async () => {
     const unsubscribe = device("https://fcm.googleapis.com/fcm/send/abc");
-    await forgetDevice();
+    claimDevice("k1");
+    await checkDevice("k1");
+    expect(unsubscribe).not.toHaveBeenCalled();
+  });
+
+  it("ends the device when no reader is signed in, when it is another reader, and when it is not known whose it is", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+    for (const [claimed, now] of [["k1", null], ["k1", "k2"], [null, "k1"]] as const) {
+      localStorage.clear();
+      const unsubscribe = device("https://fcm.googleapis.com/fcm/send/abc");
+      if (claimed) claimDevice(claimed);
+      await checkDevice(now);
+      expect(unsubscribe).toHaveBeenCalledTimes(1);
+      expect(localStorage.getItem("hub.notices.owner")).toBeNull();
+    }
     expect(fetch).not.toHaveBeenCalled();
-    expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it("does nothing on a device that gets no notices, or in a browser with no worker", async () => {
