@@ -1,8 +1,8 @@
 import { anchorFor, slugify, type ParsedReference } from "@/lib/paper-url";
 import raw from "./paper-index.json";
 
-// `sections`: the count of numbered sections of the paper.
-export type PaperEntry = { id: string; title: string; partId: string; slug: string; sections: number };
+// `sections`: the count of numbered sections of the paper. `paragraphs`: the count of its paragraphs.
+export type PaperEntry = { id: string; title: string; partId: string; slug: string; sections: number; paragraphs: number };
 export type PartEntry = { id: string; title: string; sponsorship: string | null; papers: PaperEntry[] };
 
 export const PARTS: PartEntry[] = raw.parts.map((part) => ({
@@ -14,6 +14,7 @@ export const PARTS: PartEntry[] = raw.parts.map((part) => ({
     title: paper.title,
     partId: part.id,
     sections: paper.sections,
+    paragraphs: paper.paragraphs,
     slug: slugify(paper.id, paper.title),
   })),
 }));

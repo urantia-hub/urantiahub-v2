@@ -10,14 +10,16 @@ export const OLD_ADDRESSES: OldAddress[] = [
   ...to("/", true, "/en"),
   ...to("/:path*", true, "/en/:path*"),
   ...to("/saved", true, "/my-library", "/my-library/bookmarks"),
-  ...to("/papers", true, "/progress", "/explore", "/more", "/settings", "/settings/interests", "/onboarding/interests"),
+  ...to("/papers", true, "/explore", "/more", "/settings", "/settings/interests", "/onboarding/interests"),
   ...to("/papers/:paper", true, "/watch/:paper"),
   ...to("/privacy", true, "/privacy-policy", "/cookie-policy"),
   // The sign-in pages of the old Hub. `/auth/callback` is a route of this Hub and is not in the list.
   ...to("/papers", true, "/auth/sign-in", "/auth/sign-out", "/auth/verify-request", "/auth/error"),
   // A link in an email that a reader still has.
   ...to("/emails", false, "/api/user/unsubscribe"),
-  // These pages are to come.
   ...to("/terms", true, "/terms-of-service"),
-  ...to("/about", false, "/changelog", "/changelog.xml", "/community-resources", "/blockchain-archive"),
+  ...to("/releases", true, "/changelog", "/changelog.xml"),
+  ...to("/resources", true, "/community-resources"),
+  // This page is to come.
+  ...to("/about", false, "/blockchain-archive"),
 ];

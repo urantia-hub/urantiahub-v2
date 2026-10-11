@@ -82,7 +82,7 @@ describe("a batch of read paragraphs", () => {
 });
 
 describe("which papers the reader read", () => {
-  it("is each paper with nine of ten paragraphs read, as ids only", async () => {
+  it("is each paper with nine of ten paragraphs read, and the count of each paper that the reader started", async () => {
     const g = gateway();
     g.progress = vi.fn(async () => [
       { paperId: "1", readCount: 60, totalParagraphs: 60 },
@@ -91,6 +91,6 @@ describe("which papers the reader read", () => {
       { paperId: "999", readCount: 5, totalParagraphs: 5 },
       { paperId: "4", readCount: 0, totalParagraphs: 0 },
     ]);
-    expect(await readProgress(g, "t")).toEqual({ read: ["1", "2"] });
+    expect(await readProgress(g, "t")).toEqual({ read: ["1", "2"], counts: { "1": 60, "2": 55, "3": 20 } });
   });
 });
