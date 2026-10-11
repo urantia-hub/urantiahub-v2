@@ -226,4 +226,16 @@ describe("analytics", () => {
     expect(posthog.capture).not.toHaveBeenCalled();
     Reflect.deleteProperty(navigator, property);
   });
+
+  // The address of the Emails page holds the proof that turns an email off for one reader.
+  it("cuts the proof from the address of the Emails page, in each form", async () => {
+    const { scrubSearchText } = await import("./index");
+    const event = scrubSearchText({
+      event: "$pageview",
+      properties: { $current_url: "https://www.urantiahub.com/emails?off=BODY.MAC", $referrer: "https://www.urantiahub.com/emails?off=BODY.MAC#x", next: "%2Femails%3Foff%3DBODY.MAC" },
+      $set_once: { $initial_current_url: "https://www.urantiahub.com/emails?off=BODY.MAC" },
+    });
+    expect(JSON.stringify(event)).not.toContain("BODY");
+    expect(event.properties?.$current_url).toBe("https://www.urantiahub.com/emails");
+  });
 });

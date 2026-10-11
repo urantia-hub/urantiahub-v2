@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
     console.log(`notices: ${JSON.stringify(report)}`);
     return Response.json({ sent: true, ...report });
   } catch (error) {
-    console.error(`notices: the run failed (${error instanceof Error ? error.message.slice(0, 80) : "unknown"})`);
+    // The kind of the error only. Its text can quote an answer, and an answer can hold an address.
+    console.error(`notices: the run failed (${error instanceof Error ? error.name : "unknown"})`);
     return Response.json({ sent: false, reason: "failed" }, { status: 500 });
   }
 }

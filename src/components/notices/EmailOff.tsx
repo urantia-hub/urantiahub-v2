@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
 const NAMES: Record<string, string> = { daily: "A passage each day", reminder: "A reminder of your place", releases: "New releases" };
@@ -11,8 +11,14 @@ type State = { status: "ask" } | { status: "busy" } | { status: "off"; kind: str
 // The page of the link "Turn this email off". The email turns off with one press, not when the page
 // loads: a mail scanner opens each link of an email.
 export function EmailOff() {
-  const token = useSearchParams().get("off");
+  const inAddress = useSearchParams().get("off");
+  // The proof is kept here, and it leaves the address at once: an address goes to the history of the
+  // browser, and to what the page reports about itself.
+  const [token] = useState(inAddress);
   const [state, setState] = useState<State>({ status: "ask" });
+  useEffect(() => {
+    if (inAddress) window.history.replaceState(window.history.state, "", "/emails");
+  }, [inAddress]);
 
   async function turnOff() {
     setState({ status: "busy" });
