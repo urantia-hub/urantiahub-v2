@@ -7,7 +7,7 @@ import ReleasesPage from "@/app/releases/page";
 import ResourcesPage from "@/app/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -65,6 +65,49 @@ describe("Privacy, about accounts", () => {
     expect(page).not.toContain("They do not leave your device.");
     expect(page).not.toContain("accounts, saved places, and notes are planned");
     expect(page).toMatch(/You can read and listen with no account/);
+  });
+});
+
+// The notices are on or off by one setting. The page names what a notice stores only while a reader
+// can turn one on, and each statement must be true of the code.
+describe("Privacy, about notices", () => {
+  const text = () => render(<PrivacyPage />).container.textContent ?? "";
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("says nothing of notices while they are off, or while the sign-in is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_NOTICES", "");
+    expect(text()).not.toMatch(/notice|push service/i);
+    expect(text()).toContain(ACCOUNT_UPDATED);
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "");
+    vi.stubEnv("NEXT_PUBLIC_NOTICES", "on");
+    expect(text()).not.toMatch(/notice|push service/i);
+  });
+
+  it("names what a notice stores, the email and the device rules, and the way to turn each one off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_NOTICES", "on");
+    const page = text();
+    expect(page).toContain(`Last updated: ${NOTICES_UPDATED}`);
+    for (const item of NOTICE_ITEMS) expect(page).toContain(item);
+    expect(page).toMatch(/Each one is off until you turn it on/);
+    expect(page).toMatch(/loads no picture and has no tracking link/);
+    expect(page).toMatch(/turns that email off with one press and no sign-in/);
+    expect(page).toMatch(/Google for Chrome, Apple for Safari,\s+Mozilla for Firefox/);
+    expect(page).toMatch(/encrypted for your device/);
+    expect(page).toMatch(/a mark that says which account the device belongs to/);
+    expect(page).toMatch(/When you sign out on a device, the device gets no more notices/);
+    expect(page).toMatch(/We keep it for 90 days/);
+    expect(page).toMatch(/When you delete the account, we delete all of this/);
+  });
+
+  it("says in the table that Resend also sends the notices, in one row", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_NOTICES", "on");
+    render(<PrivacyPage />);
+    const rows = screen.getAllByRole("row", { name: /^Resend/ });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent("the notices that you chose to get by email");
   });
 });
 
