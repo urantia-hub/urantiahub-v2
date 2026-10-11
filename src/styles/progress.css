@@ -217,3 +217,135 @@
 .prose .rel li {
   margin: 2px 0;
 }
+
+/* The Notifications page. It shares the frame of the Saved page. */
+.notices-lead {
+  margin: -8px 0 6px;
+  color: var(--ref);
+}
+.notices-line {
+  min-height: 22px;
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  color: var(--ref);
+}
+.notices-line[data-kind="problem"] {
+  color: var(--ink);
+  font-weight: 500;
+}
+.notice-row {
+  display: grid;
+  gap: 10px;
+  padding: 16px 0;
+  border-top: 1px solid var(--rule);
+}
+.notice-row b {
+  display: block;
+  font: 500 15.5px/1.3 var(--font-ui);
+}
+.notice-row small,
+.notice-set small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ref);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.notice-chips {
+  display: flex;
+  gap: 8px;
+}
+.saved-page .notice-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 92px;
+  padding: 9px 15px 9px 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 999px;
+  color: var(--ref);
+  font: 500 13.5px/1.2 var(--font-ui);
+}
+.saved-page .notice-chip.wide {
+  min-width: 134px;
+}
+/* The check has its room in both states, so a press moves nothing. */
+.notice-chip .icon {
+  width: 15px;
+  height: 15px;
+  opacity: 0;
+}
+.saved-page .notice-chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.notice-chip[aria-pressed="true"] .icon {
+  opacity: 1;
+}
+.saved-page .notice-chip:disabled {
+  opacity: 0.4;
+  border-style: dashed;
+  cursor: default;
+}
+.notices-page h2 {
+  margin: 30px 0 4px;
+  font: 600 10.5px/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ref);
+}
+.notice-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-top: 1px solid var(--rule);
+}
+.notices-page h2 + .notice-set {
+  border-top: 0;
+}
+.notice-set select {
+  max-width: 55%;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 14px/1.2 var(--font-ui);
+}
+.notice-device {
+  margin: 8px 0 0;
+  color: var(--ref);
+  font-size: 13.5px;
+}
+.notice-device p {
+  margin: 0 0 8px;
+}
+.notice-device ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  list-style: decimal;
+  color: var(--ink);
+  line-height: 1.7;
+}
+.notices-foot {
+  margin: 24px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  color: var(--ref);
+  font-size: 13.5px;
+}
+.notices-foot button {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@media (min-width: 768px) {
+  .notice-row {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 28px;
+  }
+}

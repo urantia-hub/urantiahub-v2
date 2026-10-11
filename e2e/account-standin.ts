@@ -1,7 +1,7 @@
 // A stand-in for the accounts site and for the reader's part of the API, for the browser tests.
 // Each test is one reader: the test sets the cookie `e2e_reader` to an id of its own, and the stand-in
 // keeps the data of each id apart. So the tests can run at the same time.
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 
 type Reader = {
@@ -17,6 +17,8 @@ type Reader = {
   tokens: number;
   // The paragraphs that the reader read, and each batch as it arrived.
   read: string[];
+  notices: { email: Record<string, boolean>; hour: number; zone: string; asked: boolean } | null;
+  devices: { endpoint: string; p256dh: string; auth: string; kinds: string[]; label: string }[];
   batches: string[][];
   // What the API says of each paper, when the test sets it.
   progress: { paperId: string; readCount: number; totalParagraphs: number }[];
@@ -38,7 +40,7 @@ function listed<T extends { ref: string }>(all: T[], url: URL, shape: (item: T) 
 const readers = new Map<string, Reader>();
 const reader = (id: string): Reader => {
   let found = readers.get(id);
-  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], batches: [], progress: [], saved: [], notes: [] }));
+  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], notices: null, devices: [], batches: [], progress: [], saved: [], notes: [] }));
   return found;
 };
 
@@ -110,6 +112,16 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
     if (r.mode === "refused") return json(401, { detail: "refused" });
     if (r.mode === "down") return json(500, { detail: "recorded failure" });
     if (path === "/me") return json(200, { data: { id: `user-${id}`, email: `${id}@example.com`, name: r.name } });
+    if (path === "/me/notices") {
+      if (request.method === "PUT") r.notices = { ...(r.notices ?? { email: {}, hour: 7, zone: "UTC", asked: false }), ...body, email: { ...(r.notices?.email ?? {}), ...((body.email as object) ?? {}) } };
+      const devices = r.devices.map((d, i) => ({ id: `device-${i}`, label: d.label, kinds: d.kinds, endpointHash: createHash("sha256").update(d.endpoint).digest("hex") }));
+      return json(200, { data: { settings: r.notices, devices } });
+    }
+    if (path === "/me/push-subscriptions") {
+      if (request.method === "DELETE") r.devices = body.all === true ? [] : r.devices.filter((d) => d.endpoint !== body.endpoint);
+      else r.devices = [...r.devices.filter((d) => d.endpoint !== body.endpoint), body as Reader["devices"][number]];
+      return request.method === "DELETE" ? { status: 204, body: "" } : json(200, { data: { saved: true } });
+    }
     if (path === "/me/reading-progress") {
       if (request.method === "POST") {
         const refs = Array.isArray(body.refs) ? (body.refs as string[]) : [];

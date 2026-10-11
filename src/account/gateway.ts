@@ -2,6 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { Refused } from "./call";
 import type { Gateway } from "./data";
+import type { NoticesGateway } from "./notices";
 import type { SavedGateway } from "./saved-data";
 
 // The only place that asks api.urantia.dev for a reader's own data. `src/content` asks for the Papers.
@@ -17,6 +18,20 @@ async function asked<T>(request: Promise<T>): Promise<T> {
   }
 }
 
+// The notice routes are not in the package. One request, with the same meaning for a refusal.
+const BASE = process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev";
+async function direct(token: string, method: string, path: string, body?: unknown): Promise<unknown> {
+  const response = await fetch(`${BASE}${path}`, {
+    method,
+    headers: { authorization: `Bearer ${token}`, accept: "application/json", ...(body === undefined ? {} : { "content-type": "application/json" }) },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (response.status === 401) throw new Refused();
+  if (!response.ok) throw new Error(`${response.status} from ${method} ${path}`);
+  return response.status === 204 ? null : ((await response.json()) as { data?: unknown }).data;
+}
+
 const gone = (error: unknown) => error instanceof Error && /^404\b/.test(error.message);
 
 type Listed = { paragraph: { standardReferenceId: string; paperId: string; paperTitle: string; text: string }; createdAt: string };
@@ -29,7 +44,7 @@ const total = (answer: unknown, fallback: number): number => {
 };
 const PAGE = 100;
 
-export const gateway: Gateway & SavedGateway & { profileName(accessToken: string): Promise<string | null> } = {
+export const gateway: Gateway & SavedGateway & NoticesGateway & { profileName(accessToken: string): Promise<string | null> } = {
   bookmarks: async (token, { paperId, page }) => {
     const answer = await asked(api(token).me.bookmarks.list({ paperId, page, limit: PAGE }));
     return { items: answer.data.map(mark), total: total(answer, answer.data.length) };
@@ -60,6 +75,16 @@ export const gateway: Gateway & SavedGateway & { profileName(accessToken: string
     await asked(api(token).me.readingProgress.mark(refs));
   },
   progress: async (token) => (await asked(api(token).me.readingProgress.get())).data ?? [],
+  notices: (token) => direct(token, "GET", "/me/notices"),
+  saveNotices: async (token, patch) => {
+    await direct(token, "PUT", "/me/notices", patch);
+  },
+  saveDevice: async (token, device) => {
+    await direct(token, "PUT", "/me/push-subscriptions", device);
+  },
+  removeDevice: async (token, which) => {
+    await direct(token, "DELETE", "/me/push-subscriptions", which);
+  },
   profileName: async (token) => {
     const name = (await asked(api(token).me.get())).data?.name;
     return typeof name === "string" && name.trim() ? name.trim().slice(0, 80) : null;
