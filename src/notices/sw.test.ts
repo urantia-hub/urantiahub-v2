@@ -3,24 +3,33 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 // Runs the real worker file with a stand-in for the worker scope.
-function load() {
+function load(owner: string | null = "k1") {
   const handlers: Record<string, (event: never) => void> = {};
   const opened: string[] = [];
   const shown: { title: string; options: { body: string; data: { path: string } } }[] = [];
+  const state = { unsubscribed: 0, deleted: [] as string[] };
   const self = {
     location: { origin: "https://www.urantiahub.com" },
     addEventListener: (name: string, handler: (event: never) => void) => void (handlers[name] = handler),
     skipWaiting: () => {},
     clients: { claim: async () => {}, matchAll: async () => [], openWindow: async (url: string) => void opened.push(url) },
-    registration: { showNotification: async (title: string, options: never) => void shown.push({ title, options }) },
+    registration: {
+      showNotification: async (title: string, options: never) => void shown.push({ title, options }),
+      pushManager: { getSubscription: async () => ({ unsubscribe: async () => void state.unsubscribed++ }) },
+    },
   };
-  new Function("self", "caches", "URL", readFileSync("public/sw.js", "utf8"))(self, { keys: async () => [], delete: async () => true }, URL);
+  const caches = {
+    keys: async () => ["hub-notices", "workbox-precache-v2", "old-pages"],
+    delete: async (name: string) => void state.deleted.push(name),
+    open: async () => ({ match: async () => (owner === null ? undefined : { text: async () => owner }) }),
+  };
+  new Function("self", "caches", "URL", readFileSync("public/sw.js", "utf8"))(self, caches, URL);
   const run = async (name: string, event: object) => {
     let work: Promise<unknown> = Promise.resolve();
     handlers[name]({ ...event, waitUntil: (p: Promise<unknown>) => void (work = p) } as never);
     await work;
   };
-  return { run, opened, shown };
+  return { run, opened, shown, state };
 }
 const click = (path: unknown) => ({ notification: { close: () => {}, data: { path } } });
 
@@ -43,15 +52,33 @@ describe("the service worker", () => {
 
   it("shows a notice with a short title and text, and keeps only a link of this site", async () => {
     const worker = load();
-    await worker.run("push", { data: { json: () => ({ title: "T".repeat(200), body: "B".repeat(500), path: "/\t/evil.example" }) } });
+    await worker.run("push", { data: { json: () => ({ for: "k1", title: "T".repeat(200), body: "B".repeat(500), path: "/\t/evil.example" }) } });
     expect(worker.shown[0].title).toHaveLength(80);
     expect(worker.shown[0].options.body).toHaveLength(240);
     expect(worker.shown[0].options.data.path).toBe("/");
   });
 
-  it("shows a plain notice when the message cannot be read", async () => {
+  // A device can have a second reader. A notice shows only for the reader who turned the device on.
+  it.each([
+    ["another reader", "k1", { for: "k2", title: "Your place" }],
+    ["no reader named in the notice", "k1", { title: "Your place" }],
+    ["a device with no mark", null, { for: "k1", title: "Your place" }],
+  ])("shows nothing for %s, and ends the device", async (_case, owner, notice) => {
+    const worker = load(owner);
+    await worker.run("push", { data: { json: () => notice } });
+    expect(worker.shown).toEqual([]);
+    expect(worker.state.unsubscribed).toBe(1);
+  });
+
+  it("shows nothing when the message cannot be read", async () => {
     const worker = load();
     await worker.run("push", { data: { json: () => { throw new Error("not JSON"); } } });
-    expect(worker.shown[0].title).toBe("UrantiaHub");
+    expect(worker.shown).toEqual([]);
+  });
+
+  it("removes the caches of the old Hub, and keeps the mark of the reader", async () => {
+    const worker = load();
+    await worker.run("activate", {});
+    expect(worker.state.deleted).toEqual(["workbox-precache-v2", "old-pages"]);
   });
 });

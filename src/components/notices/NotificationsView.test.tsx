@@ -12,8 +12,17 @@ const world = vi.hoisted(() => ({
   endpoint: null as string | null,
   subscribed: { endpoint: "https://fcm.googleapis.com/fcm/send/abc", p256dh: "BKey_0123456789", auth: "auth_0123456789", label: "Chrome on Android" } as null | object,
   unsubscribed: 0,
+  claimed: [] as string[],
+  canClaim: true,
+  ended: 0,
+  whileAsking: null as null | (() => void),
+}));
+vi.mock("@/notices/device-end", () => ({
+  claimDevice: vi.fn(async (key: string) => (world.canClaim ? (void world.claimed.push(key), true) : false)),
+  endDevice: vi.fn(async () => void world.ended++),
 }));
 vi.mock("@/account/client", () => ({
+  accountKey: () => world.account.user?.key ?? null,
   accountState: () => world.account,
   serverAccountState: () => world.account,
   subscribeToAccount: () => () => {},
@@ -31,7 +40,10 @@ vi.mock("@/notices/push", () => ({
   deviceState: () => world.device,
   currentEndpoint: async () => world.endpoint,
   sha256Hex: async (value: string) => `hash-of-${value}`,
-  subscribeDevice: async () => world.subscribed,
+  subscribeDevice: async () => {
+    world.whileAsking?.();
+    return world.subscribed;
+  },
   unsubscribeDevice: async () => void world.unsubscribed++,
   unblockSteps: () => ["Step one.", "Step two."],
 }));
@@ -44,7 +56,10 @@ const group = (name: string) => screen.findByRole("group", { name });
 const chip = async (notice: string, name: string) => within(await group(notice)).getByRole("button", { name });
 
 afterEach(() => {
-  localStorage.clear();
+  world.claimed = [];
+  world.canClaim = true;
+  world.ended = 0;
+  world.whileAsking = null;
   world.account = { status: "in", user: { key: "k", email: "reader@example.com", name: null } };
   world.notices = null;
   world.calls = [];
@@ -102,7 +117,7 @@ describe("the Notifications page", () => {
     await waitFor(() => expect(world.calls).toHaveLength(1));
     expect(world.calls[0]).toEqual({ path: "/api/me/notices/device", method: "PUT", body: { ...world.subscribed, kinds: ["releases", "daily"] } });
     // The browser keeps whose device this is, so a later reader of this browser does not get the notices.
-    await waitFor(() => expect(localStorage.getItem("hub.notices.owner")).toBe("k"));
+    expect(world.claimed).toEqual(["k"]);
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "true");
   });
 
@@ -112,13 +127,25 @@ describe("the Notifications page", () => {
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("does not mark the device as the reader's when the account did not save it", async () => {
+  // The question of the browser can stay open for a long time. The reader can sign out in it.
+  it("turns nothing on when the reader changed while the browser asked", async () => {
     world.notices = fresh({ zone: "UTC" });
-    world.fail = true;
+    world.whileAsking = () => void (world.account = { status: "in", user: { key: "another", email: "b@example.com", name: null } });
     render(<NotificationsView />);
     await userEvent.click(await chip("A passage each day", "This device"));
-    expect(await screen.findByText("This device was not saved. Try again.")).toBeInTheDocument();
-    expect(localStorage.getItem("hub.notices.owner")).toBeNull();
+    await waitFor(() => expect(world.unsubscribed).toBe(1));
+    expect(world.claimed).toEqual([]);
+    expect(world.calls).toEqual([]);
+  });
+
+  it("turns nothing on when the browser cannot keep whose device it is", async () => {
+    world.notices = fresh({ zone: "UTC" });
+    world.canClaim = false;
+    render(<NotificationsView />);
+    await userEvent.click(await chip("A passage each day", "This device"));
+    expect(await screen.findByText("This device did not turn on. Try again.")).toBeInTheDocument();
+    expect(world.ended).toBe(1);
+    expect(world.calls).toEqual([]);
   });
 
   it("says so when the reader did not allow the device, and saves nothing", async () => {

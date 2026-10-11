@@ -89,11 +89,13 @@ test("a test browser has no push service: the device buttons cannot be pressed, 
   await expect(page.getByText(/cannot show notifications of UrantiaHub/)).toBeVisible();
 });
 
-test("the service worker is served, and it keeps no cache", async ({ request }) => {
+test("the service worker is served, and it keeps no page", async ({ request }) => {
   const response = await request.get("/sw.js");
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("javascript");
   const text = await response.text();
   expect(text).toContain("showNotification");
-  expect(text).not.toContain("caches.open");
+  // It answers no request from a cache, and it keeps no page.
+  expect(text).not.toContain('addEventListener("fetch"');
+  expect(text).not.toContain(".put(");
 });
