@@ -40,6 +40,21 @@ describe("the page of “Turn this email off”", () => {
     expect(screen.getByRole("button", { name: "Turn this email off" })).toBeEnabled();
   });
 
+  it("takes the proof out of the address at once, and still turns the email off with it", async () => {
+    address.off = "TOKEN";
+    window.history.replaceState(null, "", "/emails?off=TOKEN");
+    const fetch = vi.fn(async () => Response.json({ off: true, kind: "releases" }));
+    vi.stubGlobal("fetch", fetch);
+    const view = render(<EmailOff />);
+    expect(window.location.pathname + window.location.search).toBe("/emails");
+    // The router then says that the address has no proof. The page kept it.
+    address.off = null;
+    view.rerender(<EmailOff />);
+    await userEvent.click(screen.getByRole("button", { name: "Turn this email off" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("New releases");
+    expect(fetch).toHaveBeenCalledWith("/api/notices/off", expect.objectContaining({ body: JSON.stringify({ token: "TOKEN" }) }));
+  });
+
   it("turns the email off with one press, and names it", async () => {
     address.off = "TOKEN";
     const fetch = vi.fn(async () => Response.json({ off: true, kind: "daily" }));
