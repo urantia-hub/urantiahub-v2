@@ -20,6 +20,7 @@ export function AccountRows() {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const problem = useProblem();
   const [stuck, setStuck] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   if (account.status === "off") return null;
 
   if (account.status === "out") {
@@ -69,9 +70,23 @@ export function AccountRows() {
           <Icon name="paperAfter" />
         </Link>
       )}
-      <button type="button" className="account-row" onClick={() => void signOut().then((done) => setStuck(!done))}>
+      {/* A sign-out takes a moment. The row says so, and a second press does nothing. */}
+      <button
+        type="button"
+        className="account-row"
+        disabled={leaving}
+        aria-busy={leaving}
+        onClick={() => {
+          setLeaving(true);
+          setStuck(false);
+          void signOut().then((done) => {
+            setLeaving(false);
+            setStuck(!done);
+          });
+        }}
+      >
         <Icon name="signOut" />
-        <span>Sign out</span>
+        <span>{leaving ? "Signing out…" : "Sign out"}</span>
       </button>
       {stuck && <p role="status">The sign-out did not finish, so you are still signed in. Try again.</p>}
     </div>

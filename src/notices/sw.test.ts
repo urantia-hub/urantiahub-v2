@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 function load(owner: string | null = "k1") {
   const handlers: Record<string, (event: never) => void> = {};
   const opened: string[] = [];
-  const shown: { title: string; options: { body: string; data: { path: string } } }[] = [];
+  const shown: { title: string; options: { body: string; badge: string; data: { path: string } } }[] = [];
   const state = { unsubscribed: 0, deleted: [] as string[] };
   const self = {
     location: { origin: "https://www.urantiahub.com" },
@@ -56,6 +56,8 @@ describe("the service worker", () => {
     expect(worker.shown[0].title).toHaveLength(80);
     expect(worker.shown[0].options.body).toHaveLength(240);
     expect(worker.shown[0].options.data.path).toBe("/");
+    // Android draws the badge in one color. A full picture there shows as a white square.
+    expect(worker.shown[0].options.badge).toBe("/badge-96.png");
   });
 
   // A device can have a second reader. A notice shows only for the reader who turned the device on.

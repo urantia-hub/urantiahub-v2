@@ -5,6 +5,16 @@ export type Release = { date: string; title: string; changes: string[] };
 
 export const RELEASES: Release[] = [
   {
+    date: "2026-10-11",
+    title: "Notifications",
+    changes: [
+      "A passage each day, by email, on a device, or both, at the hour that you choose in your time zone.",
+      "One reminder of your place after a week with no reading.",
+      "Each one is off until you turn it on: the person button, then Notifications.",
+      "The settings and the account are in the header of each page.",
+    ],
+  },
+  {
     date: "2026-10-10",
     title: "The new UrantiaHub",
     changes: [

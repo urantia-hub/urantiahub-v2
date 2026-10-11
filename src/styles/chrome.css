@@ -402,3 +402,9 @@ body:not(:has(.paper:not([style*="display: none"]))) .settings-panel h2:first-ch
 body:has(:is(.paper, .saved-page, .study-page):not([style*="display: none"])) .site-header .contents-link {
   display: grid;
 }
+
+/* A row that works on something: the sign-out, while it runs. */
+.account-row:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

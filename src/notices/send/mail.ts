@@ -2,11 +2,9 @@
 // as it is, and nothing tells us that a reader opened it.
 
 export type Mail = { subject: string; html: string; text: string };
+// A mail program turns an address into a blue link to a map, and nothing in an email stops that for
+// each program. The one style rule of the email makes that link look like the text around it.
 export const POSTAL = "UrantiaHub · 107 Bellagio Drive, Austin, TX 78734";
-// The same words for the HTML part. A mail program turns an address into a blue link to a map. A mark
-// of no width inside the words stops that, and a reader sees the same text.
-const POSTAL_HTML = "UrantiaHub · 107 Bell&zwnj;agio Dr&zwnj;ive, Aus&zwnj;tin, T&zwnj;X 78&zwnj;734";
-
 // Text from outside this file, as text in HTML.
 export const esc = (value: string): string => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
@@ -19,7 +17,8 @@ type Frame = { label: string; body: string; cite: string; button: string; url: s
 function html({ label, body, cite, button, url, reason, offUrl, settingsUrl }: Frame): string {
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(label)}</title></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(label)}</title>
+<style>.addr a{color:#756d5f !important;text-decoration:none !important;}</style></head>
 <body style="margin:0;padding:0;" bgcolor="#f1ede4">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f1ede4" style="padding:28px 14px;">
 <tr><td align="center">
@@ -34,7 +33,7 @@ function html({ label, body, cite, button, url, reason, offUrl, settingsUrl }: F
 <tr><td style="padding:22px 36px;border-top:1px solid #e7e0d2;font-family:${UI};font-size:12px;line-height:1.6;color:#756d5f;">
 ${esc(reason)}<br>
 <a href="${esc(offUrl)}" style="color:#756d5f;">Turn this email off</a> · <a href="${esc(settingsUrl)}" style="color:#756d5f;">All notification settings</a><br>
-${POSTAL_HTML}
+<span class="addr" style="color:#756d5f;text-decoration:none;">${esc(POSTAL)}</span>
 </td></tr>
 </table>
 </td></tr>
@@ -51,7 +50,7 @@ type Links = { offUrl: string; settingsUrl: string };
 export function dailyMail(passage: { ref: string; text: string; paperId: string; paperTitle: string; url: string }, links: Links): Mail {
   const paper = passage.paperId === "0" ? passage.paperTitle : `Paper ${passage.paperId}, ${passage.paperTitle}`;
   const frame: Frame = {
-    label: "A passage for today",
+    label: "Your passage for today",
     body: passage.text,
     cite: `${passage.ref} · ${paper}`,
     button: "Read the paper",
@@ -59,7 +58,7 @@ export function dailyMail(passage: { ref: string; text: string; paperId: string;
     reason: "You get this email because you chose Email for “A passage each day” in UrantiaHub.",
     ...links,
   };
-  return { subject: `A passage for today · ${passage.ref}`, html: html(frame), text: text(frame) };
+  return { subject: `Your passage for today · ${passage.ref}`, html: html(frame), text: text(frame) };
 }
 
 // `opening`: the first words of the section where the reader stopped, or null when they cannot be read.

@@ -39,8 +39,11 @@ test("the footer leads to the releases, the newest first", async ({ page }) => {
   await page.goto("/about");
   await page.getByRole("contentinfo").getByRole("link", { name: "Releases" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Releases" })).toBeVisible();
-  await expect(page.locator(".rel").first()).toContainText("October 10, 2026");
-  await expect(page.locator(".rel").first().getByRole("heading")).toHaveText("The new UrantiaHub");
+  // The newest entry is first. The entry of the cutover stays in the list.
+  await expect(page.locator(".rel time").first()).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}$/);
+  const dates = await page.locator(".rel time").evaluateAll((times) => times.map((time) => time.getAttribute("datetime") ?? ""));
+  expect([...dates].sort().reverse()).toEqual(dates);
+  await expect(page.getByRole("heading", { name: "The new UrantiaHub" })).toBeVisible();
   await noSideScroll(page);
 });
 

@@ -76,7 +76,7 @@ describe("one run of the notices", () => {
     const { deps, out } = world([both]);
     expect(await runNotices(deps)).toMatchObject({ due: 2, claimed: 2, mails: 1, pushes: 1 });
     expect(out.pushes.map((p) => p.endpoint)).toEqual([device("one").endpoint, device("two").endpoint]);
-    expect(out.pushes[0].push).toMatchObject({ for: "key-of-a1", title: "A passage for today" });
+    expect(out.pushes[0].push).toMatchObject({ for: "key-of-a1", title: "Your passage for today" });
     expect(out.pushes[0].push.path).toMatch(/^\/papers\/[a-z0-9-]+#\d+:\d+\.\d+$/);
     expect(out.devices).toEqual([{ gone: [], ok: [device("one").endpoint, device("two").endpoint] }]);
   });
@@ -152,7 +152,7 @@ describe("the samples", () => {
     const { deps, out, log } = world([reader(A)]);
     expect(await runSamples(deps, "kelson@example.com", A, "11:1.3")).toEqual({ mails: 3, sent: 3 });
     expect(out.mails.map((mail) => mail.to)).toEqual(["kelson@example.com", "kelson@example.com", "kelson@example.com"]);
-    expect(out.mails.map((mail) => mail.subject)).toEqual([expect.stringMatching(/^A passage for today · /), "A passage for today · 11:1.3", "Your place in the Papers"]);
+    expect(out.mails.map((mail) => mail.subject)).toEqual([expect.stringMatching(/^Your passage for today · /), "Your passage for today · 11:1.3", "Your place in the Papers"]);
     expect(out.mails[2].offUrl).toContain("a1-reminder");
     expect(log).toEqual([]);
     expect(out.pushes).toEqual([]);

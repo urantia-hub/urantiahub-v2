@@ -14,8 +14,9 @@ export async function GET(request: NextRequest) {
   // A sample: one of each email, to the one address of the setting, and to no reader.
   if (request.nextUrl.searchParams.get("sample") === "1") {
     const to = process.env.NOTICES_SAMPLE_TO ?? "";
-    const userId = (process.env.NOTICES_ONLY ?? "").split(",")[0]?.trim() ?? "";
-    if (!/^[^@\s]+@[^@\s]+$/.test(to) || !userId) return Response.json({ sample: false, reason: "not set" }, { status: 400 });
+    // The links of a sample name no reader, so "Turn this email off" in a sample changes nothing.
+    const userId = "00000000-0000-4000-8000-000000000000";
+    if (!/^[^@\s]+@[^@\s]+$/.test(to)) return Response.json({ sample: false, reason: "not set" }, { status: 400 });
     try {
       return Response.json({ sample: true, ...(await runSamples(liveDeps(), to, userId, LONGEST_PASSAGE)) });
     } catch (error) {
