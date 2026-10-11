@@ -370,3 +370,9 @@ test("the terms page names who runs the site and the law that applies, and the f
   await expect(page.getByText("It is not affiliated with, endorsed by, or sponsored by Urantia Foundation.")).toBeVisible();
   await expect(page.getByText("The laws of the State of Texas, United States, govern these terms.")).toBeVisible();
 });
+
+test("the home page says what UrantiaHub is, with its name", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("UrantiaHub is a free place to read, listen to, and study the Urantia Papers.")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
