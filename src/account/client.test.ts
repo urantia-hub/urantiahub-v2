@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { accountState, resetAccountForTest, signInHref, signOut, startAccount, takeProblem } from "./client";
+import { endDevice, forgetDevice } from "@/notices/device-end";
+import { accountState, markSignedOut, refreshAccount, resetAccountForTest, signInHref, signOut, startAccount, takeProblem } from "./client";
+
+vi.mock("@/notices/device-end", () => ({ endDevice: vi.fn(async () => {}), forgetDevice: vi.fn(async () => {}) }));
 
 const clearCookies = () => {
   for (const part of document.cookie.split(";")) document.cookie = `${part.split("=")[0].trim()}=; max-age=0; path=/`;
@@ -91,5 +94,34 @@ describe("a sign-in that did not finish", () => {
     document.cookie = "hub_signin_problem=1; path=/";
     expect(takeProblem()).toBe(true);
     expect(takeProblem()).toBe(false);
+  });
+
+  // A notice can show a reader's place. A device must not get the notices of a reader who left it.
+  it("ends this device for notices before a sign-out, with the key of the reader", async () => {
+    document.cookie = "hub_in=1; path=/";
+    const fetch = vi.fn(async () => Response.json({ enabled: true, user: { name: null, email: "a@b.c", key: "k1" } }));
+    vi.stubGlobal("fetch", fetch);
+    await startAccount();
+    vi.mocked(endDevice).mockClear();
+    fetch.mockImplementationOnce(async () => Response.json({ signedOut: true }));
+    await signOut();
+    expect(endDevice).toHaveBeenCalledWith("k1");
+    expect(vi.mocked(endDevice).mock.invocationCallOrder[0]).toBeLessThan(fetch.mock.invocationCallOrder.at(-1) ?? 0);
+  });
+
+  it("ends this device when the session is gone, and when another reader is signed in", async () => {
+    document.cookie = "hub_in=1; path=/";
+    const fetch = vi.fn(async () => Response.json({ enabled: true, user: { name: null, email: "a@b.c", key: "k1" } }));
+    vi.stubGlobal("fetch", fetch);
+    await startAccount();
+    vi.mocked(forgetDevice).mockClear();
+    fetch.mockImplementation(async () => Response.json({ enabled: true, user: { name: null, email: "b@b.c", key: "k2" } }));
+    await refreshAccount();
+    expect(forgetDevice).toHaveBeenCalledTimes(1);
+    // The same reader again: nothing ends.
+    await refreshAccount();
+    expect(forgetDevice).toHaveBeenCalledTimes(1);
+    markSignedOut();
+    expect(forgetDevice).toHaveBeenCalledTimes(2);
   });
 });
