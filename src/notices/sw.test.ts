@@ -94,11 +94,17 @@ describe("the service worker", () => {
     expect(worker.state.forgot).toBe(1);
   });
 
-  it("shows the notice when the site does not answer: that says nothing about the reader", async () => {
+  // Not known is not "signed in". The words of a reader's notice show only when the site says who is there.
+  it("shows a plain notice with no words of the reader when the site does not answer, and keeps the device", async () => {
     const worker = load("k1", "down");
-    await worker.run("push", { data: { json: () => ({ for: "k1", title: "Your passage for today", body: "The text." }) } });
-    expect(worker.shown[0].title).toBe("Your passage for today");
+    await worker.run("push", { data: { json: () => ({ for: "k1", title: "Your place in Paper 2", body: "“The first words …”", path: "/papers/paper-2#2:1" }) } });
+    expect(worker.shown).toHaveLength(1);
+    expect(worker.shown[0].title).toBe("UrantiaHub");
+    expect(worker.shown[0].options.body).toBe("Open UrantiaHub to see your notice.");
+    expect(worker.shown[0].options.data.path).toBe("/");
+    expect(JSON.stringify(worker.shown)).not.toContain("Paper 2");
     expect(worker.state.unsubscribed).toBe(0);
+    expect(worker.state.forgot).toBe(0);
   });
 
   it("shows nothing when the message cannot be read", async () => {

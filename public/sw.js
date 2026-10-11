@@ -22,7 +22,7 @@ async function forget() {
 }
 
 // The key of the reader who is signed in here, or null for no reader. Undefined when the site did
-// not answer: that says nothing about the reader, so the notice shows.
+// not answer: then it is not known who is signed in.
 async function signedIn() {
   try {
     const response = await fetch("/api/auth/session", { credentials: "same-origin", cache: "no-store", headers: { accept: "application/json" } });
@@ -80,7 +80,10 @@ self.addEventListener("push", (event) => {
       // have a second reader. Then the notice of the reader does not show. One plain notice says
       // that the sign-in ended, and the device ends.
       const who = await signedIn();
-      if (who === reader || who === undefined) return show(title, body, path(notice.path));
+      if (who === reader) return show(title, body, path(notice.path));
+      // The site did not answer, so it is not known who is signed in. The words of the notice do not
+      // show then. A plain notice shows, and the device stays: the next notice asks again.
+      if (who === undefined) return show("UrantiaHub", "Open UrantiaHub to see your notice.", "/");
       await show("You are signed out of UrantiaHub", "Sign in to get your notices on this device again.", "/notifications");
       return end();
     }),
