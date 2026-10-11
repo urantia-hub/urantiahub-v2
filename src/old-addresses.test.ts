@@ -8,7 +8,7 @@ describe("the addresses of the old Hub", () => {
   });
 
   it("never take an address that this Hub uses", () => {
-    const own = ["/", "/papers", "/about", "/privacy", "/search", "/saved", "/parallels", "/emails", "/terms", "/progress", "/resources", "/releases", "/auth/callback", "/api/auth/start"];
+    const own = ["/", "/papers", "/about", "/privacy", "/search", "/saved", "/parallels", "/emails", "/terms", "/progress", "/notifications", "/resources", "/releases", "/auth/callback", "/api/auth/start"];
     for (const { source } of OLD_ADDRESSES) expect(own).not.toContain(source);
     expect(OLD_ADDRESSES.some((a) => a.source.startsWith("/auth/:") || a.source === "/auth/:path*")).toBe(false);
   });

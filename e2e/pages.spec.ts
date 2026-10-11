@@ -344,10 +344,13 @@ for (const [from, to, status] of [
   });
 }
 
-test("an old unsubscribe link lands on a page that says no daily email comes, and the sign-in callback is not taken", async ({ page, request }) => {
+test("an old unsubscribe link lands on a page that says each email is off, and the sign-in callback is not taken", async ({ page, request }) => {
   await page.goto("/api/user/unsubscribe?token=abc");
   await expect(page.getByRole("heading", { name: "Emails" })).toBeVisible();
-  await expect(page.getByText("UrantiaHub sends no daily emails at this time.")).toBeVisible();
+  // The old link has no proof of this Hub, so the page turns nothing off and shows no button for it.
+  await expect(page.getByText("Each email of UrantiaHub is off until you turn it on.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Turn this email off" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Notification settings" })).toHaveAttribute("href", "/notifications");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   // `/auth/callback` is a route of this Hub: it must not go where the old sign-in pages go.
   const callback = await request.get("/auth/callback", { maxRedirects: 0 });
