@@ -131,7 +131,7 @@ export default function PrivacyPage() {
             Firefox. It is encrypted for your device, so that service cannot read it. It sees the address of your
             device at that service, and the time. Your browser keeps a small program that shows the push. A push
             shows only while you are signed in on that device. When you sign out on a device, we remove that device
-            from your account. It comes back when you sign in again there.
+            from your account, and the browser ends its registration. It comes back when you sign in again there.
           </p>
           <p>
             You can turn each notice off on the Notifications page, and “Turn all off” there removes each device.

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { endDevice, syncDevice } from "@/notices/device-end";
+import { dropDevice, endDevice, syncDevice } from "@/notices/device-end";
 import { accountState, markSignedOut, refreshAccount, resetAccountForTest, signInHref, signOut, startAccount, takeProblem } from "./client";
 
-vi.mock("@/notices/device-end", () => ({ endDevice: vi.fn(async () => {}), syncDevice: vi.fn(async () => {}) }));
+vi.mock("@/notices/device-end", () => ({ endDevice: vi.fn(async () => {}), syncDevice: vi.fn(async () => {}), dropDevice: vi.fn(async () => {}) }));
 
 const clearCookies = () => {
   for (const part of document.cookie.split(";")) document.cookie = `${part.split("=")[0].trim()}=; max-age=0; path=/`;
@@ -122,5 +122,19 @@ describe("a sign-in that did not finish", () => {
     expect(syncDevice).toHaveBeenLastCalledWith("k2");
     markSignedOut();
     expect(syncDevice).toHaveBeenCalledTimes(2);
+  });
+
+  // A sign-in can end with no press. The address that the account still holds must reach no device.
+  it("ends the push of this browser when it learns that nobody is signed in, and not while a reader is", async () => {
+    document.cookie = "hub_in=1; path=/";
+    const fetch = vi.fn(async () => Response.json({ enabled: true, user: { name: null, email: "a@b.c", key: "k1" } }));
+    vi.stubGlobal("fetch", fetch);
+    vi.mocked(dropDevice).mockClear();
+    await startAccount();
+    expect(dropDevice).not.toHaveBeenCalled();
+    fetch.mockImplementation(async () => Response.json({ enabled: true, user: null }));
+    await refreshAccount();
+    expect(accountState()).toEqual({ status: "out" });
+    expect(dropDevice).toHaveBeenCalledTimes(1);
   });
 });

@@ -38,8 +38,8 @@ export async function syncDevice(key: string | null): Promise<void> {
   }
 }
 
-// For a sign-out: the account forgets this device, so no push is sent to it. The browser keeps its
-// registration, and the reader who signs in again here gets the device back. If the account cannot
+// For a sign-out, while the session can still tell the account: the account forgets this device, so
+// no push is sent to it. The browser then ends its registration (dropDevice). If the account cannot
 // be told, the worker stops the next notice. It never throws, and it does not wait long.
 export async function endDevice(key: string | null): Promise<void> {
   try {
@@ -55,5 +55,19 @@ export async function endDevice(key: string | null): Promise<void> {
     await Promise.race([told, new Promise((resolve) => setTimeout(resolve, TELL_MS))]);
   } catch {
     // No device to forget.
+  }
+}
+
+// The page learned that nobody is signed in: by a sign-out, or because the sign-in ended by itself.
+// The browser ends its registration, so the address that the account can still hold reaches no
+// device, and the account removes it at the next send. A reader who signs in here gets a new
+// registration with no press (syncDevice). It never throws.
+export async function dropDevice(): Promise<void> {
+  try {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const registration = await navigator.serviceWorker.getRegistration("/");
+    await (await registration?.pushManager?.getSubscription())?.unsubscribe();
+  } catch {
+    // No device to end. The worker stops a notice for a reader who is not signed in.
   }
 }
