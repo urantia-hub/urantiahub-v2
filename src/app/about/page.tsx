@@ -32,6 +32,10 @@ export default function AboutPage() {
         UrantiaHub is a place to read the Papers. The full text is here, free to read, with no account.{" "}
         <Link href="/papers">See all papers.</Link>
       </p>
+      <p>
+        Each paper has a narration. You can listen here, or{" "}
+        <a href="https://open.spotify.com/show/7IDP6RsZbKtUjfEwLLHtuw">listen on Spotify</a>.
+      </p>
       <p>UrantiaHub is an independent project. It is not affiliated with Urantia Foundation.</p>
 
       <h2>The text</h2>
