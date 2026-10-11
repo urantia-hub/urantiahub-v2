@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { checkDevice, claimDevice, endDevice, OWNER_CACHE, OWNER_PATH } from "./device-end";
+import { checkDevice, claimDevice, endDevice, OWNER_CACHE, OWNER_PATH, rememberDevice } from "./device-end";
+
+const on = vi.hoisted(() => ({ calls: [] as { key: string; kinds: string[] }[] }));
+vi.mock("./device-on", () => ({
+  turnOnDevice: vi.fn(async (key: string, _known: unknown[], next: (had: string[]) => string[]) => {
+    on.calls.push({ key, kinds: next([]) });
+    return { ok: true };
+  }),
+}));
 
 // A stand-in for the cache storage of a browser: one cache, with text values.
 function storage(broken = false) {
@@ -26,6 +34,8 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response("{}")));
 });
 afterEach(() => {
+  on.calls = [];
+  localStorage.clear();
   vi.unstubAllGlobals();
   Reflect.deleteProperty(navigator, "serviceWorker");
 });
@@ -107,5 +117,55 @@ describe("the check when the page learns who is signed in", () => {
     Reflect.deleteProperty(navigator, "serviceWorker");
     await checkDevice(null);
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+// A sign-out ends the device, because a device can have a second reader. The same reader must not
+// have to turn it on again after each sign-in (Kelson, 2026-10-11).
+describe("a reader who signs in again on a device that had notices", () => {
+  const allow = (permission: string) => vi.stubGlobal("Notification", { permission });
+
+  it("gets the device back with the same notices, and no press", async () => {
+    allow("granted");
+    device(null);
+    rememberDevice("k1", ["daily", "reminder"]);
+    await checkDevice("k1");
+    expect(on.calls).toEqual([{ key: "k1", kinds: ["daily", "reminder"] }]);
+  });
+
+  it("keeps what the device got through a sign-out", async () => {
+    allow("granted");
+    await claimDevice("k1");
+    rememberDevice("k1", ["daily"]);
+    device(ENDPOINT);
+    await endDevice("k1");
+    await checkDevice(null);
+    expect(on.calls).toEqual([]);
+    device(null);
+    await checkDevice("k1");
+    expect(on.calls).toEqual([{ key: "k1", kinds: ["daily"] }]);
+  });
+
+  it.each([
+    ["another reader signs in", () => rememberDevice("k1", ["daily"]), "granted"],
+    ["the reader turned all off", () => rememberDevice("k2", []), "granted"],
+    ["the browser does not allow notices any more", () => rememberDevice("k2", ["daily"]), "denied"],
+    ["the browser did not ask yet", () => rememberDevice("k2", ["daily"]), "default"],
+    ["nothing is remembered", () => {}, "granted"],
+  ])("turns nothing on when %s", async (_case, arrange, permission) => {
+    allow(permission);
+    device(null);
+    arrange();
+    await checkDevice("k2");
+    expect(on.calls).toEqual([]);
+  });
+
+  it("does not turn the device on again while it is on for that reader", async () => {
+    allow("granted");
+    device(ENDPOINT);
+    await claimDevice("k1");
+    rememberDevice("k1", ["daily"]);
+    await checkDevice("k1");
+    expect(on.calls).toEqual([]);
   });
 });

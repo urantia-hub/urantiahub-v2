@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { type MouseEvent, useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { track } from "@/analytics";
-import { accountState, serverAccountState, signInHref, subscribeToAccount } from "@/account/client";
+import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { failureWords } from "@/account/limited";
 import { readerCall } from "@/account/reader-call";
 import type { NoteResult } from "@/account/saved";
 import type { AllSaved, SavedEntry, SavedNote } from "@/account/saved-data";
 import { Icon } from "@/components/icons";
+import { SignInLink } from "@/components/SignInLink";
 import { NoteThread } from "@/components/reader/NoteThread";
 import { paperById, paperPath } from "@/content/paper-index";
 import { age } from "@/reader/age";
@@ -22,7 +23,6 @@ const KINDS: [Kind, string][] = [["all", "All"], ["paragraphs", "Paragraphs"], [
 // In the list a long thread shows its last notes. The page of the paragraph shows them all.
 const IN_LIST = 3;
 
-const toSignIn = { href: "/api/auth/start", onClick: (event: MouseEvent<HTMLAnchorElement>) => void (event.currentTarget.href = signInHref()) };
 const paragraphHref = (entry: { paperId: string; ref: string }) => (paperById(entry.paperId) ? `${paperPath(entry.paperId)}#${entry.ref}` : "/papers");
 const threadHref = (ref: string) => `/saved?ref=${encodeURIComponent(ref)}`;
 
@@ -133,9 +133,7 @@ function SignedOut({ on }: { on: boolean }) {
       <b>Your saved paragraphs and notes</b>
       Sign in to find them here.
       {on && (
-        <a className="saved-button" {...toSignIn}>
-          Sign in
-        </a>
+        <SignInLink className="saved-button" />
       )}
     </div>
   );

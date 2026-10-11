@@ -5,7 +5,7 @@
 import { accountKey } from "@/account/client";
 import type { NoticeDevice, NoticeKind } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
-import { claimDevice, endDevice } from "./device-end";
+import { claimDevice, endDevice, rememberDevice } from "./device-end";
 import { sha256Hex, subscribeDevice, unsubscribeDevice } from "./push";
 
 export type Turned =
@@ -33,5 +33,7 @@ export async function turnOnDevice(mine: string, known: readonly NoticeDevice[],
   // The server refuses the save when the session is not the session of this reader.
   const answer = (await readerCall("/api/me/notices/device", { method: "PUT", body: JSON.stringify({ ...subscribed, kinds }) })) as { saved?: unknown } | null;
   if (answer?.saved !== true) return { ok: false, why: "save" };
+  // So the same reader gets this device back after a sign-out and a new sign-in.
+  rememberDevice(mine, kinds);
   return { ok: true, device: { id: hash, label: subscribed.label, kinds, endpointHash: hash } };
 }

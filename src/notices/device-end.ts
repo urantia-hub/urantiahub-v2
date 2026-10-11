@@ -68,11 +68,48 @@ async function end(tell: string | null): Promise<void> {
 // does not wait long for the account.
 export const endDevice = (key: string | null): Promise<void> => end(key);
 
+// What this device got, and for which reader. It stays in this browser after the device ends, so
+// that the same reader gets the device back after the next sign-in, with no press. It holds the key
+// of the reader and the names of the notices, and nothing else.
+const LAST = "hub.notices.last";
+type Last = { owner: string; kinds: string[] };
+
+export function rememberDevice(owner: string, kinds: readonly string[]): void {
+  try {
+    if (kinds.length === 0) localStorage.removeItem(LAST);
+    else localStorage.setItem(LAST, JSON.stringify({ owner, kinds }));
+  } catch {
+    // The browser keeps nothing. The reader then turns the device on by hand.
+  }
+}
+
+function remembered(): Last | null {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(LAST) ?? "null");
+    if (typeof value !== "object" || value === null) return null;
+    const { owner, kinds } = value as Record<string, unknown>;
+    return typeof owner === "string" && Array.isArray(kinds) && kinds.every((kind) => typeof kind === "string") && kinds.length > 0 ? { owner, kinds } : null;
+  } catch {
+    return null;
+  }
+}
+
 // Each time the page learns who is signed in: a device that gets notices must be the device of that
 // reader. If no reader is signed in, if it is another reader, or if this browser does not know whose
 // device it is, the device ends. So the rule also holds when the session ended while no page was open.
 // The account cannot be told with no session: it drops the device at the next notice.
+// A reader who signs in again on a device that had notices for that same reader gets them back,
+// if the browser still allows notices. Another reader gets nothing of it.
 export async function checkDevice(key: string | null): Promise<void> {
   if (key !== null && (await owner()) === key) return;
   await end(null);
+  const last = remembered();
+  if (key === null || !last || last.owner !== key) return;
+  try {
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const { turnOnDevice } = await import("./device-on");
+    await turnOnDevice(key, [], () => last.kinds as never);
+  } catch {
+    // The device stays off. The Notifications page turns it on with one press.
+  }
 }

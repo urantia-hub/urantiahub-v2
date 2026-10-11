@@ -1,17 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent, useLayoutEffect, useState, useSyncExternalStore } from "react";
-import { accountState, never, noSignInProblem, serverAccountState, signInHref, signInProblem, signOut, subscribeToAccount } from "@/account/client";
+import { useLayoutEffect, useState, useSyncExternalStore } from "react";
+import { accountState, never, noSignInProblem, serverAccountState, signInProblem, signOut, subscribeToAccount } from "@/account/client";
 import { Icon } from "@/components/icons";
+import { SignInLink, useSignInLink } from "@/components/SignInLink";
 
 // Off until the notices can be sent.
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
 
 export const ACCOUNT_PAGE = "https://accounts.urantiahub.com";
 
-// The link to the sign-in. Its address holds this page and this paragraph, so it is made at the press.
-const toSignIn = { href: "/api/auth/start", onClick: (event: MouseEvent<HTMLAnchorElement>) => void (event.currentTarget.href = signInHref()) };
 
 const useProblem = () => useSyncExternalStore(never, signInProblem, noSignInProblem);
 
@@ -21,15 +20,16 @@ export function AccountRows() {
   const problem = useProblem();
   const [stuck, setStuck] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const signIn = useSignInLink();
   if (account.status === "off") return null;
 
   if (account.status === "out") {
     return (
       <div className="account-rows">
-        <a className="account-row" {...toSignIn}>
+        <a className="account-row" {...signIn.link}>
           <Icon name="person" />
           <span>
-            Sign in
+            {signIn.going ? "Opening the sign-in…" : "Sign in"}
             <small>Save paragraphs, write notes, and keep your place</small>
           </span>
           <Icon name="paperAfter" />
@@ -118,9 +118,7 @@ export function SignInInvite() {
         <strong>Save paragraphs and write notes</strong>
         {problem ? "The sign-in did not finish. Try again." : "Sign in, and they stay with you on each device."}
       </p>
-      <a {...toSignIn}>
-        Sign in
-      </a>
+      <SignInLink />
     </div>
   );
 }

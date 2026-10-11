@@ -408,3 +408,9 @@ body:has(:is(.paper, .saved-page, .study-page):not([style*="display: none"])) .s
   opacity: 0.55;
   cursor: default;
 }
+
+/* A link that opens the sign-in, while it does: it takes no second press. */
+a[aria-busy="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}

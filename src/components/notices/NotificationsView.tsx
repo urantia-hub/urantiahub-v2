@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent, useEffect, useState, useSyncExternalStore } from "react";
-import { accountKey, accountState, serverAccountState, signInHref, subscribeToAccount } from "@/account/client";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { accountKey, accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { NOTICE_KINDS, type NoticeKind, type Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
+import { SignInLink } from "@/components/SignInLink";
+import { rememberDevice } from "@/notices/device-end";
 import { turnOnDevice } from "@/notices/device-on";
 import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps, unsubscribeDevice } from "@/notices/push";
 
-const toSignIn = { href: "/api/auth/start", onClick: (event: MouseEvent<HTMLAnchorElement>) => void (event.currentTarget.href = signInHref()) };
 
 const NOTICES: Record<NoticeKind, { title: string; about: string }> = {
   daily: { title: "A passage each day", about: "One short passage of the Papers, with a link to its paper." },
@@ -119,7 +120,11 @@ export function NotificationsView() {
     const emails = await save("/api/me/notices", "PUT", { zone, email: none }, (was) => ({ ...was, settings: { ...was.settings, email: none } }), "The emails are still on. Try again.");
     if (!emails) return;
     const devices = await save("/api/me/notices/device", "DELETE", { all: true }, (was) => ({ ...was, devices: [] }), "The devices are still on. Try again.");
-    if (devices) await unsubscribeDevice();
+    if (!devices) return;
+    await unsubscribeDevice();
+    // "All off" is a choice: the device does not come back by itself after the next sign-in.
+    const mine = accountKey();
+    if (mine) rememberDevice(mine, []);
   }
 
   const noDevice = device === "none" || device === "ios" || device === "blocked";
@@ -137,9 +142,7 @@ export function NotificationsView() {
           <b>A passage each day, and more</b>
           Sign in to choose what UrantiaHub sends you.
           {account.status === "out" && (
-            <a className="saved-button" {...toSignIn}>
-              Sign in
-            </a>
+            <SignInLink className="saved-button" />
           )}
         </div>
       )}
