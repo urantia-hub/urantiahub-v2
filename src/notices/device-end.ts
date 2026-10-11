@@ -139,8 +139,9 @@ export async function endDevice(key: string | null): Promise<void> {
 // Each time the page learns who is signed in. Three cases:
 //
 // 1. No reader is signed in. Nothing changes here. A sign-out by a press ended the notices already
-//    (endDevice). A session that ended by itself is not a choice of the reader, so the device keeps
-//    its notices. A reader who wants to stop a device that is not at hand uses "Turn all off" on
+//    (endDevice). A session that ended by itself is not a choice of the reader, so this page does
+//    not end the device. The worker does, at the next notice: it asks who is signed in, shows one
+//    plain notice that says "You are signed out", and ends the device (public/sw.js). A reader who wants to stop a device that is not at hand uses "Turn all off" on
 //    another device, or deletes the account: both remove the device from the account, and no
 //    notice is sent to it.
 // 2. The reader of the device is signed in. Nothing changes. If that reader signed out here before,

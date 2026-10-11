@@ -130,8 +130,8 @@ export default function PrivacyPage() {
             Mozilla for Firefox. The notice is encrypted for your device, so that service cannot read it. It sees the
             address of your device at that service, and the time. Your browser keeps a small program that shows the
             notice, and a mark that says which account the device belongs to and which notices it gets. A notice
-            shows only for that account. When you sign out on a device, the device gets no more notices. They come
-            back when you sign in again on that device.
+            shows only for that account, and only while you are signed in on that device. When you sign out on a
+            device, the device gets no more notices. They come back when you sign in again on that device.
           </p>
           <p>
             You can turn each notice off on the Notifications page, and “Turn all off” there removes each device.

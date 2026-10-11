@@ -3,11 +3,16 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 // Runs the real worker file with a stand-in for the worker scope.
-function load(owner: string | null = "k1") {
+// `session`: what the site says about who is signed in. "down": the site does not answer.
+function load(owner: string | null = "k1", session: string | null | "down" = owner) {
   const handlers: Record<string, (event: never) => void> = {};
   const opened: string[] = [];
   const shown: { title: string; options: { body: string; badge: string; data: { path: string } } }[] = [];
-  const state = { unsubscribed: 0, deleted: [] as string[] };
+  const state = { unsubscribed: 0, deleted: [] as string[], forgot: 0 };
+  const fetch = async () => {
+    if (session === "down") throw new Error("offline");
+    return { ok: true, json: async () => ({ enabled: true, user: session ? { key: session } : null }) };
+  };
   const self = {
     location: { origin: "https://www.urantiahub.com" },
     addEventListener: (name: string, handler: (event: never) => void) => void (handlers[name] = handler),
@@ -21,9 +26,9 @@ function load(owner: string | null = "k1") {
   const caches = {
     keys: async () => ["hub-notices", "workbox-precache-v2", "old-pages"],
     delete: async (name: string) => void state.deleted.push(name),
-    open: async () => ({ match: async () => (owner === null ? undefined : { text: async () => owner }) }),
+    open: async () => ({ match: async () => (owner === null ? undefined : { text: async () => owner }), delete: async () => void state.forgot++ }),
   };
-  new Function("self", "caches", "URL", readFileSync("public/sw.js", "utf8"))(self, caches, URL);
+  new Function("self", "caches", "URL", "fetch", readFileSync("public/sw.js", "utf8"))(self, caches, URL, fetch);
   const run = async (name: string, event: object) => {
     let work: Promise<unknown> = Promise.resolve();
     handlers[name]({ ...event, waitUntil: (p: Promise<unknown>) => void (work = p) } as never);
@@ -70,6 +75,30 @@ describe("the service worker", () => {
     await worker.run("push", { data: { json: () => notice } });
     expect(worker.shown).toEqual([]);
     expect(worker.state.unsubscribed).toBe(1);
+  });
+
+  // A sign-in can end by itself, and a device can have a second reader (Kelson, 2026-10-11:
+  // "You're signed out, sign back in?").
+  it.each([
+    ["nobody is signed in", null],
+    ["another reader is signed in", "k2"],
+  ])("shows one plain notice and ends the device when %s", async (_case, session) => {
+    const worker = load("k1", session);
+    await worker.run("push", { data: { json: () => ({ for: "k1", title: "Your place in Paper 2", body: "“The first words …”", path: "/papers/paper-2#2:1" }) } });
+    expect(worker.shown).toHaveLength(1);
+    expect(worker.shown[0].title).toBe("You are signed out of UrantiaHub");
+    expect(worker.shown[0].options.body).toBe("Sign in to get your notices on this device again.");
+    expect(worker.shown[0].options.data.path).toBe("/notifications");
+    expect(JSON.stringify(worker.shown)).not.toContain("Paper 2");
+    expect(worker.state.unsubscribed).toBe(1);
+    expect(worker.state.forgot).toBe(1);
+  });
+
+  it("shows the notice when the site does not answer: that says nothing about the reader", async () => {
+    const worker = load("k1", "down");
+    await worker.run("push", { data: { json: () => ({ for: "k1", title: "Your passage for today", body: "The text." }) } });
+    expect(worker.shown[0].title).toBe("Your passage for today");
+    expect(worker.state.unsubscribed).toBe(0);
   });
 
   it("shows nothing when the message cannot be read", async () => {

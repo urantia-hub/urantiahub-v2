@@ -13,6 +13,27 @@ async function owner() {
   }
 }
 
+async function forget() {
+  try {
+    await (await caches.open(OWNER_CACHE)).delete(OWNER_PATH);
+  } catch {
+    // Nothing was kept.
+  }
+}
+
+// The key of the reader who is signed in here, or null for no reader. Undefined when the site did
+// not answer: that says nothing about the reader, so the notice shows.
+async function signedIn() {
+  try {
+    const response = await fetch("/api/auth/session", { credentials: "same-origin", cache: "no-store", headers: { accept: "application/json" } });
+    if (!response.ok) return undefined;
+    const session = await response.json();
+    return session && session.user && typeof session.user.key === "string" ? session.user.key : null;
+  } catch {
+    return undefined;
+  }
+}
+
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => {
   event.waitUntil(
@@ -46,14 +67,22 @@ self.addEventListener("push", (event) => {
   const body = typeof notice.body === "string" ? notice.body.slice(0, 240) : "";
   event.waitUntil(
     owner().then(async (reader) => {
-      // A notice shows only for the reader who turned this device on, while that reader is signed in.
-      // In each other case nothing shows, and this device ends: it gets no more notices.
-      if (!reader || typeof notice.for !== "string" || notice.for !== reader) {
+      const show = (heading, text, to) => self.registration.showNotification(heading, { body: text, icon: "/icon-192.png", badge: "/badge-96.png", data: { path: to } });
+      const end = async () => {
+        await forget();
         const current = await self.registration.pushManager.getSubscription();
         if (current) await current.unsubscribe();
-        return;
-      }
-      await self.registration.showNotification(title, { body, icon: "/icon-192.png", badge: "/badge-96.png", data: { path: path(notice.path) } });
+      };
+      // A notice shows only for the reader who turned this device on. In each other case nothing
+      // shows, and this device ends: it gets no more notices.
+      if (!reader || typeof notice.for !== "string" || notice.for !== reader) return end();
+      // And only while that reader is signed in here. A sign-in can end by itself, and a device can
+      // have a second reader. Then the notice of the reader does not show. One plain notice says
+      // that the sign-in ended, and the device ends.
+      const who = await signedIn();
+      if (who === reader || who === undefined) return show(title, body, path(notice.path));
+      await show("You are signed out of UrantiaHub", "Sign in to get your notices on this device again.", "/notifications");
+      return end();
     }),
   );
 });
