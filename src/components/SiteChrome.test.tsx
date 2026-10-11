@@ -48,4 +48,10 @@ describe("SiteFooter", () => {
     expect(footer.querySelector('a[href="/resources"]')).toHaveTextContent("Resources");
     expect(footer.querySelector('a[href="/releases"]')).toHaveTextContent("Releases");
   });
+  it("has the contact address, and the line for developers comes last", () => {
+    render(<SiteFooter />);
+    const links = [...screen.getByRole("contentinfo").querySelectorAll("a")].map((a) => a.getAttribute("href"));
+    expect(links).toContain("mailto:hi@urantiahub.com");
+    expect(links.at(-1)).toBe("https://urantia.dev");
+  });
 });
