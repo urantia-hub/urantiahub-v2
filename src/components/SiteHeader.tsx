@@ -4,7 +4,6 @@ import { site } from "@/site";
 import { Icon } from "./icons";
 import { ReaderSettings } from "./ReaderSettings";
 import { SearchShortcut } from "./search/SearchShortcut";
-import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteHeader() {
   return (
@@ -24,7 +23,6 @@ export function SiteHeader() {
         <Link className="icon-link contents-link" href="/papers" aria-label="All papers" title="All papers">
           <Icon name="list" />
         </Link>
-        <ThemeToggle icon />
         <ReaderSettings />
       </nav>
     </header>

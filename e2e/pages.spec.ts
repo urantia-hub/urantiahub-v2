@@ -77,7 +77,8 @@ test("a new visitor gets the light theme, even with a dark system setting", asyn
 
 test("the theme control changes the theme, and the choice stays after a reload", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("banner").getByRole("button", { name: "Dark theme" }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Account and settings" }).click();
+  await page.getByRole("dialog", { name: "Account and settings" }).getByRole("button", { name: "Dark" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
   await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#17150f");
 
@@ -104,17 +105,19 @@ test("a reader who chose dark sees no light flash on the next page load", async 
   expect(await page.evaluate(() => (window as unknown as { firstBackground: string }).firstBackground)).toBe(DARK);
 });
 
-test("on a paper page the theme is in the reader settings, and other pages keep the moon", async ({ page }) => {
-  await page.goto("/papers/paper-1-the-universal-father");
-  const header = page.getByRole("banner");
-  await expect(header.getByRole("button", { name: "Dark theme" })).toBeHidden();
-  await header.getByRole("button", { name: "Account and settings" }).click();
+// Kelson, 2026-10-11: each page has the settings in its header, so the account is one press away.
+test("each page has the settings in its header: the theme, and the way to the account", async ({ page }) => {
+  for (const path of ["/papers/paper-1-the-universal-father", "/", "/about", "/emails", "/papers"]) {
+    await page.goto(path);
+    const header = page.getByRole("banner");
+    await expect(header.getByRole("button", { name: "Dark theme" })).toHaveCount(0);
+    await header.getByRole("button", { name: "Account and settings" }).click();
+    const sheet = page.getByRole("dialog", { name: "Account and settings" });
+    await expect(sheet.getByRole("button", { name: "Dark" })).toBeVisible();
+    await expect(sheet.getByRole("link", { name: /^Sign in/ })).toBeVisible();
+  }
   await page.getByRole("dialog", { name: "Account and settings" }).getByRole("button", { name: "Dark" }).click();
   await expect(page.locator("body")).toHaveCSS("background-color", DARK);
-  // The contents page has the settings too. A page such as About keeps the moon.
-  await page.goto("/about");
-  await expect(page.getByRole("banner").getByRole("button", { name: "Light theme" })).toBeVisible();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeHidden();
 });
 
 test("the contents page shows no Continue card to a new visitor", async ({ page }) => {
@@ -235,7 +238,8 @@ test("the header shows the bookmark mark beside the name, in the theme colors", 
   await expect(brand.locator("svg.mark")).toBeVisible();
   await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(38, 34, 28)");
   await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(251, 248, 242)");
-  await page.getByRole("banner").getByRole("button", { name: "Dark theme" }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Account and settings" }).click();
+  await page.getByRole("dialog", { name: "Account and settings" }).getByRole("button", { name: "Dark" }).click();
   await expect(brand.locator(".mark-tile")).toHaveCSS("fill", "rgb(230, 223, 208)");
   await expect(brand.locator(".mark-shape")).toHaveCSS("fill", "rgb(23, 21, 15)");
 });

@@ -253,8 +253,7 @@ test("the header links return after a visit to a paper", async ({ page }) => {
   await page.getByRole("contentinfo").getByRole("link", { name: "About" }).click();
   await expect(page).toHaveURL("/about");
   await expect(page.getByRole("banner").getByRole("link", { name: "Papers" })).toBeVisible();
-  await expect(page.getByRole("banner").getByRole("button", { name: /theme/ })).toBeVisible();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeHidden();
+  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeVisible();
   // And back: the contents page has icons only again.
   await page.goBack();
   await page.goBack();
