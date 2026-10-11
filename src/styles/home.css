@@ -110,12 +110,3 @@ html[data-place] .home .actions .btn:not(.home-continue) {
   }
 }
 
-/* One line under the title: what the site is. */
-.home .home-purpose {
-  max-width: 30rem;
-  margin: 12px auto 0;
-  padding: 0 20px;
-  text-align: center;
-  color: var(--ref);
-  font: 400 15px/1.5 var(--font-ui);
-}

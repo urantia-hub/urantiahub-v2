@@ -267,9 +267,6 @@
   color: var(--ref);
   font: 500 13.5px/1.2 var(--font-ui);
 }
-.saved-page .notice-chip.wide {
-  min-width: 134px;
-}
 /* The check has its room in both states, so a press moves nothing. */
 .notice-chip .icon {
   width: 15px;

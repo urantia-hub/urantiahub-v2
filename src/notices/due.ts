@@ -11,7 +11,8 @@ export type Device = { endpoint: string; p256dh: string; auth: string; kinds: st
 export type Reader = {
   userId: string;
   email: string | null;
-  settings: { email: Record<Kind, boolean>; hour: number; zone: string } | null;
+  // `push` is absent in a record from before push was a setting of the account.
+  settings: { email: Record<Kind, boolean>; push?: Record<Kind, boolean>; hour: number; zone: string } | null;
   place: unknown;
   devices: Device[];
 };
@@ -62,8 +63,8 @@ export function dueNotices(reader: Reader, now: Date): Due[] {
   const add = (kind: Kind, key: string, place: Due["place"]) => {
     const base = { userId: reader.userId, kind, key, place };
     if (reader.email && reader.settings?.email[kind]) due.push({ ...base, channel: "email", email: reader.email, devices: [] });
-    const devices = reader.devices.filter((device) => device.kinds.includes(kind));
-    if (devices.length > 0) due.push({ ...base, channel: "push", email: null, devices });
+    // A push goes to each device of the reader.
+    if (reader.settings?.push?.[kind] && reader.devices.length > 0) due.push({ ...base, channel: "push", email: null, devices: reader.devices });
   };
 
   if (local.hour === (reader.settings?.hour ?? DEFAULT_HOUR)) add("daily", local.date, null);

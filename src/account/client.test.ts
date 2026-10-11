@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { checkDevice, endDevice } from "@/notices/device-end";
+import { endDevice, syncDevice } from "@/notices/device-end";
 import { accountState, markSignedOut, refreshAccount, resetAccountForTest, signInHref, signOut, startAccount, takeProblem } from "./client";
 
-vi.mock("@/notices/device-end", () => ({ endDevice: vi.fn(async () => {}), checkDevice: vi.fn(async () => {}) }));
+vi.mock("@/notices/device-end", () => ({ endDevice: vi.fn(async () => {}), syncDevice: vi.fn(async () => {}) }));
 
 const clearCookies = () => {
   for (const part of document.cookie.split(";")) document.cookie = `${part.split("=")[0].trim()}=; max-age=0; path=/`;
@@ -109,26 +109,18 @@ describe("a sign-in that did not finish", () => {
     expect(vi.mocked(endDevice).mock.invocationCallOrder[0]).toBeLessThan(fetch.mock.invocationCallOrder.at(-1) ?? 0);
   });
 
-  it("checks whose device this is each time it learns who is signed in, and when the session is gone", async () => {
+  it("adds this device for a signed-in reader one time, and again for another reader", async () => {
     document.cookie = "hub_in=1; path=/";
     const fetch = vi.fn(async () => Response.json({ enabled: true, user: { name: null, email: "a@b.c", key: "k1" } }));
     vi.stubGlobal("fetch", fetch);
-    vi.mocked(checkDevice).mockClear();
+    vi.mocked(syncDevice).mockClear();
     await startAccount();
-    expect(checkDevice).toHaveBeenLastCalledWith("k1");
+    await refreshAccount();
+    expect(vi.mocked(syncDevice).mock.calls).toEqual([["k1"]]);
     fetch.mockImplementation(async () => Response.json({ enabled: true, user: { name: null, email: "b@b.c", key: "k2" } }));
     await refreshAccount();
-    expect(checkDevice).toHaveBeenLastCalledWith("k2");
+    expect(syncDevice).toHaveBeenLastCalledWith("k2");
     markSignedOut();
-    expect(checkDevice).toHaveBeenLastCalledWith(null);
-  });
-
-  // The session can end while no page is open. The first page after it must end the device.
-  it("checks the device on a page that opens with no reader signed in", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ enabled: true, user: null })));
-    vi.mocked(checkDevice).mockClear();
-    await startAccount();
-    expect(accountState()).toEqual({ status: "out" });
-    expect(checkDevice).toHaveBeenCalledWith(null);
+    expect(syncDevice).toHaveBeenCalledTimes(2);
   });
 });

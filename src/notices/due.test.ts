@@ -50,19 +50,26 @@ describe("the daily passage", () => {
     expect(kinds(dueNotices(india, at("2026-10-11T01:30:00Z")))).toEqual(["daily/email/2026-10-11"]);
   });
 
-  it("goes by email, to the devices that have it, or both", () => {
-    const both = reader({ devices: [device(["daily"]), device(["releases"]), device([])] });
+  it("goes by email, as a push to each device of the reader, or both", () => {
+    const PUSH = { ...OFF, daily: true };
+    const both = reader({ settings: { email: { ...OFF, daily: true }, push: PUSH, hour: 7, zone: "America/Chicago" }, devices: [device([]), device(["x"])] });
     const due = dueNotices(both, at("2026-10-11T12:00:00Z"));
     expect(kinds(due)).toEqual(["daily/email/2026-10-11", "daily/push/2026-10-11"]);
-    expect(due[1].devices.map((d) => d.kinds)).toEqual([["daily"]]);
-    const deviceOnly = reader({ settings: { email: OFF, hour: 7, zone: "America/Chicago" }, devices: [device(["daily"])] });
-    expect(kinds(dueNotices(deviceOnly, at("2026-10-11T12:00:00Z")))).toEqual(["daily/push/2026-10-11"]);
+    expect(due[1].devices).toHaveLength(2);
+    const pushOnly = reader({ settings: { email: OFF, push: PUSH, hour: 7, zone: "America/Chicago" }, devices: [device([])] });
+    expect(kinds(dueNotices(pushOnly, at("2026-10-11T12:00:00Z")))).toEqual(["daily/push/2026-10-11"]);
   });
 
-  it("does not go by email to a reader with no address, and uses hour 7 in UTC for a reader with no settings", () => {
+  it("sends no push with no device, with the push off, or for a record from before push was a setting", () => {
+    const noon = at("2026-10-11T12:00:00Z");
+    expect(dueNotices(reader({ settings: { email: OFF, push: { ...OFF, daily: true }, hour: 7, zone: "America/Chicago" } }), noon)).toEqual([]);
+    expect(dueNotices(reader({ settings: { email: OFF, push: { ...OFF, reminder: true }, hour: 7, zone: "America/Chicago" }, devices: [device([])] }), noon)).toEqual([]);
+    expect(dueNotices(reader({ settings: { email: OFF, hour: 7, zone: "America/Chicago" }, devices: [device(["daily"])] }), noon)).toEqual([]);
+  });
+
+  it("does not go by email to a reader with no address, and sends nothing to a reader with no settings", () => {
     expect(dueNotices(reader({ email: null }), at("2026-10-11T12:00:00Z"))).toEqual([]);
-    const bare = reader({ settings: null, devices: [device(["daily"])] });
-    expect(kinds(dueNotices(bare, at("2026-10-11T07:10:00Z")))).toEqual(["daily/push/2026-10-11"]);
+    expect(dueNotices(reader({ settings: null, devices: [device([])] }), at("2026-10-11T07:10:00Z"))).toEqual([]);
   });
 });
 

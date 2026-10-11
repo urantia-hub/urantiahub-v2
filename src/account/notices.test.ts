@@ -17,17 +17,17 @@ function gateway(answer: unknown = { settings: null, devices: [] }): NoticesGate
 
 describe("what the account says about the notices", () => {
   it("is all off, hour 7, and not asked for a reader with no settings", () => {
-    expect(parseNotices({ settings: null, devices: [] })).toEqual({ settings: { email: OFF, hour: 7, zone: null, asked: false }, devices: [] });
-    expect(parseNotices("x")).toEqual({ settings: { email: OFF, hour: 7, zone: null, asked: false }, devices: [] });
+    expect(parseNotices({ settings: null, devices: [] })).toEqual({ settings: { email: OFF, push: OFF, hour: 7, zone: null, asked: false }, devices: [] });
+    expect(parseNotices("x")).toEqual({ settings: { email: OFF, push: OFF, hour: 7, zone: null, asked: false }, devices: [] });
   });
 
   it("keeps the known fields of the settings and of each device", () => {
     const answer = {
-      settings: { email: { daily: true, x: true }, hour: 21, zone: "Asia/Kolkata", asked: true, at: 5 },
+      settings: { email: { daily: true, x: true }, push: { reminder: true }, hour: 21, zone: "Asia/Kolkata", asked: true, at: 5 },
       devices: [{ id: "a", label: "Chrome on Android", kinds: ["daily", "weekly"], endpointHash: "ff00", endpoint: "secret" }, { id: 1 }],
     };
     expect(parseNotices(answer)).toEqual({
-      settings: { email: { ...OFF, daily: true }, hour: 21, zone: "Asia/Kolkata", asked: true },
+      settings: { email: { ...OFF, daily: true }, push: { ...OFF, reminder: true }, hour: 21, zone: "Asia/Kolkata", asked: true },
       devices: [{ id: "a", label: "Chrome on Android", kinds: ["daily"], endpointHash: "ff00" }],
     });
   });
@@ -40,13 +40,13 @@ describe("what the account says about the notices", () => {
 describe("a change of the notices from the browser", () => {
   it("sends only the fields that are of the right form", async () => {
     const g = gateway();
-    expect(await changeNotices(g, "t", { email: { daily: true, weekly: true, reminder: "yes" }, hour: 6, zone: "Europe/Berlin", asked: true, other: 1 })).toEqual({ saved: true });
-    expect(g.calls).toEqual([["settings", { email: { daily: true }, hour: 6, zone: "Europe/Berlin", asked: true }]]);
+    expect(await changeNotices(g, "t", { email: { daily: true, weekly: true, reminder: "yes" }, push: { releases: false, x: 1 }, hour: 6, zone: "Europe/Berlin", asked: true, other: 1 })).toEqual({ saved: true });
+    expect(g.calls).toEqual([["settings", { email: { daily: true }, push: { releases: false }, hour: 6, zone: "Europe/Berlin", asked: true }]]);
   });
 
   it("sends nothing when no field is valid", async () => {
     const g = gateway();
-    for (const value of [null, "x", {}, { hour: 24 }, { hour: 1.5 }, { zone: "" }, { zone: "x".repeat(65) }, { email: "all" }, { asked: false }]) {
+    for (const value of [null, "x", {}, { hour: 24 }, { hour: 1.5 }, { zone: "" }, { zone: "x".repeat(65) }, { email: "all" }, { push: "all" }, { asked: false }]) {
       expect(await changeNotices(g, "t", value)).toEqual({ saved: false });
     }
     expect(g.calls).toEqual([]);

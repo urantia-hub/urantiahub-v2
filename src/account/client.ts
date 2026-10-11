@@ -1,7 +1,7 @@
 // Who is signed in, as the browser knows it. The pages are static, so the server does not put the
 // reader into the page. A signed-out reader costs no request: the mark cookie says that no one is there.
 
-import { checkDevice, endDevice } from "@/notices/device-end";
+import { endDevice, syncDevice } from "@/notices/device-end";
 import { IN_COOKIE, PROBLEM_COOKIE } from "./cookies";
 
 // `key` names the reader for the server. See `readerKey` in handlers.ts.
@@ -21,10 +21,15 @@ const listeners = new Set<() => void>();
 const OFF: AccountState = { status: "off" };
 const OUT: AccountState = { status: "out" };
 
+// The reader for whom this page added the device, so it is done one time.
+let synced: string | null = null;
+
 function set(next: AccountState) {
-  // Each time the page learns who is signed in, a device that gets notices must be of that reader.
-  if (next.status === "out") void checkDevice(null);
-  else if (next.status === "in" && next.user?.key) void checkDevice(next.user.key);
+  // A signed-in reader with a push on gets this device, if the browser allows notices.
+  if (next.status === "in" && next.user?.key && next.user.key !== synced) {
+    synced = next.user.key;
+    void syncDevice(synced);
+  } else if (next.status !== "in") synced = null;
   state = next;
   for (const listener of listeners) listener();
 }
@@ -113,4 +118,5 @@ export function resetAccountForTest(on: boolean): void {
   enabled = on;
   state = OFF;
   started = null;
+  synced = null;
 }

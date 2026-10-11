@@ -84,9 +84,9 @@ export const ACCOUNT_VENDORS: readonly Vendor[] = [
 // What an account holds for the notices, while a reader can turn one on. Each entry is one thing
 // that the notice routes of the API store.
 export const NOTICE_ITEMS: readonly string[] = [
-  "Which notices you turned on, and if each one goes by email",
+  "Which notices you turned on, and if each one goes by email, as a push, or both",
   "The hour of the daily passage, and your time zone",
-  "For each device that you turned on: its address at the push service of the browser, two keys that encrypt a notice for that device, a short name such as “Chrome on Android”, and which notices go to it",
+  "For each device where you allowed notifications: its address at the push service of the browser, two keys that encrypt a push for that device, and a short name such as “Chrome on Android”",
   "A record of each notice that we sent you: which notice, for which day, and by email or to a device. We keep it for 90 days, so that no notice goes out two times",
 ];
 

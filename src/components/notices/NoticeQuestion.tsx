@@ -7,7 +7,7 @@ import { accountKey, accountState, serverAccountState, subscribeToAccount } from
 import type { Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Sheet } from "@/components/reader/Sheet";
-import { turnOnDevice } from "@/notices/device-on";
+import { registerDevice } from "@/notices/device-end";
 import { deviceState } from "@/notices/push";
 
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
@@ -20,7 +20,7 @@ const today = () => new Date().toLocaleDateString("en-CA");
 const busyPage = () => document.querySelector(".panel") !== null || [...document.querySelectorAll("audio")].some((audio) => !audio.paused);
 
 type Passage = { ref: string; text: string };
-type Step = { status: "hidden" } | { status: "ask"; devices: Notices["devices"]; passage: Passage | null } | { status: "done"; how: "email" | "device" } | { status: "failed" };
+type Step = { status: "hidden" } | { status: "ask"; passage: Passage | null } | { status: "done"; how: "email" | "device" } | { status: "failed" };
 
 // One question, one time for each reader: the daily passage, by email or on this device.
 // It shows after the first sign-in, and the answer is kept in the account, so no other device asks again.
@@ -47,7 +47,7 @@ export function NoticeQuestion() {
         .then((response) => (response.ok ? (response.json() as Promise<Passage>) : null))
         .catch(() => null);
       if (!current || busyPage() || accountKey() !== key) return;
-      setStep({ status: "ask", devices: notices.devices, passage });
+      setStep({ status: "ask", passage });
     }, WAIT_MS);
     return () => {
       current = false;
@@ -79,7 +79,6 @@ export function NoticeQuestion() {
   }
 
   async function onDevice() {
-    if (step.status !== "ask") return;
     // A device that cannot ask here: the settings page has the steps for it.
     if (deviceState() !== "ask" && deviceState() !== "allowed") {
       void save({});
@@ -88,12 +87,13 @@ export function NoticeQuestion() {
       return;
     }
     setBusy(true);
-    const turned = await turnOnDevice(key as string, step.devices, (had) => [...new Set([...had, "daily" as const])]);
-    if (turned.ok) await save({});
+    const mine = key as string;
+    const joined = await registerDevice(mine);
+    if (accountKey() !== mine) return setStep({ status: "hidden" });
+    const saved = joined ? await save({ push: { daily: true } }) : (await save({}), false);
     setBusy(false);
-    if (!turned.ok && turned.why === "changed") return setStep({ status: "hidden" });
     setAsked(key);
-    setStep(turned.ok ? { status: "done", how: "device" } : { status: "failed" });
+    setStep(saved ? { status: "done", how: "device" } : { status: "failed" });
   }
 
   if (step.status === "ask") {
@@ -101,7 +101,7 @@ export function NoticeQuestion() {
       <Sheet label="A passage each day" onClose={notNow} className="notice-question">
         <p className="eyebrow">New</p>
         <h2>A passage each day?</h2>
-        <p>UrantiaHub can send you one short passage of the Papers each day, by email or on this device. It is off until you turn it on.</p>
+        <p>UrantiaHub can send you one short passage of the Papers each day, by email or as a push. It is off until you turn it on.</p>
         {step.passage && (
           <blockquote>
             {step.passage.text.length > 260 ? `${step.passage.text.slice(0, 260).replace(/\s+\S*$/, "")} …` : step.passage.text}
@@ -112,7 +112,7 @@ export function NoticeQuestion() {
           Send it by email
         </button>
         <button type="button" className="panel-button" disabled={busy} onClick={() => void onDevice()}>
-          Send it to this device
+          Send it as a push
         </button>
         <button type="button" className="notice-later" disabled={busy} onClick={notNow}>
           Not now
@@ -126,7 +126,7 @@ export function NoticeQuestion() {
       {step.status === "done" ? (
         <>
           <h2>It is on</h2>
-          <p role="status">{step.how === "email" ? "The passage comes by email" : "The passage comes to this device"} each day at 7:00 AM in your time zone.</p>
+          <p role="status">{step.how === "email" ? "The passage comes by email" : "The passage comes as a push"} each day at 7:00 AM in your time zone.</p>
         </>
       ) : (
         <>

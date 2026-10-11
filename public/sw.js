@@ -1,26 +1,5 @@
 // The service worker of UrantiaHub. It shows a notice and opens its link. It caches nothing.
 // The Hub before this one had a worker at this address. Its caches are removed here.
-// Whose device this is. The page writes the mark when a reader turns this device on, and removes it
-// when that reader signs out or another reader signs in (src/notices/device-end.ts).
-const OWNER_CACHE = "hub-notices";
-const OWNER_PATH = "/__notices-owner";
-async function owner() {
-  try {
-    const kept = await (await caches.open(OWNER_CACHE)).match(OWNER_PATH);
-    return kept ? await kept.text() : null;
-  } catch {
-    return null;
-  }
-}
-
-async function forget() {
-  try {
-    await (await caches.open(OWNER_CACHE)).delete(OWNER_PATH);
-  } catch {
-    // Nothing was kept.
-  }
-}
-
 // The key of the reader who is signed in here, or null for no reader. Undefined when the site did
 // not answer: then it is not known who is signed in.
 async function signedIn() {
@@ -39,7 +18,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((names) => Promise.all(names.filter((name) => name !== OWNER_CACHE).map((name) => caches.delete(name))))
+      .then((names) => Promise.all(names.map((name) => caches.delete(name))))
       .then(() => self.clients.claim()),
   );
 });
@@ -66,25 +45,23 @@ self.addEventListener("push", (event) => {
   const title = typeof notice.title === "string" && notice.title ? notice.title.slice(0, 80) : "UrantiaHub";
   const body = typeof notice.body === "string" ? notice.body.slice(0, 240) : "";
   event.waitUntil(
-    owner().then(async (reader) => {
+    signedIn().then(async (who) => {
       const show = (heading, text, to) => self.registration.showNotification(heading, { body: text, icon: "/icon-192.png", badge: "/badge-96.png", data: { path: to } });
       const end = async () => {
-        await forget();
         const current = await self.registration.pushManager.getSubscription();
         if (current) await current.unsubscribe();
       };
-      // A notice shows only for the reader who turned this device on. In each other case nothing
-      // shows, and this device ends: it gets no more notices.
-      if (!reader || typeof notice.for !== "string" || notice.for !== reader) return end();
-      // And only while that reader is signed in here. A sign-in can end by itself, and a device can
-      // have a second reader. Then the notice of the reader does not show. One plain notice says
-      // that the sign-in ended, and the device ends.
-      const who = await signedIn();
-      if (who === reader) return show(title, body, path(notice.path));
+      // A notice shows only while its reader is signed in on this device. A device can have a second
+      // reader, and a sign-in can end by itself.
+      if (typeof notice.for === "string" && who === notice.for) return show(title, body, path(notice.path));
       // The site did not answer, so it is not known who is signed in. The words of the notice do not
       // show then. A plain notice shows, and the device stays: the next notice asks again.
       if (who === undefined) return show("UrantiaHub", "Open UrantiaHub to see your notice.", "/");
-      await show("You are signed out of UrantiaHub", "Sign in to get your notices on this device again.", "/notifications");
+      // Nobody is signed in: one plain notice says so. Another reader is signed in: a plain notice with
+      // no words of the first reader. In both cases this device ends for that reader. A reader who
+      // signs in here gets the device again with no press.
+      if (who === null) await show("You are signed out of UrantiaHub", "Sign in to get your notices on this device again.", "/notifications");
+      else await show("UrantiaHub", "Open UrantiaHub to see your notice.", "/");
       return end();
     }),
   );

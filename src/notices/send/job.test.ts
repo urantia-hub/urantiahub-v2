@@ -7,8 +7,10 @@ const A = "00000000-0000-4000-8000-0000000000a1";
 const B = "00000000-0000-4000-8000-0000000000b2";
 const NOW = new Date("2026-10-11T12:00:00Z"); // 7:00 in Chicago
 const OFF = { daily: false, reminder: false, releases: false };
+const ALL = { daily: true, reminder: true, releases: true };
 const device = (name: string, kinds = ["daily"]) => ({ endpoint: `https://fcm.googleapis.com/fcm/send/${name}`, p256dh: "p", auth: "a", kinds });
-const reader = (userId: string, over: Partial<Reader> = {}): Reader => ({ userId, email: `${userId.slice(-2)}@example.com`, settings: { email: { ...OFF, daily: true }, hour: 7, zone: "America/Chicago" }, place: null, devices: [], ...over });
+// Each push is on. A reader of a test gets a push when the test gives the reader a device.
+const reader = (userId: string, over: Partial<Reader> = {}): Reader => ({ userId, email: `${userId.slice(-2)}@example.com`, settings: { email: { ...OFF, daily: true }, push: ALL, hour: 7, zone: "America/Chicago" }, place: null, devices: [], ...over });
 
 function world(readers: Reader[], over: Partial<JobDeps> = {}) {
   const log: Claim[] = [];
@@ -47,7 +49,7 @@ function world(readers: Reader[], over: Partial<JobDeps> = {}) {
 
 describe("one run of the notices", () => {
   it("sends the daily passage by email to each reader who is due, with a link to turn it off", async () => {
-    const { deps, out } = world([reader(A), reader(B, { settings: { email: { ...OFF, daily: true }, hour: 9, zone: "America/Chicago" } })]);
+    const { deps, out } = world([reader(A), reader(B, { settings: { email: { ...OFF, daily: true }, push: ALL, hour: 9, zone: "America/Chicago" } })]);
     expect(await runNotices(deps)).toEqual({ readers: 2, due: 1, claimed: 1, mails: 1, pushes: 0, failed: 0, gone: 0 });
     expect(out.mails).toHaveLength(1);
     expect(out.mails[0].to).toBe("a1@example.com");
@@ -71,8 +73,8 @@ describe("one run of the notices", () => {
     expect(out.mails).toHaveLength(2);
   });
 
-  it("sends a push to each device that has the notice, and names the reader in it", async () => {
-    const both = reader(A, { devices: [device("one"), device("two"), device("other", ["releases"])] });
+  it("sends a push to each device of the reader, and names the reader in it", async () => {
+    const both = reader(A, { devices: [device("one"), device("two")] });
     const { deps, out } = world([both]);
     expect(await runNotices(deps)).toMatchObject({ due: 2, claimed: 2, mails: 1, pushes: 1 });
     expect(out.pushes.map((p) => p.endpoint)).toEqual([device("one").endpoint, device("two").endpoint]);
@@ -82,7 +84,7 @@ describe("one run of the notices", () => {
   });
 
   it("cuts a long passage in a push, and keeps the reference", async () => {
-    const { deps, out } = world([reader(A, { settings: { email: OFF, hour: 7, zone: "America/Chicago" }, devices: [device("one")] })], {
+    const { deps, out } = world([reader(A, { settings: { email: OFF, push: ALL, hour: 7, zone: "America/Chicago" }, devices: [device("one")] })], {
       passage: async (ref) => ({ ref, text: "word ".repeat(100), paperId: ref.split(":")[0], paperTitle: "A Paper" }),
     });
     await runNotices(deps);
@@ -91,7 +93,7 @@ describe("one run of the notices", () => {
   });
 
   it("reports a device that is gone, and does not try that notice again", async () => {
-    const { deps, out } = world([reader(A, { settings: { email: OFF, hour: 7, zone: "America/Chicago" }, devices: [device("old")] })], { sendPush: async () => "gone" });
+    const { deps, out } = world([reader(A, { settings: { email: OFF, push: ALL, hour: 7, zone: "America/Chicago" }, devices: [device("old")] })], { sendPush: async () => "gone" });
     expect(await runNotices(deps)).toMatchObject({ pushes: 0, failed: 0, gone: 1 });
     expect(out.devices).toEqual([{ gone: [device("old").endpoint], ok: [] }]);
     expect(out.released).toEqual([]);
@@ -119,7 +121,7 @@ describe("one run of the notices", () => {
   it("sends the reminder with a link to the place", async () => {
     const place = { paperId: "2", sectionId: "1", at: NOW.getTime() - 8 * 86_400_000 };
     const at12 = new Date("2026-10-11T17:00:00Z");
-    const { deps, out } = world([reader(A, { settings: { email: { ...OFF, reminder: true }, hour: 3, zone: "America/Chicago" }, place, devices: [device("one", ["reminder"])] })], { now: at12 });
+    const { deps, out } = world([reader(A, { settings: { email: { ...OFF, reminder: true }, push: ALL, hour: 3, zone: "America/Chicago" }, place, devices: [device("one", ["reminder"])] })], { now: at12 });
     expect(await runNotices(deps)).toMatchObject({ due: 2, mails: 1, pushes: 1 });
     expect(out.mails[0].subject).toBe("Your place in the Papers");
     expect(out.mails[0].offUrl).toContain("a1-reminder");
@@ -132,7 +134,7 @@ describe("one run of the notices", () => {
 
   it("sends the reminder with the name of the paper when the words of the section cannot be read", async () => {
     const place = { paperId: "2", sectionId: "1", at: NOW.getTime() - 8 * 86_400_000 };
-    const { deps, out } = world([reader(A, { settings: { email: { ...OFF, reminder: true }, hour: 3, zone: "America/Chicago" }, place })], { now: new Date("2026-10-11T17:00:00Z"), passage: async () => Promise.reject(new Error("down")) });
+    const { deps, out } = world([reader(A, { settings: { email: { ...OFF, reminder: true }, push: ALL, hour: 3, zone: "America/Chicago" }, place })], { now: new Date("2026-10-11T17:00:00Z"), passage: async () => Promise.reject(new Error("down")) });
     expect(await runNotices(deps)).toMatchObject({ mails: 1, failed: 0 });
     expect(out.mails[0].text).toContain("You stopped in Paper 2, The Nature of God.");
   });
