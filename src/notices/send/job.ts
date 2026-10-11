@@ -67,7 +67,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
       const path = `${paperPath(passage.paperId)}#${passage.ref}`;
       return {
         mail: dailyMail({ ...passage, url: `${deps.origin}${path}` }, links),
-        push: { title: "A passage for today", body: `${short(passage.text)} (${passage.ref})`, path },
+        push: { title: "Your passage for today", body: `${short(passage.text)} (${passage.ref})`, path },
       };
     }
     const paper = notice.place ? paperById(notice.place.paperId) : undefined;

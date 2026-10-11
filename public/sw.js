@@ -53,7 +53,7 @@ self.addEventListener("push", (event) => {
         if (current) await current.unsubscribe();
         return;
       }
-      await self.registration.showNotification(title, { body, icon: "/icon-192.png", badge: "/icon-192.png", data: { path: path(notice.path) } });
+      await self.registration.showNotification(title, { body, icon: "/icon-192.png", badge: "/badge-96.png", data: { path: path(notice.path) } });
     }),
   );
 });

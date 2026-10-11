@@ -28,7 +28,7 @@ describe("the daily email", () => {
   const mail = dailyMail(passage, links);
 
   it("has the passage as text, its reference, and one link to it", () => {
-    expect(mail.subject).toBe("A passage for today · 99:1.1");
+    expect(mail.subject).toBe("Your passage for today · 99:1.1");
     expect(mail.html).toContain("Mankind is on the march &lt;b&gt;toward&lt;/b&gt; a new &amp; unrevealed planetary destiny.");
     expect(mail.html).toContain("99:1.1 · Paper 99, The Social Problems of Religion");
     expect(mail.text).toContain(passage.text);
@@ -41,9 +41,10 @@ describe("the daily email", () => {
       expect(part).toContain("All notification settings");
     }
     expect(mail.text).toContain("107 Bellagio Drive, Austin, TX 78734");
-    // A mail program makes a blue map link of an address. Marks of no width stop that, and a reader sees the same words.
-    expect(mail.html).not.toContain("107 Bellagio Drive");
-    expect(mail.html.replace(/&zwnj;/g, "")).toContain("UrantiaHub · 107 Bellagio Drive, Austin, TX 78734");
+    // A mail program makes a blue map link of an address. One style rule makes that link look like the text.
+    expect(mail.html).toContain('<span class="addr"');
+    expect(mail.html).toContain(".addr a{color:#756d5f !important;text-decoration:none !important;}");
+    expect(mail.html).toContain("UrantiaHub · 107 Bellagio Drive, Austin, TX 78734");
     expect(mail.html).toContain(">UrantiaHub</p>");
     expect(mail.text).toContain(`Turn this email off: ${links.offUrl}`);
     expect(POSTAL.startsWith("UrantiaHub")).toBe(true);
@@ -52,7 +53,7 @@ describe("the daily email", () => {
   it("links only to this site, and loads no remote file", () => {
     const urls = [...mail.html.matchAll(/(?:href|src)="([^"]+)"/g)].map((m) => m[1]);
     expect(urls).toEqual([passage.url, links.offUrl, links.settingsUrl]);
-    expect(mail.html).not.toMatch(/<img|<link|<script/);
+    expect(mail.html).not.toMatch(/<img|<link|<script|url\(|@import/);
   });
 
   it("names the Foreword with no paper number", () => {
