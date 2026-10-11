@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       <h2>The short version</h2>
       <ul>
         <li>You can read and listen with no account. The site does not ask for your name or your email address.</li>
-        {accountsOn && <li>An account is optional. With one, your place and your reader settings follow you to each device.</li>}
+        {accountsOn && <li>An account is optional. With one, your place, your saved paragraphs, and your notes follow you to each device. The theme and the text size stay on each device.</li>}
         <li>The site shows no advertising, and it sells no data.</li>
         <li>It counts which pages and features readers use, with no cookie and no identifier.</li>
         <li>It records what readers search for, with no link to the reader.</li>
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
             A few more cookies serve the sign-in itself: one holds the start of a sign-in for a few minutes, one
             remembers that you signed out, so that the next sign-in asks you again, and one says for a minute that a
             sign-in did not finish. The browser also keeps a mark that says which account the place in this browser
-            belongs to, and the time of your last change of the theme or the text size.
+            belongs to.
           </p>
           <p>
             When you sign out on a device, the last place that you read leaves that browser. Your account still holds
@@ -143,7 +143,7 @@ export default function PrivacyPage() {
       <h2>What stays in your browser</h2>
       <p>
         The site keeps these things in your browser.{" "}
-        {accountsOn ? "If you sign in, the place, the paragraphs that you read, the theme, and the text size also go to your account. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
+        {accountsOn ? "If you sign in, the place and the paragraphs that you read also go to your account. The theme and the text size never leave the device. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
       </p>
       <ul>
         {BROWSER_ITEMS.map((item) => (

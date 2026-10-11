@@ -55,7 +55,7 @@ describe("Privacy, about accounts", () => {
     expect(page).toContain("Which paragraphs you read");
     expect(page).toContain("The paragraphs that you saved");
     expect(page).toContain("Your notes");
-    expect(page).toMatch(/the place, the paragraphs that you read, the theme, and the text size also go to your account/);
+    expect(page).toMatch(/the place and the paragraphs that you read also go to your account\. The theme and the text size never leave the device/);
     expect(page).toMatch(/a mark that says which account/i);
     expect(page).toMatch(/remembers that you signed out/);
     expect(page).not.toContain("keeps no identifier in your browser");

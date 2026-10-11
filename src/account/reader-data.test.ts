@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { newer, parsePlace, parseSettings, PLACE_KEY, SETTINGS_KEY } from "./reader-data";
+import { newer, parsePlace, PLACE_KEY } from "./reader-data";
 
 describe("a place", () => {
   it("is a paper that exists, a section, and a time", () => {
@@ -26,19 +26,6 @@ describe("a place", () => {
   });
 });
 
-describe("reader settings", () => {
-  it("are a theme, a text size, and a time", () => {
-    expect(parseSettings({ theme: "dark", textSize: 4, at: 9 })).toEqual({ theme: "dark", textSize: 4, at: 9 });
-  });
-
-  it("are nothing for a value outside the choices", () => {
-    for (const bad of [null, {}, { theme: "blue", textSize: 2, at: 1 }, { theme: "dark", textSize: 5, at: 1 }, { theme: "dark", textSize: 1.5, at: 1 }, { theme: "dark", textSize: "2", at: 1 }, { theme: "dark", textSize: 2 }]) {
-      expect(parseSettings(bad)).toBeNull();
-    }
-  });
-});
-
-// Monday on the phone, Tuesday on the laptop: Tuesday wins on both.
 describe("which of two values wins", () => {
   const monday = { paperId: "5", sectionId: "1", at: 100, label: null };
   const tuesday = { paperId: "9", sectionId: "2", at: 200, label: null };
@@ -59,6 +46,5 @@ describe("which of two values wins", () => {
 describe("the names in the reader's preferences", () => {
   it("start with hub., because the record is shared by all apps", () => {
     expect(PLACE_KEY).toBe("hub.place");
-    expect(SETTINGS_KEY).toBe("hub.reader");
   });
 });

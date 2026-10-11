@@ -1,17 +1,14 @@
-// Keeps the place and the reader settings of a signed-in reader the same on each device.
-// The browser stays the first source on this device: the page paints from it before any request.
-// Each value holds the time of its last change, and the newer one wins.
+// Keeps the place of a signed-in reader the same on each device. The browser stays the first source
+// on this device: the page paints from it before any request. The place holds the time of its last
+// change, and the newer one wins. The theme and the text size belong to the device: they never go to
+// the account, because a phone and a computer need different ones.
 
-import { applyTextSize, currentTextSize, subscribeToTextSize } from "@/lib/text-size";
-import { applyTheme, currentTheme, subscribeToTheme } from "@/lib/theme";
 import { clearLastRead, readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
 import { accountKey, markSignedOut, refreshAccount } from "./client";
 import { clearProgress } from "./progress";
-import { newer, parsePlace, parseSettings, type Place, type Settings } from "./reader-data";
+import { newer, parsePlace, type Place } from "./reader-data";
 
-// When the reader last changed a setting in this browser.
-export const SETTINGS_AT_KEY = "hub:reader-at";
-// While the place and the settings in this browser are those of a signed-in reader: the key of that reader.
+// While the place in this browser is that of a signed-in reader: the key of that reader.
 export const ACCOUNT_DATA_KEY = "hub:account-data";
 const PLACE_EVERY_MS = 20_000;
 const READ_EVERY_MS = 30_000;
@@ -57,25 +54,6 @@ function dropCollected(): void {
   readTimer = undefined;
   readWaiting.clear();
   clearProgress();
-}
-
-function settingsAt(): number {
-  try {
-    const at = Number(window.localStorage.getItem(SETTINGS_AT_KEY));
-    return Number.isFinite(at) && at > 0 ? at : 0;
-  } catch {
-    return 0;
-  }
-}
-
-const browserSettings = (): Settings => ({ theme: currentTheme(), textSize: currentTextSize(), at: settingsAt() });
-
-function stampSettings(at: number) {
-  try {
-    window.localStorage.setItem(SETTINGS_AT_KEY, String(at));
-  } catch {
-    // Storage is blocked. The settings then follow the account at each visit.
-  }
 }
 
 // The server says that the session is not this page's reader any more: another tab signed out, or
@@ -161,13 +139,6 @@ function onPlace() {
   if (place && place.at > 0) queuePlace(place);
 }
 
-function onSetting() {
-  if (applying) return;
-  const at = Date.now();
-  stampSettings(at);
-  if (ready()) void send("/api/me/settings", { ...browserSettings(), at });
-}
-
 export function markAccountData(key: string): void {
   try {
     window.localStorage.setItem(ACCOUNT_DATA_KEY, key);
@@ -177,14 +148,13 @@ export function markAccountData(key: string): void {
 }
 
 // When a signed-in reader is signed out, by a press or because the session ended: the reader's place
-// leaves this browser, and so does the time of the settings. A second person can sign in here, and the
+// leaves this browser. A second person can sign in here, and the
 // first person's place must not show to them or go into their account. The account still holds it.
 // The theme and the text size stay: they are not personal, and the page must not flash.
 export function forgetAccountData(): void {
   dropCollected();
   try {
     if (window.localStorage.getItem(ACCOUNT_DATA_KEY) === null) return;
-    window.localStorage.removeItem(SETTINGS_AT_KEY);
     window.localStorage.removeItem(ACCOUNT_DATA_KEY);
   } catch {
     return;
@@ -243,7 +213,7 @@ async function pullNow(): Promise<void> {
   const at = epoch;
   const stale = () => epoch !== at || accountKey() !== key;
 
-  let body: { place?: unknown; settings?: unknown };
+  let body: { place?: unknown };
   try {
     const response = await fetch("/api/me/reader", { headers: { accept: "application/json", "x-hub-reader": key } });
     if (stale()) return;
@@ -262,16 +232,6 @@ async function pullNow(): Promise<void> {
     const value = place.value;
     applyFromAccount(() => storeLastRead(value));
   } else if (place.from === "browser" && place.value && place.value.at > 0) queuePlace(place.value);
-
-  const settings = newer<Settings>(browserSettings(), parseSettings(body.settings));
-  if (settings.from === "account" && settings.value) {
-    const value = settings.value;
-    applyFromAccount(() => {
-      if (value.theme !== currentTheme()) applyTheme(value.theme);
-      if (value.textSize !== currentTextSize()) applyTextSize(value.textSize);
-      stampSettings(value.at);
-    });
-  } else if (settings.from === "browser" && settings.value && settings.value.at > 0) void send("/api/me/settings", settings.value);
 }
 
 // The browser can show a page again as it was, from its memory, when the reader presses Back. That page
@@ -290,13 +250,10 @@ export function onPageShown(fromMemory: boolean, reload: () => void): void {
 }
 
 // Starts one time, when a reader is signed in. The listeners stay for the life of the page; each one
-// does nothing for a reader who is signed out. A setting change is stamped for each reader, so that a
-// later sign-in knows which side is newer.
+// does nothing for a reader who is signed out.
 export function startSync(): void {
   if (running) return;
   running = true;
-  subscribeToTheme(onSetting);
-  subscribeToTextSize(onSetting);
   subscribeToLastRead(onPlace);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "hidden") return;

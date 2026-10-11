@@ -56,7 +56,6 @@ export const ACCOUNT_ITEMS: readonly string[] = [
   "Which paragraphs you read, and when",
   "The paragraphs that you saved",
   "Your notes",
-  "Your theme and your text size",
 ];
 
 // The companies that handle the data of an account. They are in the table only while a reader can sign in.
@@ -64,7 +63,7 @@ export const ACCOUNT_VENDORS: readonly Vendor[] = [
   {
     name: "Supabase",
     purpose: "Holds the accounts, and what an account keeps.",
-    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, which paragraphs you read, the paragraphs that you saved, your notes, and your theme and text size.",
+    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, which paragraphs you read, the paragraphs that you saved, and your notes.",
     policy: "https://supabase.com/privacy",
   },
   {
