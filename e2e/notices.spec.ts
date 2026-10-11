@@ -1,0 +1,99 @@
+import { randomUUID } from "node:crypto";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { stubAudio } from "./audio";
+
+const STANDIN = "http://localhost:4010";
+const PAPER = "/papers/paper-1-the-universal-father";
+
+async function asReader(context: BrowserContext) {
+  const id = randomUUID();
+  await context.addCookies([{ name: "e2e_reader", value: id, url: STANDIN }]);
+  const set = async (values: object) => (await context.request.post(`${STANDIN}/__reader/${id}`, { data: values })).json();
+  const seen = async () => (await context.request.get(`${STANDIN}/__reader/${id}`)).json();
+  return { id, set, seen };
+}
+const settings = (page: Page) => page.getByRole("dialog", { name: "Account and settings" });
+async function signIn(page: Page) {
+  await page.getByRole("button", { name: "Account and settings" }).click();
+  await settings(page).getByRole("link", { name: /^Sign in/ }).click();
+  await page.waitForURL((url) => url.pathname.startsWith("/papers"));
+  await expect(page.getByRole("button", { name: "Account and settings" }).locator(".face")).toBeVisible();
+}
+const chip = (page: Page, notice: string, name: string) => page.getByRole("group", { name: notice }).getByRole("button", { name });
+
+test.beforeEach(async ({ page }) => {
+  await stubAudio(page);
+});
+
+test("the notifications page asks a reader with no account to sign in", async ({ page }) => {
+  await page.goto("/notifications");
+  await expect(page.getByRole("heading", { level: 1, name: "Notifications" })).toBeVisible();
+  await expect(page.locator(".saved-empty").getByRole("link", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("group")).toHaveCount(0);
+});
+
+test("a signed-in reader turns on an email from the settings, and nothing on the page moves", async ({ page, context }) => {
+  const reader = await asReader(context);
+  await page.goto(PAPER);
+  await signIn(page);
+  await page.getByRole("button", { name: "Account and settings" }).click();
+  await settings(page).getByRole("link", { name: "Notifications" }).click();
+  await expect(page).toHaveURL(/\/notifications$/);
+
+  const daily = chip(page, "A passage each day", "Email");
+  await expect(daily).toHaveAttribute("aria-pressed", "false");
+  // Each thing under the button keeps its place when the button is pressed and "Saved." shows.
+  const places = async () => Promise.all([daily, chip(page, "New releases", "Email"), page.getByRole("heading", { name: "When" }), page.getByRole("button", { name: "Turn all off" })].map((l) => l.boundingBox()));
+  const before = await places();
+  await daily.click();
+  await expect(daily).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".notices-line")).toHaveText("Saved.");
+  expect(await places()).toEqual(before);
+
+  const seen = await reader.seen();
+  expect(seen.notices.email).toEqual({ daily: true });
+  expect(typeof seen.notices.zone).toBe("string");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+  // The choice is in the account: it is there after a new load.
+  await page.reload();
+  await expect(chip(page, "A passage each day", "Email")).toHaveAttribute("aria-pressed", "true");
+  await expect(chip(page, "A reminder of your place", "Email")).toHaveAttribute("aria-pressed", "false");
+});
+
+test("the hour and the time zone are saved, and “Turn all off” turns each email off", async ({ page, context }) => {
+  const reader = await asReader(context);
+  await reader.set({ notices: { email: { daily: true, releases: true }, hour: 7, zone: "Europe/Berlin", asked: true } });
+  await page.goto(PAPER);
+  await signIn(page);
+  await page.goto("/notifications");
+  await expect(chip(page, "New releases", "Email")).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel("The daily passage comes at").selectOption("21");
+  await expect(page.locator(".notices-line")).toHaveText("Saved.");
+  await expect.poll(async () => (await reader.seen()).notices.hour).toBe(21);
+  await expect(page.getByLabel(/Your time zone/)).toHaveValue("Europe/Berlin");
+
+  await page.getByRole("button", { name: "Turn all off" }).click();
+  await expect(chip(page, "New releases", "Email")).toHaveAttribute("aria-pressed", "false");
+  await expect(chip(page, "A passage each day", "Email")).toHaveAttribute("aria-pressed", "false");
+  // The page changes at the press. The account has the change a moment later.
+  await expect.poll(async () => (await reader.seen()).notices.email).toEqual({ daily: false, reminder: false, releases: false });
+});
+
+test("a test browser has no push service: the device buttons cannot be pressed, and the page says why", async ({ page, context }) => {
+  await asReader(context);
+  await page.goto(PAPER);
+  await signIn(page);
+  await page.goto("/notifications");
+  await expect(chip(page, "A passage each day", "This device")).toBeDisabled();
+  await expect(page.getByText(/cannot show notifications of UrantiaHub/)).toBeVisible();
+});
+
+test("the service worker is served, and it keeps no cache", async ({ request }) => {
+  const response = await request.get("/sw.js");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toContain("javascript");
+  const text = await response.text();
+  expect(text).toContain("showNotification");
+  expect(text).not.toContain("caches.open");
+});

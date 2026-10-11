@@ -19,6 +19,9 @@ export REVALIDATE_SECRET=e2e-secret
 export ACCOUNTS_URL=http://localhost:4010
 export HUB_APP_SECRET=e2e-only-app-secret-0123456789-abcdefghij
 export NEXT_PUBLIC_SIGN_IN=on
+# The notices pages are on for the tests. No push key: a test browser has no push service.
+export NEXT_PUBLIC_NOTICES=on
+export NEXT_PUBLIC_VAPID_KEY=
 # No analytics from a test run.
 export NEXT_PUBLIC_POSTHOG_KEY=
 

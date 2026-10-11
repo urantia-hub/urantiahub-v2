@@ -5,6 +5,9 @@ import { type MouseEvent, useLayoutEffect, useState, useSyncExternalStore } from
 import { accountState, never, noSignInProblem, serverAccountState, signInHref, signInProblem, signOut, subscribeToAccount } from "@/account/client";
 import { Icon } from "@/components/icons";
 
+// Off until the notices can be sent.
+const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
+
 export const ACCOUNT_PAGE = "https://accounts.urantiahub.com";
 
 // The link to the sign-in. Its address holds this page and this paragraph, so it is made at the press.
@@ -59,6 +62,13 @@ export function AccountRows() {
         <span>Progress</span>
         <Icon name="paperAfter" />
       </Link>
+      {NOTICES_ON && (
+        <Link className="account-row" href="/notifications">
+          <Icon name="bell" />
+          <span>Notifications</span>
+          <Icon name="paperAfter" />
+        </Link>
+      )}
       <button type="button" className="account-row" onClick={() => void signOut().then((done) => setStuck(!done))}>
         <Icon name="signOut" />
         <span>Sign out</span>
