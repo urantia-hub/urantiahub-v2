@@ -30,7 +30,7 @@ test("the footer leads to the resources, and the makers' own tools come first", 
   await expect(page.getByRole("heading", { level: 1, name: "Resources" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("By the makers of UrantiaHub");
   const first = page.locator("a.res").first();
-  await expect(first).toHaveAttribute("href", "https://urantia.dev");
+  await expect(first).toHaveAttribute("href", "https://docs.urantia.dev/assistants");
   await expect(first).toHaveAttribute("target", "_blank");
   await noSideScroll(page);
 });

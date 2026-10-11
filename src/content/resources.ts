@@ -9,8 +9,9 @@ export const RESOURCE_GROUPS: ResourceGroup[] = [
     title: "By the makers of UrantiaHub",
     ours: true,
     resources: [
-      { name: "urantia.dev", about: "The open API of the Urantia Papers, for developers and AI tools. No key and no account.", url: "https://urantia.dev" },
       { name: "The Papers in an AI assistant", about: "Add the Urantia Papers to Claude, ChatGPT, Grok, or Gemini.", url: "https://docs.urantia.dev/assistants" },
+      { name: "UrantiaHub on YouTube", about: "A video of each paper: the narration, with the text on the screen.", url: "https://www.youtube.com/@urantia-hub" },
+      { name: "urantia.dev", about: "The open API of the Urantia Papers, for developers and AI tools. No key and no account.", url: "https://urantia.dev" },
       { name: "Dalamatia", about: "An interactive telling of Paper 66 and the city of Dalamatia, with links back to the text.", url: "https://dalamatia.urantiahub.com" },
     ],
   },
