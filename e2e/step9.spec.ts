@@ -28,7 +28,7 @@ test("the footer leads to the resources, and the makers' own tools come first", 
   await page.goto("/about");
   await page.getByRole("contentinfo").getByRole("link", { name: "Resources" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Resources" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("By the makers of UrantiaHub");
+  await expect(page.getByRole("heading", { level: 2 }).first()).toHaveText("By the maker of UrantiaHub");
   const first = page.locator("a.res").first();
   await expect(first).toHaveAttribute("href", "https://docs.urantia.dev/assistants");
   await expect(first).toHaveAttribute("target", "_blank");

@@ -138,9 +138,9 @@ describe("Resources", () => {
     render(<ResourcesPage />);
     expect(RESOURCE_GROUPS[0].ours).toBe(true);
     expect(RESOURCE_GROUPS.filter((group) => group.ours)).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { level: 2 })[0]).toHaveTextContent("By the makers of UrantiaHub");
+    expect(screen.getAllByRole("heading", { level: 2 })[0]).toHaveTextContent("By the maker of UrantiaHub");
     expect(screen.getByText(/UrantiaHub runs only the first group/)).toBeInTheDocument();
-    expect(RESOURCE_GROUPS[0].resources.map((r) => r.name)).toEqual(["The Papers in an AI assistant", "UrantiaHub on YouTube", "urantia.dev", "Dalamatia"]);
+    expect(RESOURCE_GROUPS[0].resources.map((r) => r.name)).toEqual(["The Papers in an AI assistant", "UrantiaHub on YouTube", "The Urantia Papers on Spotify", "urantia.dev", "Dalamatia"]);
   });
 
   it("has one link for each resource, which opens in a new tab and says so", () => {
