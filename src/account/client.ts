@@ -1,6 +1,7 @@
 // Who is signed in, as the browser knows it. The pages are static, so the server does not put the
 // reader into the page. A signed-out reader costs no request: the mark cookie says that no one is there.
 
+import { endDevice, forgetDevice } from "@/notices/device-end";
 import { IN_COOKIE, PROBLEM_COOKIE } from "./cookies";
 
 // `key` names the reader for the server. See `readerKey` in handlers.ts.
@@ -20,7 +21,15 @@ const listeners = new Set<() => void>();
 const OFF: AccountState = { status: "off" };
 const OUT: AccountState = { status: "out" };
 
+let lastKey: string | null = null;
+
 function set(next: AccountState) {
+  // The reader of this browser signed out or changed: this device gets no more notices of that reader.
+  // The key is not known for a moment while the page asks the server again, so the last one is kept.
+  const key = next.status === "in" ? (next.user?.key ?? null) : null;
+  if (lastKey !== null && (next.status === "out" || (key !== null && key !== lastKey))) void forgetDevice();
+  if (next.status !== "in") lastKey = null;
+  else if (key !== null) lastKey = key;
   state = next;
   for (const listener of listeners) listener();
 }
@@ -70,6 +79,8 @@ export function markSignedOut(): void {
 // True when the server ended the session. Only the server can end it: the session is a cookie that a
 // script cannot read. If the server did not, the reader is still signed in, and the page says so.
 export async function signOut(): Promise<boolean> {
+  // First, while the session can still tell the account: this device gets no more notices.
+  await endDevice(accountKey());
   try {
     const response = await fetch("/api/auth/signout", { method: "POST", headers: { accept: "application/json" } });
     if (!response.ok) return false;
@@ -107,4 +118,5 @@ export function resetAccountForTest(on: boolean): void {
   enabled = on;
   state = OFF;
   started = null;
+  lastKey = null;
 }

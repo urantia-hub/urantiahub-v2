@@ -10,9 +10,16 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// A link of this site only. Any other value opens the home page.
+// A link of this site only. Any other value opens the home page. Only plain characters pass: a tab,
+// a line end, or a backslash is read in more than one way, and the parser must agree on the site.
 function path(value) {
-  return typeof value === "string" && /^\/[^/\\]/.test(value) ? value : "/";
+  if (typeof value !== "string" || !/^\/[A-Za-z0-9\-._~/?&=%#:+]*$/.test(value) || value.startsWith("//")) return "/";
+  try {
+    const url = new URL(value, self.location.origin);
+    return url.origin === self.location.origin ? url.pathname + url.search + url.hash : "/";
+  } catch {
+    return "/";
+  }
 }
 
 self.addEventListener("push", (event) => {
