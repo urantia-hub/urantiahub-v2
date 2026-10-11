@@ -375,3 +375,13 @@ test("the home page says what UrantiaHub is, with its name, in the footer", asyn
   await page.goto("/");
   await expect(page.getByRole("contentinfo")).toContainText("UrantiaHub is a free place to read, listen to, and study the Urantia Papers.");
 });
+
+// Kelson, 2026-10-11: the home page fills the screen, and the footer shows after a scroll.
+test("the home page fills the screen, and the footer is below it", async ({ page }) => {
+  await page.goto("/");
+  const footer = await page.getByRole("contentinfo").boundingBox();
+  const screen = page.viewportSize();
+  expect(footer!.y).toBeGreaterThanOrEqual(screen!.height - 1);
+  await page.getByRole("contentinfo").scrollIntoViewIfNeeded();
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "About" })).toBeVisible();
+});

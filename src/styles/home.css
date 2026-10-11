@@ -110,3 +110,18 @@ html[data-place] .home .actions .btn:not(.home-continue) {
   }
 }
 
+
+/* The home page fills the screen: the footer shows after a scroll (Kelson, 2026-10-11).
+   "svh" is the height with the bars of a phone browser in view, so nothing hides behind them.
+   The header is above this block. Its height differs with the screen, so the block takes the whole
+   height and leaves the same room below its content: the content sits in the middle of the screen. */
+.home {
+  min-height: 100svh;
+  justify-content: center;
+  padding-bottom: 112px;
+}
+/* Its header has the name, search, and the settings. "Papers" and "About" are in the page itself.
+   A hidden home page (kept alive by Next.js) must not count. */
+body:has(.home:not([style*="display: none"])) .site-header nav a:not(.icon-link) {
+  display: none;
+}
