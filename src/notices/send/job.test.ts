@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import type { Reader } from "@/notices/due";
-import { type Claim, type JobDeps, type OutMail, type Push, runNotices } from "./job";
+import { type Claim, type JobDeps, type OutMail, type Push, runNotices, runSamples } from "./job";
 
 const A = "00000000-0000-4000-8000-0000000000a1";
 const B = "00000000-0000-4000-8000-0000000000b2";
@@ -135,5 +135,17 @@ describe("one run of the notices", () => {
     const none = world([reader(A)], { only: [] });
     expect(await runNotices(none.deps)).toMatchObject({ readers: 0, due: 0 });
     expect(vi.isMockFunction(none.deps.claim)).toBe(false);
+  });
+});
+
+describe("the samples", () => {
+  it("are one of each email, to one address, with no claim and no reader", async () => {
+    const { deps, out, log } = world([reader(A)]);
+    expect(await runSamples(deps, "kelson@example.com", A, "11:1.3")).toEqual({ mails: 3, sent: 3 });
+    expect(out.mails.map((mail) => mail.to)).toEqual(["kelson@example.com", "kelson@example.com", "kelson@example.com"]);
+    expect(out.mails.map((mail) => mail.subject)).toEqual([expect.stringMatching(/^A passage for today · /), "A passage for today · 11:1.3", "Your place in the Papers"]);
+    expect(out.mails[2].offUrl).toContain("a1-reminder");
+    expect(log).toEqual([]);
+    expect(out.pushes).toEqual([]);
   });
 });

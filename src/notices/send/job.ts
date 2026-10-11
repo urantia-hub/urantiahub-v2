@@ -118,3 +118,21 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
   if (gone.length > 0 || ok.length > 0) await deps.devices({ gone, ok }).catch(() => undefined);
   return report;
 }
+
+// One of each email, to one address, now. For a look at the real emails in a real mail program
+// before any reader gets one. It claims nothing, so it changes nothing for a reader.
+export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string): Promise<{ mails: number; sent: number }> {
+  const settingsUrl = `${deps.origin}/notifications`;
+  const links = (kind: Due["kind"]) => ({ offUrl: deps.offUrl(userId, kind), settingsUrl });
+  const out = (mail: Mail, kind: Due["kind"]): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind), offPost: deps.offPost(userId, kind) });
+  const mails: OutMail[] = [];
+  // The passage of today, and the longest passage of the list, so a long text can be judged.
+  for (const ref of [passageFor(deps.now.toISOString().slice(0, 10)), longRef]) {
+    const passage = await deps.passage(ref);
+    mails.push(out(dailyMail({ ...passage, url: `${deps.origin}${paperPath(passage.paperId)}#${passage.ref}` }, links("daily")), "daily"));
+  }
+  const paper = paperById("2");
+  if (paper) mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" })}` }, links("reminder")), "reminder"));
+  const sent = await deps.sendMails(mails);
+  return { mails: mails.length, sent: sent.filter(Boolean).length };
+}
