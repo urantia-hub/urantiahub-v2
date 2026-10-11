@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { type MouseEvent, useEffect, useState, useSyncExternalStore } from "react";
-import { accountState, serverAccountState, signInHref, subscribeToAccount } from "@/account/client";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { summarize, type Summary } from "@/account/progress-summary";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
+import { SignInLink } from "@/components/SignInLink";
 import { paperPath, referenceHref } from "@/content/paper-index";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
 
 type Data = { for: string | null; status: "loading" | "ready" | "failed"; counts: Record<string, number> };
 const NOTHING: Data = { for: null, status: "loading", counts: {} };
 const none = () => null;
-const toSignIn = { href: "/api/auth/start", onClick: (event: MouseEvent<HTMLAnchorElement>) => void (event.currentTarget.href = signInHref()) };
 
 // What the signed-in reader read: the whole text, each part, and the papers that are open.
 export function ProgressView() {
@@ -52,9 +52,7 @@ export function ProgressView() {
           <b>What you read</b>
           Sign in, and UrantiaHub keeps count of the paragraphs that you read.
           {account.status === "out" && (
-            <a className="saved-button" {...toSignIn}>
-              Sign in
-            </a>
+            <SignInLink className="saved-button" />
           )}
         </div>
       )}

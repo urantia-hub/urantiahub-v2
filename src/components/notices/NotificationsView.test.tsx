@@ -16,10 +16,12 @@ const world = vi.hoisted(() => ({
   canClaim: true,
   ended: 0,
   whileAsking: null as null | (() => void),
+  remembered: [] as [string, string[]][],
 }));
 vi.mock("@/notices/device-end", () => ({
   claimDevice: vi.fn(async (key: string) => (world.canClaim ? (void world.claimed.push(key), true) : false)),
   endDevice: vi.fn(async () => void world.ended++),
+  rememberDevice: vi.fn((owner: string, kinds: string[]) => void world.remembered.push([owner, kinds])),
 }));
 vi.mock("@/account/client", () => ({
   accountKey: () => world.account.user?.key ?? null,
@@ -60,6 +62,7 @@ afterEach(() => {
   world.canClaim = true;
   world.ended = 0;
   world.whileAsking = null;
+  world.remembered = [];
   world.account = { status: "in", user: { key: "k", email: "reader@example.com", name: null } };
   world.notices = null;
   world.calls = [];
@@ -118,6 +121,8 @@ describe("the Notifications page", () => {
     expect(world.calls[0]).toEqual({ path: "/api/me/notices/device", method: "PUT", body: { ...world.subscribed, kinds: ["releases", "daily"] } });
     // The browser keeps whose device this is, so a later reader of this browser does not get the notices.
     expect(world.claimed).toEqual(["k"]);
+    // And what the device gets, so the same reader has it back after the next sign-in.
+    expect(world.remembered).toEqual([["k", ["releases", "daily"]]]);
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "true");
   });
 
@@ -194,6 +199,8 @@ describe("the Notifications page", () => {
     ]);
     expect(await chip("A passage each day", "Email")).toHaveAttribute("aria-pressed", "false");
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
+    // "All off" is a choice. The device does not come back by itself.
+    expect(world.remembered).toEqual([["k", []]]);
   });
 
   it("says so when the notices did not load", async () => {
