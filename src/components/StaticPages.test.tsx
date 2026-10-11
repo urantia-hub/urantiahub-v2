@@ -18,6 +18,11 @@ describe("About", () => {
     expect(screen.getByText(/Michael Foundation v\. Urantia Foundation/)).toBeInTheDocument();
   });
 
+  it("links to the narration on Spotify", () => {
+    render(<AboutPage />);
+    expect(screen.getByRole("link", { name: "listen on Spotify" })).toHaveAttribute("href", "https://open.spotify.com/show/7IDP6RsZbKtUjfEwLLHtuw");
+  });
+
   it("makes no claim about the text", () => {
     const { container } = render(<AboutPage />);
     expect(container.textContent).not.toMatch(/revelation|revealed|truth|divine|inspired|groundbreaking|revolutionary/i);
