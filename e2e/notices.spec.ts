@@ -117,3 +117,54 @@ test("a link with no good proof turns no email off, and the page says so", async
   await page.getByRole("button", { name: "Turn this email off" }).click();
   await expect(page.getByText("The email is still on.")).toBeVisible();
 });
+
+// Each reader of the stand-in was asked already, so no other test sees the question. These readers were not.
+test.describe("the question after the first sign-in", () => {
+  const question = (page: Page) => page.getByRole("dialog", { name: "A passage each day" });
+
+  test("offers the daily passage one time, and turns the email on with one press", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({ notices: null });
+    // The recorded API data has no passage for each date, so the test gives the passage of today.
+    await page.route("**/api/notices/today*", (route) => route.fulfill({ json: { ref: "99:1.1", text: "Mankind is on the march toward a new and unrevealed planetary destiny." } }));
+    await page.goto(PAPER);
+    await signIn(page);
+    await expect(question(page)).toBeVisible();
+    await expect(question(page).getByText("99:1.1 · the passage of today")).toBeVisible();
+    await question(page).getByRole("button", { name: "Send it by email" }).click();
+    await expect(question(page).getByRole("status")).toContainText("The passage comes by email each day at 7:00 AM");
+    await expect.poll(async () => (await reader.seen()).notices).toMatchObject({ email: { daily: true }, asked: true });
+    await question(page).getByRole("button", { name: "Close" }).click();
+    await expect(question(page)).toHaveCount(0);
+    // The answer is in the account: no page asks again.
+    await page.reload();
+    await page.waitForTimeout(2500);
+    await expect(question(page)).toHaveCount(0);
+  });
+
+  test("keeps “Not now” as an answer, and turns nothing on", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({ notices: null });
+    await page.goto(PAPER);
+    await signIn(page);
+    await question(page).getByRole("button", { name: "Not now" }).click();
+    await expect(question(page)).toHaveCount(0);
+    await expect.poll(async () => (await reader.seen()).notices?.asked).toBe(true);
+    expect((await reader.seen()).notices.email ?? {}).toEqual({});
+    await page.goto("/papers");
+    await page.waitForTimeout(2500);
+    await expect(question(page)).toHaveCount(0);
+  });
+
+  test("does not show to a reader with no account", async ({ page }) => {
+    await page.goto(PAPER);
+    await page.waitForTimeout(2500);
+    await expect(question(page)).toHaveCount(0);
+  });
+});
+
+test("the passage of a date needs a date, and the question still shows when it cannot be read", async ({ request }) => {
+  expect((await request.get("/api/notices/today")).status()).toBe(400);
+  expect((await request.get("/api/notices/today?date=2026-13-45")).status()).toBe(400);
+  expect((await request.get("/api/notices/today?date=today")).status()).toBe(400);
+});

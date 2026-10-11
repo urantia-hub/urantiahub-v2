@@ -6,8 +6,8 @@ import { accountKey, accountState, serverAccountState, signInHref, subscribeToAc
 import { NOTICE_KINDS, type NoticeKind, type Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
-import { claimDevice, endDevice } from "@/notices/device-end";
-import { currentEndpoint, type DeviceState, deviceState, sha256Hex, subscribeDevice, unblockSteps, unsubscribeDevice } from "@/notices/push";
+import { turnOnDevice } from "@/notices/device-on";
+import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps, unsubscribeDevice } from "@/notices/push";
 
 const toSignIn = { href: "/api/auth/start", onClick: (event: MouseEvent<HTMLAnchorElement>) => void (event.currentTarget.href = signInHref()) };
 
@@ -92,43 +92,25 @@ export function NotificationsView() {
   };
 
   async function thisDevice(kind: NoticeKind) {
-    // The reader of the press. The browser can ask for a long time, and the reader can change in it.
     const mine = accountKey();
     if (!notices || busy || !mine) return;
     setBusy(true);
     setLine(null);
-    const subscribed = await subscribeDevice();
+    const turned = await turnOnDevice(mine, notices.devices, (had) => (had.includes(kind) ? had.filter((k) => k !== kind) : [...had, kind]));
     setDevice(deviceState());
-    const stop = (text: string | null) => {
-      setBusy(false);
-      if (text) setLine({ kind: "problem", text });
-    };
-    if (!subscribed) return stop(deviceState() !== "blocked" ? "This device did not turn on. Try again." : null);
-    // Another reader, or no reader: this device is not turned on for anyone.
-    if (accountKey() !== mine) {
-      await unsubscribeDevice();
-      return stop(null);
+    setBusy(false);
+    if (!turned.ok) {
+      // A reader who blocked the question sees the steps under "This device". A change of reader shows by itself.
+      const silent = turned.why === "changed" || (turned.why === "refused" && deviceState() === "blocked");
+      if (!silent) setLine({ kind: "problem", text: turned.why === "save" ? "This device was not saved. Try again." : "This device did not turn on. Try again." });
+      return;
     }
-    // First the browser keeps whose device this is. Without the mark the device shows no notice.
-    if (!(await claimDevice(mine)) || accountKey() !== mine) {
-      await endDevice(null);
-      return stop("This device did not turn on. Try again.");
-    }
-    const hash = await sha256Hex(subscribed.endpoint);
-    const had = notices.devices.find((d) => d.endpointHash === hash)?.kinds ?? [];
-    const kinds = had.includes(kind) ? had.filter((k) => k !== kind) : [...had, kind];
-    setHere(hash);
-    // The server refuses the save when the session is not the session of this reader.
-    await save(
-      "/api/me/notices/device",
-      "PUT",
-      { ...subscribed, kinds },
-      (was) => ({ ...was, devices: [...was.devices.filter((d) => d.endpointHash !== hash), { id: hash, label: subscribed.label, kinds, endpointHash: hash }] }),
-      "This device was not saved. Try again.",
-    );
+    const mineNow = turned.device;
+    setHere(mineNow.endpointHash);
+    change((was) => ({ ...was, devices: [...was.devices.filter((d) => d.endpointHash !== mineNow.endpointHash), mineNow] }));
+    setLine({ kind: "saved", text: "Saved." });
     // The zone goes with the first choice of the reader, also when it is a device.
     if (notices.settings.zone === null) void readerCall("/api/me/notices", { method: "PUT", body: JSON.stringify({ zone }) });
-    setBusy(false);
   }
 
   async function allOff() {

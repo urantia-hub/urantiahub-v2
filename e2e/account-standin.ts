@@ -40,7 +40,7 @@ function listed<T extends { ref: string }>(all: T[], url: URL, shape: (item: T) 
 const readers = new Map<string, Reader>();
 const reader = (id: string): Reader => {
   let found = readers.get(id);
-  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], notices: null, devices: [], batches: [], progress: [], saved: [], notes: [] }));
+  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], notices: { email: {}, hour: 7, zone: "UTC", asked: true }, devices: [], batches: [], progress: [], saved: [], notes: [] }));
   return found;
 };
 

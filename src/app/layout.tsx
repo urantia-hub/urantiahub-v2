@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Literata } from "next/font/google";
 import { AccountSync } from "@/components/AccountSync";
+import { NoticeQuestion } from "@/components/notices/NoticeQuestion";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TEXT_SIZE_INIT_SCRIPT } from "@/lib/text-size";
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main">{children}</main>
         <SiteFooter />
         <AccountSync />
+        <NoticeQuestion />
       </body>
     </html>
   );
