@@ -1,0 +1,120 @@
+// One run of the notices: who is due, claim each notice in the account, send, and report.
+// Each outside thing comes in as a dependency, so a test sends nothing.
+
+import { paperById, paperPath, referenceHref } from "@/content/paper-index";
+import { type Device, type Due, dueNotices, passageFor, type Reader } from "@/notices/due";
+import { dailyMail, type Mail, reminderMail } from "./mail";
+
+export type Claim = { userId: string; kind: Due["kind"]; key: string; channel: Due["channel"] };
+export type Push = { for: string; title: string; body: string; path: string };
+export type Passage = { ref: string; text: string; paperId: string; paperTitle: string };
+// `offPost`: the address that a mail program calls for "unsubscribe", with one press and no page.
+export type OutMail = Mail & { to: string; offUrl: string; offPost: string };
+
+export type JobDeps = {
+  now: Date;
+  origin: string;
+  // Null: each reader. A list: only these readers, for the first days.
+  only: string[] | null;
+  readers(): Promise<Reader[]>;
+  // Answers the claims that are new. Only those are sent.
+  claim(claims: Claim[]): Promise<Claim[]>;
+  release(claims: Claim[]): Promise<void>;
+  devices(report: { gone: string[]; ok: string[] }): Promise<void>;
+  passage(ref: string): Promise<Passage>;
+  // One answer for each mail, in order: true when the mail service took it.
+  sendMails(mails: OutMail[]): Promise<boolean[]>;
+  sendPush(device: Device, push: Push): Promise<"ok" | "gone" | "failed">;
+  readerKey(userId: string): Promise<string>;
+  offUrl(userId: string, kind: Due["kind"]): string;
+  offPost(userId: string, kind: Due["kind"]): string;
+};
+
+export type Report = { readers: number; due: number; claimed: number; mails: number; pushes: number; failed: number; gone: number };
+
+const CLAIM_BATCH = 500;
+const PUSH_TEXT = 140;
+const same = (a: Claim, b: Claim) => a.userId === b.userId && a.kind === b.kind && a.key === b.key && a.channel === b.channel;
+const short = (text: string) => (text.length > PUSH_TEXT ? `${text.slice(0, PUSH_TEXT - 1).trimEnd()}…` : text);
+
+export async function runNotices(deps: JobDeps): Promise<Report> {
+  const all = await deps.readers();
+  const readers = deps.only ? all.filter((reader) => deps.only?.includes(reader.userId)) : all;
+  const due = readers.flatMap((reader) => dueNotices(reader, deps.now));
+  const report: Report = { readers: readers.length, due: due.length, claimed: 0, mails: 0, pushes: 0, failed: 0, gone: 0 };
+  if (due.length === 0) return report;
+
+  const claimed: Claim[] = [];
+  for (let i = 0; i < due.length; i += CLAIM_BATCH) {
+    claimed.push(...(await deps.claim(due.slice(i, i + CLAIM_BATCH).map(({ userId, kind, key, channel }) => ({ userId, kind, key, channel })))));
+  }
+  const mine = due.filter((notice) => claimed.some((claim) => same(claim, notice)));
+  report.claimed = mine.length;
+
+  // What a notice says. A passage is read one time for each date. Null: it cannot be made now.
+  const passages = new Map<string, Promise<Passage | null>>();
+  const passageOf = (date: string) => {
+    const ref = passageFor(date);
+    if (!passages.has(ref)) passages.set(ref, deps.passage(ref).catch(() => null));
+    return passages.get(ref) as Promise<Passage | null>;
+  };
+  const settingsUrl = `${deps.origin}/notifications`;
+  async function content(notice: Due): Promise<{ mail: Mail; push: Omit<Push, "for"> } | null> {
+    const links = { offUrl: deps.offUrl(notice.userId, notice.kind), settingsUrl };
+    if (notice.kind === "daily") {
+      const passage = await passageOf(notice.key);
+      if (!passage || !paperById(passage.paperId)) return null;
+      const path = `${paperPath(passage.paperId)}#${passage.ref}`;
+      return {
+        mail: dailyMail({ ...passage, url: `${deps.origin}${path}` }, links),
+        push: { title: "A passage for today", body: `${short(passage.text)} (${passage.ref})`, path },
+      };
+    }
+    const paper = notice.place ? paperById(notice.place.paperId) : undefined;
+    if (notice.kind !== "reminder" || !notice.place || !paper) return null;
+    const path = referenceHref(notice.place);
+    const name = paper.id === "0" ? paper.title : `Paper ${paper.id}, ${paper.title}`;
+    return {
+      mail: reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${path}` }, links),
+      push: { title: "Your place in the Papers", body: `You stopped in ${name}. Your place is kept.`, path },
+    };
+  }
+
+  const failed: Claim[] = [];
+  const fail = (notice: Due) => failed.push({ userId: notice.userId, kind: notice.kind, key: notice.key, channel: notice.channel });
+  const mails: { notice: Due; mail: OutMail }[] = [];
+  const gone: string[] = [];
+  const ok: string[] = [];
+
+  for (const notice of mine) {
+    const made = await content(notice);
+    if (!made) {
+      fail(notice);
+      continue;
+    }
+    if (notice.channel === "email") {
+      if (notice.email) mails.push({ notice, mail: { ...made.mail, to: notice.email, offUrl: deps.offUrl(notice.userId, notice.kind), offPost: deps.offPost(notice.userId, notice.kind) } });
+      continue;
+    }
+    // Each push names its reader. The worker of the device shows it only for that reader.
+    const push = { ...made.push, for: await deps.readerKey(notice.userId) };
+    const results = await Promise.all(notice.devices.map((device) => deps.sendPush(device, push).catch(() => "failed" as const)));
+    results.forEach((result, i) => (result === "gone" ? gone : result === "ok" ? ok : []).push(notice.devices[i].endpoint));
+    if (results.includes("ok")) report.pushes += 1;
+    // No device took it, and at least one can still take it: the next run tries again.
+    else if (results.includes("failed")) fail(notice);
+  }
+
+  if (mails.length > 0) {
+    const sent = await deps.sendMails(mails.map((m) => m.mail)).catch(() => mails.map(() => false));
+    mails.forEach((m, i) => (sent[i] === true ? (report.mails += 1) : fail(m.notice)));
+  }
+
+  report.failed = failed.length;
+  report.gone = gone.length;
+  // A failure of these two must not hide what was sent. A claim that stays means "sent", which is
+  // the safe side: a reader never gets one notice two times.
+  if (failed.length > 0) await deps.release(failed).catch(() => undefined);
+  if (gone.length > 0 || ok.length > 0) await deps.devices({ gone, ok }).catch(() => undefined);
+  return report;
+}

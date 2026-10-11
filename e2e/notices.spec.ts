@@ -99,3 +99,21 @@ test("the service worker is served, and it keeps no page", async ({ request }) =
   expect(text).not.toContain('addEventListener("fetch"');
   expect(text).not.toContain(".put(");
 });
+
+test("the timed job answers 404 to a caller with no secret", async ({ request }) => {
+  expect((await request.get("/api/cron/notices")).status()).toBe(404);
+  expect((await request.get("/api/cron/notices", { headers: { authorization: "Bearer guess" } })).status()).toBe(404);
+});
+
+test("a link with no good proof turns no email off, and the page says so", async ({ page, request }) => {
+  expect((await request.post("/api/notices/off?token=not-a-proof")).status()).toBe(400);
+  expect((await request.post("/api/notices/off", { data: { token: "x.y" } })).status()).toBe(400);
+  // A mail program can open the address of its own button. A person then gets the page with the button.
+  const opened = await request.get("/api/notices/off?token=abc", { maxRedirects: 0 });
+  expect(opened.status()).toBe(303);
+  expect(opened.headers().location).toContain("/emails?off=abc");
+
+  await page.goto("/emails?off=not-a-proof");
+  await page.getByRole("button", { name: "Turn this email off" }).click();
+  await expect(page.getByText("The email is still on.")).toBeVisible();
+});
