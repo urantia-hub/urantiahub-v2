@@ -42,31 +42,46 @@ export async function claimDevice(key: string): Promise<boolean> {
   }
 }
 
-// The mark goes first in each case: from that moment the worker shows no notice, also when the
-// browser then fails to end the device.
-async function end(tell: string | null): Promise<void> {
+const text = (buffer: ArrayBuffer | null) => (buffer ? btoa(String.fromCharCode(...new Uint8Array(buffer))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : "");
+
+// The device ends in the browser. The mark goes first: from that moment the worker shows no notice,
+// also when the browser then fails to end the device.
+async function end(): Promise<void> {
   await forget();
   try {
-    const current = await subscription();
-    if (!current) return;
-    if (tell) {
-      const told = fetch("/api/me/notices/device", {
-        method: "DELETE",
-        headers: { accept: "application/json", "content-type": "application/json", "x-hub-reader": tell },
-        body: JSON.stringify({ endpoint: current.endpoint }),
-      }).catch(() => null);
-      await Promise.race([told, new Promise((resolve) => setTimeout(resolve, TELL_MS))]);
-    }
-    await current.unsubscribe();
+    await (await subscription())?.unsubscribe();
   } catch {
     // The browser did not end the device. The mark is gone, so the worker shows nothing and ends it
     // at the next notice, and the next check tries again.
   }
 }
 
-// For a sign-out: the account forgets the device, and the browser ends it. It never throws, and it
-// does not wait long for the account.
-export const endDevice = (key: string | null): Promise<void> => end(key);
+// For a sign-out. The mark goes first. Then the account keeps the device with no notice: it sends
+// nothing to it, and it still knows it, so the same reader can get it back after the next sign-in.
+// If the account cannot be told, the browser ends the device. It never throws, and it does not wait long.
+export async function endDevice(key: string | null): Promise<void> {
+  await forget();
+  try {
+    const current = await subscription();
+    if (!current) return;
+    const p256dh = text(current.getKey("p256dh"));
+    const auth = text(current.getKey("auth"));
+    let paused = false;
+    if (key && p256dh && auth) {
+      const told = fetch("/api/me/notices/device", {
+        method: "PUT",
+        headers: { accept: "application/json", "content-type": "application/json", "x-hub-reader": key },
+        body: JSON.stringify({ endpoint: current.endpoint, p256dh, auth, kinds: [], label: "" }),
+      })
+        .then(async (response) => response.ok && ((await response.json()) as { saved?: unknown }).saved === true)
+        .catch(() => false);
+      paused = (await Promise.race([told, new Promise<boolean>((resolve) => setTimeout(() => resolve(false), TELL_MS))])) === true;
+    }
+    if (!paused) await current.unsubscribe();
+  } catch {
+    // No device to end.
+  }
+}
 
 // What this device got, and for which reader. It stays in this browser after the device ends, so
 // that the same reader gets the device back after the next sign-in, with no press. It holds the key
@@ -98,18 +113,22 @@ function remembered(): Last | null {
 // reader. If no reader is signed in, if it is another reader, or if this browser does not know whose
 // device it is, the device ends. So the rule also holds when the session ended while no page was open.
 // The account cannot be told with no session: it drops the device at the next notice.
-// A reader who signs in again on a device that had notices for that same reader gets them back,
-// if the browser still allows notices. Another reader gets nothing of it.
+//
+// One case does not end the device: the same reader signs in again after a sign-out on this device.
+// The device comes back with its notices, but only if the account still knows it. A reader who turned
+// all off, on this device or on another one, removed it from the account, and it stays off.
 export async function checkDevice(key: string | null): Promise<void> {
   if (key !== null && (await owner()) === key) return;
-  await end(null);
   const last = remembered();
-  if (key === null || !last || last.owner !== key) return;
-  try {
-    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-    const { turnOnDevice } = await import("./device-on");
-    await turnOnDevice(key, [], () => last.kinds as never);
-  } catch {
-    // The device stays off. The Notifications page turns it on with one press.
+  if (key !== null && last?.owner === key) {
+    try {
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        const { restoreDevice } = await import("./device-on");
+        if (await restoreDevice(key, last.kinds)) return;
+      }
+    } catch {
+      // The device ends below. The Notifications page turns it on with one press.
+    }
   }
+  await end();
 }

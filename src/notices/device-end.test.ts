@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { checkDevice, claimDevice, endDevice, OWNER_CACHE, OWNER_PATH, rememberDevice } from "./device-end";
 
-const on = vi.hoisted(() => ({ calls: [] as { key: string; kinds: string[] }[] }));
+const on = vi.hoisted(() => ({ calls: [] as { key: string; kinds: string[] }[], restores: true }));
 vi.mock("./device-on", () => ({
-  turnOnDevice: vi.fn(async (key: string, _known: unknown[], next: (had: string[]) => string[]) => {
-    on.calls.push({ key, kinds: next([]) });
-    return { ok: true };
+  restoreDevice: vi.fn(async (key: string, kinds: string[]) => {
+    on.calls.push({ key, kinds });
+    return on.restores;
   }),
 }));
 
@@ -21,7 +21,8 @@ function storage(broken = false) {
   return kept;
 }
 function device(endpoint: string | null, unsubscribe = vi.fn(async () => true)) {
-  const current = endpoint ? { endpoint, unsubscribe } : null;
+  const key = (name: string) => new TextEncoder().encode(`${name}-key-of-the-device`).buffer;
+  const current = endpoint ? { endpoint, unsubscribe, getKey: key } : null;
   Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: { getRegistration: async () => ({ pushManager: { getSubscription: async () => current } }) } });
   return unsubscribe;
 }
@@ -35,6 +36,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   on.calls = [];
+  on.restores = true;
   localStorage.clear();
   vi.unstubAllGlobals();
   Reflect.deleteProperty(navigator, "serviceWorker");
@@ -53,30 +55,49 @@ describe("whose device this is", () => {
 });
 
 describe("a sign-out", () => {
-  it("removes the mark first, tells the account, then ends the device in the browser", async () => {
+  const saved = () => vi.mocked(fetch).mockImplementation(async () => Response.json({ saved: true }));
+
+  it("removes the mark first, then tells the account to keep the device with no notice", async () => {
     await claimDevice("k1");
     const order: string[] = [];
     vi.mocked(fetch).mockImplementation(async () => {
       order.push(kept.has(OWNER_PATH) ? "told with mark" : "told");
-      return new Response("{}");
+      return Response.json({ saved: true });
     });
-    const unsubscribe = device(ENDPOINT, vi.fn(async () => (order.push("ended"), true)));
+    const unsubscribe = device(ENDPOINT);
     await endDevice("k1");
-    expect(order).toEqual(["told", "ended"]);
-    expect(calls()).toEqual([{ path: "/api/me/notices/device", method: "DELETE", body: { endpoint: ENDPOINT }, reader: "k1" }]);
+    expect(order).toEqual(["told"]);
+    const [call] = calls();
+    expect(call).toMatchObject({ path: "/api/me/notices/device", method: "PUT", reader: "k1" });
+    expect(call.body).toMatchObject({ endpoint: ENDPOINT, kinds: [] });
+    expect(call.body.p256dh).toMatch(/^[A-Za-z0-9_-]{8,}$/);
+    // The account sends nothing to the device now, and still knows it. The browser keeps it for the same reader.
+    expect(unsubscribe).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["the account does not answer", async () => Promise.reject(new Error("offline"))],
+    ["the account refuses", async () => Response.json({ saved: false }, { status: 409 })],
+    ["the account did not save it", async () => Response.json({ saved: false })],
+  ])("ends the device in the browser when %s", async (_case, answer) => {
+    vi.mocked(fetch).mockImplementation(answer);
+    const unsubscribe = device(ENDPOINT);
+    await endDevice("k1");
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it("ends the device in the browser also when the account does not answer", async () => {
-    vi.mocked(fetch).mockImplementation(async () => Promise.reject(new Error("offline")));
+  it("ends the device in the browser when no reader can be named", async () => {
+    saved();
     const unsubscribe = device(ENDPOINT);
-    await endDevice("k1");
+    await endDevice(null);
+    expect(fetch).not.toHaveBeenCalled();
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
   // The worker shows a notice only with the mark. So a browser that fails to end the device is still safe.
   it("leaves no mark when the browser fails to end the device", async () => {
     await claimDevice("k1");
+    vi.mocked(fetch).mockImplementation(async () => Promise.reject(new Error("offline")));
     device(ENDPOINT, vi.fn(async () => Promise.reject(new Error("the browser refused"))));
     await endDevice("k1");
     expect(kept.has(OWNER_PATH)).toBe(false);
@@ -120,52 +141,53 @@ describe("the check when the page learns who is signed in", () => {
   });
 });
 
-// A sign-out ends the device, because a device can have a second reader. The same reader must not
-// have to turn it on again after each sign-in (Kelson, 2026-10-11).
+// A sign-out stops the notices, because a device can have a second reader. The same reader must not
+// have to turn the device on again after each sign-in (Kelson, 2026-10-11).
 describe("a reader who signs in again on a device that had notices", () => {
   const allow = (permission: string) => vi.stubGlobal("Notification", { permission });
 
   it("gets the device back with the same notices, and no press", async () => {
     allow("granted");
-    device(null);
+    const unsubscribe = device(ENDPOINT);
     rememberDevice("k1", ["daily", "reminder"]);
     await checkDevice("k1");
     expect(on.calls).toEqual([{ key: "k1", kinds: ["daily", "reminder"] }]);
+    expect(unsubscribe).not.toHaveBeenCalled();
   });
 
-  it("keeps what the device got through a sign-out", async () => {
+  // "Turn all off" on another device removes this device from the account. It must stay off.
+  it("ends the device when the account does not know it any more", async () => {
     allow("granted");
-    await claimDevice("k1");
+    on.restores = false;
+    const unsubscribe = device(ENDPOINT);
     rememberDevice("k1", ["daily"]);
-    device(ENDPOINT);
-    await endDevice("k1");
-    await checkDevice(null);
-    expect(on.calls).toEqual([]);
-    device(null);
     await checkDevice("k1");
-    expect(on.calls).toEqual([{ key: "k1", kinds: ["daily"] }]);
+    expect(on.calls).toHaveLength(1);
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
   it.each([
     ["another reader signs in", () => rememberDevice("k1", ["daily"]), "granted"],
-    ["the reader turned all off", () => rememberDevice("k2", []), "granted"],
+    ["the reader turned all off here", () => rememberDevice("k2", []), "granted"],
     ["the browser does not allow notices any more", () => rememberDevice("k2", ["daily"]), "denied"],
     ["the browser did not ask yet", () => rememberDevice("k2", ["daily"]), "default"],
     ["nothing is remembered", () => {}, "granted"],
-  ])("turns nothing on when %s", async (_case, arrange, permission) => {
+  ])("asks the account for nothing, and ends the device, when %s", async (_case, arrange, permission) => {
     allow(permission);
-    device(null);
+    const unsubscribe = device(ENDPOINT);
     arrange();
     await checkDevice("k2");
     expect(on.calls).toEqual([]);
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it("does not turn the device on again while it is on for that reader", async () => {
+  it("does nothing while the device is on for that reader", async () => {
     allow("granted");
-    device(ENDPOINT);
+    const unsubscribe = device(ENDPOINT);
     await claimDevice("k1");
     rememberDevice("k1", ["daily"]);
     await checkDevice("k1");
     expect(on.calls).toEqual([]);
+    expect(unsubscribe).not.toHaveBeenCalled();
   });
 });

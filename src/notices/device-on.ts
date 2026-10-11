@@ -3,7 +3,7 @@
 // is, and then the account.
 
 import { accountKey } from "@/account/client";
-import type { NoticeDevice, NoticeKind } from "@/account/notices";
+import { NOTICE_KINDS, type NoticeDevice, type NoticeKind } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { claimDevice, endDevice, rememberDevice } from "./device-end";
 import { sha256Hex, subscribeDevice, unsubscribeDevice } from "./push";
@@ -36,4 +36,20 @@ export async function turnOnDevice(mine: string, known: readonly NoticeDevice[],
   // So the same reader gets this device back after a sign-out and a new sign-in.
   rememberDevice(mine, kinds);
   return { ok: true, device: { id: hash, label: subscribed.label, kinds, endpointHash: hash } };
+}
+
+// The same reader signed in again on a device that the reader signed out of. The device gets its
+// notices back only if the account still has it, with no notice: that is what a sign-out leaves.
+// A device that the reader removed is not in the account, and nothing comes back.
+export async function restoreDevice(mine: string, kinds: readonly string[]): Promise<boolean> {
+  const registration = await navigator.serviceWorker.getRegistration("/");
+  const current = await registration?.pushManager.getSubscription();
+  if (!current) return false;
+  const hash = await sha256Hex(current.endpoint);
+  const notices = (await readerCall("/api/me/notices")) as { devices?: NoticeDevice[] } | null;
+  const known = notices?.devices?.find((device) => device.endpointHash === hash);
+  if (!known || known.kinds.length > 0 || accountKey() !== mine) return false;
+  const wanted = kinds.filter((kind): kind is NoticeKind => (NOTICE_KINDS as readonly string[]).includes(kind));
+  if (wanted.length === 0) return false;
+  return (await turnOnDevice(mine, [], () => wanted)).ok;
 }
