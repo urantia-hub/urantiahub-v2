@@ -2,6 +2,7 @@
 // writes: the record of preferences is shared by all apps, and a browser sends the values.
 
 import { paperById } from "@/content/paper-index";
+import { READ_SHARE } from "./progress-summary";
 import { parsePlace, parseSettings, PLACE_KEY, type Place, type Settings, SETTINGS_KEY } from "./reader-data";
 
 export type Gateway = {
@@ -51,14 +52,9 @@ export async function saveRead(gateway: Gateway, accessToken: string, value: unk
   return { saved: refs.size };
 }
 
-// A paper counts as read at nine of ten paragraphs: the rule for one paragraph needs time in view, and
-// a reader skims a short paragraph now and then. All of them would mean that few papers ever count.
-const READ_SHARE = 0.9;
-
-export async function readProgress(gateway: Gateway, accessToken: string): Promise<{ read: string[] }> {
-  const papers = await gateway.progress(accessToken);
-  const read = papers
-    .filter((paper) => paperById(paper.paperId) && paper.totalParagraphs > 0 && paper.readCount / paper.totalParagraphs >= READ_SHARE)
-    .map((paper) => paper.paperId);
-  return { read };
+// Which papers the reader read, and the count of read paragraphs of each paper that the reader started.
+export async function readProgress(gateway: Gateway, accessToken: string): Promise<{ read: string[]; counts: Record<string, number> }> {
+  const papers = (await gateway.progress(accessToken)).filter((paper) => paperById(paper.paperId) && paper.totalParagraphs > 0 && paper.readCount > 0);
+  const read = papers.filter((paper) => paper.readCount / paper.totalParagraphs >= READ_SHARE).map((paper) => paper.paperId);
+  return { read, counts: Object.fromEntries(papers.map((paper) => [paper.paperId, paper.readCount])) };
 }

@@ -28,17 +28,20 @@ describe("robots", () => {
 });
 
 describe("sitemap", () => {
-  it("lists the five fixed pages and the 197 papers", async () => {
+  it("lists the seven fixed pages and the 197 papers", async () => {
     const { sitemap } = await load("on");
     const urls = sitemap().map((entry) => entry.url);
-    expect(urls).toHaveLength(202);
+    expect(urls).toHaveLength(204);
     expect(urls).toContain("https://next.urantiahub.com/");
     expect(urls).toContain("https://next.urantiahub.com/papers");
     expect(urls).toContain("https://next.urantiahub.com/about");
+    expect(urls).toContain("https://next.urantiahub.com/resources");
+    expect(urls).toContain("https://next.urantiahub.com/releases");
+    expect(urls).not.toContain("https://next.urantiahub.com/progress");
     expect(urls).toContain("https://next.urantiahub.com/privacy");
     expect(urls).toContain("https://next.urantiahub.com/terms");
     expect(urls).toContain("https://next.urantiahub.com/papers/foreword");
     expect(urls).toContain("https://next.urantiahub.com/papers/paper-196-the-faith-of-jesus");
-    expect(new Set(urls).size).toBe(202);
+    expect(new Set(urls).size).toBe(204);
   });
 });

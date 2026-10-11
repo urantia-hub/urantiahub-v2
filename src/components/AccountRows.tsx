@@ -54,6 +54,11 @@ export function AccountRows() {
         <span>Saved</span>
         <Icon name="paperAfter" />
       </Link>
+      <Link className="account-row" href="/progress">
+        <Icon name="progress" />
+        <span>Progress</span>
+        <Icon name="paperAfter" />
+      </Link>
       <button type="button" className="account-row" onClick={() => void signOut().then((done) => setStuck(!done))}>
         <Icon name="signOut" />
         <span>Sign out</span>

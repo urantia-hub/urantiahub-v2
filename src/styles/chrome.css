@@ -374,7 +374,8 @@ main {
 }
 .site-footer .links {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 6px 20px;
 }
 
 @media (min-width: 768px) {

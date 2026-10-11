@@ -3,6 +3,6 @@ import { PAPERS, paperPath } from "@/content/paper-index";
 import { absoluteUrl } from "@/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const fixed = ["/", "/papers", "/about", "/privacy", "/terms"];
+  const fixed = ["/", "/papers", "/about", "/resources", "/releases", "/privacy", "/terms"];
   return [...fixed, ...PAPERS.map((paper) => paperPath(paper.id))].map((path) => ({ url: absoluteUrl(path) }));
 }

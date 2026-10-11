@@ -3,6 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import AboutPage from "@/app/about/page";
 import NotFound from "@/app/not-found";
 import PrivacyPage from "@/app/privacy/page";
+import ReleasesPage from "@/app/releases/page";
+import ResourcesPage from "@/app/resources/page";
+import { RELEASES, releaseDate } from "@/content/releases";
+import { RESOURCE_GROUPS } from "@/content/resources";
 import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, PRIVACY_EMAIL, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
@@ -124,5 +128,56 @@ describe("NotFound", () => {
   it("offers the contents page", () => {
     render(<NotFound />);
     expect(screen.getByRole("link", { name: "All papers" })).toHaveAttribute("href", "/papers");
+  });
+});
+
+const CLAIM = /revelation|revealed|\btruth\b|divine origin|inspired by God|groundbreaking|revolutionary|largest|oldest|official|best/i;
+
+describe("Resources", () => {
+  it("puts the places that UrantiaHub's makers run first, and says which group that is", () => {
+    render(<ResourcesPage />);
+    expect(RESOURCE_GROUPS[0].ours).toBe(true);
+    expect(RESOURCE_GROUPS.filter((group) => group.ours)).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { level: 2 })[0]).toHaveTextContent("By the makers of UrantiaHub");
+    expect(screen.getByText(/UrantiaHub runs only the first group/)).toBeInTheDocument();
+    expect(RESOURCE_GROUPS[0].resources.map((r) => r.name)).toContain("urantia.dev");
+  });
+
+  it("has one link for each resource, which opens in a new tab and says so", () => {
+    const { container } = render(<ResourcesPage />);
+    const all = RESOURCE_GROUPS.flatMap((group) => group.resources);
+    expect(new Set(all.map((r) => r.url)).size).toBe(all.length);
+    expect(screen.getAllByRole("link")).toHaveLength(all.length);
+    for (const resource of all) {
+      const link = container.querySelector(`a[href="${resource.url}"]`);
+      expect(link).toHaveTextContent(resource.name);
+      expect(link).toHaveTextContent("(opens in a new tab)");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(resource.url).toMatch(/^https:\/\//);
+    }
+  });
+
+  it("makes no claim about the text or about a place, and names the Papers as the site does", () => {
+    for (const resource of RESOURCE_GROUPS.flatMap((group) => group.resources)) {
+      expect(resource.about).not.toMatch(CLAIM);
+      expect(resource.about).not.toMatch(/The Urantia Papers|Urantia Book(?! since)/);
+      expect(resource.about).toMatch(/\.$/);
+    }
+  });
+});
+
+describe("Releases", () => {
+  it("shows each release, the newest first, with its date in words", () => {
+    render(<ReleasesPage />);
+    const dates = RELEASES.map((release) => release.date);
+    expect([...dates].sort().reverse()).toEqual(dates);
+    const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    expect(titles).toEqual(RELEASES.map((release) => release.title));
+    expect(screen.getByText("October 10, 2026")).toHaveAttribute("datetime", "2026-10-10");
+    expect(releaseDate("2025-01-18")).toBe("January 18, 2025");
+  });
+
+  it("makes no claim about the text", () => {
+    for (const change of RELEASES.flatMap((release) => release.changes)) expect(change).not.toMatch(CLAIM);
   });
 });

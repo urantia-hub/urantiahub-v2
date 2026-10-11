@@ -8,13 +8,19 @@ describe("the addresses of the old Hub", () => {
   });
 
   it("never take an address that this Hub uses", () => {
-    const own = ["/", "/papers", "/about", "/privacy", "/search", "/saved", "/parallels", "/emails", "/terms", "/auth/callback", "/api/auth/start"];
+    const own = ["/", "/papers", "/about", "/privacy", "/search", "/saved", "/parallels", "/emails", "/terms", "/progress", "/resources", "/releases", "/auth/callback", "/api/auth/start"];
     for (const { source } of OLD_ADDRESSES) expect(own).not.toContain(source);
     expect(OLD_ADDRESSES.some((a) => a.source.startsWith("/auth/:") || a.source === "/auth/:path*")).toBe(false);
   });
 
+  it("send the old releases and resources addresses to the pages that this Hub has now", () => {
+    const where = (source: string) => OLD_ADDRESSES.find((a) => a.source === source)?.destination;
+    expect(where("/changelog")).toBe("/releases");
+    expect(where("/community-resources")).toBe("/resources");
+  });
+
   it("go to a page of this Hub, and an answer that can change is not permanent", () => {
-    for (const { destination } of OLD_ADDRESSES) expect(["/", "/:path*", "/saved", "/papers", "/papers/:paper", "/privacy", "/terms", "/emails", "/about"]).toContain(destination);
+    for (const { destination } of OLD_ADDRESSES) expect(["/", "/:path*", "/saved", "/papers", "/papers/:paper", "/privacy", "/terms", "/emails", "/about", "/resources", "/releases"]).toContain(destination);
     for (const a of OLD_ADDRESSES.filter((a) => ["/about", "/emails"].includes(a.destination))) expect(a.permanent).toBe(false);
   });
 });

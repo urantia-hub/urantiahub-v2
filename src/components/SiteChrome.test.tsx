@@ -42,4 +42,10 @@ describe("SiteFooter", () => {
     expect(screen.getByRole("link", { name: "urantia.dev" })).toHaveAttribute("href", "https://urantia.dev");
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
   });
+  it("links to the resources and the releases", () => {
+    render(<SiteFooter />);
+    const footer = screen.getByRole("contentinfo");
+    expect(footer.querySelector('a[href="/resources"]')).toHaveTextContent("Resources");
+    expect(footer.querySelector('a[href="/releases"]')).toHaveTextContent("Releases");
+  });
 });
