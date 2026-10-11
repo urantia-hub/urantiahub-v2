@@ -6,6 +6,7 @@ import { accountState, serverAccountState, signInHref, subscribeToAccount } from
 import { NOTICE_KINDS, type NoticeKind, type Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
+import { claimDevice } from "@/notices/device-end";
 import { currentEndpoint, type DeviceState, deviceState, sha256Hex, subscribeDevice, unblockSteps, unsubscribeDevice } from "@/notices/push";
 
 const toSignIn = { href: "/api/auth/start", onClick: (event: MouseEvent<HTMLAnchorElement>) => void (event.currentTarget.href = signInHref()) };
@@ -105,13 +106,15 @@ export function NotificationsView() {
     const had = notices.devices.find((d) => d.endpointHash === hash)?.kinds ?? [];
     const kinds = had.includes(kind) ? had.filter((k) => k !== kind) : [...had, kind];
     setHere(hash);
-    await save(
+    const saved = await save(
       "/api/me/notices/device",
       "PUT",
       { ...subscribed, kinds },
       (was) => ({ ...was, devices: [...was.devices.filter((d) => d.endpointHash !== hash), { id: hash, label: subscribed.label, kinds, endpointHash: hash }] }),
       "This device was not saved. Try again.",
     );
+    // This browser now knows whose device it is. With no mark, the next check ends the device.
+    if (saved && key) claimDevice(key);
     // The zone goes with the first choice of the reader, also when it is a device.
     if (notices.settings.zone === null) void readerCall("/api/me/notices", { method: "PUT", body: JSON.stringify({ zone }) });
     setBusy(false);

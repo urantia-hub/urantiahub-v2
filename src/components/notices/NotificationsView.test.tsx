@@ -44,6 +44,7 @@ const group = (name: string) => screen.findByRole("group", { name });
 const chip = async (notice: string, name: string) => within(await group(notice)).getByRole("button", { name });
 
 afterEach(() => {
+  localStorage.clear();
   world.account = { status: "in", user: { key: "k", email: "reader@example.com", name: null } };
   world.notices = null;
   world.calls = [];
@@ -100,6 +101,8 @@ describe("the Notifications page", () => {
     await userEvent.click(await chip("A passage each day", "This device"));
     await waitFor(() => expect(world.calls).toHaveLength(1));
     expect(world.calls[0]).toEqual({ path: "/api/me/notices/device", method: "PUT", body: { ...world.subscribed, kinds: ["releases", "daily"] } });
+    // The browser keeps whose device this is, so a later reader of this browser does not get the notices.
+    await waitFor(() => expect(localStorage.getItem("hub.notices.owner")).toBe("k"));
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "true");
   });
 
@@ -107,6 +110,15 @@ describe("the Notifications page", () => {
     world.notices = fresh({}, [{ id: "a", label: "Safari on Mac", kinds: ["daily"], endpointHash: "hash-of-another" }]);
     render(<NotificationsView />);
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("does not mark the device as the reader's when the account did not save it", async () => {
+    world.notices = fresh({ zone: "UTC" });
+    world.fail = true;
+    render(<NotificationsView />);
+    await userEvent.click(await chip("A passage each day", "This device"));
+    expect(await screen.findByText("This device was not saved. Try again.")).toBeInTheDocument();
+    expect(localStorage.getItem("hub.notices.owner")).toBeNull();
   });
 
   it("says so when the reader did not allow the device, and saves nothing", async () => {

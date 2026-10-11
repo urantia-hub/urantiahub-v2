@@ -24,11 +24,43 @@ export async function endDevice(key: string | null): Promise<void> {
       await Promise.race([told, new Promise((resolve) => setTimeout(resolve, TELL_MS))]);
     }
     await current.unsubscribe();
+    localStorage.removeItem(OWNER);
   } catch {
     // No device to end.
   }
 }
 
-// The session is gone, or the reader of this browser changed. The account cannot be told with that
-// session, so the browser ends the device, and the account drops it at the next notice.
-export const forgetDevice = (): Promise<void> => endDevice(null);
+// Which reader this device gets notices for. It is the key of the reader, kept in this browser.
+const OWNER = "hub.notices.owner";
+
+function owner(): string | null {
+  try {
+    return localStorage.getItem(OWNER);
+  } catch {
+    return null;
+  }
+}
+
+// Call it when the account saved this device for the reader.
+export function claimDevice(key: string): void {
+  try {
+    localStorage.setItem(OWNER, key);
+  } catch {
+    // The browser keeps nothing. The next check then ends the device, which is the safe side.
+  }
+}
+
+// Each time the page learns who is signed in: a device that gets notices must be the device of that
+// reader. If no reader is signed in, if it is another reader, or if this browser does not know whose
+// device it is, the browser ends the device. So the rule also holds when the session ended while no
+// page was open. The account cannot be told with no session: it drops the device at the next notice.
+export async function checkDevice(key: string | null): Promise<void> {
+  try {
+    if (key !== null && owner() === key) return;
+    const current = await subscription();
+    if (current) await current.unsubscribe();
+    localStorage.removeItem(OWNER);
+  } catch {
+    // No device to end.
+  }
+}
