@@ -1,15 +1,13 @@
-// What follows a signed-in reader to each device: the place, and the reader settings.
-// Both live in the reader's preferences in the API. That record is one for all apps, so the
-// names start with "hub.". Each value holds the time of its last change: the newer one wins.
+// What follows a signed-in reader to each device: the place. It lives in the reader's preferences
+// in the API. That record is one for all apps, so the name starts with "hub.". The value holds the
+// time of its last change: the newer one wins.
 
 import { paperById } from "@/content/paper-index";
 
 export const PLACE_KEY = "hub.place";
-export const SETTINGS_KEY = "hub.reader";
 
 // The label is the title of the section, for the "Continue" card. React shows it as text.
 export type Place = { paperId: string; sectionId: string; at: number; label: string | null };
-export type Settings = { theme: "light" | "dark"; textSize: number; at: number };
 
 // A clock can be wrong. A time more than a day ahead counts as now, so it does not win for good.
 const AHEAD_MS = 24 * 60 * 60 * 1000;
@@ -26,15 +24,6 @@ export function parsePlace(value: unknown, now: number = Date.now()): Place | nu
   if (typeof sectionId !== "string" || !/^\d{1,3}$/.test(sectionId)) return null;
   const when = time(at, now);
   return when === null ? null : { paperId, sectionId, at: when, label: typeof label === "string" && label.length <= 120 ? label : null };
-}
-
-export function parseSettings(value: unknown, now: number = Date.now()): Settings | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { theme, textSize, at } = value as Record<string, unknown>;
-  if (theme !== "light" && theme !== "dark") return null;
-  if (typeof textSize !== "number" || !Number.isInteger(textSize) || textSize < 0 || textSize > 4) return null;
-  const when = time(at, now);
-  return when === null ? null : { theme, textSize, at: when };
 }
 
 // Which value wins, and where it came from. "browser": send it to the account. "account": apply it

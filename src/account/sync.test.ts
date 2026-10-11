@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LAST_READ_KEY, saveLastRead } from "@/reader/last-read";
 import { refreshAccount, resetAccountForTest, startAccount } from "./client";
-import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, onPageShown, pullFromAccount, queueRead, resetSyncForTest, SETTINGS_AT_KEY, startSync } from "./sync";
+import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, onPageShown, pullFromAccount, queueRead, resetSyncForTest, startSync } from "./sync";
 
 const place = (paperId: string, at: number) => JSON.stringify({ paperId, sectionId: "1", label: null, at });
 const clearCookies = () => {
@@ -28,14 +28,12 @@ async function signedInAs(key: string, other: (url: string, init?: RequestInit) 
 // A second person can sign in on the same browser. What the first person read must not go into the
 // second person's account, and must not show on the page after a sign-out.
 describe("what a signed-in reader leaves in the browser", () => {
-  it("is removed when the reader is signed out: the place, and the time of the settings", () => {
+  it("is removed when the reader is signed out: the place", () => {
     window.localStorage.setItem(LAST_READ_KEY, place("5", 100));
-    window.localStorage.setItem(SETTINGS_AT_KEY, "200");
     window.localStorage.setItem("theme", "dark");
     markAccountData("k1");
     forgetAccountData();
     expect(window.localStorage.getItem(LAST_READ_KEY)).toBeNull();
-    expect(window.localStorage.getItem(SETTINGS_AT_KEY)).toBeNull();
     expect(window.localStorage.getItem(ACCOUNT_DATA_KEY)).toBeNull();
     // The theme is not personal. It stays, so the page does not flash.
     expect(window.localStorage.getItem("theme")).toBe("dark");
@@ -221,5 +219,29 @@ describe("a page that the browser shows again from its memory", () => {
     const reload = vi.fn();
     onPageShown(true, reload);
     expect(reload).not.toHaveBeenCalled();
+  });
+});
+
+// The theme and the text size belong to the device (Kelson, 2026-10-11): a phone and a computer need
+// different sizes. Nothing of them goes to the account, and nothing of them comes from it.
+describe("the theme and the text size", () => {
+  it("do not go to the account when the reader changes one", async () => {
+    const fetch = await signedInAs("k1", async () => Response.json({ place: null }));
+    startSync();
+    const { applyTheme } = await import("@/lib/theme");
+    const { applyTextSize } = await import("@/lib/text-size");
+    applyTheme("dark");
+    applyTextSize(4);
+    await Promise.resolve();
+    expect(fetch.mock.calls.filter(([url]) => String(url).startsWith("/api/me/")).map(([url]) => url)).toEqual([]);
+    applyTheme("light");
+  });
+
+  it("do not come from the account, also when an old record holds them", async () => {
+    window.localStorage.setItem("theme", "light");
+    await signedInAs("k1", async () => Response.json({ place: null, settings: { theme: "dark", textSize: 4, at: Date.now() } }));
+    await pullFromAccount();
+    expect(window.localStorage.getItem("theme")).toBe("light");
+    expect(document.documentElement.dataset.theme).not.toBe("dark");
   });
 });

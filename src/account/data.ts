@@ -3,7 +3,7 @@
 
 import { paperById } from "@/content/paper-index";
 import { READ_SHARE } from "./progress-summary";
-import { parsePlace, parseSettings, PLACE_KEY, type Place, type Settings, SETTINGS_KEY } from "./reader-data";
+import { parsePlace, PLACE_KEY, type Place } from "./reader-data";
 
 export type Gateway = {
   preferences(accessToken: string): Promise<Record<string, unknown>>;
@@ -12,24 +12,17 @@ export type Gateway = {
   progress(accessToken: string): Promise<{ paperId: string; readCount: number; totalParagraphs: number }[]>;
 };
 
-export type ReaderData = { place: Place | null; settings: Settings | null };
+export type ReaderData = { place: Place | null };
 
 export async function readReader(gateway: Gateway, accessToken: string, now: number = Date.now()): Promise<ReaderData> {
   const all = await gateway.preferences(accessToken);
-  return { place: parsePlace(all[PLACE_KEY], now), settings: parseSettings(all[SETTINGS_KEY], now) };
+  return { place: parsePlace(all[PLACE_KEY], now) };
 }
 
 export async function savePlace(gateway: Gateway, accessToken: string, value: unknown, now: number = Date.now()): Promise<{ saved: boolean }> {
   const place = parsePlace(value, now);
   if (!place) return { saved: false };
   await gateway.savePreferences(accessToken, { [PLACE_KEY]: place });
-  return { saved: true };
-}
-
-export async function saveSettings(gateway: Gateway, accessToken: string, value: unknown, now: number = Date.now()): Promise<{ saved: boolean }> {
-  const settings = parseSettings(value, now);
-  if (!settings) return { saved: false };
-  await gateway.savePreferences(accessToken, { [SETTINGS_KEY]: settings });
   return { saved: true };
 }
 

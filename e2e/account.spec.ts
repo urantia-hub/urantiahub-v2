@@ -208,17 +208,20 @@ test.describe("what follows the reader", () => {
     await expect.poll(async () => (await reader.seen()).preferences["hub.place"]?.paperId).toBe("1");
   });
 
-  test("the theme and the text size come from the account, and a change goes back to it", async ({ page, context }) => {
+  test("the theme and the text size stay on the device: none comes from the account, and none goes to it", async ({ page, context }) => {
     const reader = await asReader(context);
-    await reader.set({ preferences: { "hub.reader": { theme: "dark", textSize: 4, at: Date.now() - 60_000 } } });
+    await reader.set({ preferences: { "hub.reader": { theme: "dark", textSize: 4, at: Date.now() } } });
     await page.goto(PAPER);
     await signIn(page);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(page.locator("html")).toHaveAttribute("data-text-size", "4");
+    await expect.poll(async () => (await reader.seen()).preferences["hub.place"]?.paperId).toBe("1");
+    // The light theme has no mark on the page.
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
 
-    await sheet(page).getByRole("button", { name: "Light" }).click();
-    await expect.poll(async () => (await reader.seen()).preferences["hub.reader"]?.theme).toBe("light");
-    expect((await reader.seen()).preferences["hub.reader"].textSize).toBe(4);
+    await sheet(page).getByRole("button", { name: "Dark" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    expect((await reader.seen()).preferences["hub.reader"]).toEqual({ theme: "dark", textSize: 4, at: expect.any(Number) });
   });
 });
 
@@ -454,6 +457,6 @@ test.describe("the account routes", () => {
 
   test("refuse a write and a sign-out from another site", async ({ request }) => {
     expect((await request.post("/api/auth/signout", { headers: { origin: "https://evil.example" } })).status()).toBe(403);
-    expect((await request.put("/api/me/settings", { data: {}, headers: { origin: "https://evil.example" } })).status()).toBe(403);
+    expect((await request.put("/api/me/place", { data: {}, headers: { origin: "https://evil.example" } })).status()).toBe(403);
   });
 });
