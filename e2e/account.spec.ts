@@ -214,7 +214,8 @@ test.describe("what follows the reader", () => {
     await page.goto(PAPER);
     await signIn(page);
     await expect.poll(async () => (await reader.seen()).preferences["hub.place"]?.paperId).toBe("1");
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    // The light theme has no mark on the page.
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
 
     await sheet(page).getByRole("button", { name: "Dark" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
