@@ -3,6 +3,8 @@
 // turned it on, while that reader is signed in.
 
 const TELL_MS = 3000;
+// Sent when this device got its notices back by itself.
+export const DEVICE_EVENT = "hub:device";
 // The mark is in the cache storage of the site, because the service worker reads it too. The worker
 // shows a notice only when the notice is for the reader of the mark (public/sw.js).
 export const OWNER_CACHE = "hub-notices";
@@ -157,7 +159,11 @@ export async function checkDevice(key: string | null): Promise<void> {
     try {
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         const { restoreDevice } = await import("./device-on");
-        if (await restoreDevice(key, last.kinds)) return;
+        if (await restoreDevice(key, last.kinds)) {
+          // A page that shows the devices reads them again.
+          window.dispatchEvent(new Event(DEVICE_EVENT));
+          return;
+        }
       }
     } catch {
       // The device ends below. The Notifications page turns it on with one press.

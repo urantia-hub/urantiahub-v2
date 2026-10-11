@@ -70,8 +70,11 @@ export function ReaderSettings() {
               aria-label="Account and settings"
               ref={panel}
               // A link in the panel goes to another page. The panel does not stay open over it.
+              // The sign-in is not a page of this site: the way there takes a moment, and the row
+              // says "Opening the sign-in…" until then, so the panel stays (Kelson, 2026-10-11).
               onClick={(event) => {
-                if ((event.target as HTMLElement).closest("a")) setOpen(false);
+                const link = (event.target as HTMLElement).closest("a");
+                if (link && !link.getAttribute("href")?.startsWith("/api/auth/start")) setOpen(false);
               }}
             >
               <h2>Theme</h2>

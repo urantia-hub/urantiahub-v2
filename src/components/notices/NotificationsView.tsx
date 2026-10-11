@@ -7,7 +7,7 @@ import { NOTICE_KINDS, type NoticeKind, type Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
 import { SignInLink } from "@/components/SignInLink";
-import { rememberDevice } from "@/notices/device-end";
+import { DEVICE_EVENT, rememberDevice } from "@/notices/device-end";
 import { turnOnDevice } from "@/notices/device-on";
 import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps, unsubscribeDevice } from "@/notices/push";
 
@@ -59,6 +59,20 @@ export function NotificationsView() {
       current = false;
     };
   }, [key, attempt]);
+
+  // The device can change with no press on this page: it comes back after a sign-in, and the site as
+  // an app and the browser are one device. So the page reads again when it shows, and when the device changed.
+  useEffect(() => {
+    const again = () => {
+      if (document.visibilityState === "visible") setAttempt((n) => n + 1);
+    };
+    document.addEventListener("visibilitychange", again);
+    window.addEventListener(DEVICE_EVENT, again);
+    return () => {
+      document.removeEventListener("visibilitychange", again);
+      window.removeEventListener(DEVICE_EVENT, again);
+    };
+  }, []);
 
   const signedOut = account.status !== "in";
   const notices = data.notices;

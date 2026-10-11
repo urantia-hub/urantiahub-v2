@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Notices } from "@/account/notices";
@@ -21,6 +21,7 @@ const world = vi.hoisted(() => ({
 vi.mock("@/notices/device-end", () => ({
   claimDevice: vi.fn(async (key: string) => (world.canClaim ? (void world.claimed.push(key), true) : false)),
   endDevice: vi.fn(async () => void world.ended++),
+  DEVICE_EVENT: "hub:device",
   rememberDevice: vi.fn((owner: string, kinds: string[]) => void world.remembered.push([owner, kinds])),
 }));
 vi.mock("@/account/client", () => ({
@@ -201,6 +202,20 @@ describe("the Notifications page", () => {
     expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
     // "All off" is a choice. The device does not come back by itself.
     expect(world.remembered).toEqual([["k", []]]);
+  });
+
+  // The device comes back by itself after a sign-in, a moment after the page read the account.
+  it("reads the account again when the device changed, and when the page shows again", async () => {
+    world.notices = fresh({ zone: "UTC" });
+    world.endpoint = "e";
+    render(<NotificationsView />);
+    expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false");
+    world.notices = fresh({ zone: "UTC" }, [{ id: "a", label: "x", kinds: ["daily"], endpointHash: "hash-of-e" }]);
+    act(() => void window.dispatchEvent(new Event("hub:device")));
+    await waitFor(async () => expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "true"));
+    world.notices = fresh({ zone: "UTC" });
+    act(() => void document.dispatchEvent(new Event("visibilitychange")));
+    await waitFor(async () => expect(await chip("A passage each day", "This device")).toHaveAttribute("aria-pressed", "false"));
   });
 
   it("says so when the notices did not load", async () => {
