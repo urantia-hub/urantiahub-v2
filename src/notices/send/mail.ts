@@ -12,9 +12,10 @@ const UI = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,s
 const SERIF = "Georgia,'Times New Roman',serif";
 
 // `quote`: the body is words of the Papers, shown as a quote that goes on.
-type Frame = { label: string; body: string; cite: string; button: string; url: string; reason: string; offUrl: string; settingsUrl: string };
+// `list`: short lines under the body.
+type Frame = { label: string; body: string; list?: string[]; cite: string; button: string; url: string; reason: string; offUrl: string; settingsUrl: string };
 
-function html({ label, body, cite, button, url, reason, offUrl, settingsUrl }: Frame): string {
+function html({ label, body, list, cite, button, url, reason, offUrl, settingsUrl }: Frame): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(label)}</title>
@@ -27,7 +28,8 @@ function html({ label, body, cite, button, url, reason, offUrl, settingsUrl }: F
 <p style="margin:0 0 26px;font-family:${SERIF};font-size:18px;color:#26221c;">UrantiaHub</p>
 <p style="margin:0;font-family:${UI};font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#756d5f;">${esc(label)}</p>
 <p style="margin:16px 0 14px;font-family:${SERIF};font-size:20px;line-height:1.55;color:#26221c;">${esc(body)}</p>
-<p style="margin:0;font-family:${UI};font-size:13px;color:#756d5f;">${esc(cite)}</p>
+${(list ?? []).map((line) => `<p style="margin:0 0 12px;font-family:${UI};font-size:15px;line-height:1.55;color:#26221c;">${esc(line)}</p>`).join("\n")}
+<p style="margin:${list?.length ? "18px" : "0"} 0 0;font-family:${UI};font-size:13px;color:#756d5f;">${esc(cite)}</p>
 <p style="margin:22px 0 0;"><a href="${esc(url)}" style="display:inline-block;padding:13px 22px;border-radius:999px;background:#26221c;color:#fbf8f2;font-family:${UI};font-size:14.5px;font-weight:500;text-decoration:none;">${esc(button)}</a></p>
 </td></tr>
 <tr><td style="padding:22px 36px;border-top:1px solid #e7e0d2;font-family:${UI};font-size:12px;line-height:1.6;color:#756d5f;">
@@ -42,8 +44,8 @@ ${esc(reason)}<br>
 </html>`;
 }
 
-const text = ({ label, body, cite, button, url, reason, offUrl, settingsUrl }: Frame): string =>
-  [label, "", body, "", cite, "", `${button}: ${url}`, "", "--", reason, `Turn this email off: ${offUrl}`, `All notification settings: ${settingsUrl}`, POSTAL].join("\n");
+const text = ({ label, body, list, cite, button, url, reason, offUrl, settingsUrl }: Frame): string =>
+  [label, "", body, "", ...(list?.length ? [...list.map((line) => `- ${line}`), ""] : []), cite, "", `${button}: ${url}`, "", "--", reason, `Turn this email off: ${offUrl}`, `All notification settings: ${settingsUrl}`, POSTAL].join("\n");
 
 type Links = { offUrl: string; settingsUrl: string };
 
@@ -74,6 +76,20 @@ export function reminderMail(place: { paperId: string; paperTitle: string; url: 
     ...links,
   };
   return { subject: "Your place in the Papers", html: html(frame), text: text(frame) };
+}
+
+export function releaseMail(release: { title: string; changes: string[]; date: string; url: string }, links: Links): Mail {
+  const frame: Frame = {
+    label: "New in UrantiaHub",
+    body: release.title,
+    list: release.changes,
+    cite: release.date,
+    button: "See what is new",
+    url: release.url,
+    reason: "You get this email because you chose Email for “New releases” in UrantiaHub. It comes a few times in a year.",
+    ...links,
+  };
+  return { subject: `New in UrantiaHub: ${release.title}`, html: html(frame), text: text(frame) };
 }
 
 // The first words of a text, cut at a word, for a reader to go on from.

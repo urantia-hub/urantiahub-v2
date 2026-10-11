@@ -3,6 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 import webpush from "web-push";
 import { readerKey } from "@/account/handlers";
 import { getPassage } from "@/content";
+import { releaseToNotify } from "@/content/releases";
 import type { Device, Reader } from "@/notices/due";
 import { site } from "@/site";
 import type { Claim, JobDeps, OutMail, Push } from "./job";
@@ -115,6 +116,7 @@ export function liveDeps(now: Date = new Date()): JobDeps {
     now,
     origin: site.origin,
     only: list.length > 0 ? list : null,
+    news: releaseToNotify(now),
     readers: async () => (await api("GET", "")) as Reader[],
     claim: async (claims) => ((await api("POST", "/claim", { claims })) as { claimed: Claim[] }).claimed,
     release: async (claims) => void (await api("POST", "/release", { claims })),
