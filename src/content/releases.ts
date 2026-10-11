@@ -1,7 +1,8 @@
 // What changed in UrantiaHub, the newest first. Add an entry in the same change that ships a thing a
 // reader can see. Each line must be true of the live site on that date.
 
-export type Release = { date: string; title: string; changes: string[] };
+// `notify`: readers who chose "New releases" get one notice of this entry. Mark a few in a year.
+export type Release = { date: string; title: string; changes: string[]; notify?: true };
 
 export const RELEASES: Release[] = [
   {
@@ -53,4 +54,16 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 export function releaseDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number);
   return `${MONTHS[month - 1]} ${day}, ${year}`;
+}
+
+const NOTIFY_DAYS = 4;
+
+// The marked release that readers hear of now: from its date (UTC) and for three days after, so a
+// reader in each time zone gets it in the day. Null: none.
+export function releaseToNotify(now: Date, list: readonly Release[] = RELEASES): Release | null {
+  const marked = list.find((release) => release.notify);
+  if (!marked) return null;
+  const start = Date.parse(`${marked.date}T00:00:00Z`);
+  const age = now.getTime() - start;
+  return Number.isFinite(start) && age >= 0 && age < NOTIFY_DAYS * 86_400_000 ? marked : null;
 }

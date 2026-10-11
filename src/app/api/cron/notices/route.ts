@@ -1,4 +1,5 @@
 import { connection, type NextRequest } from "next/server";
+import { RELEASES } from "@/content/releases";
 import { runNotices, runSamples } from "@/notices/send/job";
 import { isCron, liveDeps } from "@/notices/send/live";
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const userId = "00000000-0000-4000-8000-000000000000";
     if (!/^[^@\s]+@[^@\s]+$/.test(to)) return Response.json({ sample: false, reason: "not set" }, { status: 400 });
     try {
-      return Response.json({ sample: true, ...(await runSamples(liveDeps(), to, userId, LONGEST_PASSAGE)) });
+      return Response.json({ sample: true, ...(await runSamples(liveDeps(), to, userId, LONGEST_PASSAGE, RELEASES[0])) });
     } catch (error) {
       console.error(`notices: the sample failed (${error instanceof Error ? error.name : "unknown"})`);
       return Response.json({ sample: false, reason: "failed" }, { status: 500 });

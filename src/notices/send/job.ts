@@ -3,7 +3,8 @@
 
 import { paperById, paperPath, referenceHref } from "@/content/paper-index";
 import { type Device, type Due, dueNotices, passageFor, type Reader } from "@/notices/due";
-import { dailyMail, type Mail, opening, reminderMail } from "./mail";
+import { releaseDate } from "@/content/releases";
+import { dailyMail, type Mail, opening, releaseMail, reminderMail } from "./mail";
 
 export type Claim = { userId: string; kind: Due["kind"]; key: string; channel: Due["channel"] };
 export type Push = { for: string; title: string; body: string; path: string };
@@ -11,11 +12,15 @@ export type Passage = { ref: string; text: string; paperId: string; paperTitle: 
 // `offPost`: the address that a mail program calls for "unsubscribe", with one press and no page.
 export type OutMail = Mail & { to: string; offUrl: string; offPost: string };
 
+export type News = { date: string; title: string; changes: string[] };
+
 export type JobDeps = {
   now: Date;
   origin: string;
   // Null: each reader. A list: only these readers, for the first days.
   only: string[] | null;
+  // The release that readers hear of now. Absent or null: none.
+  news?: News | null;
   readers(): Promise<Reader[]>;
   // Answers the claims that are new. Only those are sent.
   claim(claims: Claim[]): Promise<Claim[]>;
@@ -40,7 +45,7 @@ const short = (text: string) => (text.length > PUSH_TEXT ? `${text.slice(0, PUSH
 export async function runNotices(deps: JobDeps): Promise<Report> {
   const all = await deps.readers();
   const readers = deps.only ? all.filter((reader) => deps.only?.includes(reader.userId)) : all;
-  const due = readers.flatMap((reader) => dueNotices(reader, deps.now));
+  const due = readers.flatMap((reader) => dueNotices(reader, deps.now, deps.news ?? null));
   const report: Report = { readers: readers.length, due: due.length, claimed: 0, mails: 0, pushes: 0, failed: 0, gone: 0 };
   if (due.length === 0) return report;
 
@@ -68,6 +73,15 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
       return {
         mail: dailyMail({ ...passage, url: `${deps.origin}${path}` }, links),
         push: { title: "Your passage for today", body: `${short(passage.text)} (${passage.ref})`, path },
+      };
+    }
+    if (notice.kind === "releases") {
+      const news = deps.news;
+      if (!news || news.changes.length === 0) return null;
+      const title = `New in UrantiaHub: ${news.title}`;
+      return {
+        mail: releaseMail({ title: news.title, changes: news.changes, date: releaseDate(news.date), url: `${deps.origin}/releases` }, links),
+        push: { title, body: short(news.changes[0]), path: "/releases" },
       };
     }
     const paper = notice.place ? paperById(notice.place.paperId) : undefined;
@@ -125,7 +139,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
 
 // One of each email, to one address, now. For a look at the real emails in a real mail program
 // before any reader gets one. It claims nothing, so it changes nothing for a reader.
-export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string): Promise<{ mails: number; sent: number }> {
+export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string, sample: News | null = null): Promise<{ mails: number; sent: number }> {
   const settingsUrl = `${deps.origin}/notifications`;
   const links = (kind: Due["kind"]) => ({ offUrl: deps.offUrl(userId, kind), settingsUrl });
   const out = (mail: Mail, kind: Due["kind"]): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind), offPost: deps.offPost(userId, kind) });
@@ -140,6 +154,7 @@ export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage
     const first = await deps.passage("2:1.1").catch(() => null);
     mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" })}`, opening: first ? opening(first.text) : null }, links("reminder")), "reminder"));
   }
+  if (sample) mails.push(out(releaseMail({ title: sample.title, changes: sample.changes, date: releaseDate(sample.date), url: `${deps.origin}/releases` }, links("releases")), "releases"));
   const sent = await deps.sendMails(mails);
   return { mails: mails.length, sent: sent.filter(Boolean).length };
 }

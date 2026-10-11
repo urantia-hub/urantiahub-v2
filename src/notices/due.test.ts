@@ -118,3 +118,25 @@ describe("the passage of a date", () => {
     expect(passages).toContain(passageFor("2026-10-11"));
   });
 });
+
+describe("the release notice", () => {
+  const wants = reader({ settings: { email: { ...OFF, releases: true }, push: { ...OFF, releases: true }, hour: 7, zone: "America/Chicago" }, devices: [device(["x"])] });
+  const news = { date: "2026-10-11" };
+
+  it("is due in the day of the reader, with the date of the release as its key", () => {
+    expect(kinds(dueNotices(wants, at("2026-10-11T15:00:00Z"), news))).toEqual(["releases/email/2026-10-11", "releases/push/2026-10-11"]);
+    // The next day has the same key, so the claim stops a second one.
+    expect(kinds(dueNotices(wants, at("2026-10-12T15:00:00Z"), news))).toEqual(["releases/email/2026-10-11", "releases/push/2026-10-11"]);
+  });
+
+  it("is not due in the night of the reader", () => {
+    expect(dueNotices(wants, at("2026-10-11T13:59:00Z"), news)).toEqual([]);
+    expect(dueNotices(wants, at("2026-10-12T01:00:00Z"), news)).toEqual([]);
+  });
+
+  it("is not due with no release, or for a reader who did not choose it", () => {
+    expect(dueNotices(wants, at("2026-10-11T15:00:00Z"))).toEqual([]);
+    expect(dueNotices(wants, at("2026-10-11T15:00:00Z"), null)).toEqual([]);
+    expect(dueNotices(reader({ settings: { email: OFF, hour: 7, zone: "America/Chicago" } }), at("2026-10-11T15:00:00Z"), news)).toEqual([]);
+  });
+});

@@ -20,7 +20,8 @@ export type Due = {
   userId: string;
   kind: Kind;
   channel: Channel;
-  // What makes this notice one notice: the local date, or the time of the place that the reader left.
+  // What makes this notice one notice: the local date, the time of the place that the reader left,
+  // or the date of the release.
   key: string;
   email: string | null;
   devices: Device[];
@@ -31,7 +32,7 @@ const DEFAULT_HOUR = 7;
 const DAY_MS = 86_400_000;
 const REMINDER_AFTER_DAYS = 7;
 const REMINDER_UNTIL_DAYS = 30;
-// The reminder comes in the day of the reader only.
+// The reminder and the release notice come in the day of the reader only.
 const DAY_STARTS = 9;
 const DAY_ENDS = 20;
 
@@ -56,7 +57,8 @@ function placeOf(value: unknown): { paperId: string; sectionId: string; at: numb
   return typeof at === "number" && Number.isFinite(at) ? { paperId, sectionId, at } : null;
 }
 
-export function dueNotices(reader: Reader, now: Date): Due[] {
+// `news`: the release that readers hear of now, or none.
+export function dueNotices(reader: Reader, now: Date, news: { date: string } | null = null): Due[] {
   const zone = reader.settings?.zone ?? "UTC";
   const local = localTime(now, zone);
   const due: Due[] = [];
@@ -69,8 +71,11 @@ export function dueNotices(reader: Reader, now: Date): Due[] {
 
   if (local.hour === (reader.settings?.hour ?? DEFAULT_HOUR)) add("daily", local.date, null);
 
+  const day = local.hour >= DAY_STARTS && local.hour < DAY_ENDS;
+  if (news && day) add("releases", news.date, null);
+
   const place = placeOf(reader.place);
-  if (place && local.hour >= DAY_STARTS && local.hour < DAY_ENDS) {
+  if (place && day) {
     const days = (now.getTime() - place.at) / DAY_MS;
     if (days >= REMINDER_AFTER_DAYS && days <= REMINDER_UNTIL_DAYS) add("reminder", String(place.at), { paperId: place.paperId, sectionId: place.sectionId });
   }

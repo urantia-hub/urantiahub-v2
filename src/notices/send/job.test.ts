@@ -160,3 +160,57 @@ describe("the samples", () => {
     expect(out.pushes).toEqual([]);
   });
 });
+
+describe("the release notice", () => {
+  const news = { date: "2026-10-11", title: "Read offline", changes: ["Keep the Papers on a device.", "Share the exact words."] };
+  // 10:00 in Chicago.
+  const DAY = new Date("2026-10-11T15:00:00Z");
+  const wants = (userId: string, over: Partial<Reader> = {}) => reader(userId, { settings: { email: { ...OFF, releases: true }, push: { ...OFF, releases: true }, hour: 7, zone: "America/Chicago" }, ...over });
+
+  it("goes by email with the title, each change, and a link to the releases page", async () => {
+    const { deps, out } = world([wants(A)], { now: DAY, news });
+    expect(await runNotices(deps)).toMatchObject({ due: 1, claimed: 1, mails: 1, failed: 0 });
+    const mail = out.mails[0];
+    expect(mail.subject).toBe("New in UrantiaHub: Read offline");
+    expect(mail.text).toContain("Keep the Papers on a device.");
+    expect(mail.text).toContain("Share the exact words.");
+    expect(mail.text).toContain("See what is new: https://www.urantiahub.com/releases");
+    expect(mail.html).toContain("Share the exact words.");
+    expect(mail.offUrl).toBe("https://www.urantiahub.com/emails?off=a1-releases");
+    expect(out.passages).toEqual([]);
+  });
+
+  it("goes as a push that opens the releases page", async () => {
+    const { deps, out } = world([wants(A, { email: null, devices: [device("one")] })], { now: DAY, news });
+    expect(await runNotices(deps)).toMatchObject({ due: 1, pushes: 1 });
+    expect(out.pushes[0].push).toEqual({ for: "key-of-a1", title: "New in UrantiaHub: Read offline", body: "Keep the Papers on a device.", path: "/releases" });
+  });
+
+  it("goes one time: a second run sends nothing", async () => {
+    const { deps, out } = world([wants(A)], { now: DAY, news });
+    await runNotices(deps);
+    await runNotices({ ...deps, now: new Date("2026-10-12T15:00:00Z") });
+    expect(out.mails).toHaveLength(1);
+  });
+
+  it("does not go with no release", async () => {
+    const { deps, out } = world([wants(A)], { now: DAY });
+    expect(await runNotices(deps)).toMatchObject({ due: 0 });
+    expect(out.mails).toEqual([]);
+  });
+
+  it("keeps a mark of HTML in a change as text", async () => {
+    const { deps, out } = world([wants(A)], { now: DAY, news: { ...news, changes: ["<b>bold</b> & more"] } });
+    await runNotices(deps);
+    expect(out.mails[0].html).toContain("&lt;b&gt;bold&lt;/b&gt; &amp; more");
+  });
+});
+
+describe("the sample of the release email", () => {
+  it("is added to the samples when a release is given", async () => {
+    const { deps, out } = world([]);
+    expect(await runSamples(deps, "me@example.com", A, "11:1.3", { date: "2026-10-11", title: "Notifications", changes: ["A passage each day."] })).toEqual({ mails: 4, sent: 4 });
+    expect(out.mails[3].subject).toBe("New in UrantiaHub: Notifications");
+    expect(out.mails[3].text).toContain("October 11, 2026");
+  });
+});
