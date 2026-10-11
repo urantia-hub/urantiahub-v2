@@ -414,3 +414,16 @@ a[aria-busy="true"] {
   opacity: 0.6;
   pointer-events: none;
 }
+
+/* On a phone the rows of the settings are for a thumb: more room for each one. */
+@media (max-width: 767px) {
+  .account-rows .account-row {
+    padding: 16px 0;
+    font-size: 15.5px;
+  }
+  /* The sheet goes on under the edge of the screen, so no gap shows below it on a phone whose
+     browser moves its own bars. */
+  .settings-panel {
+    box-shadow: 0 -10px 40px var(--shade), 0 60px 0 var(--raised);
+  }
+}
