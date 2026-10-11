@@ -26,9 +26,12 @@ describe("SiteFooter", () => {
     expect(screen.getByRole("contentinfo").querySelector("button")).toBeNull();
   });
 
-  it("has the theme control in the header", () => {
+  // The theme is in the settings, with the account, on each page (Kelson, 2026-10-11).
+  it("has the settings in the header, and no second theme control", () => {
     render(<SiteHeader />);
-    expect(screen.getByRole("banner").querySelector("button[aria-label='Dark theme']")).not.toBeNull();
+    const header = screen.getByRole("banner");
+    expect(header.querySelector("button[aria-label='Account and settings']")).not.toBeNull();
+    expect(header.querySelector("button[aria-label='Dark theme']")).toBeNull();
   });
 
   it("states that the project is independent", () => {

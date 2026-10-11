@@ -150,12 +150,13 @@ test.describe("the header of the contents page", () => {
     await expect(sheet(page).getByRole("link", { name: /^Sign in/ })).toBeVisible();
   });
 
-  test("the home page keeps the name, the links, and the moon", async ({ page }) => {
+  // Kelson, 2026-10-11: the settings are in the header of each page, in place of the moon.
+  test("the home page keeps the name and the links, and has the settings", async ({ page }) => {
     await page.goto("/");
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "About" })).toBeVisible();
-    await expect(header.getByRole("button", { name: /theme/ })).toBeVisible();
-    await expect(header.getByRole("button", { name: "Account and settings" })).toBeHidden();
+    await expect(header.getByRole("button", { name: /theme/ })).toHaveCount(0);
+    await expect(header.getByRole("button", { name: "Account and settings" })).toBeVisible();
   });
 });
 

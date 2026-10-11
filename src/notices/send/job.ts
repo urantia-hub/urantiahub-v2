@@ -3,7 +3,7 @@
 
 import { paperById, paperPath, referenceHref } from "@/content/paper-index";
 import { type Device, type Due, dueNotices, passageFor, type Reader } from "@/notices/due";
-import { dailyMail, type Mail, reminderMail } from "./mail";
+import { dailyMail, type Mail, opening, reminderMail } from "./mail";
 
 export type Claim = { userId: string; kind: Due["kind"]; key: string; channel: Due["channel"] };
 export type Push = { for: string; title: string; body: string; path: string };
@@ -74,9 +74,13 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
     if (notice.kind !== "reminder" || !notice.place || !paper) return null;
     const path = referenceHref(notice.place);
     const name = paper.id === "0" ? paper.title : `Paper ${paper.id}, ${paper.title}`;
+    // The first words of the section, so the reader sees where the text goes on. Without them the
+    // reminder still goes out, with the name of the paper.
+    const first = await deps.passage(`${paper.id}:${notice.place.sectionId}.1`).catch(() => null);
+    const words = first ? opening(first.text) : null;
     return {
-      mail: reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${path}` }, links),
-      push: { title: "Your place in the Papers", body: `You stopped in ${name}. Your place is kept.`, path },
+      mail: reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${path}`, opening: words }, links),
+      push: { title: `Your place in ${name}`, body: words ? `“${opening(first?.text ?? "", 110)} …”` : "Your place is kept.", path },
     };
   }
 
@@ -132,7 +136,10 @@ export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage
     mails.push(out(dailyMail({ ...passage, url: `${deps.origin}${paperPath(passage.paperId)}#${passage.ref}` }, links("daily")), "daily"));
   }
   const paper = paperById("2");
-  if (paper) mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" })}` }, links("reminder")), "reminder"));
+  if (paper) {
+    const first = await deps.passage("2:1.1").catch(() => null);
+    mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" })}`, opening: first ? opening(first.text) : null }, links("reminder")), "reminder"));
+  }
   const sent = await deps.sendMails(mails);
   return { mails: mails.length, sent: sent.filter(Boolean).length };
 }

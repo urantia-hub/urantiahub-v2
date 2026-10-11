@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { dailyMail, POSTAL, reminderMail } from "./mail";
+import { dailyMail, opening, POSTAL, reminderMail } from "./mail";
 import { offToken, readOffToken } from "./token";
 
 const ME = "00000000-0000-4000-8000-0000000000a1";
@@ -39,8 +39,12 @@ describe("the daily email", () => {
     for (const part of [mail.html, mail.text]) {
       expect(part).toContain("Turn this email off");
       expect(part).toContain("All notification settings");
-      expect(part).toContain("107 Bellagio Drive, Austin, TX 78734");
     }
+    expect(mail.text).toContain("107 Bellagio Drive, Austin, TX 78734");
+    // A mail program makes a blue map link of an address. Marks of no width stop that, and a reader sees the same words.
+    expect(mail.html).not.toContain("107 Bellagio Drive");
+    expect(mail.html.replace(/&zwnj;/g, "")).toContain("UrantiaHub · 107 Bellagio Drive, Austin, TX 78734");
+    expect(mail.html).toContain(">UrantiaHub</p>");
     expect(mail.text).toContain(`Turn this email off: ${links.offUrl}`);
     expect(POSTAL.startsWith("UrantiaHub")).toBe(true);
   });
@@ -57,12 +61,32 @@ describe("the daily email", () => {
 });
 
 describe("the reminder email", () => {
-  it("names the paper, has one link to the place, and says that it comes one time", () => {
-    const mail = reminderMail({ paperId: "2", paperTitle: "The Nature of God", url: "https://www.urantiahub.com/papers/paper-2-the-nature-of-god#2:1" }, links);
+  const place = { paperId: "2", paperTitle: "The Nature of God", url: "https://www.urantiahub.com/papers/paper-2-the-nature-of-god#2:1" };
+
+  it("shows the first words of the section where the reader stopped, as a text that goes on", () => {
+    const mail = reminderMail({ ...place, opening: "“Touching the Infinite, we cannot find him out" }, links);
     expect(mail.subject).toBe("Your place in the Papers");
-    expect(mail.text).toContain("You stopped in Paper 2, The Nature of God.");
-    expect(mail.text).toContain("This is the only reminder for this place.");
+    expect(mail.text).toContain("““Touching the Infinite, we cannot find him out …”");
+    expect(mail.text).toContain("Paper 2, The Nature of God · where you stopped");
     expect(mail.text).toContain("Continue: https://www.urantiahub.com/papers/paper-2-the-nature-of-god#2:1");
+    expect(mail.text).toContain("It comes one time for each place.");
+  });
+
+  it("names the paper when the words cannot be read", () => {
+    const mail = reminderMail({ ...place, opening: null }, links);
+    expect(mail.text).toContain("You stopped in Paper 2, The Nature of God. Your place is kept.");
     expect(mail.html).toContain("A reminder of your place");
+  });
+});
+
+describe("the first words of a text", () => {
+  it("are cut at a word, with no mark at the end", () => {
+    const text = "The quality of infinity is in God, and it reaches to all that is; ".repeat(6);
+    const cut = opening(text);
+    expect(cut.length).toBeLessThanOrEqual(220);
+    expect(text.startsWith(cut)).toBe(true);
+    expect(text[cut.length]).toMatch(/[\s,;.]/);
+    expect(cut).not.toMatch(/[\s.,;:]$/);
+    expect(opening("A short text.")).toBe("A short text");
   });
 });

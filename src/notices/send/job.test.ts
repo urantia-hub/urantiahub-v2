@@ -123,9 +123,18 @@ describe("one run of the notices", () => {
     expect(await runNotices(deps)).toMatchObject({ due: 2, mails: 1, pushes: 1 });
     expect(out.mails[0].subject).toBe("Your place in the Papers");
     expect(out.mails[0].offUrl).toContain("a1-reminder");
-    expect(out.pushes[0].push).toMatchObject({ for: "key-of-a1", title: "Your place in the Papers" });
+    expect(out.pushes[0].push).toMatchObject({ for: "key-of-a1", title: "Your place in Paper 2, The Nature of God", body: "“A passage of the Papers …”" });
     expect(out.pushes[0].push.path).toMatch(/^\/papers\/paper-2-/);
-    expect(out.passages).toEqual([]);
+    // The first paragraph of the section where the reader stopped.
+    expect(out.passages).toEqual(["2:1.1", "2:1.1"]);
+    expect(out.mails[0].text).toContain("“A passage of the Papers …”");
+  });
+
+  it("sends the reminder with the name of the paper when the words of the section cannot be read", async () => {
+    const place = { paperId: "2", sectionId: "1", at: NOW.getTime() - 8 * 86_400_000 };
+    const { deps, out } = world([reader(A, { settings: { email: { ...OFF, reminder: true }, hour: 3, zone: "America/Chicago" }, place })], { now: new Date("2026-10-11T17:00:00Z"), passage: async () => Promise.reject(new Error("down")) });
+    expect(await runNotices(deps)).toMatchObject({ mails: 1, failed: 0 });
+    expect(out.mails[0].text).toContain("You stopped in Paper 2, The Nature of God.");
   });
 
   it("sends only to the readers of the list while the list is set", async () => {
