@@ -1,7 +1,7 @@
 // Who is signed in, as the browser knows it. The pages are static, so the server does not put the
 // reader into the page. A signed-out reader costs no request: the mark cookie says that no one is there.
 
-import { endDevice, syncDevice } from "@/notices/device-end";
+import { dropDevice, endDevice, syncDevice } from "@/notices/device-end";
 import { IN_COOKIE, PROBLEM_COOKIE } from "./cookies";
 
 // `key` names the reader for the server. See `readerKey` in handlers.ts.
@@ -30,6 +30,8 @@ function set(next: AccountState) {
     synced = next.user.key;
     void syncDevice(synced);
   } else if (next.status !== "in") synced = null;
+  // Nobody is signed in, by a press or because the sign-in ended: this browser gets no more push.
+  if (next.status === "out") void dropDevice();
   state = next;
   for (const listener of listeners) listener();
 }

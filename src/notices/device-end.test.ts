@@ -25,7 +25,7 @@ vi.mock("./push", () => ({
   },
 }));
 
-import { DEVICE_EVENT, endDevice, registerDevice, syncDevice } from "./device-end";
+import { DEVICE_EVENT, dropDevice, endDevice, registerDevice, syncDevice } from "./device-end";
 
 const ENDPOINT = "https://fcm.googleapis.com/fcm/send/abc";
 afterEach(() => {
@@ -108,7 +108,7 @@ describe("a sign-out", () => {
     expect(init.method).toBe("DELETE");
     expect(JSON.parse(String(init.body))).toEqual({ endpoint: ENDPOINT });
     expect(init.headers["x-hub-reader"]).toBe("k1");
-    // The same reader, signed in again, gets the same device back.
+    // This call only tells the account. The page ends the registration when it learns of the sign-out.
     expect(unsubscribe).not.toHaveBeenCalled();
   });
 
@@ -120,5 +120,15 @@ describe("a sign-out", () => {
     await endDevice("k1");
     await endDevice(null);
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("ends the registration of the browser when nobody is signed in, and never throws", async () => {
+    const unsubscribe = device(ENDPOINT);
+    await dropDevice();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+    device(null);
+    await dropDevice();
+    Reflect.deleteProperty(navigator, "serviceWorker");
+    await dropDevice();
   });
 });
