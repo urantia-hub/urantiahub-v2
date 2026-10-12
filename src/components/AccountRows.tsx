@@ -14,8 +14,9 @@ export const ACCOUNT_PAGE = "https://accounts.urantiahub.com";
 
 const useProblem = () => useSyncExternalStore(never, signInProblem, noSignInProblem);
 
-// The rows of the account in the reader settings, in three parts: who reads ("Sign in", or the reader's
-// account), the reader's pages, and "Sign out". With no part named, all three show.
+// The rows of the account in the reader settings, in three parts: who reads ("Sign in", or the way to
+// the reader's page), "Saved", and "Sign out". With no part named, all three show. The progress and
+// the notifications are on the reader's page (Kelson, 2026-10-12).
 type Part = "who" | "pages" | "out";
 
 export function AccountRows({ part }: { part?: Part }) {
@@ -48,17 +49,16 @@ export function AccountRows({ part }: { part?: Part }) {
   return (
     <div className="account-rows">
       {has("who") && (
-        <a className="account-row who" href={ACCOUNT_PAGE} target="_blank" rel="noopener">
+        <Link className="account-row who" href="/you">
           <span className="face" aria-hidden="true">
             {name.trim().charAt(0).toUpperCase()}
           </span>
           <span>
             {name}
-            {account.user?.name && account.user.email && <small>{account.user.email}</small>}
-            <span className="sr-only"> (your UrantiaHub account, opens in a new tab)</span>
+            <small>Your page: progress{NOTICES_ON ? " and notifications" : ""}</small>
           </span>
-          <Icon name="external" />
-        </a>
+          <Icon name="paperAfter" />
+        </Link>
       )}
       {has("pages") && (
         <>
@@ -67,18 +67,6 @@ export function AccountRows({ part }: { part?: Part }) {
             <span>Saved</span>
             <Icon name="paperAfter" />
           </Link>
-          <Link className="account-row" href="/progress">
-            <Icon name="progress" />
-            <span>Progress</span>
-            <Icon name="paperAfter" />
-          </Link>
-          {NOTICES_ON && (
-            <Link className="account-row" href="/notifications">
-              <Icon name="bell" />
-              <span>Notifications</span>
-              <Icon name="paperAfter" />
-            </Link>
-          )}
         </>
       )}
       {/* A sign-out takes a moment. The row says so, and a second press does nothing. */}

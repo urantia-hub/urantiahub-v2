@@ -20,10 +20,9 @@ afterEach(() => {
 });
 
 describe("the Progress page", () => {
-  it("asks a reader with no account to sign in, and shows no numbers", () => {
-    render(<ProgressView />);
-    expect(screen.getByRole("link", { name: "Sign in" })).toBeInTheDocument();
-    expect(screen.queryByText(/paragraphs$/)).toBeNull();
+  it("shows nothing to a reader with no account: the reader's page asks for the sign-in", () => {
+    const { container } = render(<ProgressView />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("shows the share of the whole text, the three counts, the open papers, and each part", async () => {

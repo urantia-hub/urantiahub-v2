@@ -34,13 +34,17 @@ test.describe("a sign-in from a paper", () => {
     await page.waitForURL((url) => url.pathname === PAPER && url.hash === "#1:0.3");
 
     await openSettings(page);
-    const account = sheet(page).getByRole("link", { name: /Ana Reader/ });
+    await expect(sheet(page).getByRole("link", { name: /^Sign in/ })).toHaveCount(0);
+    // One row for the reader's page, "Saved", and "Sign out". No second link to the same page.
+    await expect(sheet(page).locator(".account-row")).toHaveCount(3);
+    await expect(sheet(page).getByRole("link", { name: "Saved" })).toHaveAttribute("href", "/saved");
+    // The reader's page has the way to the account, in a new tab.
+    await sheet(page).getByRole("link", { name: /Ana Reader/ }).click();
+    await expect(page).toHaveURL(/\/you$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Ana Reader" })).toBeVisible();
+    const account = page.getByRole("link", { name: /^Account/ });
     await expect(account).toHaveAttribute("href", "https://accounts.urantiahub.com");
     await expect(account).toHaveAttribute("target", "_blank");
-    await expect(sheet(page).getByRole("link", { name: /^Sign in/ })).toHaveCount(0);
-    // One row for the account, "Saved", "Progress", "Notifications", and "Sign out". No second link to the same page.
-    await expect(sheet(page).locator(".account-row")).toHaveCount(5);
-    await expect(sheet(page).getByRole("link", { name: "Saved" })).toHaveAttribute("href", "/saved");
   });
 
   test("keeps no token where a script can read it", async ({ page, context }) => {

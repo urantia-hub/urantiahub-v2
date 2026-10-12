@@ -6,7 +6,6 @@ import { accountState, serverAccountState, subscribeToAccount } from "@/account/
 import { summarize, type Summary } from "@/account/progress-summary";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
-import { SignInLink } from "@/components/SignInLink";
 import { paperPath, referenceHref } from "@/content/paper-index";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
 
@@ -15,6 +14,7 @@ const NOTHING: Data = { for: null, status: "loading", counts: {} };
 const none = () => null;
 
 // What the signed-in reader read: the whole text, each part, and the papers that are open.
+// It is a part of the reader's page (`YouView`), which shows it to a signed-in reader only.
 export function ProgressView() {
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const last = useSyncExternalStore(subscribeToLastRead, readLastRead, none);
@@ -37,27 +37,11 @@ export function ProgressView() {
     };
   }, [key, attempt]);
 
-  const signedOut = account.status !== "in";
+  if (account.status !== "in") return null;
   return (
-    <div className="saved-page progress-page">
-      <p className="saved-back">
-        <Link href="/papers">
-          <Icon name="paperBefore" />
-          Papers
-        </Link>
-      </p>
-      <h1>Your progress</h1>
-      {signedOut && (
-        <div className="saved-empty">
-          <b>What you read</b>
-          Sign in, and UrantiaHub keeps count of the paragraphs that you read.
-          {account.status === "out" && (
-            <SignInLink className="saved-button" />
-          )}
-        </div>
-      )}
-      {!signedOut && data.status === "loading" && <p className="progress-wait" role="status" aria-label="Loading your progress" />}
-      {!signedOut && data.status === "failed" && (
+    <div className="progress-page">
+      {data.status === "loading" && <p className="progress-wait" role="status" aria-label="Loading your progress" />}
+      {data.status === "failed" && (
         <p className="saved-empty" role="alert">
           Your progress did not load.{" "}
           <button type="button" onClick={() => setAttempt((n) => n + 1)}>
@@ -65,7 +49,7 @@ export function ProgressView() {
           </button>
         </p>
       )}
-      {!signedOut && data.status === "ready" && <Shown summary={summarize(data.counts, last?.paperId ?? null)} place={last} />}
+      {data.status === "ready" && <Shown summary={summarize(data.counts, last?.paperId ?? null)} place={last} />}
     </div>
   );
 }

@@ -47,16 +47,18 @@ test("the footer leads to the releases, the newest first", async ({ page }) => {
   await noSideScroll(page);
 });
 
-test("the progress page asks a reader with no account to sign in", async ({ page }) => {
+test("the reader's page asks a reader with no account to sign in, and the old progress address opens it", async ({ page }) => {
   await page.goto("/progress");
-  await expect(page.getByRole("heading", { level: 1, name: "Your progress" })).toBeVisible();
+  await expect(page).toHaveURL(/\/you$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Your page" })).toBeVisible();
   await expect(page.locator(".saved-empty").getByRole("link", { name: "Sign in" })).toBeVisible();
   await expect(page.locator(".progress-total")).toHaveCount(0);
 });
 
-test("a signed-in reader finds the progress in the settings: the share, the counts, and the way back to an open paper", async ({ page, context }) => {
+test("a signed-in reader finds the progress on the reader's page: the share, the counts, and the way back to an open paper", async ({ page, context }) => {
   const reader = await asReader(context);
   await reader.set({
+    saved: [{ ref: "1:0.3", createdAt: "2026-10-01T00:00:00.000Z" }],
     progress: [
       { paperId: "0", readCount: 172, totalParagraphs: 172 },
       { paperId: "1", readCount: 35, totalParagraphs: 70 },
@@ -65,8 +67,13 @@ test("a signed-in reader finds the progress in the settings: the share, the coun
   await page.goto(PAPER);
   await signIn(page);
   await page.getByRole("button", { name: "Account and settings" }).click();
-  await settings(page).getByRole("link", { name: "Progress" }).click();
-  await expect(page).toHaveURL(/\/progress$/);
+  await settings(page).getByRole("link", { name: /Ana Reader/ }).click();
+  await expect(page).toHaveURL(/\/you$/);
+  // What the reader saved, the newest first, with the way to all of it.
+  await expect(page.locator(".you-saved")).toContainText("1:0.3");
+  await expect(page.locator(".you-saved")).toContainText("Text of 1:0.3.");
+  await expect(page.getByRole("link", { name: "See all 1" })).toHaveAttribute("href", "/saved");
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
   await expect(page.locator(".progress-total")).toContainText("207 of 14,593 paragraphs");
   await expect(page.locator(".progress-total b")).toHaveText("1%");
   await expect(page.locator(".progress-facts")).toContainText("1paper finished");
