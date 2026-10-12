@@ -41,7 +41,8 @@ export type AnalyticsEvents = {
 };
 
 type Args<E extends keyof AnalyticsEvents> = AnalyticsEvents[E] extends undefined ? [] : [AnalyticsEvents[E]];
-type Client = { capture(event: string, properties?: object): unknown };
+type Client = { capture(event: string, properties?: object): unknown; identify(id: string): unknown; reset(): unknown; register(properties: object): unknown };
+const LABELS = { app: "hub-v2" };
 
 let started = false;
 let client: Client | null = null;
@@ -49,8 +50,11 @@ const waiting: [string, object | undefined][] = [];
 // A reader with a blocker never loads PostHog. The wait list must not grow for the whole visit.
 const MAX_WAITING = 50;
 let failed = false;
+// The signed-in reader of this page, as the reader key. Null for each other reader.
+let reader: string | null = null;
 
 // Off until NEXT_PUBLIC_POSTHOG_KEY is set. Cookieless: state stays in memory for one page session.
+// A signed-in reader has a name for PostHog: see `setAnalyticsReader`.
 // PostHog loads after the page is idle. Events that arrive earlier wait in a queue.
 export function initAnalytics(): void {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -117,8 +121,10 @@ async function start(key: string): Promise<void> {
     capture_heatmaps: false,
     before_send: (event) => scrubSearchText(event),
   });
-  posthog.register({ app: "hub-v2" });
+  posthog.register(LABELS);
   client = posthog;
+  // First, so the events that waited belong to the reader.
+  if (reader) posthog.identify(reader);
   for (const [event, properties] of waiting.splice(0)) posthog.capture(event, properties);
 }
 
@@ -126,4 +132,20 @@ export function track<E extends keyof AnalyticsEvents>(event: E, ...props: Args<
   if (!started || failed) return;
   if (client) client.capture(event, props[0]);
   else if (waiting.length < MAX_WAITING) waiting.push([event, props[0]]);
+}
+
+// A signed-in reader: PostHog gets the reader key (`readerKey` in src/account/handlers.ts), which is a
+// code of the account. Never the email, the name, or the account id. Null at a sign-out: the events
+// that follow belong to no reader. The Privacy page states this: change both together.
+export function setAnalyticsReader(key: string | null): void {
+  if (!started || failed || key === reader) return;
+  const had = reader;
+  reader = key;
+  if (!client) return;
+  if (key) client.identify(key);
+  else if (had) {
+    // A reset removes the labels too.
+    client.reset();
+    client.register(LABELS);
+  }
 }

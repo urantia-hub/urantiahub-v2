@@ -1,4 +1,4 @@
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
 import { pageMetadata } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
   // A notice needs an account. While the notices are off, the page says nothing of them.
   const noticesOn = accountsOn && process.env.NEXT_PUBLIC_NOTICES === "on";
   const accountVendors = noticesOn ? ACCOUNT_VENDORS.map((vendor) => (vendor.name === NOTICE_RESEND.name ? NOTICE_RESEND : vendor)) : ACCOUNT_VENDORS;
-  const vendors = accountsOn ? [...VENDORS, ...accountVendors] : VENDORS;
+  const vendors = accountsOn ? [...VENDORS.map((vendor) => (vendor.name === ACCOUNT_POSTHOG.name ? ACCOUNT_POSTHOG : vendor)), ...accountVendors] : VENDORS;
   return (
     <div className="prose privacy">
       <h1>Privacy</h1>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
         <li>You can read and listen with no account. The site does not ask for your name or your email address.</li>
         {accountsOn && <li>An account is optional. With one, your place, your saved paragraphs, and your notes follow you to each device. The theme and the text size stay on each device.</li>}
         <li>The site shows no advertising, and it sells no data.</li>
-        <li>It counts which pages and features readers use, with no cookie and no identifier.</li>
+        <li>It counts which pages and features readers use, with no cookie{accountsOn ? ". If you sign in, the counts carry a code that stands for your account, not your email address or your name." : " and no identifier."}</li>
         <li>It records what readers search for, with no link to the reader.</li>
         <li>
           Questions: <Email />.
@@ -50,6 +50,14 @@ export default function PrivacyPage() {
         search page is sent without the words of the search. The site sets no analytics cookie and keeps no analytics
         identifier in your browser. PostHog processes your IP address when it receives a request from your browser.
       </p>
+      {accountsOn && (
+        <p>
+          While you are signed in, each event also carries a code that stands for your account. With it we see how
+          readers with an account use the site over time. The code is not your email address, your name, or the
+          number of your account, and PostHog receives none of those. After you sign out, the events carry no
+          code. The records of searches never carry it.
+        </p>
+      )}
       <p>We use this to see which parts of the site help readers, and to find faults.</p>
 
       <h3>Searches</h3>

@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, startAccount, subscribeToAccount } from "@/account/client";
+import { setAnalyticsReader } from "@/analytics";
 import { forgetAccountData, pullFromAccount, startSync } from "@/account/sync";
 
 // Finds out who is signed in, one time for each page load, and keeps a signed-in reader's place and
@@ -16,9 +17,15 @@ export function AccountSync() {
     void startAccount();
   }, []);
   useEffect(() => {
-    if (status === "in" && key) void pullFromAccount();
+    if (status === "in" && key) {
+      void pullFromAccount();
+      setAnalyticsReader(key);
+    }
     // Signed out by a press, by the server, or because the session ended while the reader was away.
-    if (status === "out") forgetAccountData();
+    if (status === "out") {
+      forgetAccountData();
+      setAnalyticsReader(null);
+    }
   }, [status, key]);
   return null;
 }
