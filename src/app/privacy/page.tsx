@@ -60,6 +60,14 @@ export default function PrivacyPage() {
       )}
       <p>We use this to see which parts of the site help readers, and to find faults.</p>
 
+      <h3>Ask an assistant</h3>
+      <p>
+        A paper offers “Ask an assistant”. When you use it, your browser opens the site of the assistant that you
+        chose (Claude, ChatGPT, Gemini, or Grok) with your question and the paragraphs that it is about. UrantiaHub
+        does not receive the question or the answer, and it pays no assistant. The company of that assistant
+        handles both under its own terms. The site counts that the feature was used, never the words.
+      </p>
+
       <h3>Searches</h3>
       <p>
         When you search, the site records the words of the search and how many results it found, so that we can see

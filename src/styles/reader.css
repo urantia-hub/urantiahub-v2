@@ -287,3 +287,30 @@ html:not([data-reader]) .para:target .ref {
     border-top: 1px solid var(--rule);
   }
 }
+
+/* "Ask an assistant about this paper", below the title. It keeps its room with no script, so the text
+   does not move when the controls of the paper start (`data-reader` on <html>). */
+.paper-head h1 {
+  margin-bottom: 1.5em;
+}
+.ask-paper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -16px 0 35px;
+  padding: 9px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--ref);
+  font: 500 13.5px/1.2 var(--font-ui);
+  cursor: pointer;
+  visibility: hidden;
+}
+html[data-reader] .ask-paper {
+  visibility: visible;
+}
+.ask-paper .icon {
+  width: 17px;
+  height: 17px;
+}

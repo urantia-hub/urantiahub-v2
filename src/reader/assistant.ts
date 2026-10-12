@@ -19,14 +19,14 @@ export const PARAGRAPH_QUESTIONS: readonly string[] = [
   "What do the unusual terms here mean?",
   "Where else do the Papers speak of this?",
   "How do other traditions speak of this idea?",
-  "Help me see the ideas of this paragraph: make a visual of them, in the form that you think is best.",
+  "Make a visual of these ideas, in the form that you think is best.",
 ];
 export const PAPER_QUESTIONS: readonly string[] = [
   "Give me the short version of this paper.",
   "Walk me through this paper, section by section.",
   "Which ideas here are hard, and what do they mean?",
   "Give me five questions for a study group.",
-  "Help me see the ideas of this paper: make a visual of them, in the form that you think is best.",
+  "Make a visual of the ideas of this paper, in the form that you think is best.",
 ];
 
 export type Before = { ref: string; text: string };
@@ -65,11 +65,11 @@ function more(lines: string[], example: string): string {
   ].join("\n");
 }
 
-type ParagraphAsk = { question: string; paper: Paper; section: { id: string; title: string } | null; before: readonly Before[]; ref: string; text: string; link: string };
+type ParagraphAsk = { question: string; paper: Paper; section: { id: string; title: string | null } | null; before: readonly Before[]; ref: string; text: string; link: string };
 
 export function paragraphPrompt({ question, paper, section, before, ref, text, link }: ParagraphAsk): string {
   const { kept, cut } = contextWithin(before);
-  const parts = [question, `From the Urantia Papers:\n${paperLine(paper)}\n${section ? `Section ${section.id}, "${section.title}"` : "The opening of the paper"}`];
+  const parts = [question, `From the Urantia Papers:\n${paperLine(paper)}\n${section ? `Section ${section.id}${section.title ? `, "${section.title}"` : ""}` : "The opening of the paper"}`];
   if (kept.length > 0) parts.push(`The paragraphs before it in this section${cut ? " (the nearest ones)" : ""}, for context:\n${kept.map((one) => `${one.ref} ${one.text}`).join("\n\n")}`);
   parts.push(`The paragraph that I ask about:\n${ref} ${text}`, `On UrantiaHub: ${link}`);
   parts.push(
@@ -97,6 +97,9 @@ export function assistantHref(id: AssistantId, prompt: string): string {
   const assistant = ASSISTANTS.find((one) => one.id === id) ?? ASSISTANTS[0];
   return assistant.prefill ? `${assistant.address}${encodeURIComponent(prompt)}` : assistant.address;
 }
+
+// The button below the title of a paper asks the controls of the paper to open the sheet.
+export const ASK_PAPER_EVENT = "hub:ask-paper";
 
 const KEY = "hub:assistant";
 

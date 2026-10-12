@@ -146,7 +146,7 @@ describe("Privacy", () => {
 
   it("names each thing that stays in the browser, from one list", () => {
     const page = text();
-    expect(BROWSER_ITEMS.length).toBe(5);
+    expect(BROWSER_ITEMS.length).toBe(6);
     for (const item of BROWSER_ITEMS) expect(page).toContain(item.name);
   });
 
