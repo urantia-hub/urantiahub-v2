@@ -36,6 +36,9 @@ export type AnalyticsEvents = {
   // An image of a paragraph. The paper and the look only.
   image_opened: { paper_id: string };
   image_made: { paper_id: string; look: string; method: "share" | "save" };
+  // A question for the reader's own assistant. Labels only: `question` is the place of a ready question
+  // in its list, or "own". Never the words of a question.
+  assistant_asked: { paper_id: string; about: "paragraph" | "paper"; assistant: string; question: number | "own"; method: "open" | "copy" };
   navigator_opened: { paper_id: string };
   navigator_used: { kind: "section" | "paper" | "reference" | "contents" };
 };
