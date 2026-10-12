@@ -41,7 +41,7 @@ export type AnalyticsEvents = {
 };
 
 type Args<E extends keyof AnalyticsEvents> = AnalyticsEvents[E] extends undefined ? [] : [AnalyticsEvents[E]];
-type Client = { capture(event: string, properties?: object): unknown; identify(id: string): unknown; reset(): unknown; register(properties: object): unknown };
+type Client = { capture(event: string, properties?: object): unknown; identify(id: string): unknown; reset(device?: boolean): unknown; register(properties: object): unknown };
 const LABELS = { app: "hub-v2" };
 
 let started = false;
@@ -142,10 +142,12 @@ export function setAnalyticsReader(key: string | null): void {
   const had = reader;
   reader = key;
   if (!client) return;
-  if (key) client.identify(key);
-  else if (had) {
+  if (had) {
+    // The reader before leaves whole: the device id and the session go too, so no event after this has
+    // a tie to that reader. This holds for a sign-out and for a second reader on the same page.
+    client.reset(true);
     // A reset removes the labels too.
-    client.reset();
     client.register(LABELS);
   }
+  if (key) client.identify(key);
 }

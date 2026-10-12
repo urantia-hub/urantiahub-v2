@@ -54,9 +54,23 @@ describe("analytics", () => {
     await started();
     setAnalyticsReader("abc123");
     setAnalyticsReader(null);
-    expect(posthog.reset).toHaveBeenCalledTimes(1);
+    // `true`: the device id goes too, so the events after a sign-out have no tie to the reader.
+    expect(posthog.reset).toHaveBeenCalledExactlyOnceWith(true);
     expect(posthog.register).toHaveBeenLastCalledWith({ app: "hub-v2" });
     expect(posthog.register).toHaveBeenCalledTimes(2);
+  });
+
+  // A second reader signs in on the same page, with no sign-out between. Found by the commit scan.
+  it("cuts the tie to the reader before it, when another reader signs in", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, setAnalyticsReader } = await import("./index");
+    initAnalytics();
+    await started();
+    setAnalyticsReader("abc123");
+    setAnalyticsReader("def456");
+    expect(posthog.reset).toHaveBeenCalledExactlyOnceWith(true);
+    expect(posthog.identify).toHaveBeenLastCalledWith("def456");
+    expect(posthog.reset.mock.invocationCallOrder[0]).toBeLessThan(posthog.identify.mock.invocationCallOrder[1]);
   });
 
   it("does not reset for a reader who was never signed in", async () => {
