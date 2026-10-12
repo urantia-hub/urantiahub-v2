@@ -85,7 +85,8 @@ body::after {
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
-body:has(.panel.image:not([data-leaving], [style*="display: none"]))::after {
+body:has(.panel.image:not([data-leaving], [style*="display: none"]))::after,
+body:has(.panel.share:not([data-leaving], [style*="display: none"]))::after {
   opacity: 1;
 }
 @media (max-width: 1099px) {

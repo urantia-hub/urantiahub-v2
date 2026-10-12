@@ -339,3 +339,259 @@
     height: min(46dvh, 440px);
   }
 }
+
+/* An X at the top right of a panel. */
+.panel .panel-x {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--muted);
+}
+.panel .panel-x .icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* The share sheet: the sentences, and the card that a chat app shows for the link. */
+.panel.share {
+  --line: var(--rule);
+  --pick: var(--mark);
+  max-height: 92dvh;
+}
+:root[data-theme="dark"] .panel.share {
+  --line: #423d2f;
+  --pick: #4a4226;
+}
+.panel.share h2 {
+  font-size: 21px;
+  line-height: 1.2;
+}
+.panel .share-sub {
+  margin: 4px 34px 12px 0;
+}
+.share-pickwrap {
+  position: relative;
+}
+.share-pickwrap::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  height: 34px;
+  border-radius: 0 0 13px 13px;
+  background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
+}
+.panel .share-pick {
+  max-height: 148px;
+  overflow-y: auto;
+  padding: 14px 16px 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--muted);
+  font: 400 16.5px/1.65 var(--font-text);
+}
+.panel .share-pick button {
+  display: inline;
+  padding: 2px 1px;
+  border-radius: 4px;
+  text-align: left;
+  transition: color 0.15s, background 0.15s;
+}
+.panel .share-pick[data-all] button,
+.panel .share-pick button[aria-pressed="true"] {
+  color: var(--ink);
+}
+.panel .share-pick button[aria-pressed="true"] {
+  background: var(--pick);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.share-count {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 9px 2px 16px;
+  color: var(--ref);
+  font-size: 12.5px;
+}
+.panel .share-count button {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.panel .share-label {
+  margin: 0 0 8px;
+  color: var(--ref);
+  font: 600 10.5px/1.45 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.share-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+}
+/* The picture of the link, at the size of the card. Each length is a share of its width. */
+.share-og {
+  container-type: inline-size;
+  aspect-ratio: 1200 / 630;
+  background: #fbf8f2;
+  color: #26221c;
+}
+.share-og q,
+.share-og div {
+  display: block;
+  margin: 0 8cqw;
+}
+.share-og q {
+  quotes: none;
+  padding-top: 5.33cqw;
+  font: 500 4.17cqw/1.4 var(--font-text);
+}
+.share-og {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.share-og[data-size="s"] q {
+  font-size: 5.5cqw;
+}
+.share-og[data-size="l"] q {
+  font-size: 3.42cqw;
+}
+.share-og div {
+  display: flex;
+  align-items: center;
+  gap: 1.33cqw;
+  margin-top: 3.67cqw;
+  padding-bottom: 5.33cqw;
+  color: #8b8375;
+  font: 500 2.5cqw/1.2 var(--font-text);
+}
+.share-og svg {
+  width: 3.33cqw;
+  height: 3.33cqw;
+}
+.share-og rect {
+  fill: #26221c;
+}
+.share-og path {
+  fill: #fbf8f2;
+}
+.share-og div span {
+  margin-left: auto;
+  color: #756d5f;
+}
+.share-meta {
+  padding: 10px 12px 11px;
+  border-top: 1px solid var(--line);
+}
+.share-meta b {
+  display: block;
+  font: 600 13.5px/1.3 var(--font-ui);
+}
+.share-meta span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+  color: var(--ref);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.share-meta small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.panel .share-url {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  word-break: break-all;
+  user-select: all;
+}
+.panel.share .panel-foot {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.share-acts {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 10px;
+}
+.panel .share-acts .panel-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 12px;
+  border-color: var(--line);
+  font-size: 14.5px;
+}
+.panel .share-acts .panel-button.dark {
+  border-color: var(--ink);
+}
+.share-acts .icon {
+  width: 17px;
+  height: 17px;
+}
+.panel .share-note {
+  margin-top: 8px;
+  color: var(--ink);
+}
+.panel .share-third {
+  color: var(--ref);
+  font-size: 13.5px;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@media (min-width: 768px) {
+  .panel.share {
+    bottom: 50%;
+    width: min(880px, 94vw);
+    max-height: 92dvh;
+    margin-left: max(-440px, -47vw);
+    transform: translateY(50%);
+  }
+  .share-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  .share-cols > :only-child {
+    grid-column: 1 / -1;
+    max-width: 420px;
+  }
+  .panel .share-pick {
+    max-height: 318px;
+  }
+  .panel.share .panel-foot {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 30px 18px;
+  }
+  .panel.share .panel-body {
+    padding: 26px 30px 18px;
+  }
+  .share-acts {
+    grid-auto-columns: auto;
+  }
+  .panel .share-acts .panel-button {
+    padding: 12px 26px;
+  }
+}

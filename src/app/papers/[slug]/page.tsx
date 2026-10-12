@@ -6,6 +6,7 @@ import { getPaper } from "@/content";
 import { ReadingNav } from "@/components/navigation/ReadingNav";
 import { ReadMarks } from "@/components/ReadMarks";
 import { SavedMarks } from "@/components/reader/SavedMarks";
+import { SharedMark } from "@/components/reader/SharedMark";
 import type { NavPaper } from "@/components/navigation/nav-state";
 import { PAPERS, paperById, paperPath } from "@/content/paper-index";
 import { prerenderIds } from "@/content/prerender";
@@ -52,6 +53,7 @@ export default async function PaperPage({ params }: Props) {
       <PaperView paper={paper} />
       <ReadMarks paperId={paper.id} />
       <SavedMarks paperId={paper.id} />
+      <SharedMark />
       <ReadingNav
         paper={{ id: paper.id, title: paper.title }}
         sections={paper.sections.map((s) => ({ id: s.id, title: s.title }))}

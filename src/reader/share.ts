@@ -7,6 +7,9 @@ type Nav = {
 // A phone or a tablet: the share sheet of the device is what its reader knows.
 const touch = () => typeof window !== "undefined" && (window.matchMedia?.("(pointer: coarse)").matches ?? false);
 
+// The share sheet of the device is offered only where a reader knows it: a phone or a tablet.
+export const hasShareSheet = () => touch() && typeof navigator.share === "function";
+
 // Sends a paragraph link: the share sheet on a touch device that has one, the clipboard on each other.
 // On a computer the share window of the browser is odd, and a copied link is what a reader expects.
 // Returns what happened, so the caller can report it and show "Link copied".

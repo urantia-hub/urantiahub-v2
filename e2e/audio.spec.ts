@@ -47,40 +47,6 @@ test("a double-click that selects a word marks nothing", async ({ page }, testIn
   await expect(dock(page)).toHaveAttribute("data-job", "reading");
 });
 
-test("Share copies the paragraph link where the browser has no share sheet", async ({ page }) => {
-  await stubAudio(page);
-  await page.goto(PAPER_1);
-  await page.evaluate(() => Object.defineProperty(navigator, "share", { value: undefined, configurable: true }));
-  await tap(page, "1:0.2");
-  await page.getByRole("button", { name: "Share" }).click();
-  await expect(page.getByText("Link copied")).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`http://localhost:3100${PAPER_1}#1:0.2`);
-});
-
-test("Share gives the share sheet the link and a title on a phone, and copies the link on a computer", async ({ page, context }, testInfo) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await stubAudio(page);
-  await page.goto(PAPER_1);
-  await page.evaluate(() => {
-    (window as unknown as { shared: unknown }).shared = null;
-    Object.defineProperty(navigator, "share", {
-      value: async (data: unknown) => void ((window as unknown as { shared: unknown }).shared = data),
-      configurable: true,
-    });
-  });
-  await tap(page, "1:0.2");
-  await page.getByRole("button", { name: "Share" }).click();
-  if (testInfo.project.name === "desktop") {
-    await expect(page.getByText("Link copied")).toBeVisible();
-    expect(await page.evaluate(() => (window as unknown as { shared: unknown }).shared)).toBeNull();
-    return;
-  }
-  expect(await page.evaluate(() => (window as unknown as { shared: unknown }).shared)).toEqual({
-    title: "1:0.2 · Paper 1, The Universal Father",
-    url: `http://localhost:3100${PAPER_1}#1:0.2`,
-  });
-});
-
 test("the round button starts the voice at the first paragraph in view", async ({ page }) => {
   await stubAudio(page);
   await page.goto(PAPER_1);
