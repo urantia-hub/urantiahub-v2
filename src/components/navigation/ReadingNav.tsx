@@ -13,7 +13,7 @@ import { Sheet } from "@/components/reader/Sheet";
 import { TermsSheet } from "@/components/reader/TermsSheet";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
 import { saveLastRead } from "@/reader/last-read";
-import { shareParagraph } from "@/reader/share";
+import { sharedFromAddress } from "@/reader/share-link";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
@@ -23,6 +23,7 @@ const NoteSheet = lazy(() => import("@/components/reader/NoteSheet"));
 // The image maker draws on a canvas. A reader who makes no image does not download it.
 const ImageSheet = lazy(() => import("@/components/reader/ImageSheet"));
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
+const ShareSheet = lazy(() => import("@/components/reader/ShareSheet"));
 
 type Props = {
   paper: { id: string; title: string };
@@ -63,7 +64,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // The small panel above the row: the two more actions, or the question for a reader with no account.
-  const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | null>(null);
+  const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | "share" | null>(null);
+  // The sentences that the image maker starts with, when it opens from the share sheet.
+  const [imageStart, setImageStart] = useState<ReadonlySet<number> | undefined>(undefined);
   const [askHref, setAskHref] = useState("");
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
@@ -74,6 +77,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const moreTile = useRef<HTMLButtonElement>(null);
   const saveTile = useRef<HTMLButtonElement>(null);
   const noteTile = useRef<HTMLButtonElement>(null);
+  const shareTile = useRef<HTMLButtonElement>(null);
   // The tile that gets the focus back when the question closes.
   const askedFrom = useRef<"save" | "note">("save");
   const toastTimer = useRef(0);
@@ -178,7 +182,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   // A reader who arrives by a link to a paragraph: that paragraph is marked.
   useEffect(() => {
+    let first = true;
     const fromAddress = () => {
+      // A link to some sentences of a paragraph: `SharedMark` marks them, and the paragraph has no mark.
+      const sentences = first && sharedFromAddress(window.location.search, window.location.hash) !== null;
+      first = false;
+      if (sentences) return;
       let id = "";
       try {
         id = decodeURIComponent(window.location.hash.slice(1));
@@ -388,7 +397,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   }
 
   function closePanel() {
-    const tile = panel === "notes" || (panel === "ask" && askedFrom.current === "note") ? noteTile : panel === "ask" ? saveTile : moreTile;
+    const tile = panel === "notes" || (panel === "ask" && askedFrom.current === "note") ? noteTile : panel === "ask" ? saveTile : panel === "share" ? shareTile : moreTile;
     setPanel(null);
     window.requestAnimationFrame(() => tile.current?.focus({ preventScroll: true }));
   }
@@ -438,19 +447,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     }
   }
 
-  async function onShare() {
+  function onShare() {
     if (!picked) return;
-    const ref = picked;
-    setPicked(null);
-    setHidden(false);
-    refocus();
-    const method = await shareParagraph({
-      title: `${ref} · ${paper.id === "0" ? paper.title : `Paper ${paper.id}, ${paper.title}`}`,
-      url: `${window.location.origin}${window.location.pathname}#${ref}`,
-    });
-    if (method === "none") return;
-    track("paragraph_shared", { ref, method });
-    if (method === "copy") say("Link copied");
+    setTermsOpen(false);
+    setParallelsOpen(false);
+    setPanel((was) => (was === "share" ? null : "share"));
   }
 
   const section = sections.find((s) => s.id === current);
@@ -568,7 +569,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
                     Note
                   </button>
                 )}
-                <button type="button" className="tile" onClick={onShare}>
+                <button type="button" className="tile" aria-haspopup="dialog" aria-expanded={panel === "share"} onClick={onShare} ref={shareTile}>
                   <Icon name="share" />
                   Share
                 </button>
@@ -626,7 +627,14 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       {panel === "more" && picked && (
         <Sheet label="More" onClose={closePanel}>
           {/* The action that a reader uses most is at the end, near the thumb. */}
-          <button type="button" className="panel-line" onClick={() => setPanel("image")}>
+          <button
+            type="button"
+            className="panel-line"
+            onClick={() => {
+              setImageStart(undefined);
+              setPanel("image");
+            }}
+          >
             <Icon name="image" />
             Make an image
           </button>
@@ -662,7 +670,26 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       )}
       {panel === "image" && picked && (
         <Suspense fallback={null}>
-          <ImageSheet key={picked} reference={picked} paperId={paper.id} text={paragraphText(picked)} onClose={closePanel} />
+          <ImageSheet key={picked} reference={picked} paperId={paper.id} text={paragraphText(picked)} start={imageStart} onClose={closePanel} />
+        </Suspense>
+      )}
+      {panel === "share" && picked && (
+        <Suspense fallback={null}>
+          <ShareSheet
+            key={picked}
+            reference={picked}
+            paperTitle={paper.title}
+            text={paragraphText(picked)}
+            onClose={closePanel}
+            onCopied={() => {
+              closePanel();
+              say("Link copied");
+            }}
+            onImage={(chosen) => {
+              setImageStart(chosen.size > 0 ? chosen : undefined);
+              setPanel("image");
+            }}
+          />
         </Suspense>
       )}
       {panel === "notes" && picked && (

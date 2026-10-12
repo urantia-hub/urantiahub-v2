@@ -6,7 +6,9 @@ import { chosenText, sentences } from "@/image/compose";
 import { draw, type Fonts, fitsWell, LOOKS, measureWith } from "@/image/draw";
 import { Sheet } from "./Sheet";
 
-type Props = { reference: string; paperId: string; text: string; onClose: () => void };
+// `start` is the sentences that the reader chose in the share sheet. With none, the image takes as many
+// sentences from the start as fit.
+type Props = { reference: string; paperId: string; text: string; start?: ReadonlySet<number>; onClose: () => void };
 
 // The faces of the site, by the names that the browser knows them.
 function siteFonts(): Fonts {
@@ -17,7 +19,7 @@ function siteFonts(): Fonts {
 
 // An image of one paragraph to share: the reader chooses the sentences and a look.
 // The preview is the image itself, so what the reader sees is what the reader shares.
-export default function ImageSheet({ reference, paperId, text, onClose }: Props) {
+export default function ImageSheet({ reference, paperId, text, start, onClose }: Props) {
   const all = useMemo(() => sentences(text), [text]);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [fonts, setFonts] = useState<Fonts | null>(null);
@@ -43,7 +45,7 @@ export default function ImageSheet({ reference, paperId, text, onClose }: Props)
           const measure = measureWith(context, found);
           while (count > 1 && !fitsWell(chosenText(all, new Set(Array.from({ length: count }, (_, i) => i))), measure)) count -= 1;
         }
-        setChosen(new Set(Array.from({ length: count }, (_, i) => i)));
+        setChosen(start && start.size > 0 ? start : new Set(Array.from({ length: count }, (_, i) => i)));
         setFonts(found);
         try {
           setCanShare(typeof navigator.canShare === "function" && navigator.canShare({ files: [new File([""], "x.png", { type: "image/png" })] }));
@@ -55,6 +57,8 @@ export default function ImageSheet({ reference, paperId, text, onClose }: Props)
     return () => {
       current = false;
     };
+    // `start` is read one time, when the sheet opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [all, paperId]);
 
   const words = chosenText(all, chosen);

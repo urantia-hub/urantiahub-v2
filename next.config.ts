@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   // The share image reads this font file at request time, so the function bundle must hold it.
   outputFileTracingIncludes: {
     "/papers/[slug]/opengraph-image": ["./node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"],
+    "/s/[ref]/opengraph-image": ["./node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"],
+    "/s/[ref]/[pick]/opengraph-image": ["./node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"],
   },
   // No link to the Hub before this one breaks.
   async redirects() {

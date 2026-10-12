@@ -2,15 +2,17 @@
 
 import { type ReactNode, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { Icon } from "@/components/icons";
 import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 
 // With a `foot`, the content scrolls above it and the foot keeps its place.
-type Props = { label: string; onClose: () => void; className?: string; foot?: ReactNode; children: ReactNode };
+// With `close`, an X shows at the top right.
+type Props = { label: string; onClose: () => void; className?: string; foot?: ReactNode; close?: boolean; children: ReactNode };
 
 // A small panel above the controls of a paper: a sheet on a phone, a card on a wide screen.
 // Escape and a press outside close it. The caller gives the focus back to its own button.
-export function Sheet({ label, onClose, className, foot, children }: Props) {
+export function Sheet({ label, onClose, className, foot, close, children }: Props) {
   const { ref: scrolled, ...scroll } = useMoreBelow<HTMLDivElement>();
   const box = useRef<HTMLDivElement>(null);
   const { leaving, leave } = useLeave(onClose);
@@ -29,12 +31,18 @@ export function Sheet({ label, onClose, className, foot, children }: Props) {
   }, [leave]);
 
   const names = `panel${foot ? " has-foot" : ""}${className ? ` ${className}` : ""}`;
+  const x = close && (
+    <button type="button" className="panel-x" aria-label="Close" onClick={leave}>
+      <Icon name="close" />
+    </button>
+  );
   const state = { role: "dialog", "aria-label": label, tabIndex: -1, "data-leaving": leaving ? "" : undefined } as const;
   return createPortal(
     <>
       <div className="panel-scrim" data-leaving={leaving ? "" : undefined} onClick={leave} />
       {foot ? (
         <div className={names} {...state} ref={box}>
+          {x}
           <div className="panel-body" ref={scrolled} {...scroll}>
             {children}
           </div>
@@ -50,6 +58,7 @@ export function Sheet({ label, onClose, className, foot, children }: Props) {
             scrolled.current = el;
           }}
         >
+          {x}
           {children}
         </div>
       )}

@@ -234,33 +234,41 @@ describe("a tap on a paragraph", () => {
 });
 
 describe("Share", () => {
-  it("copies the paragraph link where there is no share sheet, and says so", async () => {
+  it("opens the share sheet of the paragraph; a copy gives the short link, and says so", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
     renderNav();
     await userEvent.click(text("1:0.2"));
     await userEvent.click(screen.getByRole("button", { name: "Share" }));
-    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/papers/paper-1-the-universal-father#1:0.2`);
+    expect(await screen.findByRole("dialog", { name: "Share 1:0.2" })).toBeInTheDocument();
+    // No share sheet of the device on a computer: the copy is the one action.
+    expect(screen.queryByRole("button", { name: "Share link" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Copy link" }));
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/1.0.2`);
     expect(await screen.findByText("Link copied")).toBeInTheDocument();
-    expect(track).toHaveBeenCalledWith("paragraph_shared", { ref: "1:0.2", method: "copy" });
-    expect(para("1:0.2")).not.toHaveAttribute("data-picked");
+    expect(track).toHaveBeenCalledWith("paragraph_shared", { ref: "1:0.2", method: "copy", part: false });
   });
 
-  it("on a touch device, gives the share sheet the link and a title with the reference and the paper", async () => {
+  it("on a touch device, gives the share sheet of the device the link and a title with the reference and the paper", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { value: share, configurable: true });
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(pointer: coarse)", addEventListener() {}, removeEventListener() {} }));
     renderNav();
     await userEvent.click(text("1:0.2"));
     await userEvent.click(screen.getByRole("button", { name: "Share" }));
-    expect(share).toHaveBeenCalledWith({
-      title: "1:0.2 · Paper 1, The Universal Father",
-      url: `${window.location.origin}/papers/paper-1-the-universal-father#1:0.2`,
-    });
+    await userEvent.click(await screen.findByRole("button", { name: "Share link" }));
+    expect(share).toHaveBeenCalledWith({ title: "1:0.2 · The Universal Father", url: `${window.location.origin}/s/1.0.2` });
     await act(async () => {});
-    expect(track).toHaveBeenCalledWith("paragraph_shared", { ref: "1:0.2", method: "sheet" });
+    expect(track).toHaveBeenCalledWith("paragraph_shared", { ref: "1:0.2", method: "sheet", part: false });
     expect(screen.queryByText("Link copied")).toBeNull();
+  });
+
+  it("leaves the paragraph with no mark for a reader who arrives by a link to some of its sentences", () => {
+    window.history.replaceState(null, "", "/papers/paper-1-the-universal-father?s=1#1%3A0.2");
+    renderNav();
+    expect(para("1:0.2")).not.toHaveAttribute("data-picked");
+    window.history.replaceState(null, "", "/papers/paper-1-the-universal-father");
   });
 });
 
@@ -574,7 +582,8 @@ describe("faults that the branch review found", () => {
     await scrollTo(600);
     // Safari does not focus a button on a click, so the focus handler cannot bring the controls back.
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Share" })));
-    expect(job()).toBe("reading");
+    // The share sheet belongs to the marked paragraph, so its row stays.
+    expect(job()).toBe("paragraph");
     expect(screen.getByTestId("reading-bar")).not.toHaveClass("away");
   });
 

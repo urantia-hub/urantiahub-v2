@@ -117,3 +117,9 @@
     margin-left: 10px;
   }
 }
+
+/* The page of a shared link. A reader with JavaScript goes to the paper at once. */
+.shared-link blockquote {
+  margin: 0 0 1em;
+  font-size: 1.15em;
+}

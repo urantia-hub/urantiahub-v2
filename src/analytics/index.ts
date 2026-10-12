@@ -7,7 +7,8 @@ export type AnalyticsEvents = {
   home_read_clicked: undefined;
   home_continue_clicked: undefined;
   paragraph_picked: { paper_id: string };
-  paragraph_shared: { ref: string; method: "sheet" | "copy" };
+  // `part`: the link is for some sentences of the paragraph, not for all of it.
+  paragraph_shared: { ref: string; method: "sheet" | "copy"; part?: boolean };
   audio_started: { paper_id: string; from: "bar" | "paragraph" };
   audio_finished_paper: { paper_id: string; speed: number };
   audio_failed: { paper_id: string };

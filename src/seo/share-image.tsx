@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { BOOKMARK_PATH, BRAND_INK, BRAND_PAPER } from "@/brand/BookmarkMark";
+import { cutWords } from "@/reader/share-link";
 
 export const SHARE_SIZE = { width: 1200, height: 630 };
 
@@ -33,6 +34,30 @@ export async function shareImage(kicker: string, title: string): Promise<ImageRe
             <path d={BOOKMARK_PATH} fill={BRAND_PAPER} />
           </svg>
           UrantiaHub
+        </div>
+      </div>
+    ),
+    { ...SHARE_SIZE, fonts: [{ name: "Literata", data: font, weight: 500, style: "normal" }] },
+  );
+}
+
+// The image of a shared paragraph: the words, the mark with "The Urantia Papers", and the reference.
+// The type is smaller for more words, and a long text is cut at a word.
+export async function sharedImage(words: string, ref: string): Promise<ImageResponse> {
+  const font = await readFile(join(process.cwd(), "node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"));
+  const text = cutWords(words, 300);
+  const size = text.length < 90 ? 66 : text.length <= 190 ? 50 : 41;
+  return new ImageResponse(
+    (
+      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fbf8f2", color: "#26221c", fontFamily: "Literata", padding: "64px 96px" }}>
+        <div style={{ fontSize: size, lineHeight: 1.4 }}>{text}</div>
+        <div style={{ display: "flex", alignItems: "center", fontSize: 30, color: "#8b8375", marginTop: 44 }}>
+          <svg width="40" height="40" viewBox="0 0 64 64" style={{ marginRight: 16 }}>
+            <rect width="64" height="64" rx="13" fill={BRAND_INK} />
+            <path d={BOOKMARK_PATH} fill={BRAND_PAPER} />
+          </svg>
+          The Urantia Papers
+          <div style={{ marginLeft: "auto", color: "#756d5f" }}>{ref}</div>
         </div>
       </div>
     ),
