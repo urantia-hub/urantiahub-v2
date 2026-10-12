@@ -13,20 +13,29 @@ const ORIGIN = "https://www.urantiahub.com";
 const SECRET = "a-test-secret-that-is-long-enough-0123456789";
 const session: Session = { accessToken: "a1", refreshToken: "r1", expiresAt: "2099-01-01T00:00:00.000Z", user: { id: "u1", email: "ana@example.com", name: "Ana" } };
 const deps = { secret: SECRET, origin: ORIGIN } as Deps;
-const ask = async (query: string, signedIn = true) =>
-  new NextRequest(`${ORIGIN}/api/notices/refresh-test${query}`, { headers: signedIn ? { cookie: `${cookieNames(ORIGIN).session}=${await seal(session, SECRET)}` } : {} });
+const ask = async (options: { signedIn?: boolean; from?: string | null } = {}) => {
+  const headers: Record<string, string> = {};
+  if (options.signedIn !== false) headers.cookie = `${cookieNames(ORIGIN).session}=${await seal(session, SECRET)}`;
+  if (options.from !== null) headers["sec-fetch-site"] = options.from ?? "none";
+  return new NextRequest(`${ORIGIN}/api/notices/refresh-test`, { headers });
+};
 
 describe("the test send of the refresh email", () => {
   it("asks a caller with no sign-in to sign in, and sends nothing", async () => {
     const send = vi.fn();
-    expect((await handleRefreshTest(await ask("?to=ana@example.com", false), deps, send)).status).toBe(401);
+    expect((await handleRefreshTest(await ask({ signedIn: false }), deps, send)).status).toBe(401);
     expect(send).not.toHaveBeenCalled();
   });
 
-  it("sends nothing to an address that is not approved", async () => {
+  it("sends nothing for a reader whose address is not approved, and takes no address from the request", async () => {
     const send = vi.fn();
-    expect((await handleRefreshTest(await ask("?to=ana@example.com"), deps, send)).status).toBe(404);
-    expect((await handleRefreshTest(await ask(""), deps, send)).status).toBe(404);
+    expect((await handleRefreshTest(await ask(), deps, send)).status).toBe(404);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("refuses a request that another site started, or that does not say where it comes from", async () => {
+    const send = vi.fn();
+    for (const from of ["cross-site", "same-site", null]) expect((await handleRefreshTest(await ask({ from }), deps, send)).status).toBe(403);
     expect(send).not.toHaveBeenCalled();
   });
 

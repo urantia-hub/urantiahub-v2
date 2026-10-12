@@ -5,9 +5,10 @@ import type { Deps } from "@/account/handlers";
 import { readSession } from "@/account/handlers";
 import { refreshMail } from "./refresh-mail";
 
-// A test of the refresh email, before it goes to the readers: one address, given by its hash, so the
-// address itself is not in this public repo. The caller must be signed in. This route goes when the
-// email is sent.
+// A test of the refresh email, before it goes to the readers. It goes only to the signed-in reader's
+// own address, and only if that address is approved. The approved address is here as a hash, so the
+// address itself is not in this public repo. The request must come from the address bar or from this
+// site, so no other site can start a send. This route goes when the email is sent.
 const TESTERS = new Set(["65ac1d6af71098e013aeea2194dcc5507428e46f41c5120582b423221a30496d"]);
 const FROM = "UrantiaHub <notifications@mail.urantiahub.com>";
 const REPLY_TO = "hi@urantiahub.com";
@@ -34,9 +35,12 @@ export const sendWithResend: SendOne = async (mail) => {
 
 export async function handleRefreshTest(request: NextRequest, deps: Deps, send: SendOne): Promise<Response> {
   const say = (status: number, words: string) => new Response(words, { status, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
-  if (!(await readSession(request, deps))) return say(401, "Sign in to UrantiaHub first, then open this address again.");
-  const to = (request.nextUrl.searchParams.get("to") ?? "").trim().toLowerCase();
-  if (!TESTERS.has(createHash("sha256").update(to).digest("hex"))) return say(404, "Not found.");
+  const from = request.headers.get("sec-fetch-site");
+  if (from !== "none" && from !== "same-origin") return say(403, "Open this address from the address bar.");
+  const session = await readSession(request, deps);
+  if (!session) return say(401, "Sign in to UrantiaHub first, then open this address again.");
+  const to = session.user.email.trim().toLowerCase();
+  if (!TESTERS.has(createHash("sha256").update(to).digest("hex"))) return say(404, "This account is not approved for the test.");
   const sent = await send({ to, ...refreshMail(deps.origin) });
   return sent ? say(200, "The test email is on its way.") : say(502, "The email did not send. The mail service did not take it.");
 }
