@@ -79,7 +79,7 @@ function clearSession(response: NextResponse, deps: Deps) {
   response.cookies.set(IN_COOKIE, "", cookie(deps, 0, { httpOnly: false }));
 }
 
-export const readSession = (request: NextRequest, deps: Deps) => (enabled(deps) ? unseal(request.cookies.get(cookieNames(deps.origin).session)?.value, deps.secret) : Promise.resolve(null));
+const readSession = (request: NextRequest, deps: Deps) => (enabled(deps) ? unseal(request.cookies.get(cookieNames(deps.origin).session)?.value, deps.secret) : Promise.resolve(null));
 
 const toSession = (tokens: Tokens, name: string | null): Session => ({
   accessToken: tokens.accessToken,
