@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const posthog = vi.hoisted(() => ({ init: vi.fn(), register: vi.fn(), capture: vi.fn() }));
+const posthog = vi.hoisted(() => ({ init: vi.fn(), register: vi.fn(), capture: vi.fn(), identify: vi.fn(), reset: vi.fn() }));
 vi.mock("posthog-js", () => ({ default: posthog }));
 // The real idle wait has its own test. Here a zero timer keeps the "not in the same task" rule.
 vi.mock("@/lib/when-idle", () => ({ whenIdle: (work: () => void) => setTimeout(work, 0) }));
@@ -23,6 +23,63 @@ describe("analytics", () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(posthog.init).not.toHaveBeenCalled();
     expect(posthog.capture).not.toHaveBeenCalled();
+  });
+
+  // A signed-in reader: PostHog gets the reader key, a code of the account. Never the email or the name.
+  it("names a signed-in reader by the reader key, before the events that waited", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, setAnalyticsReader, track } = await import("./index");
+    initAnalytics();
+    track("paper_opened", { paper_id: "1" });
+    setAnalyticsReader("abc123");
+    await started();
+    expect(posthog.identify).toHaveBeenCalledExactlyOnceWith("abc123");
+    expect(posthog.identify.mock.invocationCallOrder[0]).toBeLessThan(posthog.capture.mock.invocationCallOrder[0]);
+  });
+
+  it("names the reader at once when PostHog runs, and one time for the same reader", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, setAnalyticsReader } = await import("./index");
+    initAnalytics();
+    await started();
+    setAnalyticsReader("abc123");
+    setAnalyticsReader("abc123");
+    expect(posthog.identify).toHaveBeenCalledExactlyOnceWith("abc123");
+  });
+
+  it("forgets the reader at a sign-out, and keeps the app label", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, setAnalyticsReader } = await import("./index");
+    initAnalytics();
+    await started();
+    setAnalyticsReader("abc123");
+    setAnalyticsReader(null);
+    // `true`: the device id goes too, so the events after a sign-out have no tie to the reader.
+    expect(posthog.reset).toHaveBeenCalledExactlyOnceWith(true);
+    expect(posthog.register).toHaveBeenLastCalledWith({ app: "hub-v2" });
+    expect(posthog.register).toHaveBeenCalledTimes(2);
+  });
+
+  // A second reader signs in on the same page, with no sign-out between. Found by the commit scan.
+  it("cuts the tie to the reader before it, when another reader signs in", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, setAnalyticsReader } = await import("./index");
+    initAnalytics();
+    await started();
+    setAnalyticsReader("abc123");
+    setAnalyticsReader("def456");
+    expect(posthog.reset).toHaveBeenCalledExactlyOnceWith(true);
+    expect(posthog.identify).toHaveBeenLastCalledWith("def456");
+    expect(posthog.reset.mock.invocationCallOrder[0]).toBeLessThan(posthog.identify.mock.invocationCallOrder[1]);
+  });
+
+  it("does not reset for a reader who was never signed in", async () => {
+    vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
+    const { initAnalytics, setAnalyticsReader } = await import("./index");
+    initAnalytics();
+    await started();
+    setAnalyticsReader(null);
+    expect(posthog.reset).not.toHaveBeenCalled();
   });
 
   it("does not load PostHog in the same task as the page start", async () => {
@@ -218,11 +275,13 @@ describe("analytics", () => {
   ])("does not start for a reader whose browser sends %s", async (_name, property, value) => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     Object.defineProperty(navigator, property, { value, configurable: true });
-    const { initAnalytics, track } = await import("./index");
+    const { initAnalytics, setAnalyticsReader, track } = await import("./index");
     initAnalytics();
     track("home_read_clicked");
+    setAnalyticsReader("abc123");
     await new Promise((resolve) => setTimeout(resolve, 30));
     expect(posthog.init).not.toHaveBeenCalled();
+    expect(posthog.identify).not.toHaveBeenCalled();
     expect(posthog.capture).not.toHaveBeenCalled();
     Reflect.deleteProperty(navigator, property);
   });

@@ -59,6 +59,10 @@ describe("Privacy, about accounts", () => {
     expect(page).toMatch(/a mark that says which account/i);
     expect(page).toMatch(/remembers that you signed out/);
     expect(page).not.toContain("keeps no identifier in your browser");
+    // A signed-in reader has a name in the analytics. The page says what it is and what it is not.
+    expect(page).toContain("a code that stands for your account");
+    expect(page).not.toContain("with no cookie and no identifier");
+    expect(page).not.toContain("No cookie and no identifier.");
     expect(page).toMatch(/delete the account/);
     expect(page).toContain("accounts.urantiahub.com");
     // The old promise is not true any more for a signed-in reader.

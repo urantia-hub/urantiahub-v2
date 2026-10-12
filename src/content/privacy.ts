@@ -2,9 +2,9 @@
 // Each entry must be true of the code that is live. Change the date when the page changes.
 export const PRIVACY_UPDATED = "October 11, 2026";
 // The date of the page while a reader can sign in. See `accountsOn` in the page.
-export const ACCOUNT_UPDATED = "October 9, 2026";
+export const ACCOUNT_UPDATED = "October 12, 2026";
 // The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
-export const NOTICES_UPDATED = "October 11, 2026";
+export const NOTICES_UPDATED = "October 12, 2026";
 export const PRIVACY_EMAIL = "privacy@urantiahub.com";
 // The company that runs the site. Kelson gave this name on 2026-10-08.
 export const PRIVACY_OPERATOR = "Adams Technologies LLC";
@@ -58,6 +58,14 @@ export const ACCOUNT_ITEMS: readonly string[] = [
   "The paragraphs that you saved",
   "Your notes",
 ];
+
+// What PostHog receives while a reader can sign in. It takes the place of the PostHog entry above.
+export const ACCOUNT_POSTHOG: Vendor = {
+  name: "PostHog",
+  purpose: "Analytics: which pages and features readers use.",
+  receives: "An event for a page or an action, with your IP address. No cookie. While you are signed in, also a code that stands for your account: not your email address and not your name. Also the search records, which have no link to you.",
+  policy: "https://posthog.com/privacy",
+};
 
 // The companies that handle the data of an account. They are in the table only while a reader can sign in.
 export const ACCOUNT_VENDORS: readonly Vendor[] = [
