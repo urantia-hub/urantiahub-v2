@@ -89,15 +89,15 @@ test("a test browser has no push service: no push can be turned on, and the page
   await expect(page.getByText(/cannot show a push of UrantiaHub/)).toBeVisible();
 });
 
-test("the service worker is served, and it keeps no page", async ({ request }) => {
+test("the service worker is served, and it keeps a page only in the cache of Read offline", async ({ request }) => {
   const response = await request.get("/sw.js");
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("javascript");
   const text = await response.text();
   expect(text).toContain("showNotification");
-  // It answers no request from a cache, and it keeps no page.
-  expect(text).not.toContain('addEventListener("fetch"');
-  expect(text).not.toContain(".put(");
+  // It has one cache, and it leaves each request alone on a device with no copy (see offline.spec.ts).
+  expect(text.match(/caches\.open\(([^)]+)\)/g)?.every((call) => call === "caches.open(OFFLINE)")).toBe(true);
+  expect(text).toContain("if (kept === false");
 });
 
 test("the timed job answers 404 to a caller with no secret", async ({ request }) => {

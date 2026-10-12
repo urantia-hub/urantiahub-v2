@@ -23,7 +23,7 @@ function load(session: string | null | "down" = "k1") {
       pushManager: { getSubscription: async () => ({ unsubscribe: async () => void state.unsubscribed++ }) },
     },
   };
-  const caches = { keys: async () => ["hub-notices", "workbox-precache-v2"], delete: async (name: string) => void state.deleted.push(name) };
+  const caches = { has: async () => false, keys: async () => ["hub-notices", "workbox-precache-v2", "offline-v1"], delete: async (name: string) => void state.deleted.push(name) };
   new Function("self", "caches", "URL", "fetch", readFileSync("public/sw.js", "utf8"))(self, caches, URL, fetch);
   const run = async (name: string, event: object) => {
     let work: Promise<unknown> = Promise.resolve();

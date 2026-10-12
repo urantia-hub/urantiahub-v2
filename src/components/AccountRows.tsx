@@ -14,8 +14,12 @@ export const ACCOUNT_PAGE = "https://accounts.urantiahub.com";
 
 const useProblem = () => useSyncExternalStore(never, signInProblem, noSignInProblem);
 
-// The end of the reader settings: "Sign in", or the reader's account and "Sign out".
-export function AccountRows() {
+// The rows of the account in the reader settings, in three parts: who reads ("Sign in", or the reader's
+// account), the reader's pages, and "Sign out". With no part named, all three show.
+type Part = "who" | "pages" | "out";
+
+export function AccountRows({ part }: { part?: Part }) {
+  const has = (name: Part) => !part || part === name;
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const problem = useProblem();
   const [stuck, setStuck] = useState(false);
@@ -24,6 +28,7 @@ export function AccountRows() {
   if (account.status === "off") return null;
 
   if (account.status === "out") {
+    if (!has("who")) return null;
     return (
       <div className="account-rows">
         <a className="account-row" {...signIn.link}>
@@ -42,53 +47,61 @@ export function AccountRows() {
   const name = account.user?.name || account.user?.email || "Your account";
   return (
     <div className="account-rows">
-      <a className="account-row who" href={ACCOUNT_PAGE} target="_blank" rel="noopener">
-        <span className="face" aria-hidden="true">
-          {name.trim().charAt(0).toUpperCase()}
-        </span>
-        <span>
-          {name}
-          {account.user?.name && account.user.email && <small>{account.user.email}</small>}
-          <span className="sr-only"> (your UrantiaHub account, opens in a new tab)</span>
-        </span>
-        <Icon name="external" />
-      </a>
-      <Link className="account-row" href="/saved">
-        <Icon name="save" />
-        <span>Saved</span>
-        <Icon name="paperAfter" />
-      </Link>
-      <Link className="account-row" href="/progress">
-        <Icon name="progress" />
-        <span>Progress</span>
-        <Icon name="paperAfter" />
-      </Link>
-      {NOTICES_ON && (
-        <Link className="account-row" href="/notifications">
-          <Icon name="bell" />
-          <span>Notifications</span>
-          <Icon name="paperAfter" />
-        </Link>
+      {has("who") && (
+        <a className="account-row who" href={ACCOUNT_PAGE} target="_blank" rel="noopener">
+          <span className="face" aria-hidden="true">
+            {name.trim().charAt(0).toUpperCase()}
+          </span>
+          <span>
+            {name}
+            {account.user?.name && account.user.email && <small>{account.user.email}</small>}
+            <span className="sr-only"> (your UrantiaHub account, opens in a new tab)</span>
+          </span>
+          <Icon name="external" />
+        </a>
+      )}
+      {has("pages") && (
+        <>
+          <Link className="account-row" href="/saved">
+            <Icon name="save" />
+            <span>Saved</span>
+            <Icon name="paperAfter" />
+          </Link>
+          <Link className="account-row" href="/progress">
+            <Icon name="progress" />
+            <span>Progress</span>
+            <Icon name="paperAfter" />
+          </Link>
+          {NOTICES_ON && (
+            <Link className="account-row" href="/notifications">
+              <Icon name="bell" />
+              <span>Notifications</span>
+              <Icon name="paperAfter" />
+            </Link>
+          )}
+        </>
       )}
       {/* A sign-out takes a moment. The row says so, and a second press does nothing. */}
-      <button
-        type="button"
-        className="account-row"
-        disabled={leaving}
-        aria-busy={leaving}
-        onClick={() => {
-          setLeaving(true);
-          setStuck(false);
-          void signOut().then((done) => {
-            setLeaving(false);
-            setStuck(!done);
-          });
-        }}
-      >
-        <Icon name="signOut" />
-        <span>{leaving ? "Signing out…" : "Sign out"}</span>
-      </button>
-      {stuck && <p role="status">The sign-out did not finish, so you are still signed in. Try again.</p>}
+      {has("out") && (
+        <button
+          type="button"
+          className="account-row"
+          disabled={leaving}
+          aria-busy={leaving}
+          onClick={() => {
+            setLeaving(true);
+            setStuck(false);
+            void signOut().then((done) => {
+              setLeaving(false);
+              setStuck(!done);
+            });
+          }}
+        >
+          <Icon name="signOut" />
+          <span>{leaving ? "Signing out…" : "Sign out"}</span>
+        </button>
+      )}
+      {has("out") && stuck && <p role="status">The sign-out did not finish, so you are still signed in. Try again.</p>}
     </div>
   );
 }

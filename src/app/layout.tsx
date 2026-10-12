@@ -4,6 +4,7 @@ import { AccountSync } from "@/components/AccountSync";
 import { NoticeQuestion } from "@/components/notices/NoticeQuestion";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { OfflineStrip } from "@/components/OfflineStrip";
 import { TEXT_SIZE_INIT_SCRIPT } from "@/lib/text-size";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { SHARE_IMAGE } from "@/seo/metadata";
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to the text
         </a>
         <SiteHeader />
+        <OfflineStrip />
         <main id="main">{children}</main>
         <SiteFooter />
         <AccountSync />

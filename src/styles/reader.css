@@ -287,11 +287,3 @@ html:not([data-reader]) .para:target .ref {
     border-top: 1px solid var(--rule);
   }
 }
-
-/* The sentences that a shared link names. See SharedMark. */
-::highlight(shared) {
-  background-color: var(--mark);
-}
-:root[data-theme="dark"] ::highlight(shared) {
-  background-color: #4a4226;
-}
