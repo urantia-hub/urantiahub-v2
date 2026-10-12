@@ -1,9 +1,6 @@
-import type { Metadata } from "next";
-import { ProgressView } from "@/components/progress/ProgressView";
+import { permanentRedirect } from "next/navigation";
 
-// A reader's own page. It stays out of each search engine, at each index setting.
-export const metadata: Metadata = { title: "Your progress", robots: { index: false, follow: false } };
-
+// The progress is a part of the reader's page since 2026-10-12.
 export default function ProgressPage() {
-  return <ProgressView />;
+  permanentRedirect("/you");
 }

@@ -37,7 +37,9 @@ test("a signed-in reader turns on an email from the settings, and nothing on the
   await page.goto(PAPER);
   await signIn(page);
   await page.getByRole("button", { name: "Account and settings" }).click();
-  await settings(page).getByRole("link", { name: "Notifications" }).click();
+  await settings(page).getByRole("link", { name: /Ana Reader/ }).click();
+  await expect(page.getByRole("link", { name: /A passage each day/ })).toContainText("Off");
+  await page.getByRole("link", { name: /A passage each day/ }).click();
   await expect(page).toHaveURL(/\/notifications$/);
 
   const daily = chip(page, "A passage each day", "Email");
