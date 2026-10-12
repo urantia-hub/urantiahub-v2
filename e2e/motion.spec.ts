@@ -65,5 +65,5 @@ test("More has the action that a reader uses most at its end, near the thumb", a
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
   await page.getByRole("button", { name: "More" }).click();
-  await expect(page.getByRole("dialog", { name: "More" }).getByRole("button")).toHaveText(["Make an image", "Terms in this paragraph", "Parallels", "Copy the text"]);
+  await expect(page.getByRole("dialog", { name: "More" }).getByRole("button")).toHaveText(["Make an image", "Terms in this paragraph", "Parallels", "Ask an assistant", "Copy the text"]);
 });
