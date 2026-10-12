@@ -595,3 +595,138 @@
     padding: 12px 26px;
   }
 }
+
+/* "Ask an assistant": a question and an assistant. It uses the frame of the share sheet. */
+.panel.ask h2 {
+  font-size: 21px;
+  line-height: 1.2;
+}
+.panel.ask .ask-sub {
+  margin: 4px 34px 16px 0;
+}
+.panel.ask .share-label {
+  margin-top: 18px;
+}
+.panel.ask .share-label:first-of-type {
+  margin-top: 0;
+}
+.ask-qs {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+}
+.panel .ask-q {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  color: var(--ink);
+  font: 500 14.5px/1.35 var(--font-ui);
+  text-align: left;
+}
+.ask-q + .ask-q,
+.ask-own {
+  border-top: 1px solid var(--line);
+}
+.ask-q i {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1.6px solid var(--muted);
+  border-radius: 50%;
+}
+.ask-q[aria-pressed="true"] i {
+  border-color: var(--ink);
+}
+.ask-q[aria-pressed="true"] i::after {
+  content: "";
+  position: absolute;
+  inset: 3.4px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.panel .ask-own {
+  display: block;
+  width: 100%;
+  padding: 13px 14px;
+  border-width: 1px 0 0;
+  border-style: solid;
+  border-color: var(--line);
+  border-radius: 0;
+  outline: 0;
+  background: none;
+  color: var(--ink);
+  /* 16px: a smaller field makes an iPhone zoom the page. */
+  font: 400 16px/1.4 var(--font-ui);
+}
+.ask-own::placeholder {
+  color: var(--muted);
+}
+.ask-own:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.ask-who {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.panel .ask-who button {
+  padding: 11px 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 500 13.5px/1.2 var(--font-ui);
+}
+.panel .ask-who button[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+.panel .ask-see {
+  margin-top: 14px;
+  color: var(--ref);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ask-sent {
+  max-height: 190px;
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 12.5px/1.55 var(--font-ui);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.panel .ask-fine {
+  margin-top: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.ask-fine a {
+  color: inherit;
+  text-underline-offset: 2px;
+}
+@media (min-width: 768px) {
+  .panel.share.ask {
+    width: min(520px, 94vw);
+    margin-left: max(-260px, -47vw);
+  }
+  .panel.ask .share-acts {
+    grid-auto-columns: 1fr;
+    width: 100%;
+  }
+  .panel.share.ask .panel-foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}

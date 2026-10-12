@@ -1,6 +1,6 @@
 // The facts of the Privacy page, as lists. A new vendor or a new thing in the browser is one entry here.
 // Each entry must be true of the code that is live. Change the date when the page changes.
-export const PRIVACY_UPDATED = "October 11, 2026";
+export const PRIVACY_UPDATED = "October 12, 2026";
 // The date of the page while a reader can sign in. See `accountsOn` in the page.
 export const ACCOUNT_UPDATED = "October 12, 2026";
 // The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
@@ -47,6 +47,7 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
   { name: "Your text size", why: "so a paper opens at the size that you chose" },
   { name: "The last place that you read", why: "so the contents page can offer to continue there" },
   { name: "The papers, if you turn on Read offline", why: "so you can read with no connection; turn it off, and they leave the device" },
+  { name: "The assistant that you chose, if you use Ask an assistant", why: "so the next question opens in the same one" },
   { name: "Your last five searches", why: "so you can run one again; the Clear control on the search page removes them" },
 ];
 

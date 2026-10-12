@@ -43,6 +43,8 @@ const LINE = {
   list: ["M8.5 7h11", "M8.5 12h11", "M8.5 17h11", "M4.5 7h.01", "M4.5 12h.01", "M4.5 17h.01"],
   // A person: the reader's account.
   person: ["M15.5 8.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z", "M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"],
+  // A speech bubble with a plus: a question for the reader's own assistant.
+  ask: ["M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8.5a1.5 1.5 0 0 1-1.5 1.5h-6.2L8 20.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z", "M12 8.6v5.2", "M9.4 11.2h5.2"],
   // An arrow out of a box: the link opens another site.
   external: ["M14 5h5v5", "M19 5l-8 8", "M11 7H6v11h11v-5"],
   // An arrow out of a door.

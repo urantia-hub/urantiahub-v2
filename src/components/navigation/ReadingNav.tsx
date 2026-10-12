@@ -13,7 +13,8 @@ import { Sheet } from "@/components/reader/Sheet";
 import { TermsSheet } from "@/components/reader/TermsSheet";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
 import { saveLastRead } from "@/reader/last-read";
-import { sharedFromAddress } from "@/reader/share-link";
+import { ASK_PAPER_EVENT, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, paperPrompt, paragraphPrompt, type Before } from "@/reader/assistant";
+import { sharedFromAddress, sharePath } from "@/reader/share-link";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
@@ -24,6 +25,7 @@ const NoteSheet = lazy(() => import("@/components/reader/NoteSheet"));
 const ImageSheet = lazy(() => import("@/components/reader/ImageSheet"));
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
 const ShareSheet = lazy(() => import("@/components/reader/ShareSheet"));
+const AskSheet = lazy(() => import("@/components/reader/AskSheet"));
 
 type Props = {
   paper: { id: string; title: string };
@@ -38,6 +40,15 @@ const IDLE: VoiceState = { status: "idle", index: -1, time: 0, speed: 1 };
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
 const paragraphText = (ref: string) => document.getElementById(ref)?.querySelector(":scope > .text, :scope > span:last-child")?.textContent?.trim() ?? "";
+
+// The paragraphs before this one in its section, in the order of the text: the context of a question.
+function paragraphsBefore(ref: string): Before[] {
+  const before: Before[] = [];
+  for (let el = document.getElementById(ref)?.previousElementSibling; el; el = el.previousElementSibling) {
+    if (el.matches("p.para")) before.unshift({ ref: el.id, text: paragraphText(el.id) });
+  }
+  return before;
+}
 
 // Paragraphs are server HTML. The dock marks them with an attribute: one at a time for each kind of mark.
 function mark(attribute: "data-picked" | "data-voice", ref: string | null) {
@@ -64,7 +75,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // The small panel above the row: the two more actions, or the question for a reader with no account.
-  const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | "share" | null>(null);
+  const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | "share" | "assistant" | null>(null);
+  // A question about the whole paper, from the button below its title. It needs no marked paragraph.
+  const [paperAsk, setPaperAsk] = useState(false);
   // The sentences that the image maker starts with, when it opens from the share sheet.
   const [imageStart, setImageStart] = useState<ReadonlySet<number> | undefined>(undefined);
   const [askHref, setAskHref] = useState("");
@@ -389,6 +402,17 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), []);
 
+  useEffect(() => {
+    const onAsk = () => {
+      setPanel(null);
+      setTermsOpen(false);
+      setParallelsOpen(false);
+      setPaperAsk(true);
+    };
+    window.addEventListener(ASK_PAPER_EVENT, onAsk);
+    return () => window.removeEventListener(ASK_PAPER_EVENT, onAsk);
+  }, []);
+
   // The sheet goes, and the focus returns to the tile that opened it.
   function closeTerms() {
     setTermsOpen(false);
@@ -662,11 +686,47 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
             <Icon name="parallels" />
             Parallels
           </button>
+          <button type="button" className="panel-line" onClick={() => setPanel("assistant")}>
+            <Icon name="ask" />
+            Ask an assistant
+          </button>
           <button type="button" className="panel-line" onClick={onCopyText}>
             <Icon name="copy" />
             Copy the text
           </button>
         </Sheet>
+      )}
+      {panel === "assistant" && picked && (
+        <Suspense fallback={null}>
+          <AskSheet
+            key={picked}
+            about="paragraph"
+            label={`About paragraph ${picked}.`}
+            paperId={paper.id}
+            questions={PARAGRAPH_QUESTIONS}
+            build={(question) => {
+              const sectionId = picked.split(":")[1]?.split(".")[0] ?? "0";
+              const section = sectionId === "0" ? null : (sections.find((one) => one.id === sectionId) ?? null);
+              return paragraphPrompt({ question, paper, section, before: paragraphsBefore(picked), ref: picked, text: paragraphText(picked), link: `${window.location.origin}${sharePath(picked, new Set(), 1)}` });
+            }}
+            onClose={closePanel}
+          />
+        </Suspense>
+      )}
+      {paperAsk && (
+        <Suspense fallback={null}>
+          <AskSheet
+            about="paper"
+            label={`About ${paper.id === "0" ? `the ${paper.title}` : `Paper ${paper.id}, ${paper.title}`}.`}
+            paperId={paper.id}
+            questions={PAPER_QUESTIONS}
+            build={(question) => paperPrompt({ question, paper, link: `${window.location.origin}${window.location.pathname}` })}
+            onClose={() => {
+              setPaperAsk(false);
+              window.requestAnimationFrame(() => document.querySelector<HTMLElement>(".ask-paper")?.focus({ preventScroll: true }));
+            }}
+          />
+        </Suspense>
       )}
       {panel === "image" && picked && (
         <Suspense fallback={null}>

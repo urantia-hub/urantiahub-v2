@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PaperDoc } from "@/content/fetchers";
 import { PAPERS, paperPath, partNumeral } from "@/content/paper-index";
 import { hasOwnNumber } from "@/components/navigation/nav-state";
+import { AskPaperButton } from "./AskPaperButton";
 import { MissingReferenceNotice } from "./MissingReferenceNotice";
 
 export function paperEyebrow(paper: { id: string; partId: string }): string | null {
@@ -19,6 +20,7 @@ export function PaperView({ paper }: { paper: PaperDoc }) {
       <header className="paper-head">
         {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1 id="paper-top">{paper.title}</h1>
+        <AskPaperButton />
       </header>
       <MissingReferenceNotice paperId={paper.id} />
 
