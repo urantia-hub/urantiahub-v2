@@ -6,6 +6,7 @@ import { accountState, serverAccountState, subscribeToAccount } from "@/account/
 import { AccountRows } from "@/components/AccountRows";
 import { ContinueRow } from "@/components/ContinueRow";
 import { Icon } from "@/components/icons";
+import { OfflineRow } from "@/components/OfflineRow";
 import { applyTextSize, currentTextSize, DEFAULT_STEP, SCALES, subscribeToTextSize } from "@/lib/text-size";
 import { applyTheme, currentTheme, subscribeToTheme, type Theme } from "@/lib/theme";
 
@@ -13,7 +14,8 @@ const serverTheme = (): Theme => "light";
 const serverSize = () => DEFAULT_STEP;
 
 // The settings of the reader and the reader's account, behind one icon in the header of a paper and
-// of the contents page: the theme, the text size, and the account rows. Later steps add rows here: translation, and parallels for the paper.
+// of the contents page: the account, the reader's pages, and what belongs to this device (the theme, the
+// text size, and "Read offline").
 export function ReaderSettings() {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -77,31 +79,47 @@ export function ReaderSettings() {
                 if (link && !link.getAttribute("href")?.startsWith("/api/auth/start")) setOpen(false);
               }}
             >
-              <h2>Theme</h2>
-              <div className="segment">
-                {(["light", "dark"] as const).map((name) => (
-                  <button type="button" key={name} aria-pressed={theme === name} onClick={() => applyTheme(name)}>
-                    {name === "light" ? "Light" : "Dark"}
-                  </button>
-                ))}
+              {/* Three groups: who reads, the reader's pages, and this device. How the page looks and what
+                  the device keeps belong to the device, with or without an account. */}
+              <AccountRows part="who" />
+              <div className="settings-group">
+                <ContinueRow />
+                <AccountRows part="pages" />
               </div>
-              {/* A page with no text of a paper hides these two. See chrome.css. */}
-              <h2 className="size-title">Text size</h2>
-              <div className="sizes">
-                <button type="button" aria-label="Smaller text" disabled={size === 0} onClick={() => applyTextSize(size - 1)}>
-                  A
-                </button>
-                <div className="dots" role="status" aria-label={`Text size ${size + 1} of ${SCALES.length}`}>
-                  {SCALES.map((scale, i) => (
-                    <i key={scale} className={i === size ? "on" : undefined} />
-                  ))}
+              <div className="settings-group device">
+                <h2>This device</h2>
+                <div className="device-row">
+                  <Icon name="sun" />
+                  <span>Theme</span>
+                  <div className="segment">
+                    {(["light", "dark"] as const).map((name) => (
+                      <button type="button" key={name} aria-pressed={theme === name} onClick={() => applyTheme(name)}>
+                        {name === "light" ? "Light" : "Dark"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <button type="button" className="big" aria-label="Larger text" disabled={size === SCALES.length - 1} onClick={() => applyTextSize(size + 1)}>
-                  A
-                </button>
+                {/* A page with no text of a paper hides this row. See chrome.css. */}
+                <div className="device-row size-row">
+                  <Icon name="textSize" />
+                  <span>Text size</span>
+                  <div className="sizes">
+                    <button type="button" aria-label="Smaller text" disabled={size === 0} onClick={() => applyTextSize(size - 1)}>
+                      A
+                    </button>
+                    <div className="dots" role="status" aria-label={`Text size ${size + 1} of ${SCALES.length}`}>
+                      {SCALES.map((scale, i) => (
+                        <i key={scale} className={i === size ? "on" : undefined} />
+                      ))}
+                    </div>
+                    <button type="button" className="big" aria-label="Larger text" disabled={size === SCALES.length - 1} onClick={() => applyTextSize(size + 1)}>
+                      A
+                    </button>
+                  </div>
+                </div>
+                <OfflineRow />
               </div>
-              <ContinueRow />
-              <AccountRows />
+              <AccountRows part="out" />
             </div>
           </>,
           document.body,

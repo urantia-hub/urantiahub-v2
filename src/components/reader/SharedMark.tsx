@@ -43,7 +43,16 @@ export function SharedMark() {
       window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
     });
     const can = typeof CSS !== "undefined" && "highlights" in CSS && typeof Highlight === "function";
-    if (can) CSS.highlights.set("shared", new Highlight(...marks));
+    if (can) {
+      // The rule is added here: the CSS tool of the build does not know `::highlight` yet.
+      if (!document.getElementById("shared-mark")) {
+        const style = document.createElement("style");
+        style.id = "shared-mark";
+        style.textContent = '::highlight(shared){background-color:var(--mark)}:root[data-theme="dark"] ::highlight(shared){background-color:#4a4226}';
+        document.head.append(style);
+      }
+      CSS.highlights.set("shared", new Highlight(...marks));
+    }
     para.setAttribute("data-shared", "");
 
     const clear = () => {

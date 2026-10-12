@@ -4,6 +4,8 @@ import { securityHeaders } from "./src/security-headers";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // The name of this build. "Read offline" renews its copy when the name changes.
+  env: { NEXT_PUBLIC_BUILD: process.env.VERCEL_GIT_COMMIT_SHA || "dev" },
   experimental: {
     // A full build asks the content API for 197 papers. A burst made the API answer 500,
     // so the build asks for a few pages at a time and tries a failed page again.
