@@ -39,7 +39,7 @@ export async function handleRefreshTest(request: NextRequest, deps: Deps, send: 
   if (from !== "none" && from !== "same-origin") return say(403, "Open this address from the address bar.");
   const session = await readSession(request, deps);
   if (!session) return say(401, "Sign in to UrantiaHub first, then open this address again.");
-  const to = session.user.email.trim().toLowerCase();
+  const to = (session.user.email ?? "").trim().toLowerCase();
   if (!TESTERS.has(createHash("sha256").update(to).digest("hex"))) return say(404, "This account is not approved for the test.");
   const sent = await send({ to, ...refreshMail(deps.origin) });
   return sent ? say(200, "The test email is on its way.") : say(502, "The email did not send. The mail service did not take it.");
