@@ -121,7 +121,7 @@ export default function AskSheet({ about, label, paperId, questions, build, onCl
         </p>
       )}
       <p className="ask-fine">
-        The answer comes from the assistant, not from UrantiaHub. {about === "paragraph" ? "The question carries this paragraph and the ones before it in its section." : "The question names the paper and where to read it."} An assistant with the Urantia Papers connector can read more.{" "}
+        The answer comes from the assistant, not from UrantiaHub. {about === "paragraph" ? "The question carries this paragraph and the nearest one before it." : "The question names the paper and where to read it."} An assistant with the Urantia Papers connector can read more.{" "}
         <a href={GUIDE} target="_blank" rel="noopener">
           How to connect it
         </a>

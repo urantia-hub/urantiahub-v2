@@ -21,43 +21,49 @@ describe("paragraphPrompt", () => {
 
   it("names the paper, the section, the paragraphs before it, and the paragraph, in the order of the text", () => {
     const prompt = paragraphPrompt(BASE);
-    const places = ['Paper 1, "The Universal Father"', 'Section 1, "The Father’s Name"', "1:1.1 First words.", "1:1.2 Second words.", "The paragraph that I ask about:\n1:1.3 Third words.", "https://www.urantiahub.com/s/1.1.3"].map((part) => prompt.indexOf(part));
+    const places = ['Paper 1, "The Universal Father", section 1, "The Father’s Name"', "1:1.1 First words.", "1:1.2 Second words.", "I ask about this paragraph:\n1:1.3 Third words.", "https://www.urantiahub.com/s/1.1.3"].map((part) => prompt.indexOf(part));
     expect(places.every((at) => at > 0)).toBe(true);
     expect([...places].sort((a, b) => a - b)).toEqual(places);
   });
 
   it("says nothing of earlier paragraphs for the first paragraph of a section", () => {
     const prompt = paragraphPrompt({ ...BASE, before: [] });
-    expect(prompt).not.toContain("before it");
-    expect(prompt).toContain("The paragraph that I ask about:\n1:1.3 Third words.");
+    expect(prompt).not.toContain("Before it");
+    expect(prompt).toContain("I ask about this paragraph:\n1:1.3 Third words.");
   });
 
   it("names no section number for the opening of a paper", () => {
     const prompt = paragraphPrompt({ ...BASE, section: null, ref: "1:0.1" });
-    expect(prompt).toContain("The opening of the paper");
-    expect(prompt).not.toContain("Section");
+    expect(prompt).toContain('Paper 1, "The Universal Father", the opening of the paper.');
+    expect(prompt).not.toContain("section 1");
   });
 
   it("names the Foreword with no paper number", () => {
-    expect(paragraphPrompt({ ...BASE, paper: { id: "0", title: "Foreword" } })).toContain('From the Urantia Papers:\n"Foreword"\n');
+    expect(paragraphPrompt({ ...BASE, paper: { id: "0", title: "Foreword" } })).toContain('The Urantia Papers, "Foreword", section 1');
   });
 
-  it("keeps the nearest paragraphs when the section is long, and says that some are left out", () => {
-    const long = "word ".repeat(300).trim();
+  it("keeps only the nearest paragraphs of a long section", () => {
+    const long = "word ".repeat(100).trim();
     const before = Array.from({ length: 6 }, (_, i) => ({ ref: `1:1.${i + 1}`, text: long }));
     const prompt = paragraphPrompt({ ...BASE, before, ref: "1:1.7" });
-    expect(prompt).toContain("(the nearest ones)");
     expect(prompt).toContain("1:1.6 word");
-    expect(prompt).not.toContain("1:1.1 word");
+    expect(prompt).toContain("1:1.5 word");
+    expect(prompt).not.toContain("1:1.4 word");
   });
 
-  it("tells the assistant where more is: the connector, and the public service with its terms and parallels", () => {
+  it("tells the assistant where more is: the connector, then one public address with the terms and the parallels", () => {
     const prompt = paragraphPrompt(BASE);
     expect(prompt).toContain("Urantia Papers connector");
     expect(prompt).toContain("https://api.urantia.dev/paragraphs/1:1.3?include=entities,urantiaParallels,bibleParallels,scriptureParallels");
-    expect(prompt).toContain("https://api.urantia.dev/papers/1");
     expect(prompt).toContain("https://api.urantia.dev/openapi.json");
     expect(prompt).toContain("such as 1:1.3");
+  });
+
+  // Kelson, 2026-10-12: the first form was massive. All that is not text of the Papers stays small.
+  it("adds few words of its own to the text of the Papers", () => {
+    const own = paragraphPrompt(BASE).length - BASE.text.length - BASE.before.reduce((sum, one) => sum + one.text.length, 0);
+    expect(own).toBeLessThan(620);
+    expect(CONTEXT_ROOM).toBeLessThanOrEqual(1200);
   });
 
   // Kelson, 2026-10-12: the two products are apart, and an address of an account is never promoted.
@@ -67,13 +73,14 @@ describe("paragraphPrompt", () => {
 });
 
 describe("paperPrompt", () => {
-  it("names the paper and where to read it", () => {
+  it("names the paper and where to read it, in few words", () => {
     const prompt = paperPrompt({ question: "Give me the short version of this paper.", paper: { id: "1", title: "The Universal Father" }, link: "https://www.urantiahub.com/papers/paper-1-the-universal-father" });
     expect(prompt.startsWith("Give me the short version of this paper.\n\n")).toBe(true);
     expect(prompt).toContain('Paper 1, "The Universal Father"');
     expect(prompt).toContain("https://www.urantiahub.com/papers/paper-1-the-universal-father");
     expect(prompt).toContain("https://api.urantia.dev/papers/1");
     expect(prompt).toContain("such as 1:0.1");
+    expect(prompt.length).toBeLessThan(520);
   });
 });
 
