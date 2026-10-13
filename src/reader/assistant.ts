@@ -35,9 +35,9 @@ export const PAPER_QUESTIONS: readonly string[] = [
 export type Before = { ref: string; text: string };
 type Paper = { id: string; title: string };
 
-// The question travels in an address, and an address has a limit. This is the room for the paragraphs
-// before the one that the reader asks about.
-export const CONTEXT_ROOM = 3200;
+// The room for the paragraphs before the one that the reader asks about. Small on purpose: the question
+// travels in an address, and a reader sees it in the box of the assistant. The assistant can read more.
+export const CONTEXT_ROOM = 1200;
 
 // The paragraphs nearest to the reader's one, as many as fit. Never one from the middle left out.
 export function contextWithin(before: readonly Before[], room: number = CONTEXT_ROOM): { kept: Before[]; cut: boolean } {
@@ -55,44 +55,27 @@ export function contextWithin(before: readonly Before[], room: number = CONTEXT_
 const API = "https://api.urantia.dev";
 const paperLine = (paper: Paper) => (paper.id === "0" ? `"${paper.title}"` : `Paper ${paper.id}, "${paper.title}"`);
 
-// Where the assistant finds more than the question holds. The connector first; the public service for an
-// assistant with none. Only public reading addresses: never one of an account.
-function more(lines: string[], example: string): string {
-  return [
-    "More is there if you need it. If you have the Urantia Papers connector, use it. If you do not, the same data is public at these addresses, with no key:",
-    ...lines.map((line) => `- ${line}`),
-    `- A search by meaning: ${API}/search/semantic?q=your+words`,
-    `- All the addresses: ${API}/openapi.json`,
-    "",
-    `Cite each paragraph that you use by its reference, such as ${example}. Tell me when you are not sure.`,
-  ].join("\n");
-}
+// Where the assistant finds more than the question holds, in one sentence. The connector first; one
+// public reading address for an assistant with none, and the list of all of them. Never one of an account.
+const more = (what: string, address: string, example: string) =>
+  `For more, use the Urantia Papers connector if you have it. If not, ${what} at ${address} (all addresses: ${API}/openapi.json). Cite paragraphs by reference, such as ${example}.`;
 
 type ParagraphAsk = { question: string; paper: Paper; section: { id: string; title: string | null } | null; before: readonly Before[]; ref: string; text: string; link: string };
 
+// Short on purpose (Kelson, 2026-10-12): the question, where the paragraph is, the nearest paragraphs
+// before it, the paragraph, and one sentence on where more is.
 export function paragraphPrompt({ question, paper, section, before, ref, text, link }: ParagraphAsk): string {
-  const { kept, cut } = contextWithin(before);
-  const parts = [question, `From the Urantia Papers:\n${paperLine(paper)}\n${section ? `Section ${section.id}${section.title ? `, "${section.title}"` : ""}` : "The opening of the paper"}`];
-  if (kept.length > 0) parts.push(`The paragraphs before it in this section${cut ? " (the nearest ones)" : ""}, for context:\n${kept.map((one) => `${one.ref} ${one.text}`).join("\n\n")}`);
-  parts.push(`The paragraph that I ask about:\n${ref} ${text}`, `On UrantiaHub: ${link}`);
-  parts.push(
-    more(
-      [
-        `This paragraph with the meaning of its terms, and the passages near to it in meaning in the Papers, in the Bible, and in the texts of other religions: ${API}/paragraphs/${ref}?include=entities,urantiaParallels,bibleParallels,scriptureParallels`,
-        `The whole paper: ${API}/papers/${paper.id}`,
-      ],
-      ref,
-    ),
-  );
+  const { kept } = contextWithin(before);
+  const place = section ? `section ${section.id}${section.title ? `, "${section.title}"` : ""}` : "the opening of the paper";
+  const parts = [question, `The Urantia Papers, ${paperLine(paper)}, ${place}.`];
+  if (kept.length > 0) parts.push(`Before it, for context:\n${kept.map((one) => `${one.ref} ${one.text}`).join("\n\n")}`);
+  parts.push(`I ask about this paragraph:\n${ref} ${text}`, `On UrantiaHub: ${link}`);
+  parts.push(more("the paragraph with its terms and its parallels is public", `${API}/paragraphs/${ref}?include=entities,urantiaParallels,bibleParallels,scriptureParallels`, ref));
   return parts.join("\n\n");
 }
 
 export function paperPrompt({ question, paper, link }: { question: string; paper: Paper; link: string }): string {
-  return [
-    question,
-    `From the Urantia Papers:\n${paperLine(paper)}\nOn UrantiaHub: ${link}`,
-    more([`The whole paper, with each paragraph and its reference: ${API}/papers/${paper.id}`, `One paragraph with the meaning of its terms and the passages near to it in meaning: ${API}/paragraphs/${paper.id}:0.1?include=entities,urantiaParallels,bibleParallels,scriptureParallels`], `${paper.id}:0.1`),
-  ].join("\n\n");
+  return [question, `The Urantia Papers, ${paperLine(paper)}.\nOn UrantiaHub: ${link}`, more("the whole paper is public", `${API}/papers/${paper.id}`, `${paper.id}:0.1`)].join("\n\n");
 }
 
 // True when the question can go in the address. If not, the reader pastes it.

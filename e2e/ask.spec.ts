@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
   await stubAudio(page);
 });
 
-test("More offers Ask an assistant, and the question holds the section, the paragraphs before, and the paragraph", async ({ page }) => {
+test("More offers Ask an assistant, and the question holds the section, the paragraph before, and the paragraph", async ({ page }) => {
   await page.goto(PAPER_1);
   await tap(page, "1:1.3");
   await page.getByRole("button", { name: "More" }).click();
@@ -18,8 +18,10 @@ test("More offers Ask an assistant, and the question holds the section, the para
   await sheet(page).getByRole("button", { name: "See what the assistant gets" }).click();
   const sent = (await page.getByTestId("ask-sent").textContent()) ?? "";
   expect(sent).toContain('Paper 1, "The Universal Father"');
-  expect(sent).toContain('Section 1, "The Father’s Name"');
-  expect(sent).toMatch(/1:1\.1 Of all the names[\s\S]*1:1\.2 The Universal Father never imposes[\s\S]*The paragraph that I ask about:\n1:1\.3 When you have once become truly God-conscious/);
+  expect(sent).toContain('section 1, "The Father’s Name"');
+  // The nearest paragraph before it is there. The one before that is not: the question stays short.
+  expect(sent).toMatch(/1:1\.2 The Universal Father never imposes[\s\S]*I ask about this paragraph:\n1:1\.3 When you have once become truly God-conscious/);
+  expect(sent).not.toContain("1:1.1 Of all the names");
   expect(sent).toContain("http://localhost:3100/s/1.1.3");
   expect(sent).toContain("https://api.urantia.dev/paragraphs/1:1.3?include=entities,urantiaParallels,bibleParallels,scriptureParallels");
   // The link of the button is the same text, in the address of the assistant.
