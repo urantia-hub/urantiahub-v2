@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
-import { ASSISTANTS, type AssistantId, assistantHref, rememberAssistant, rememberedAssistant } from "@/reader/assistant";
+import { ASSISTANTS, type AssistantId, assistantHref, canPrefill, rememberAssistant, rememberedAssistant } from "@/reader/assistant";
 import { Sheet } from "./Sheet";
 
 type Props = {
@@ -49,13 +49,13 @@ export default function AskSheet({ about, label, paperId, questions, build, onCl
   const foot = (
     <>
       <div className="share-acts">
-        {assistant.prefill ? (
+        {canPrefill(who, text) ? (
           <a className="panel-button dark" href={assistantHref(who, text)} target="_blank" rel="noopener" onClick={() => count("open")}>
             <Icon name="external" />
             Open in {assistant.name}
           </a>
         ) : (
-          <button type="button" className="panel-button dark" onClick={() => void copy(() => window.open(assistant.address, "_blank", "noopener"))}>
+          <button type="button" className="panel-button dark" onClick={() => void copy(() => window.open(assistant.home, "_blank", "noopener"))}>
             <Icon name="external" />
             Copy, then open {assistant.name}
           </button>

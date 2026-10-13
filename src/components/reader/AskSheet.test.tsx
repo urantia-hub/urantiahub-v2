@@ -82,6 +82,18 @@ describe("the sheet to ask an assistant", () => {
     expect(screen.getByRole("status")).toHaveTextContent("The question is copied. Paste it in Gemini.");
   });
 
+  it("for Grok with a long question, copies it and then opens Grok, because Grok refuses a long link", async () => {
+    const user = userEvent.setup();
+    const opened = vi.fn();
+    vi.stubGlobal("open", opened);
+    render(<AskSheet about="paragraph" label="About paragraph 1:1.3." paperId="1" questions={PARAGRAPH_QUESTIONS} build={(question) => `${question} ${"word ".repeat(600)}`} onClose={() => {}} />);
+    await user.click(screen.getByRole("button", { name: "Grok" }));
+    expect(screen.queryByRole("link", { name: /^Open in/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Copy, then open Grok" }));
+    expect(opened).toHaveBeenCalledWith("https://grok.com/", "_blank", "noopener");
+    expect(screen.getByRole("status")).toHaveTextContent("The question is copied. Paste it in Grok.");
+  });
+
   it("says when the browser refused the copy", async () => {
     const user = userEvent.setup();
     open();

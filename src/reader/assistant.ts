@@ -3,13 +3,16 @@
 
 export type AssistantId = "claude" | "chatgpt" | "gemini" | "grok";
 // `prefill`: the assistant reads the question from its address. With none, the reader pastes it.
-export type Assistant = { id: AssistantId; name: string; address: string; prefill: boolean };
+// `home`: the page to open for a paste. `maxLink`: the longest address that the assistant takes.
+export type Assistant = { id: AssistantId; name: string; address: string; home: string; prefill: boolean; maxLink?: number };
 
 export const ASSISTANTS: readonly Assistant[] = [
-  { id: "claude", name: "Claude", address: "https://claude.ai/new?q=", prefill: true },
-  { id: "chatgpt", name: "ChatGPT", address: "https://chatgpt.com/?q=", prefill: true },
-  { id: "gemini", name: "Gemini", address: "https://gemini.google.com/app", prefill: false },
-  { id: "grok", name: "Grok", address: "https://grok.com/?q=", prefill: true },
+  { id: "claude", name: "Claude", address: "https://claude.ai/new?q=", home: "https://claude.ai/new", prefill: true },
+  { id: "chatgpt", name: "ChatGPT", address: "https://chatgpt.com/?q=", home: "https://chatgpt.com/", prefill: true },
+  { id: "gemini", name: "Gemini", address: "https://gemini.google.com/app", home: "https://gemini.google.com/app", prefill: false },
+  // The server of Grok takes about 8,000 characters of headers in all (measured 2026-10-12: error 431
+  // above that), and the cookies of a signed-in reader are a part of them. 2,000 leaves room for those.
+  { id: "grok", name: "Grok", address: "https://grok.com/?q=", home: "https://grok.com/", prefill: true, maxLink: 2000 },
 ];
 
 // Approved copy (Kelson, 2026-10-12). A question about a visual names no form: each assistant has its own
@@ -90,6 +93,13 @@ export function paperPrompt({ question, paper, link }: { question: string; paper
     `From the Urantia Papers:\n${paperLine(paper)}\nOn UrantiaHub: ${link}`,
     more([`The whole paper, with each paragraph and its reference: ${API}/papers/${paper.id}`, `One paragraph with the meaning of its terms and the passages near to it in meaning: ${API}/paragraphs/${paper.id}:0.1?include=entities,urantiaParallels,bibleParallels,scriptureParallels`], `${paper.id}:0.1`),
   ].join("\n\n");
+}
+
+// True when the question can go in the address. If not, the reader pastes it.
+export function canPrefill(id: AssistantId, prompt: string): boolean {
+  const assistant = ASSISTANTS.find((one) => one.id === id) ?? ASSISTANTS[0];
+  if (!assistant.prefill) return false;
+  return assistant.maxLink === undefined || assistant.address.length + encodeURIComponent(prompt).length <= assistant.maxLink;
 }
 
 // The address that opens the assistant. With `prefill`, the question is in it.

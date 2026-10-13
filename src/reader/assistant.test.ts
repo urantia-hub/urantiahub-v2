@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ASSISTANTS, CONTEXT_ROOM, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, assistantHref, contextWithin, paperPrompt, paragraphPrompt } from "./assistant";
+import { ASSISTANTS, CONTEXT_ROOM, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, assistantHref, canPrefill, contextWithin, paperPrompt, paragraphPrompt } from "./assistant";
 
 const BASE = {
   question: "Explain this paragraph in plain words.",
@@ -107,6 +107,24 @@ describe("assistantHref", () => {
   it("gives the plain address for an assistant that does not: the reader pastes the question", () => {
     expect(assistantHref("gemini", "a b")).toBe("https://gemini.google.com/app");
     expect(ASSISTANTS.find((one) => one.id === "gemini")?.prefill).toBe(false);
+  });
+});
+
+describe("canPrefill", () => {
+  // Kelson, 2026-10-12: Grok answered error 431 for a link of about 4,500 characters. Its server takes
+  // about 8,000 characters of headers in all, and the cookies of a signed-in reader are a part of that.
+  it("is false for Grok when the link is long, so the reader pastes the question", () => {
+    expect(canPrefill("grok", "short")).toBe(true);
+    expect(canPrefill("grok", "word ".repeat(600))).toBe(false);
+  });
+
+  it("is true for a long link on an assistant with no known limit", () => {
+    expect(canPrefill("claude", "word ".repeat(600))).toBe(true);
+    expect(canPrefill("chatgpt", "word ".repeat(600))).toBe(true);
+  });
+
+  it("is false for an assistant that reads no question from its address", () => {
+    expect(canPrefill("gemini", "short")).toBe(false);
   });
 });
 
