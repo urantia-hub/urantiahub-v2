@@ -11,6 +11,7 @@ export const esc = (value: string): string => value.replace(/&/g, "&amp;").repla
 const UI = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const SERIF = "Georgia,'Times New Roman',serif";
 
+// A mail app with a dark theme can change the colors: the page asks for light only, and the button has an edge for the apps that do not obey.
 // `quote`: the body is words of the Papers, shown as a quote that goes on.
 // `list`: short lines under the body.
 type Frame = { label: string; body: string; list?: string[]; cite: string; button: string; url: string; reason: string; offUrl: string; settingsUrl: string };
@@ -18,8 +19,8 @@ type Frame = { label: string; body: string; list?: string[]; cite: string; butto
 function html({ label, body, list, cite, button, url, reason, offUrl, settingsUrl }: Frame): string {
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(label)}</title>
-<style>.addr a{color:#756d5f !important;text-decoration:none !important;}</style></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(label)}</title>
+<style>:root{color-scheme:light only;}.addr a{color:#756d5f !important;text-decoration:none !important;}</style></head>
 <body style="margin:0;padding:0;" bgcolor="#f1ede4">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f1ede4" style="padding:28px 14px;">
 <tr><td align="center">
@@ -30,7 +31,7 @@ function html({ label, body, list, cite, button, url, reason, offUrl, settingsUr
 <p style="margin:16px 0 14px;font-family:${SERIF};font-size:20px;line-height:1.55;color:#26221c;">${esc(body)}</p>
 ${(list ?? []).map((line) => `<p style="margin:0 0 12px;font-family:${UI};font-size:15px;line-height:1.55;color:#26221c;">${esc(line)}</p>`).join("\n")}
 <p style="margin:${list?.length ? "18px" : "0"} 0 0;font-family:${UI};font-size:13px;color:#756d5f;">${esc(cite)}</p>
-<p style="margin:22px 0 0;"><a href="${esc(url)}" style="display:inline-block;padding:13px 22px;border-radius:999px;background:#26221c;color:#fbf8f2;font-family:${UI};font-size:14.5px;font-weight:500;text-decoration:none;">${esc(button)}</a></p>
+<p style="margin:22px 0 0;"><a href="${esc(url)}" style="display:inline-block;padding:13px 22px;border-radius:999px;background:#26221c;border:1px solid #8d8676;color:#fbf8f2;font-family:${UI};font-size:14.5px;font-weight:500;text-decoration:none;">${esc(button)}</a></p>
 </td></tr>
 <tr><td style="padding:22px 36px;border-top:1px solid #e7e0d2;font-family:${UI};font-size:12px;line-height:1.6;color:#756d5f;">
 ${esc(reason)}<br>
