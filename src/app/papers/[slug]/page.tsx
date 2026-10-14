@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PaperView } from "@/components/reader/PaperView";
-import { paperTracks } from "@/audio/tracks";
+import { voiceTracks } from "@/audio/paper-engine";
+import { paperRefs, paperTracks } from "@/audio/tracks";
 import { getPaper } from "@/content";
 import { ReadingNav } from "@/components/navigation/ReadingNav";
 import { ReadMarks } from "@/components/ReadMarks";
@@ -59,7 +60,8 @@ export default async function PaperPage({ params }: Props) {
         sections={paper.sections.map((s) => ({ id: s.id, title: s.title }))}
         previous={toNav(PAPERS[n - 1])}
         next={toNav(PAPERS[n + 1])}
-        tracks={paperTracks(paper)}
+        tracks={paper.voice ? voiceTracks(paper.voice, paperRefs(paper)) : paperTracks(paper)}
+        voice={paper.voice}
       />
     </>
   );

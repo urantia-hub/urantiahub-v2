@@ -42,7 +42,8 @@
   border-radius: 2px;
   transition:
     background-color 0.3s,
-    box-shadow 0.3s;
+    box-shadow 0.3s,
+    opacity 0.9s ease-in-out;
 }
 /* Yellow: the paragraph in focus. The dock sets data-picked. Before the dock starts, and for a reader with
    no JavaScript, the browser marks the paragraph that the address names. */
@@ -51,10 +52,51 @@ html:not([data-reader]) .para:target {
   background: var(--mark);
   box-shadow: 0 0 0 12px var(--mark);
 }
-/* Green: the paragraph that the voice reads. It shows only while sound plays. */
-.para[data-voice] {
-  background: var(--voice);
-  box-shadow: 0 0 0 12px var(--voice);
+/* The voice shows by the strength of the text, never by a color or a moving mark (Kelson, 2026-10-13).
+   `ReadingNav` sets `data-follow` on <html> while the voice sounds, and `data-fade` while the page follows
+   it. Then all else is at 34 percent: the paragraph or the title that sounds keeps its full strength. */
+.paper h2,
+.paper-head h1,
+.paper-head .ask-paper,
+.para .text {
+  transition:
+    opacity 0.9s ease-in-out,
+    color 0.9s ease-in-out;
+}
+html[data-fade] .paper .para:not([data-voice]):not([data-picked]),
+html[data-fade] .paper h2:not([data-voice]),
+html[data-fade] .paper-head h1:not([data-voice]),
+html[data-fade] .paper-head .ask-paper {
+  opacity: 0.34;
+}
+/* An ink bar beside the paragraph that sounds, and beside the paragraph of a pause (`data-held`). A title
+   that sounds has no bar. On a phone the bar is at the edge of the text; on a wide screen it is in the
+   middle of the space between the number and the text. */
+html[data-follow] .para[data-voice]::before,
+.para[data-held]::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+@media (min-width: 768px) {
+  html[data-follow] .para[data-voice]::before,
+  .para[data-held]::before {
+    left: -9.5px;
+  }
+}
+html[data-follow] .para[data-voice] .ref,
+.para[data-held] .ref {
+  color: var(--ink);
+}
+/* Inside the paragraph, the sentence that sounds is at full ink (`::highlight(voice-now)`, in
+   `voice-mark.ts`) and the rest is softer. */
+html[data-soft] .para[data-voice] .text {
+  color: color-mix(in srgb, var(--ink) 58%, var(--bg));
 }
 html[data-reader] .para {
   cursor: pointer;
@@ -106,9 +148,6 @@ html[data-reader] .para {
 .para[data-picked] .ref,
 html:not([data-reader]) .para:target .ref {
   color: var(--ink);
-}
-.para[data-voice] .ref {
-  color: var(--voice-line);
 }
 .notice {
   font: 400 14px/1.5 var(--font-ui);

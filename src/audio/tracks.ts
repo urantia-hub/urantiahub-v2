@@ -14,3 +14,8 @@ export function paperTracks(paper: PaperDoc): Track[] | null {
   }
   return tracks.length > 0 ? tracks : null;
 }
+
+// The paragraph references of a paper, in reading order.
+export function paperRefs(paper: PaperDoc): string[] {
+  return paper.sections.flatMap((section) => section.paragraphs.map((paragraph) => paragraph.ref));
+}

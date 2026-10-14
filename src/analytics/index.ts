@@ -9,12 +9,14 @@ export type AnalyticsEvents = {
   paragraph_picked: { paper_id: string };
   // `part`: the link is for some sentences of the paragraph, not for all of it.
   paragraph_shared: { ref: string; method: "sheet" | "copy"; part?: boolean };
-  audio_started: { paper_id: string; from: "bar" | "paragraph" };
-  audio_finished_paper: { paper_id: string; speed: number };
+  // `place`: from "Continue listening at", the place where the voice stopped on an earlier visit.
+  audio_started: { paper_id: string; from: "bar" | "paragraph" | "place" };
+  // `one_file`: the voice played the one file of the paper, not a file for each paragraph.
+  audio_finished_paper: { paper_id: string; speed: number; one_file: boolean };
   audio_failed: { paper_id: string };
   // `hidden`: the page was not in view, for example with the screen off.
   audio_slow_change: { paper_id: string; seconds: number; hidden: boolean };
-  audio_system_pause: { paper_id: string; hidden: boolean };
+  audio_system_pause: { paper_id: string; hidden: boolean; one_file: boolean };
   search_opened: undefined;
   search_started: { source: "typed" | "starter" | "recent" | "navigator" };
   search_direct_hit: { kind: "reference" | "paper" };

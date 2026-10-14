@@ -3,6 +3,8 @@ import type { Page } from "@playwright/test";
 
 const LONG = readFileSync("e2e/fixtures/silence-long.mp3");
 const SHORT = readFileSync("e2e/fixtures/silence-short.mp3");
+// The one file of a whole paper: 130 seconds, for the time map of the paper 2 fixture.
+const PAPER = readFileSync("e2e/fixtures/silence-paper.mp3");
 
 // Serves a silent file in place of each audio file, so no test depends on the CDN.
 // `short` makes each paragraph end after half a second. `failOn` makes one file fail until the test clears it.
@@ -11,6 +13,7 @@ export async function stubAudio(page: Page, options: { short?: boolean; failOn?:
   await page.route("https://cdn.urantia.dev/**", (route) => {
     state.requested.push(route.request().url());
     if (state.failOn && decodeURIComponent(route.request().url()).includes(state.failOn)) return route.abort();
+    if (route.request().url().includes("/audio/eng/papers/")) return route.fulfill({ body: PAPER, contentType: "audio/mpeg" });
     return route.fulfill({ body: options.short ? SHORT : LONG, contentType: "audio/mpeg" });
   });
   return state;
