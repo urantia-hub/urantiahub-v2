@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ContentError, excerptPassage, fetchExact, fetchPaper, fetchPassage, fetchRelated, novaAudio, type SearchClient, type ContentClient, type Passage } from "./fetchers";
+import { ContentError, excerptPassage, fetchExact, fetchPaper, fetchPassage, fetchRelated, novaAudio, paperAudio, type SearchClient, type ContentClient, type Passage } from "./fetchers";
 
 const paragraph = (ref: string, sectionId: string, sectionTitle: string | null, html = `<span class="urantia-dev-pb-0">Text ${ref}</span>`) => ({
   id: `x-${ref}`,
@@ -227,6 +227,52 @@ describe("fetchPaper and audio", () => {
     };
     const paper = await fetchPaper(client({ paper: withAudio }), "1");
     expect(paper.sections[0].paragraphs.map((p) => p.audio)).toEqual([{ url: "https://cdn.urantia.dev/a.mp3", duration: 12 }, null]);
+  });
+});
+
+describe("paperAudio", () => {
+  const refs = ["1:0.1", "1:0.2", "1:1.1"];
+  const map = (starts: unknown[], over: Record<string, unknown> = {}) => ({
+    "tts-1-hd": { nova: { url: "https://cdn.urantia.dev/audio/eng/papers/1.mp3", format: "mp3", bitrate: 32, duration: 900, starts, ...over } },
+  });
+  const full = [
+    { key: "title", at: 0 },
+    { key: "1:0.1", at: 4.2, sentences: [4.2, 9.1] },
+    { key: "1:0.2", at: 30 },
+    { key: "section:1", at: 61.5 },
+    { key: "1:1.1", at: 65, sentences: [65] },
+  ];
+
+  it("reads the file of the paper and the start of each item", () => {
+    expect(paperAudio(map(full), refs)).toEqual({ url: "https://cdn.urantia.dev/audio/eng/papers/1.mp3", duration: 900, starts: full });
+  });
+
+  it.each([
+    ["no map", null],
+    ["a paragraph with no start", map(full.filter((s) => s.key !== "1:0.2"))],
+    ["starts out of order", map([full[0], full[2], full[1], full[3], full[4]])],
+    ["sentences out of order", map([full[0], { key: "1:0.1", at: 4.2, sentences: [9.1, 4.2] }, full[2], full[3], full[4]])],
+    ["a start past the end", map(full, { duration: 50 })],
+    ["a URL on another host", map(full, { url: "https://audio.urantia.dev/1.mp3" })],
+  ])("gives null for %s, so the paper keeps the paragraph player", (_name, raw) => {
+    expect(paperAudio(raw, refs)).toBeNull();
+  });
+});
+
+describe("fetchPaper and the audio of the whole paper", () => {
+  it("gives the paper its voice map, or null", async () => {
+    const audio = {
+      "tts-1-hd": {
+        nova: {
+          url: "https://cdn.urantia.dev/audio/eng/papers/1.mp3",
+          duration: 300,
+          starts: paperResponse.data.paragraphs.map((p, i) => ({ key: p.standardReferenceId, at: i * 10 })),
+        },
+      },
+    };
+    const withMap = { data: { ...paperResponse.data, paper: { ...paperResponse.data.paper, audio } } };
+    expect((await fetchPaper(client({ paper: withMap }), "1")).voice?.starts).toHaveLength(4);
+    expect((await fetchPaper(client(), "1")).voice).toBeNull();
   });
 });
 

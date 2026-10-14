@@ -6,6 +6,7 @@ const para = (ref: string, audio: { url: string; duration: number } | null) => (
 const paper = (paragraphs: ReturnType<typeof para>[][]): PaperDoc => ({
   id: "1",
   title: "The Universal Father",
+  voice: null,
   partId: "1",
   sections: paragraphs.map((list, i) => ({ id: String(i), title: i ? `Section ${i}` : null, paragraphs: list })),
 });

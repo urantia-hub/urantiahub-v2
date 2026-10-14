@@ -6,6 +6,7 @@ import { PaperView } from "./PaperView";
 const paper: PaperDoc = {
   id: "1",
   title: "The Universal Father",
+  voice: null,
   partId: "1",
   sections: [
     { id: "0", title: null, paragraphs: [{ ref: "1:0.1", text: "First.", html: '<span class="urantia-dev-pb-0">First.</span>', audio: null }] },
@@ -60,6 +61,7 @@ describe("PaperView", () => {
     const foreword: PaperDoc = {
       id: "0",
       title: "Foreword",
+      voice: null,
       partId: "0",
       sections: [
         { id: "0", title: null, paragraphs: [{ ref: "0:0.1", text: "a", html: "a", audio: null }] },

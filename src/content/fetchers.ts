@@ -35,7 +35,7 @@ const ParagraphSchema = z.object({
 
 const PaperResponseSchema = z.object({
   data: z.object({
-    paper: z.object({ id: z.string(), title: z.string(), partId: z.string() }),
+    paper: z.object({ id: z.string(), title: z.string(), partId: z.string(), audio: z.unknown().optional() }),
     paragraphs: z.array(ParagraphSchema).min(1),
   }),
 });
@@ -71,9 +71,43 @@ export function novaAudio(raw: unknown): ParagraphAudio | null {
   return { url, duration };
 }
 
+// One file for the whole paper, with the start of each item in it: "title", "section:{id}", or a paragraph.
+// The voice plays it in place of the paragraph files, so a phone does not stop at each change of file.
+const PaperAudioSchema = z.object({
+  "tts-1-hd": z.object({
+    nova: z.object({
+      url: z.string().startsWith("https://cdn.urantia.dev/"),
+      duration: z.number().positive(),
+      starts: z.array(z.object({ key: z.string(), at: z.number().min(0), sentences: z.array(z.number().min(0)).optional() })).min(1),
+    }),
+  }),
+});
+
+export type VoiceStart = { key: string; at: number; sentences?: number[] };
+export type PaperVoice = { url: string; duration: number; starts: VoiceStart[] };
+
+const ascending = (times: number[]) => times.every((t, i) => i === 0 || t > times[i - 1]);
+
+// Null unless each paragraph of the paper has a start, and the starts are in order inside the file.
+// The paper then keeps the player of one file for each paragraph.
+export function paperAudio(raw: unknown, refs: string[]): PaperVoice | null {
+  const parsed = PaperAudioSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  const { url, duration, starts } = parsed.data["tts-1-hd"].nova;
+  if (!ascending(starts.map((s) => s.at)) || starts.at(-1)!.at >= duration) return null;
+  if (starts.some((s) => s.sentences && (!ascending(s.sentences) || s.sentences[0] !== s.at))) return null;
+  const keys = new Set(starts.map((s) => s.key));
+  if (!refs.every((ref) => keys.has(ref))) return null;
+  return {
+    url,
+    duration,
+    starts: starts.map(({ key, at, sentences }) => (sentences ? { key, at, sentences } : { key, at })),
+  };
+}
+
 export type Paragraph = { ref: string; text: string; html: string; audio: ParagraphAudio | null };
 export type Section = { id: string; title: string | null; paragraphs: Paragraph[] };
-export type PaperDoc = { id: string; title: string; partId: string; sections: Section[] };
+export type PaperDoc = { id: string; title: string; partId: string; sections: Section[]; voice: PaperVoice | null };
 export type Passage = { ref: string; paperId: string; paperTitle: string; text: string };
 
 // The part of the SDK client that the gateway uses. Results are unknown until validated.
@@ -110,7 +144,8 @@ export async function fetchPaper(client: ContentClient, id: string): Promise<Pap
       audio: novaAudio(p.audio),
     });
   }
-  return { id: paper.id, title: paper.title, partId: paper.partId, sections };
+  const refs = paragraphs.map((p) => p.standardReferenceId);
+  return { id: paper.id, title: paper.title, partId: paper.partId, sections, voice: paperAudio(paper.audio, refs) };
 }
 
 const SENTENCE_END = /[.?!][”"’']?$/;

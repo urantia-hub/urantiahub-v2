@@ -6,8 +6,10 @@ import { accountState, serverAccountState, subscribeToAccount } from "@/account/
 import { failureWords } from "@/account/limited";
 import { noSaved, savedState, subscribeToSaved, toggleBookmark } from "@/account/saved";
 import { track } from "@/analytics";
-import { createAudioEngine, type AudioEngine, type VoiceState } from "@/audio/engine";
+import { createAudioEngine, type AudioEngine } from "@/audio/engine";
+import { createPaperEngine, type PaperEngine, type PaperVoiceState } from "@/audio/paper-engine";
 import type { Track } from "@/audio/tracks";
+import type { PaperVoice } from "@/content/fetchers";
 import { Icon } from "@/components/icons";
 import { Sheet } from "@/components/reader/Sheet";
 import { TermsSheet } from "@/components/reader/TermsSheet";
@@ -34,9 +36,11 @@ type Props = {
   next: NavPaper | null;
   // The audio for this paper, or null when the paper has no voice.
   tracks: Track[] | null;
+  // One file for the whole paper. With it the voice plays that file; with none, one file for each paragraph.
+  voice: PaperVoice | null;
 };
 
-const IDLE: VoiceState = { status: "idle", index: -1, time: 0, speed: 1 };
+const IDLE: PaperVoiceState = { status: "idle", index: -1, time: 0, speed: 1, item: null, sentence: 0 };
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
 const paragraphText = (ref: string) => document.getElementById(ref)?.querySelector(":scope > .text, :scope > span:last-child")?.textContent?.trim() ?? "";
@@ -64,14 +68,14 @@ function inView(ref: string | null): boolean {
 }
 
 // The controls at the bottom of a paper: a round button for the voice, and a pill with three jobs.
-export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
+export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice }: Props) {
   const [current, setCurrent] = useState("0");
   const [progress, setProgress] = useState(0);
   const [hidden, setHidden] = useState(false);
   const [deep, setDeep] = useState(false);
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
-  const [voice, setVoice] = useState<VoiceState>(IDLE);
+  const [voice, setVoice] = useState<PaperVoiceState>(IDLE);
   const [backShown, setBackShown] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // The small panel above the row: the two more actions, or the question for a reader with no account.
@@ -96,7 +100,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
   const toastTimer = useRef(0);
   const roundButton = useRef<HTMLButtonElement>(null);
 
-  const engine = useRef<AudioEngine | null>(null);
+  const engine = useRef<AudioEngine | PaperEngine | null>(null);
   // The page follows the voice until the reader scrolls. `autoUntil` covers the page's own scroll.
   const following = useRef(true);
   const autoUntil = useRef(0);
@@ -129,15 +133,22 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
 
   useEffect(() => {
     if (!tracks) return;
-    const created = createAudioEngine(tracks, {
-      createAudio: () => new Audio(),
-      onFinished: () => track("audio_finished_paper", { paper_id: paper.id, speed: created.getState().speed }),
-      onSlowChange: (ms) => track("audio_slow_change", { paper_id: paper.id, seconds: Math.round(ms / 1000), hidden: document.hidden }),
-      onSystemPause: () => track("audio_system_pause", { paper_id: paper.id, hidden: document.hidden }),
-    });
+    const onFinished = () => track("audio_finished_paper", { paper_id: paper.id, speed: created.getState().speed, one_file: paperVoice !== null });
+    const onSystemPause = () => track("audio_system_pause", { paper_id: paper.id, hidden: document.hidden, one_file: paperVoice !== null });
+    const created: AudioEngine | PaperEngine = paperVoice
+      ? createPaperEngine(paperVoice, tracks.map((t) => t.ref), { createAudio: () => new Audio(), onFinished, onSystemPause })
+      : createAudioEngine(tracks, {
+          createAudio: () => new Audio(),
+          onFinished,
+          onSlowChange: (ms) => track("audio_slow_change", { paper_id: paper.id, seconds: Math.round(ms / 1000), hidden: document.hidden }),
+          onSystemPause,
+        });
     engine.current = created;
     const off = created.subscribe(() => {
-      const now = created.getState();
+      const state = created.getState();
+      // The engine of paragraph files knows no titles and no sentences.
+      const now: PaperVoiceState =
+        "item" in state ? (state as PaperVoiceState) : { ...state, item: isSounding(state.status) ? tracks[state.index].ref : null, sentence: 0 };
       setVoice(now);
       const ref = isSounding(now.status) ? tracks[now.index].ref : null;
       if (!ref) {
@@ -170,7 +181,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       setHidden(false);
       lastVoiceRef.current = null;
     };
-  }, [tracks, paper.id, bring]);
+  }, [tracks, paperVoice, paper.id, bring]);
 
   // The header of the page leaves and returns with these controls. CSS reads the mark.
   useEffect(() => {
@@ -339,8 +350,14 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
       setPicked(null);
       start(intent.ref, "paragraph");
     } else {
-      const first = tracks.find((t) => (document.getElementById(t.ref)?.getBoundingClientRect().bottom ?? 0) > 90);
-      start((first ?? tracks[0]).ref, "bar");
+      const first = tracks.find((t) => (document.getElementById(t.ref)?.getBoundingClientRect().bottom ?? 0) > 90) ?? tracks[0];
+      // From the top of a paper, the voice reads its title first.
+      const current = engine.current;
+      if (first === tracks[0] && current && "playFromTitle" in current) {
+        following.current = true;
+        track("audio_started", { paper_id: paper.id, from: "bar" });
+        current.playFromTitle();
+      } else start(first.ref, "bar");
     }
   }
 
@@ -386,10 +403,36 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     session.setActionHandler("pause", () => engine.current?.pause());
     session.setActionHandler("previoustrack", () => engine.current?.previous());
     session.setActionHandler("nexttrack", () => engine.current?.next());
+    // With one file, the lock screen shows a seek bar. Its buttons go to the paragraph before or after.
+    const seeks = paperVoice ? (["seekbackward", "seekforward"] as const) : [];
+    for (const action of seeks) {
+      try {
+        session.setActionHandler(action, () => (action === "seekbackward" ? engine.current?.previous() : engine.current?.next()));
+      } catch {
+        // A browser that does not know the action.
+      }
+    }
     return () => {
-      (["play", "pause", "previoustrack", "nexttrack"] as const).forEach((action) => session.setActionHandler(action, null));
+      ([...seeks, "play", "pause", "previoustrack", "nexttrack"] as const).forEach((action) => {
+        try {
+          session.setActionHandler(action, null);
+        } catch {
+          // A browser that does not know the action.
+        }
+      });
     };
-  }, [tracks]);
+  }, [tracks, paperVoice]);
+
+  // The place in the one file, for the seek bar of the lock screen.
+  useEffect(() => {
+    const current = engine.current;
+    if (!current || !("position" in current) || !isSounding(voice.status)) return;
+    try {
+      navigator.mediaSession?.setPositionState?.(current.position());
+    } catch {
+      // A position past the duration while the file loads. The next update sets it.
+    }
+  }, [voice.status, voice.index, voice.item, voice.speed]);
 
   useEffect(() => {
     if (!voiceRef || !("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;

@@ -4,6 +4,7 @@ import { Activity } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeAudio } from "../../../test/fake-audio";
 import type { Track } from "@/audio/tracks";
+import type { PaperVoice } from "@/content/fetchers";
 import { markSignedOut, resetAccountForTest, startAccount } from "@/account/client";
 import { loadSaved, resetSavedForTest } from "@/account/saved";
 import { resetSyncForTest } from "@/account/sync";
@@ -18,7 +19,19 @@ const TRACKS: Track[] = [
   { ref: "1:1.1", url: "https://cdn.urantia.dev/c.mp3", duration: 30 },
 ];
 
-function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible") {
+const VOICE: PaperVoice = {
+  url: "https://cdn.urantia.dev/audio/eng/papers/1.mp3",
+  duration: 80,
+  starts: [
+    { key: "title", at: 0 },
+    { key: "1:0.1", at: 3 },
+    { key: "1:0.2", at: 14 },
+    { key: "section:1", at: 35 },
+    { key: "1:1.1", at: 38 },
+  ],
+};
+
+function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible", voice: PaperVoice | null = null) {
   return (
     <Activity mode={mode}>
       <article className="paper">
@@ -41,6 +54,7 @@ function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible") {
         previous={{ id: "0", title: "Foreword", href: "/papers/foreword" }}
         next={{ id: "2", title: "2 · The Nature of God", href: "/papers/paper-2-the-nature-of-god" }}
         tracks={tracks}
+        voice={voice}
       />
     </Activity>
   );
@@ -86,6 +100,32 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+describe("the one file of the paper", () => {
+  it("plays from the title in one element, and moves inside the file", async () => {
+    render(tree(TRACKS, "visible", VOICE));
+    await userEvent.click(round());
+    expect(FakeAudio.made).toHaveLength(1);
+    const [only] = FakeAudio.made;
+    expect(only.src).toBe(VOICE.url);
+    expect(only.currentTime).toBe(0);
+    await act(async () => only.emit("playing"));
+    expect(round()).toHaveAccessibleName("Pause");
+    expect(screen.getByTestId("voice-ref")).toHaveTextContent("1:0.1");
+    await userEvent.click(screen.getByRole("button", { name: "Next paragraph" }));
+    expect(only.currentTime).toBe(14);
+    expect(only.src).toBe(VOICE.url);
+    expect(FakeAudio.made).toHaveLength(1);
+    expect(screen.getByTestId("voice-ref")).toHaveTextContent("1:0.2");
+  });
+
+  it("keeps a file for each paragraph when the paper has no map", async () => {
+    renderNav();
+    await userEvent.click(round());
+    expect(FakeAudio.made).toHaveLength(2);
+    expect(audio().src).toBe(TRACKS[0].url);
+  });
 });
 
 describe("the reading job", () => {
@@ -430,7 +470,7 @@ describe("the voice", () => {
     await sound("ended");
     expect(job()).toBe("reading");
     expect(document.querySelectorAll("[data-voice]")).toHaveLength(0);
-    expect(track).toHaveBeenCalledWith("audio_finished_paper", { paper_id: "1", speed: 1 });
+    expect(track).toHaveBeenCalledWith("audio_finished_paper", { paper_id: "1", speed: 1, one_file: false });
   });
 
   it("reports a pause that the system made, and if the page was in view", async () => {
@@ -438,7 +478,7 @@ describe("the voice", () => {
     await userEvent.click(round());
     await sound("playing");
     await sound("pause");
-    expect(track).toHaveBeenCalledWith("audio_system_pause", { paper_id: "1", hidden: false });
+    expect(track).toHaveBeenCalledWith("audio_system_pause", { paper_id: "1", hidden: false, one_file: false });
   });
 
   // Review Focus 5.
