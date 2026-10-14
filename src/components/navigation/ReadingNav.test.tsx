@@ -433,6 +433,14 @@ describe("the voice", () => {
     expect(track).toHaveBeenCalledWith("audio_finished_paper", { paper_id: "1", speed: 1 });
   });
 
+  it("reports a pause that the system made, and if the page was in view", async () => {
+    renderNav();
+    await userEvent.click(round());
+    await sound("playing");
+    await sound("pause");
+    expect(track).toHaveBeenCalledWith("audio_system_pause", { paper_id: "1", hidden: false });
+  });
+
   // Review Focus 5.
   it("shows a message and a retry when a file does not load", async () => {
     renderNav();

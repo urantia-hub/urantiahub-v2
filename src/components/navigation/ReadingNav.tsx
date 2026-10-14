@@ -132,6 +132,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks }: Props) {
     const created = createAudioEngine(tracks, {
       createAudio: () => new Audio(),
       onFinished: () => track("audio_finished_paper", { paper_id: paper.id, speed: created.getState().speed }),
+      onSlowChange: (ms) => track("audio_slow_change", { paper_id: paper.id, seconds: Math.round(ms / 1000), hidden: document.hidden }),
+      onSystemPause: () => track("audio_system_pause", { paper_id: paper.id, hidden: document.hidden }),
     });
     engine.current = created;
     const off = created.subscribe(() => {
