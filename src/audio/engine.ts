@@ -18,10 +18,20 @@ export type AudioLike = {
   removeEventListener(type: string, listener: () => void): void;
 };
 
-type Deps = { createAudio: () => AudioLike; onFinished?: () => void };
+type Deps = {
+  createAudio: () => AudioLike;
+  onFinished?: () => void;
+  // For a measurement: a change of paragraph that took long, in milliseconds, and a pause that the system made.
+  onSlowChange?: (ms: number) => void;
+  onSystemPause?: () => void;
+  now?: () => number;
+};
+
+// A change of paragraph that takes longer than this is reported.
+const SLOW_CHANGE = 2000;
 
 // Plays a paper one paragraph at a time. It has no user interface: it holds the state and drives one audio element.
-export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: Deps) {
+export function createAudioEngine(tracks: Track[], { createAudio, onFinished, onSlowChange, onSystemPause, now = Date.now }: Deps) {
   const audio = createAudio();
   // A second element loads the next file ahead of time, so there is no gap between paragraphs.
   const ahead = createAudio();
@@ -33,6 +43,8 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   let attempt = 0;
   // True when a file ended after a pause. The next press then goes on to the next paragraph.
   let endedWhilePaused = false;
+  // The time when one paragraph ended and the next began to load. Null when no such change is in progress.
+  let changeAt: number | null = null;
 
   function set(patch: Partial<VoiceState>) {
     state = { ...state, ...patch };
@@ -60,6 +72,7 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   function playAt(index: number) {
     if (index < 0 || index >= tracks.length) return;
     endedWhilePaused = false;
+    changeAt = null;
     set({ status: "loading", index, time: 0 });
     audio.src = tracks[index].url;
     const following = tracks[index + 1];
@@ -68,6 +81,11 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   }
 
   const onPlaying = () => {
+    if (changeAt !== null) {
+      const took = now() - changeAt;
+      changeAt = null;
+      if (took > SLOW_CHANGE) onSlowChange?.(took);
+    }
     if (state.status === "loading") set({ status: "playing" });
   };
   // The sound stalled, for example on a slow connection.
@@ -77,7 +95,9 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
   // The system paused the sound: a phone call, or headphones pulled out. The browser also fires
   // this event just before "ended", and that is not a pause.
   const onPause = () => {
-    if (state.status === "playing" && !audio.ended) set({ status: "paused", time: audio.currentTime });
+    if (state.status !== "playing" || audio.ended) return;
+    set({ status: "paused", time: audio.currentTime });
+    onSystemPause?.();
   };
   const onTime = () => {
     if (state.status === "playing" || state.status === "loading") set({ time: audio.currentTime });
@@ -91,6 +111,7 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished }: 
     if (state.status !== "playing" && state.status !== "loading") return;
     if (state.index + 1 < tracks.length) {
       playAt(state.index + 1);
+      changeAt = now();
       return;
     }
     set({ status: "idle", index: -1, time: 0 });

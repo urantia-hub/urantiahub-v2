@@ -295,3 +295,48 @@ describe("the audio engine", () => {
     expect(engine.getState().index).toBe(0);
   });
 });
+
+describe("what the engine reports for a measurement", () => {
+  function timed() {
+    let at = 0;
+    const onSlowChange = vi.fn();
+    const onSystemPause = vi.fn();
+    const engine = createAudioEngine(tracks, { createAudio: () => new FakeAudio(), onSlowChange, onSystemPause, now: () => at });
+    const [audio] = FakeAudio.made;
+    return { engine, audio, onSlowChange, onSystemPause, wait: (ms: number) => (at += ms) };
+  }
+
+  it("reports a change of paragraph that takes more than 2 seconds", () => {
+    const { engine, audio, onSlowChange, wait } = timed();
+    engine.playAt(0);
+    audio.emit("playing");
+    audio.emit("ended");
+    wait(9000);
+    audio.emit("playing");
+    expect(onSlowChange).toHaveBeenCalledWith(9000);
+  });
+
+  it("reports nothing for a quick change, and nothing for the first start", () => {
+    const { engine, audio, onSlowChange, wait } = timed();
+    engine.playAt(0);
+    wait(5000);
+    audio.emit("playing");
+    audio.emit("ended");
+    wait(300);
+    audio.emit("playing");
+    expect(onSlowChange).not.toHaveBeenCalled();
+  });
+
+  it("reports a pause that the system made, not one that the reader made", () => {
+    const { engine, audio, onSystemPause } = timed();
+    engine.playAt(0);
+    audio.emit("playing");
+    engine.pause();
+    audio.emit("pause");
+    expect(onSystemPause).not.toHaveBeenCalled();
+    engine.resume();
+    audio.emit("playing");
+    audio.emit("pause");
+    expect(onSystemPause).toHaveBeenCalledTimes(1);
+  });
+});
