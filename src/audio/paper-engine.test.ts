@@ -79,13 +79,13 @@ describe("the engine of one file for the paper", () => {
     expect(engine.getState()).toMatchObject({ index: 1, item: "1:0.2", time: 5, sentence: 0 });
   });
 
-  // While a title sounds, the player names the paragraph that comes next, and its time is 0.
+  // While a title sounds, `index` is the paragraph that comes next, and the time is the time in the title.
   it("reads a section title as its own item", () => {
     const { engine, audio } = setup();
     engine.playAt(1);
     audio.emit("playing");
     at(audio, 51);
-    expect(engine.getState()).toMatchObject({ item: "section:1", index: 2, time: 0, sentence: 0 });
+    expect(engine.getState()).toMatchObject({ item: "section:1", index: 2, time: 1, sentence: 0 });
   });
 
   it("moves inside the file for next and previous, and keeps playing", () => {

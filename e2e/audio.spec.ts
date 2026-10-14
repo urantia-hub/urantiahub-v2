@@ -3,7 +3,24 @@ import { para, round, stubAudio, tap } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 const YELLOW = "rgb(243, 234, 210)";
-const GREEN = "rgb(228, 239, 227)";
+// The voice shows by the strength of the text: an ink bar of 3 px beside the paragraph, no color.
+const bar = (page: import("@playwright/test").Page, ref: string) =>
+  para(page, ref).evaluate((el) => {
+    const before = getComputedStyle(el, "::before");
+    return before.content === "none" ? "" : before.width;
+  });
+// The paragraph sounds, with its bar and no color. One check: with short files the voice moves on fast.
+async function sounds(page: import("@playwright/test").Page, ref: string) {
+  await expect
+    .poll(() =>
+      para(page, ref).evaluate((el) => ({
+        voice: el.hasAttribute("data-voice"),
+        bar: getComputedStyle(el, "::before").width,
+        background: getComputedStyle(el).backgroundColor,
+      })),
+    )
+    .toEqual({ voice: true, bar: "3px", background: "rgba(0, 0, 0, 0)" });
+}
 const dock = (page: import("@playwright/test").Page) => page.getByTestId("reading-bar");
 
 test.beforeEach(async ({ context }) => {
@@ -52,7 +69,7 @@ test("the round button starts the voice at the first paragraph in view", async (
   await page.goto(PAPER_1);
   await expect(round(page)).toHaveAccessibleName("Listen");
   await round(page).click();
-  await expect(para(page, "1:0.1")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.1");
   await expect(dock(page)).toHaveAttribute("data-job", "listening");
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.1");
   await expect(round(page)).toHaveAccessibleName("Pause");
@@ -64,7 +81,7 @@ test("the round button starts the voice at the marked paragraph", async ({ page 
   await tap(page, "1:0.3");
   await round(page).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.3");
-  await expect(para(page, "1:0.3")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.3");
 });
 
 // Review Focus 3.
@@ -83,24 +100,27 @@ test("the mark and the page follow the voice to the next paragraph", async ({ pa
   await tap(page, "1:0.5");
   await round(page).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.6");
-  await expect(para(page, "1:0.6")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.6");
   await expect(para(page, "1:0.6")).toBeInViewport();
   await expect(para(page, "1:0.5")).not.toHaveAttribute("data-voice");
   await expect(page.locator(".dock .fill.voice")).toBeVisible();
 });
 
-test("pause removes the green mark, and play resumes at the same paragraph", async ({ page }) => {
+test("a pause keeps the bar with the text at full strength, and play resumes at the same paragraph", async ({ page }) => {
   await stubAudio(page);
   await page.goto(PAPER_1);
   await tap(page, "1:0.3");
   await round(page).click();
-  await expect(para(page, "1:0.3")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.3");
   await round(page).click();
   await expect(page.locator("[data-voice]")).toHaveCount(0);
+  await expect(para(page, "1:0.3")).toHaveAttribute("data-held", "");
+  await expect.poll(() => bar(page, "1:0.3")).toBe("3px");
+  await expect(page.locator("html")).not.toHaveAttribute("data-fade");
   await expect(dock(page)).toHaveAttribute("data-job", "reading");
   await round(page).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.3");
-  await expect(para(page, "1:0.3")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.3");
 });
 
 test("while the voice plays, a tap on another paragraph turns the round button to play, and one press moves the voice", async ({ page }) => {
@@ -111,7 +131,7 @@ test("while the voice plays, a tap on another paragraph turns the round button t
   await tap(page, "1:0.2");
   await expect(dock(page)).toHaveAttribute("data-job", "paragraph");
   await expect(round(page)).toHaveAccessibleName("Listen from 1:0.2");
-  await expect(para(page, "1:0.1")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.1");
   await round(page).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.2");
 });
@@ -152,7 +172,7 @@ test("a file that does not load shows a message, and the retry works when the fi
   audio.failOn = null;
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.2");
-  await expect(para(page, "1:0.2")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.2");
 });
 
 test("the paper arrows show at the top of a paper only", async ({ page }) => {
@@ -194,7 +214,7 @@ test("the audio comes from the CDN, and the security policy permits it", async (
   await page.goto(PAPER_1);
   await round(page).click();
   await expect(page.getByTestId("voice-ref")).toHaveText("1:0.1");
-  await expect(para(page, "1:0.1")).toHaveCSS("background-color", GREEN);
+  await sounds(page, "1:0.1");
   await expect.poll(() => audio.requested.some((url) => decodeURIComponent(url).includes("/nova/tts-1-hd-nova-1:1.0.1.mp3"))).toBe(true);
   expect(errors.filter((text) => /Content Security Policy/i.test(text))).toEqual([]);
 });

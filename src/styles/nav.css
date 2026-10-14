@@ -76,6 +76,11 @@
 .dock .round:focus-visible {
   outline-offset: 3px;
 }
+/* Dark: the player stands out more from the page. */
+html[data-theme="dark"] .dock .pill {
+  background: #302c22;
+  border-color: #4d4838;
+}
 .dock .pill {
   position: relative;
   flex: 1;
@@ -157,8 +162,9 @@
   color: var(--ref);
   margin-bottom: 5px;
 }
+/* The player names the paragraph in plain grey: green means progress only. */
 .dock .row.play .where small {
-  color: var(--voice-line);
+  color: var(--muted);
 }
 .dock .where span {
   display: block;

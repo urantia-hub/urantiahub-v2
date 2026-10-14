@@ -86,6 +86,16 @@ async function scrollTo(y: number) {
   });
 }
 
+// The page moves in frames for 1.1 seconds. This ends a move that started: the next frame is its last.
+async function moved() {
+  await act(async () => {
+    const later = performance.now() + 2000;
+    vi.spyOn(performance, "now").mockReturnValue(later);
+    await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+  });
+}
+
 beforeEach(() => {
   track.mockClear();
   FakeAudio.reset();
@@ -112,7 +122,9 @@ describe("the one file of the paper", () => {
     expect(only.currentTime).toBe(0);
     await act(async () => only.emit("playing"));
     expect(round()).toHaveAccessibleName("Pause");
-    expect(screen.getByTestId("voice-ref")).toHaveTextContent("1:0.1");
+    // The player names the title that sounds, with its own time.
+    expect(screen.getByTestId("voice-ref")).toHaveTextContent("The Universal Father");
+    expect(screen.getByTestId("voice-time")).toHaveTextContent("0:00 / 0:03");
     await userEvent.click(screen.getByRole("button", { name: "Next paragraph" }));
     expect(only.currentTime).toBe(14);
     expect(only.src).toBe(VOICE.url);
@@ -125,6 +137,122 @@ describe("the one file of the paper", () => {
     await userEvent.click(round());
     expect(FakeAudio.made).toHaveLength(2);
     expect(audio().src).toBe(TRACKS[0].url);
+  });
+});
+
+describe("the voice shows by the strength of the text", () => {
+  const html = () => document.documentElement;
+  const only = () => FakeAudio.made[0];
+  const at = async (time: number) =>
+    act(async () => {
+      only().currentTime = time;
+      only().emit("timeupdate");
+    });
+  const away = (id: string) =>
+    vi.spyOn(document.getElementById(id)!, "getBoundingClientRect").mockReturnValue({ top: 4000, bottom: 4200 } as DOMRect);
+  const near = (id: string) =>
+    vi.spyOn(document.getElementById(id)!, "getBoundingClientRect").mockReturnValue({ top: 200, bottom: 400 } as DOMRect);
+  async function playing() {
+    render(tree(TRACKS, "visible", VOICE));
+    await userEvent.click(round());
+    await act(async () => only().emit("playing"));
+  }
+
+  afterEach(() => window.localStorage.clear());
+
+  it("fades the rest of the page, and marks the title while it sounds", async () => {
+    await playing();
+    expect(html().hasAttribute("data-follow")).toBe(true);
+    expect(html().hasAttribute("data-fade")).toBe(true);
+    expect(document.getElementById("paper-top")).toHaveAttribute("data-voice");
+    await at(4);
+    expect(document.getElementById("paper-top")).not.toHaveAttribute("data-voice");
+    expect(para("1:0.1")).toHaveAttribute("data-voice");
+  });
+
+  it("lifts the fade when the reader scrolls the voice out of view", async () => {
+    await playing();
+    await at(4);
+    await moved();
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 5000);
+    away("1:0.1");
+    await scrollTo(1400);
+    expect(html().hasAttribute("data-fade")).toBe(false);
+    expect(html().hasAttribute("data-follow")).toBe(true);
+    expect(screen.getByRole("button", { name: "Back to the voice" })).toBeInTheDocument();
+  });
+
+  it("keeps the bar at a pause, with the text at full strength, and names the place when it is out of view", async () => {
+    await playing();
+    await at(4);
+    away("1:0.1");
+    await userEvent.click(round());
+    expect(html().hasAttribute("data-follow")).toBe(false);
+    expect(para("1:0.1")).toHaveAttribute("data-held");
+    expect(screen.getByRole("button", { name: "Paused at 1:0.1" })).toBeInTheDocument();
+  });
+
+  it("holds the page while a paragraph is marked, and returns at the next sentence after the mark goes", async () => {
+    render(tree(TRACKS, "visible", { ...VOICE, starts: VOICE.starts.map((s) => (s.key === "1:0.2" ? { ...s, sentences: [14, 20, 26] } : s)) }));
+    await userEvent.click(round());
+    await act(async () => only().emit("playing"));
+    await at(15);
+    await userEvent.click(text("1:1.1"));
+    expect(html().hasAttribute("data-fade")).toBe(false);
+    vi.mocked(window.scrollTo).mockClear();
+    await at(21);
+    await moved();
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    await userEvent.click(text("1:1.1"));
+    await at(22);
+    await moved();
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    await at(27);
+    await moved();
+    expect(window.scrollTo).toHaveBeenCalled();
+    expect(html().hasAttribute("data-fade")).toBe(true);
+  });
+
+  it("offers to continue where the voice stopped on an earlier visit", async () => {
+    window.localStorage.setItem("hub:voice-place", JSON.stringify({ paperId: "1", ref: "1:0.2", at: Date.now() }));
+    render(tree(TRACKS, "visible", VOICE));
+    await userEvent.click(await screen.findByRole("button", { name: "Continue listening at 1:0.2" }));
+    expect(only().currentTime).toBe(14);
+    expect(track).toHaveBeenCalledWith("audio_started", { paper_id: "1", from: "place" });
+    expect(screen.queryByRole("button", { name: /Continue listening/ })).toBeNull();
+  });
+
+  it("stops a move of the page at a wheel of the reader", async () => {
+    await playing();
+    await at(4);
+    vi.mocked(window.scrollTo).mockClear();
+    await act(async () => window.dispatchEvent(new Event("wheel")));
+    await moved();
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    expect(html().hasAttribute("data-fade")).toBe(false);
+  });
+
+  it("stops a move of the page when the page closes", async () => {
+    const view = render(tree(TRACKS, "visible", VOICE));
+    await userEvent.click(round());
+    await act(async () => only().emit("playing"));
+    view.unmount();
+    vi.mocked(window.scrollTo).mockClear();
+    await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    expect(html().hasAttribute("data-follow")).toBe(false);
+  });
+
+  it("jumps to the voice with no move when a hidden page shows again", async () => {
+    await playing();
+    await at(4);
+    near("1:0.1");
+    vi.mocked(window.scrollTo).mockClear();
+    Object.defineProperty(document, "hidden", { value: false, configurable: true });
+    await act(async () => document.dispatchEvent(new Event("visibilitychange")));
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: expect.any(Number), behavior: "auto" });
+    expect(window.scrollTo).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -529,6 +657,7 @@ describe("follow", () => {
     renderNav();
     await userEvent.click(round());
     await sound("playing");
+    await moved();
     expect(window.scrollTo).toHaveBeenCalled();
   });
 
@@ -536,6 +665,7 @@ describe("follow", () => {
     renderNav();
     await userEvent.click(round());
     await sound("playing");
+    await moved();
     vi.spyOn(Date, "now").mockReturnValue(Date.now() + 5000);
 
     visible("1:0.1", true);
@@ -547,7 +677,8 @@ describe("follow", () => {
     const back = screen.getByRole("button", { name: "Back to the voice" });
     vi.mocked(window.scrollTo).mockClear();
     await userEvent.click(back);
-    expect(window.scrollTo).toHaveBeenCalledTimes(1);
+    await moved();
+    expect(window.scrollTo).toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Back to the voice" })).toBeNull();
   });
 
@@ -574,7 +705,8 @@ describe("follow", () => {
     vi.mocked(window.scrollTo).mockClear();
     await sound("ended");
     await sound("playing");
-    expect(window.scrollTo).toHaveBeenCalledTimes(1);
+    await moved();
+    expect(window.scrollTo).toHaveBeenCalled();
   });
 });
 

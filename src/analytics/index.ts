@@ -9,7 +9,8 @@ export type AnalyticsEvents = {
   paragraph_picked: { paper_id: string };
   // `part`: the link is for some sentences of the paragraph, not for all of it.
   paragraph_shared: { ref: string; method: "sheet" | "copy"; part?: boolean };
-  audio_started: { paper_id: string; from: "bar" | "paragraph" };
+  // `place`: from "Continue listening at", the place where the voice stopped on an earlier visit.
+  audio_started: { paper_id: string; from: "bar" | "paragraph" | "place" };
   // `one_file`: the voice played the one file of the paper, not a file for each paragraph.
   audio_finished_paper: { paper_id: string; speed: number; one_file: boolean };
   audio_failed: { paper_id: string };

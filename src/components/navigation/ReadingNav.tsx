@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { failureWords } from "@/account/limited";
 import { noSaved, savedState, subscribeToSaved, toggleBookmark } from "@/account/saved";
@@ -17,6 +17,8 @@ import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/re
 import { saveLastRead } from "@/reader/last-read";
 import { ASK_PAPER_EVENT, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, paperPrompt, paragraphPrompt, type Before } from "@/reader/assistant";
 import { sharedFromAddress, sharePath } from "@/reader/share-link";
+import { clearSentence, markSentence } from "@/reader/voice-mark";
+import { clearVoicePlace, readVoicePlace, saveVoicePlace, subscribeToVoicePlace } from "@/reader/voice-place";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
@@ -54,14 +56,22 @@ function paragraphsBefore(ref: string): Before[] {
   return before;
 }
 
-// Paragraphs are server HTML. The dock marks them with an attribute: one at a time for each kind of mark.
-function mark(attribute: "data-picked" | "data-voice", ref: string | null) {
-  document.querySelectorAll(`.para[${attribute}]`).forEach((el) => el.removeAttribute(attribute));
-  if (ref) document.getElementById(ref)?.setAttribute(attribute, "");
+// Paragraphs and titles are server HTML. The dock marks them with an attribute: one at a time for each kind.
+// `data-voice` is on what sounds (a title or a paragraph); `data-held` is on the paragraph of a pause.
+function mark(attribute: "data-picked" | "data-voice" | "data-held", id: string | null) {
+  document.querySelectorAll(`[${attribute}]`).forEach((el) => el.removeAttribute(attribute));
+  if (id) document.getElementById(id)?.setAttribute(attribute, "");
 }
 
-function inView(ref: string | null): boolean {
-  const el = ref ? document.getElementById(ref) : null;
+// The element of an item of the voice: "title", "section:2", or a paragraph reference.
+function itemId(paperId: string, key: string | null): string | null {
+  if (!key) return null;
+  if (key === "title") return "paper-top";
+  return key.startsWith("section:") ? `${paperId}:${key.slice("section:".length)}` : key;
+}
+
+function inView(id: string | null): boolean {
+  const el = id ? document.getElementById(id) : null;
   if (!el) return false;
   const box = el.getBoundingClientRect();
   return box.bottom > 60 && box.top < window.innerHeight - 120;
@@ -77,6 +87,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   const [picked, setPicked] = useState<string | null>(null);
   const [voice, setVoice] = useState<PaperVoiceState>(IDLE);
   const [backShown, setBackShown] = useState(false);
+  // The paragraph of a pause is out of view: a chip names it.
+  const [pausedAway, setPausedAway] = useState(false);
+  // Where the voice stopped on an earlier visit, for "Continue listening at". It goes at the first start.
+  const stored = useSyncExternalStore(subscribeToVoicePlace, readVoicePlace, () => null);
+  const [placeUsed, setPlaceUsed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // The small panel above the row: the two more actions, or the question for a reader with no account.
   const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | "share" | "assistant" | null>(null);
@@ -101,10 +116,26 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   const roundButton = useRef<HTMLButtonElement>(null);
 
   const engine = useRef<AudioEngine | PaperEngine | null>(null);
-  // The page follows the voice until the reader scrolls. `autoUntil` covers the page's own scroll.
+  // The page follows the voice until the reader scrolls or marks a paragraph. `autoUntil` covers the page's
+  // own scroll. While it follows, the other paragraphs fade (`data-fade`).
+  // Each move of the page gets a number. A newer move stops an older one.
+  const moving = useRef(0);
   const following = useRef(true);
+  const [followShown, setFollowShown] = useState(true);
+  const follow = useCallback((on: boolean) => {
+    following.current = on;
+    setFollowShown(on);
+    // A move of the page that is under way stops with the follow.
+    if (!on) moving.current += 1;
+  }, []);
+  // A mark ended while the voice played: the page returns to the voice at the next sentence.
+  const wantBack = useRef(false);
   const autoUntil = useRef(0);
+
+  // The key of the last item that sounded (a title or a paragraph).
   const lastVoiceRef = useRef<string | null>(null);
+  // The state of the voice before the newest one: a new sentence is a change from it.
+  const latestVoice = useRef<PaperVoiceState>(IDLE);
   // The marked paragraph before the last single click, for a double-click that selects a word.
   const beforeClick = useRef<string | null>(null);
 
@@ -122,18 +153,42 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     track("paper_opened", { paper_id: paper.id });
   }, [paper.id]);
 
-  const bring = useCallback((ref: string) => {
-    const el = document.getElementById(ref);
-    if (!el) return;
-    autoUntil.current = Date.now() + 900;
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const top = el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22;
-    window.scrollTo({ top: Math.max(0, top), behavior: reduced ? "auto" : "smooth" });
-  }, []);
+  // The page moves the item into the upper part of the screen, in a slow eased move of 1.1 seconds.
+  // `jump` moves at once: for a reader who asked for less motion, and after the page was hidden.
+  const bring = useCallback(
+    (key: string, jump = false) => {
+      const el = document.getElementById(itemId(paper.id, key) ?? "");
+      if (!el) return;
+      const mine = ++moving.current;
+      const from = window.scrollY;
+      const to = Math.max(0, el.getBoundingClientRect().top + from - window.innerHeight * 0.22);
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      // A scroll event up to 150 ms after a frame of this move is the page's own, not the reader's.
+      autoUntil.current = Date.now() + 150;
+      if (jump || reduced || typeof window.requestAnimationFrame !== "function") {
+        window.scrollTo({ top: to, behavior: "auto" });
+        return;
+      }
+      const began = performance.now();
+      const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
+      const step = () => {
+        if (mine !== moving.current) return;
+        const x = Math.min(1, (performance.now() - began) / 1100);
+        autoUntil.current = Date.now() + 150;
+        window.scrollTo({ top: from + (to - from) * ease(x), behavior: "auto" });
+        if (x < 1) window.requestAnimationFrame(step);
+      };
+      window.requestAnimationFrame(step);
+    },
+    [paper.id],
+  );
 
   useEffect(() => {
     if (!tracks) return;
-    const onFinished = () => track("audio_finished_paper", { paper_id: paper.id, speed: created.getState().speed, one_file: paperVoice !== null });
+    const onFinished = () => {
+      clearVoicePlace();
+      track("audio_finished_paper", { paper_id: paper.id, speed: created.getState().speed, one_file: paperVoice !== null });
+    };
     const onSystemPause = () => track("audio_system_pause", { paper_id: paper.id, hidden: document.hidden, one_file: paperVoice !== null });
     const created: AudioEngine | PaperEngine = paperVoice
       ? createPaperEngine(paperVoice, tracks.map((t) => t.ref), { createAudio: () => new Audio(), onFinished, onSystemPause })
@@ -149,27 +204,38 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       // The engine of paragraph files knows no titles and no sentences.
       const now: PaperVoiceState =
         "item" in state ? (state as PaperVoiceState) : { ...state, item: isSounding(state.status) ? tracks[state.index].ref : null, sentence: 0 };
+      const was = latestVoice.current;
+      latestVoice.current = now;
       setVoice(now);
       const ref = isSounding(now.status) ? tracks[now.index].ref : null;
+      setPausedAway(now.status === "paused" && now.index >= 0 && !inView(tracks[now.index].ref));
       if (!ref) {
         lastVoiceRef.current = null;
+        // A move of the page that is under way stops: a scroll down would hide the controls.
+        moving.current += 1;
         setBackShown(false);
         // The voice stopped. The page scrolled down to follow it, so the controls can be hidden.
         setHidden(false);
         return;
       }
+      const key = now.item ?? ref;
       // When the voice reaches a marked paragraph, the mark goes and the player shows.
       // While the reader has the terms or a panel of that paragraph open, the mark stays, and so does the
       // panel: a reader can be in the middle of a note.
       setPicked((was) => (was === ref && !termsOpenRef.current && !panelRef.current ? null : was));
-      if (ref !== lastVoiceRef.current) {
-        // The reader scrolled, but can see the paragraph that just ended: follow again.
-        if (!following.current && inView(lastVoiceRef.current)) following.current = true;
-        lastVoiceRef.current = ref;
-        // The page keeps the paragraph that plays in the upper part of the screen.
-        if (following.current) bring(ref);
+      if (key !== lastVoiceRef.current) {
+        // The reader scrolled, but can see the item that just ended: follow again.
+        if (!following.current && latest.current.picked === null && inView(itemId(paper.id, lastVoiceRef.current))) follow(true);
+        lastVoiceRef.current = key;
+        // The page keeps what sounds in the upper part of the screen. A hidden page moves when it shows again.
+        if (following.current && !document.hidden) bring(key);
+      } else if (wantBack.current && now.sentence !== was.sentence && latest.current.picked === null) {
+        // The reader's mark ended. At the next sentence, the page goes back to the voice.
+        wantBack.current = false;
+        follow(true);
+        bring(key);
       }
-      setBackShown(!following.current && !inView(ref));
+      setBackShown(!following.current && !inView(itemId(paper.id, key)));
     });
     return () => {
       off();
@@ -181,7 +247,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       setHidden(false);
       lastVoiceRef.current = null;
     };
-  }, [tracks, paperVoice, paper.id, bring]);
+  }, [tracks, paperVoice, paper.id, bring, follow]);
 
   // The header of the page leaves and returns with these controls. CSS reads the mark.
   useEffect(() => {
@@ -189,8 +255,13 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   }, [hidden]);
   useEffect(
     () => () => {
-      delete document.documentElement.dataset.bars;
-      delete document.documentElement.dataset.scrolled;
+      const root = document.documentElement;
+      delete root.dataset.bars;
+      delete root.dataset.scrolled;
+      // The next page must not move with this page's voice, nor fade.
+      moving.current += 1;
+      for (const name of ["data-follow", "data-fade", "data-soft"]) root.removeAttribute(name);
+      clearSentence();
     },
     [],
   );
@@ -204,7 +275,69 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   if (panel === "notes" && !readerKey) setPanel(null);
 
   useEffect(() => mark("data-picked", picked), [picked]);
-  useEffect(() => mark("data-voice", sounding ? voiceRef : null), [sounding, voiceRef]);
+  useEffect(() => mark("data-voice", sounding ? itemId(paper.id, voice.item ?? voiceRef) : null), [sounding, voice.item, voiceRef, paper.id]);
+  // A pause keeps the bar beside its paragraph, and the text returns to full strength.
+  useEffect(() => mark("data-held", voice.status === "paused" ? voiceRef : null), [voice.status, voiceRef]);
+
+  // What CSS reads: the voice sounds (`data-follow`), and the page follows it, so the rest fades (`data-fade`).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.toggleAttribute("data-follow", sounding);
+    root.toggleAttribute("data-fade", sounding && followShown);
+  }, [sounding, followShown]);
+
+  // The sentence that sounds is at full ink, and the rest of its paragraph is softer. Only the one file has
+  // the times of the sentences.
+  const sentenceCounts = useMemo(
+    () => new Map((paperVoice?.starts ?? []).flatMap((s) => (s.sentences ? [[s.key, s.sentences.length] as const] : []))),
+    [paperVoice],
+  );
+  // The length of each title in the one file: up to the next start.
+  const itemLengths = useMemo(
+    () => new Map((paperVoice?.starts ?? []).map((s, i, all) => [s.key, (all[i + 1]?.at ?? paperVoice!.duration) - s.at] as const)),
+    [paperVoice],
+  );
+  useEffect(() => {
+    const count = voice.item ? sentenceCounts.get(voice.item) : undefined;
+    const on = sounding && voice.item !== null && count !== undefined && markSentence(voice.item, voice.sentence, count);
+    if (!on) clearSentence();
+    document.documentElement.toggleAttribute("data-soft", on);
+  }, [sounding, voice.item, voice.sentence, sentenceCounts]);
+
+  // A mark on a paragraph holds the page where it is, and the rest of the page returns to full strength.
+  // When the mark goes, the page returns at the next sentence.
+  const [pickSeen, setPickSeen] = useState<string | null>(null);
+  if (picked !== pickSeen) {
+    setPickSeen(picked);
+    if (sounding && picked) setFollowShown(false);
+  }
+  const pickedBefore = useRef<string | null>(null);
+  useEffect(() => {
+    const was = pickedBefore.current;
+    pickedBefore.current = picked;
+    if (!isSounding(latest.current.status)) return;
+    if (picked) {
+      wantBack.current = false;
+      following.current = false;
+      moving.current += 1;
+    } else if (was) wantBack.current = true;
+  }, [picked]);
+
+  // A page that was hidden (the screen off) jumps to the voice when it shows again: no long move through the paper.
+  useEffect(() => {
+    const onShow = () => {
+      const key = lastVoiceRef.current;
+      if (!document.hidden && key && following.current && isSounding(latest.current.status)) bring(key, true);
+    };
+    document.addEventListener("visibilitychange", onShow);
+    return () => document.removeEventListener("visibilitychange", onShow);
+  }, [bring]);
+
+  // The place of the voice stays in this browser, so a reader who comes back can continue there.
+  useEffect(() => {
+    if ((voice.status === "paused" || isSounding(voice.status)) && voiceRef) saveVoicePlace({ paperId: paper.id, ref: voiceRef });
+  }, [voice.status, voiceRef, paper.id]);
+  const place = !placeUsed && stored?.paperId === paper.id && tracks?.some((t) => t.ref === stored.ref) ? stored : null;
 
   // A reader who arrives by a link to a paragraph: that paragraph is marked.
   useEffect(() => {
@@ -301,11 +434,15 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       setDeep(y > 140);
 
       const now = latest.current;
+      const sounds = itemId(paper.id, lastVoiceRef.current ?? now.voiceRef);
       if (isSounding(now.status)) {
-        // A scroll by the reader stops the follow. The voice continues.
-        if (Date.now() > autoUntil.current && Math.abs(y - last) > 4) following.current = false;
-        setBackShown(!following.current && !inView(now.voiceRef));
+        // A scroll by the reader stops the follow, and the other paragraphs return. The voice continues.
+        if (Date.now() > autoUntil.current && Math.abs(y - last) > 4) follow(false);
+        // What sounds is in view again, with no mark: the page follows again.
+        if (!following.current && now.picked === null && inView(sounds)) follow(true);
+        setBackShown(!following.current && !inView(sounds));
       }
+      setPausedAway(now.status === "paused" && now.voiceRef !== null && !inView(now.voiceRef));
       // React can run the updater later, so it must not read `last` after the line below changes it.
       const previousY = last;
       last = y;
@@ -315,13 +452,21 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       if (!frame) frame = window.requestAnimationFrame(update);
     };
 
+    // A wheel or a finger on the page is the reader, also during a move of the page: the move stops.
+    const onHand = () => {
+      if (isSounding(latest.current.status) && following.current) follow(false);
+    };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", onHand, { passive: true });
+    window.addEventListener("touchmove", onHand, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", onHand);
+      window.removeEventListener("touchmove", onHand);
       window.cancelAnimationFrame(frame);
     };
-  }, [paper.id]);
+  }, [paper.id, follow]);
 
   // The contents page offers the way back to this place.
   useEffect(() => {
@@ -329,10 +474,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     saveLastRead({ paperId: paper.id, sectionId: current, label: at && at.id !== "0" ? sectionLabel(at) : null });
   }, [paper.id, current, sections]);
 
-  function start(ref: string, from: "bar" | "paragraph") {
+  function start(ref: string, from: "bar" | "paragraph" | "place") {
     const index = tracks?.findIndex((t) => t.ref === ref) ?? -1;
     if (index === -1) return;
-    following.current = true;
+    follow(true);
+    setPlaceUsed(true);
     track("audio_started", { paper_id: paper.id, from });
     engine.current?.playAt(index);
   }
@@ -343,9 +489,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     else if (intent.kind === "retry") engine.current.retry();
     else if (intent.kind === "resume") {
       setPicked(null);
-      following.current = true;
+      follow(true);
       engine.current.resume();
-      if (voiceRef) bring(voiceRef);
+      bring(lastVoiceRef.current ?? voiceRef ?? "");
     } else if (intent.kind === "play-at") {
       setPicked(null);
       start(intent.ref, "paragraph");
@@ -354,7 +500,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       // From the top of a paper, the voice reads its title first.
       const current = engine.current;
       if (first === tracks[0] && current && "playFromTitle" in current) {
-        following.current = true;
+        follow(true);
+        setPlaceUsed(true);
         track("audio_started", { paper_id: paper.id, from: "bar" });
         current.playFromTitle();
       } else start(first.ref, "bar");
@@ -530,7 +677,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   const isSaved = picked !== null && saved.bookmarks.has(picked);
   const roundName = pauseShown ? "Pause" : picked ? `Listen from ${picked}` : "Listen";
   // While the voice plays, the line shows the same thing as the time beside it: this paragraph.
-  const length = tracks?.[voice.index]?.duration ?? 0;
+  // While a title sounds, the player names it and gives its own time.
+  const titleKey = voice.item && voice.item !== voiceRef ? voice.item : null;
+  const titleSection = titleKey?.startsWith("section:") ? sections.find((s) => s.id === titleKey.slice("section:".length)) : undefined;
+  const playerLabel = titleKey === "title" ? paper.title : titleSection ? sectionLabel(titleSection) : voiceRef;
+  const length = (titleKey ? itemLengths.get(titleKey) : undefined) ?? tracks?.[voice.index]?.duration ?? 0;
   const fill = sounding ? (length > 0 ? Math.min(1, voice.time / length) : 0) : progress;
   const away = hidden && job === "reading" && !open;
 
@@ -605,9 +756,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
                 <Icon name="previous" />
               </button>
               <div className="where">
-                <small data-testid="voice-ref">{voiceRef}</small>
+                <small data-testid="voice-ref">{playerLabel}</small>
                 <span data-testid="voice-time">
-                  {clock(voice.time)} / {clock(tracks?.[voice.index]?.duration ?? 0)}
+                  {clock(voice.time)} / {clock(length)}
                 </span>
               </div>
               <button type="button" aria-label="Next paragraph" onClick={() => engine.current?.next()}>
@@ -679,12 +830,30 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           type="button"
           className="back-to-voice"
           onClick={() => {
-            following.current = true;
+            follow(true);
             setBackShown(false);
-            if (voiceRef) bring(voiceRef);
+            bring(lastVoiceRef.current ?? voiceRef ?? "");
           }}
         >
           Back to the voice
+        </button>
+      )}
+      {!backShown && voice.status === "paused" && pausedAway && voiceRef && (
+        <button
+          type="button"
+          className="back-to-voice"
+          onClick={() => {
+            setPicked(null);
+            follow(true);
+            bring(voiceRef);
+          }}
+        >
+          Paused at {voiceRef}
+        </button>
+      )}
+      {voice.status === "idle" && place && (
+        <button type="button" className="back-to-voice" onClick={() => start(place.ref, "place")}>
+          Continue listening at {place.ref}
         </button>
       )}
       {toast && (

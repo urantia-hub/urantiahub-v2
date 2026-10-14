@@ -63,7 +63,7 @@ export function createPaperEngine(voice: PaperVoice, refs: string[], { createAud
     const start = starts[i];
     const isParagraph = refs.includes(start.key);
     const sentence = isParagraph && start.sentences ? Math.max(0, lastAtOrBefore(start.sentences, time + 0.05)) : 0;
-    return { index: paragraphOf[i], item: start.key, time: isParagraph ? Math.max(0, time - start.at) : 0, sentence };
+    return { index: paragraphOf[i], item: start.key, time: Math.max(0, time - start.at), sentence };
   }
 
   function play(resumeFrom: number | null) {
