@@ -56,6 +56,18 @@ describe("the audio engine", () => {
   });
 
   // A phone call, or headphones pulled out: the system pauses the sound, not the reader.
+  // After a phone call, Android starts the sound again by itself.
+  it("follows a resume by the system", () => {
+    const { engine, audio } = setup();
+    engine.playAt(1);
+    audio.emit("playing");
+    audio.paused = true;
+    audio.emit("pause");
+    audio.paused = false;
+    audio.emit("playing");
+    expect(engine.getState()).toMatchObject({ status: "playing", index: 1 });
+  });
+
   it("sees a pause by the system, holds the place, and resumes", () => {
     const { engine, audio } = setup();
     engine.playAt(1);

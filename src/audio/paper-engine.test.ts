@@ -139,6 +139,28 @@ describe("the engine of one file for the paper", () => {
     expect(onSystemPause).toHaveBeenCalledTimes(1);
   });
 
+  // After a phone call, Android starts the sound again by itself.
+  it("follows a resume by the system", () => {
+    const { engine, audio } = setup();
+    engine.playAt(0);
+    audio.emit("playing");
+    audio.paused = true;
+    audio.emit("pause");
+    audio.paused = false;
+    audio.currentTime = 25;
+    audio.emit("playing");
+    expect(engine.getState()).toMatchObject({ status: "playing", index: 1, item: "1:0.2", time: 5 });
+  });
+
+  it("stays paused for a late 'playing' after the reader's pause", () => {
+    const { engine, audio } = setup();
+    engine.playAt(0);
+    audio.emit("playing");
+    engine.pause();
+    audio.emit("playing");
+    expect(engine.getState().status).toBe("paused");
+  });
+
   it("holds the place when the browser refuses sound with no gesture", async () => {
     const { engine, audio } = setup();
     audio.rejectWith = { name: "NotAllowedError" };

@@ -104,6 +104,8 @@ export function createPaperEngine(voice: PaperVoice, refs: string[], { createAud
 
   const onPlaying = () => {
     if (state.status === "loading") set({ status: "playing" });
+    // The system started the sound again by itself, as after a phone call.
+    else if (state.status === "paused" && !audio.paused) set({ status: "playing", ...placeAt(audio.currentTime) });
   };
   const onWaiting = () => {
     if (state.status === "playing") set({ status: "loading" });
