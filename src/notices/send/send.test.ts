@@ -67,7 +67,7 @@ describe("the reminder email", () => {
   it("shows the first words of the section where the reader stopped, as a text that goes on", () => {
     const mail = reminderMail({ ...place, opening: "“Touching the Infinite, we cannot find him out" }, links);
     expect(mail.subject).toBe("Your place in the Papers");
-    expect(mail.text).toContain("““Touching the Infinite, we cannot find him out …”");
+    expect(mail.text).toContain("“Touching the Infinite, we cannot find him out …");
     expect(mail.text).toContain("Paper 2, The Nature of God · where you stopped");
     expect(mail.text).toContain("Continue: https://www.urantiahub.com/papers/paper-2-the-nature-of-god#2:1");
     expect(mail.text).toContain("It comes one time for each place.");

@@ -94,7 +94,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
     const words = first ? opening(first.text) : null;
     return {
       mail: reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${path}`, opening: words }, links),
-      push: { title: `Your place in ${name}`, body: words ? `“${opening(first?.text ?? "", 110)} …”` : "Your place is kept.", path },
+      push: { title: `Your place in ${name}`, body: words ? `${opening(first?.text ?? "", 110)} …` : "Your place is kept.", path },
     };
   }
 
