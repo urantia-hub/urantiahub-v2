@@ -17,7 +17,7 @@ import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/re
 import { saveLastRead } from "@/reader/last-read";
 import { ASK_PAPER_EVENT, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, paperPrompt, paragraphPrompt, type Before } from "@/reader/assistant";
 import { sharedFromAddress, sharePath } from "@/reader/share-link";
-import { clearSentence, markSentence } from "@/reader/voice-mark";
+import { clearSentence, markSentence, sentenceBox, sentenceMove } from "@/reader/voice-mark";
 import { clearVoicePlace, readVoicePlace, saveVoicePlace, subscribeToVoicePlace } from "@/reader/voice-place";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
@@ -153,34 +153,38 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     track("paper_opened", { paper_id: paper.id });
   }, [paper.id]);
 
-  // The page moves the item into the upper part of the screen, in a slow eased move of 1.1 seconds.
+  // The page moves to `to`, in a slow eased move of 1.1 seconds.
   // `jump` moves at once: for a reader who asked for less motion, and after the page was hidden.
+  const moveTo = useCallback((to: number, jump = false) => {
+    const mine = ++moving.current;
+    const from = window.scrollY;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    // A scroll event up to 150 ms after a frame of this move is the page's own, not the reader's.
+    autoUntil.current = Date.now() + 150;
+    if (jump || reduced || typeof window.requestAnimationFrame !== "function") {
+      window.scrollTo({ top: to, behavior: "auto" });
+      return;
+    }
+    const began = performance.now();
+    const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
+    const step = () => {
+      if (mine !== moving.current) return;
+      const x = Math.min(1, (performance.now() - began) / 1100);
+      autoUntil.current = Date.now() + 150;
+      window.scrollTo({ top: from + (to - from) * ease(x), behavior: "auto" });
+      if (x < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  }, []);
+
+  // The page moves the item into the upper part of the screen.
   const bring = useCallback(
     (key: string, jump = false) => {
       const el = document.getElementById(itemId(paper.id, key) ?? "");
       if (!el) return;
-      const mine = ++moving.current;
-      const from = window.scrollY;
-      const to = Math.max(0, el.getBoundingClientRect().top + from - window.innerHeight * 0.22);
-      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-      // A scroll event up to 150 ms after a frame of this move is the page's own, not the reader's.
-      autoUntil.current = Date.now() + 150;
-      if (jump || reduced || typeof window.requestAnimationFrame !== "function") {
-        window.scrollTo({ top: to, behavior: "auto" });
-        return;
-      }
-      const began = performance.now();
-      const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
-      const step = () => {
-        if (mine !== moving.current) return;
-        const x = Math.min(1, (performance.now() - began) / 1100);
-        autoUntil.current = Date.now() + 150;
-        window.scrollTo({ top: from + (to - from) * ease(x), behavior: "auto" });
-        if (x < 1) window.requestAnimationFrame(step);
-      };
-      window.requestAnimationFrame(step);
+      moveTo(Math.max(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.22), jump);
     },
-    [paper.id],
+    [paper.id, moveTo],
   );
 
   useEffect(() => {
@@ -302,7 +306,13 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     const on = sounding && voice.item !== null && count !== undefined && markSentence(voice.item, voice.sentence, count);
     if (!on) clearSentence();
     document.documentElement.toggleAttribute("data-soft", on);
-  }, [sounding, voice.item, voice.sentence, sentenceCounts]);
+    // In a long paragraph a later sentence can be under the controls: the page puts it in the middle.
+    // The first sentence comes into view with its paragraph (`bring`).
+    if (!on || voice.sentence === 0 || !following.current || document.hidden) return;
+    const box = sentenceBox();
+    const move = box ? sentenceMove(box, window.innerHeight) : null;
+    if (move !== null) moveTo(Math.max(0, window.scrollY + move));
+  }, [sounding, voice.item, voice.sentence, sentenceCounts, moveTo]);
 
   // A mark on a paragraph holds the page where it is, and the rest of the page returns to full strength.
   // When the mark goes, the page returns at the next sentence.

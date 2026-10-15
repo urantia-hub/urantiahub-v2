@@ -12,6 +12,7 @@ export type AudioLike = {
   playbackRate: number;
   preload: string;
   ended: boolean;
+  paused: boolean;
   play(): Promise<void>;
   pause(): void;
   addEventListener(type: string, listener: () => void): void;
@@ -87,6 +88,8 @@ export function createAudioEngine(tracks: Track[], { createAudio, onFinished, on
       if (took > SLOW_CHANGE) onSlowChange?.(took);
     }
     if (state.status === "loading") set({ status: "playing" });
+    // The system started the sound again by itself, as after a phone call.
+    else if (state.status === "paused" && !audio.paused) set({ status: "playing", time: audio.currentTime });
   };
   // The sound stalled, for example on a slow connection.
   const onWaiting = () => {
