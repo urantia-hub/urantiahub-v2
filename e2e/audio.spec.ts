@@ -243,4 +243,6 @@ test("a long section name cuts off inside the pill", async ({ page }, testInfo) 
   const label = (await page.getByTestId("reading-bar-label").boundingBox())!;
   expect(label.x).toBeGreaterThanOrEqual(pill.x + 30);
   expect(label.x + label.width).toBeLessThanOrEqual(pill.x + pill.width - 30);
+  // Found by Kelson on an iPhone: the pill grew past the right edge of the screen.
+  expect(pill.x + pill.width).toBeLessThanOrEqual(page.viewportSize()!.width);
 });
