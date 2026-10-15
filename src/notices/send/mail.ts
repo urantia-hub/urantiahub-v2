@@ -69,7 +69,8 @@ export function reminderMail(place: { paperId: string; paperTitle: string; url: 
   const paper = place.paperId === "0" ? place.paperTitle : `Paper ${place.paperId}, ${place.paperTitle}`;
   const frame: Frame = {
     label: "Your place in the Papers",
-    body: place.opening ? `“${place.opening} …”` : `You stopped in ${paper}. Your place is kept.`,
+    // The words as they are: a paragraph can start with its own quotation.
+    body: place.opening ? `${place.opening} …` : `You stopped in ${paper}. Your place is kept.`,
     cite: place.opening ? `${paper} · where you stopped` : "This is the only reminder for this place.",
     button: "Continue",
     url: place.url,
