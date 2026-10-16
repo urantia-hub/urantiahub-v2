@@ -32,10 +32,12 @@ export type AnalyticsEvents = {
   note_saved: { paper_id: string; kind: "new" | "change" };
   note_deleted: { paper_id: string };
   // The passages near in meaning to a paragraph. Counts and labels only: no reference, no text.
-  parallels_opened: { paper_id: string; outside: "0" | "1-5" | "6+"; papers: "0" | "1-5" | "6+" };
+  parallels_opened: { paper_id: string; outside: "0" | "1-5" | "6+"; papers: "0" | "1-5" | "6+"; nearby: "0" | "1-5" | "6+" };
   parallels_tab: { tab: "outside" | "papers" };
   // The reader asked for the passages below the floor, because no passage was near.
   parallels_weaker_shown: { paper_id: string };
+  // The reader asked for the passages of the same paper and the papers beside it.
+  parallels_nearby_shown: { paper_id: string };
   parallels_study_opened: { paper_id: string };
   parallel_opened: { kind: "outside" | "papers" };
   // An image of a paragraph. The paper and the look only.
@@ -91,7 +93,7 @@ const cutSearchText: Cut = (text) =>
 
 // The address of a paper can name a paragraph after "#". A count of a saved thing holds the paper only.
 // The same for the parallels of a paragraph: their events promise no reference.
-const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallels_weaker_shown", "parallel_opened", "image_opened", "image_made", "assistant_asked"]);
+const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallels_weaker_shown", "parallels_nearby_shown", "parallel_opened", "image_opened", "image_made", "assistant_asked"]);
 const cutParagraph: Cut = (text) => cutSearchText(text).replace(/(\/papers\/[^#\s?]*(?:\?[^#\s]*)?)#[^\s]*/g, "$1");
 
 function scrubValue(value: unknown, cut: Cut): unknown {

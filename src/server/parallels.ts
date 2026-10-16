@@ -14,9 +14,11 @@ export type Parallel = { ref: string; work: string; source: string; text: string
 // `text` is the paragraph itself, for the study page.
 // `weaker` holds the nearest passages of other works below the floor. The reader sees them only on request,
 // when no passage is near.
+// `papers` holds the passages of other parts of the Papers. `nearby` holds those of the same paper and of the
+// papers beside it, which the reader sees on request.
 // `works` is each work that the Hub compares, with the page of its source, for the study page.
 export type Work = { work: string; source: string; href: string | null };
-export type ParallelsAnswer = { text: string; outside: Parallel[]; weaker: Parallel[]; papers: Parallel[]; works: Work[] };
+export type ParallelsAnswer = { text: string; outside: Parallel[]; weaker: Parallel[]; papers: Parallel[]; nearby: Parallel[]; works: Work[] };
 
 // A passage of another work below this score is not near in meaning, and the reader does not see it.
 // Set on 2026-10-10 from the results for 35 paragraphs across the Papers: from 0.46 up each passage was
@@ -27,6 +29,9 @@ export const WEAK_FLOOR = 0.3;
 const WEAK_MOST = 5;
 // Paragraphs of the Papers score higher among themselves. The API gives the ten nearest.
 export const PAPERS_FLOOR = 0.5;
+// A passage of a paper at most this far from the paragraph's paper is nearby. On 2026-10-15, 65% of the nearest
+// passages were this close, and only 16% were more than 20 papers away.
+export const NEARBY_PAPERS = 2;
 
 // A short prefix of a reference, in words that a reader knows.
 const WORK_NAMES: Record<string, string> = {
@@ -71,7 +76,8 @@ function outsideHref(url: string | null): string | null {
 const percent = (similarity: number) => Math.round(similarity * 100);
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
-export function shapeParallels(raw: RawParallels, text = ""): ParallelsAnswer {
+// `paperId` is the paper of the paragraph. With none, no passage is nearby.
+export function shapeParallels(raw: RawParallels, text = "", paperId?: string): ParallelsAnswer {
   const from = (least: number, below: number): Parallel[] =>
     [
       ...raw.bible.filter((b) => b.similarity >= least && b.similarity < below).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
@@ -85,7 +91,8 @@ export function shapeParallels(raw: RawParallels, text = ""): ParallelsAnswer {
     .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
     .map((p) => ({ ref: p.reference, work: "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
     .sort(nearestFirst);
-  return { text, outside, weaker, papers, works: [] };
+  const near = (p: Parallel) => paperId !== undefined && Math.abs(Number(p.ref.split(":")[0]) - Number(paperId)) <= NEARBY_PAPERS;
+  return { text, outside, weaker, papers: papers.filter((p) => !near(p)), nearby: papers.filter(near), works: [] };
 }
 
 const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
@@ -126,5 +133,5 @@ export async function handleParallels(
   // The parallels change only when the API computes them again, so a shared cache can keep the answer for a day.
   // The list of the works is extra. With no list, the answer stands with the names that this code knows.
   const works = loadWorks ? await loadWorks().then(shapeWorks, knownWorks) : knownWorks();
-  return Response.json({ ...shapeParallels(raw, text), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
+  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1]))), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

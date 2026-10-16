@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ContentError, ParagraphNotFound } from "@/content/fetchers";
 import type { RawParallels } from "@/content/parallels";
 import { WORKS } from "@/parallels-works";
-import { handleParallels, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, shapeWorks, WEAK_FLOOR } from "./parallels";
+import { handleParallels, NEARBY_PAPERS, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, shapeWorks, WEAK_FLOOR } from "./parallels";
 
 const corpus = (id: string, refPrefix: string, translator: string, year: number) => ({ id, refPrefix, title: id, translator, year });
 const GITA = corpus("bhagavad-gita-besant-1922", "BG", "Annie Besant (4th edition)", 1922);
@@ -61,7 +61,7 @@ describe("the works that the Hub compares", () => {
 describe("the parallels of a paragraph, as the reader sees them", () => {
   it("gives each passage a work that is in the list of the study page", () => {
     const answer = shapeParallels(RAW);
-    for (const p of [...answer.outside, ...answer.weaker, ...answer.papers]) expect(WORKS).toContain(p.work);
+    for (const p of [...answer.outside, ...answer.weaker, ...answer.papers, ...answer.nearby]) expect(WORKS).toContain(p.work);
   });
 
   it("puts the other works in one list, the nearest first, and hides each passage below the floor", () => {
@@ -119,6 +119,18 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
     expect(odd("https://ebible.org@evil.example/")).toBeNull();
   });
 
+  // A reader is near those papers already: the passages of other parts of the Papers come first.
+  it("puts a passage of the same paper, or of a paper at most two away, in a list of its own", () => {
+    expect(NEARBY_PAPERS).toBe(2);
+    const at = (paperId: string, similarity: number) => ({ reference: `${paperId}:1.1`, paperId, paperTitle: "x", text: "x", similarity });
+    const raw = { bible: [], scripture: [], papers: [at("50", 0.6), at("52", 0.9), at("53", 0.7), at("47", 0.8), at("48", 0.65)] };
+    const { papers, nearby } = shapeParallels(raw, "", "50");
+    expect(papers.map((p) => [p.ref, p.percent])).toEqual([["47:1.1", 80], ["53:1.1", 70]]);
+    expect(nearby.map((p) => [p.ref, p.percent])).toEqual([["52:1.1", 90], ["48:1.1", 65], ["50:1.1", 60]]);
+    // With no paper to measure from, each passage is in the first list.
+    expect(shapeParallels(raw).nearby).toEqual([]);
+  });
+
   it("lists the passages of the Papers, the nearest first, each with its paper and the way to its paragraph", () => {
     const { papers } = shapeParallels(RAW);
     expect(papers).toEqual([
@@ -140,7 +152,9 @@ describe("handleParallels", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as ParallelsAnswer;
     expect(body.outside).toHaveLength(3);
-    expect(body.papers).toHaveLength(2);
+    // The paragraph is in Paper 1, so the passage of Paper 1 is nearby, and the one of Paper 56 is not.
+    expect(body.papers.map((p) => p.ref)).toEqual(["56:9.10"]);
+    expect(body.nearby.map((p) => p.ref)).toEqual(["1:0.1"]);
     expect(res.headers.get("cache-control")).toContain("s-maxage=86400");
   });
 

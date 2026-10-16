@@ -185,6 +185,12 @@
   color: var(--ink);
   box-shadow: 0 1px 4px var(--shade);
 }
+/* Which papers the nearby passages come from, under the title of their list. */
+.parallel-near-note {
+  margin: 5px 0 0;
+  color: var(--ref);
+  font: 400 12px/1.4 var(--font-ui);
+}
 .parallel-list {
   margin: 0;
   padding: 0;

@@ -57,7 +57,7 @@ export function StudyView() {
     );
   }
 
-  const all: Parallel[] = state.status === "ready" ? [...state.answer.outside, ...state.answer.papers].sort((a, b) => b.percent - a.percent) : [];
+  const all: Parallel[] = state.status === "ready" ? [...state.answer.outside, ...state.answer.papers, ...(state.answer.nearby ?? [])].sort((a, b) => b.percent - a.percent) : [];
   // Each work that the Hub compares, the one with the most passages first. A work with none is in the list, not in use.
   const count = (work: string) => all.filter((p) => p.work === work).length;
   // An answer that a cache kept from before has no list of works: then the names that this code knows.
