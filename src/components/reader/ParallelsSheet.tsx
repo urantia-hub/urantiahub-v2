@@ -29,6 +29,8 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   const [all, setAll] = useState(false);
   // The reader asked for the passages below the floor.
   const [weak, setWeak] = useState(false);
+  // The reader asked for the passages of this paper and the papers beside it.
+  const [close, setClose] = useState(false);
   const [whole, setWhole] = useState<ReadonlySet<string>>(new Set());
   const [attempt, setAttempt] = useState(0);
   const scroll = useMoreBelow<HTMLDivElement>();
@@ -40,6 +42,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     setState({ for: reference, status: "loading" });
     setAll(false);
     setWeak(false);
+    setClose(false);
     setWhole(new Set());
   }
 
@@ -52,7 +55,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
       .then((answer) => {
         if (!current) return;
         setState({ for: reference, status: "ready", answer });
-        track("parallels_opened", { paper_id: paperId, outside: range(answer.outside.length), papers: range(answer.papers.length) });
+        track("parallels_opened", { paper_id: paperId, outside: range(answer.outside.length), papers: range(answer.papers.length), nearby: range(answer.nearby?.length ?? 0) });
       })
       .catch(() => {
         if (current) setState({ for: reference, status: "failed" });
@@ -80,6 +83,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     if (next === half) return;
     setHalf(next);
     setAll(false);
+    setClose(false);
     track("parallels_tab", { tab: next });
   }
 
@@ -88,6 +92,9 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
   const weaker = state.status === "ready" && half === "outside" && near.length === 0 ? (state.answer.weaker ?? []) : [];
   const list = weak && near.length === 0 ? weaker : near;
   const shown = all ? list : list.slice(0, FIRST);
+  // An answer that a cache kept from before has no `nearby`: then its list of the Papers stands as it was.
+  const split = state.status === "ready" && half === "papers" && state.answer.nearby !== undefined;
+  const nearby = split ? state.answer.nearby : [];
 
   const item = (p: Parallel) => {
     const key = `${half}:${p.ref}`;
@@ -170,7 +177,12 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
           </button>
         </p>
       )}
-      {state.status === "ready" && near.length === 0 && <p className="terms-empty">{half === "outside" ? "No near passage was found in other works." : "No near passage was found in the Papers."}</p>}
+      {split && <p className="terms-group">Elsewhere in the Papers</p>}
+      {state.status === "ready" && near.length === 0 && (
+        <p className="terms-empty">
+          {half === "outside" ? "No near passage was found in other works." : nearby.length > 0 ? "No near passage was found in other parts of the Papers." : "No near passage was found in the Papers."}
+        </p>
+      )}
       {weaker.length > 0 && !weak && (
         <button
           type="button"
@@ -188,6 +200,25 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
         <button type="button" className="parallel-more" onClick={() => setAll(true)}>
           Show {list.length - shown.length} more
         </button>
+      )}
+      {nearby.length > 0 && !close && (
+        <button
+          type="button"
+          className="parallel-more"
+          onClick={() => {
+            setClose(true);
+            track("parallels_nearby_shown", { paper_id: paperId });
+          }}
+        >
+          Show {nearby.length} nearby {nearby.length === 1 ? "passage" : "passages"}
+        </button>
+      )}
+      {nearby.length > 0 && close && (
+        <>
+          <p className="terms-group">Nearby</p>
+          <p className="parallel-near-note">{paperId === "0" ? "In the Foreword and the papers after it." : `In Paper ${paperId} and the papers beside it.`}</p>
+          <ul className="parallel-list">{nearby.map(item)}</ul>
+        </>
       )}
       {state.status === "ready" && (
         <Link className="parallel-study" href={`/parallels?ref=${encodeURIComponent(reference)}`} prefetch={false}>

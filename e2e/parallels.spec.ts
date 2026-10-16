@@ -63,12 +63,33 @@ test("Open on a passage of the same paper goes to that paragraph, marks it, and 
   await openParallels(page, "1:0.3");
   const list = sheet(page, "1:0.3");
   await list.getByRole("button", { name: "In the Papers" }).click();
+  await list.getByRole("button", { name: "Show 2 nearby passages" }).click();
   await list.locator("li", { has: page.locator("b", { hasText: /^1:0\.1$/ }) }).getByRole("link", { name: /^Open/ }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator('[id="1:0.1"]')).toHaveAttribute("data-picked", "");
   await expect(page.locator('[id="1:0.3"]')).not.toHaveAttribute("data-picked");
   await expect(page.locator('[id="1:0.1"]')).toBeInViewport();
   expect(new URL(page.url()).hash).toBe("#1:0.1");
+});
+
+// A reader is near the passages of the same paper already, so the passages of other papers come first.
+test("the Papers half lists other parts of the Papers first, and the nearby passages on request", async ({ page }) => {
+  await page.goto(PAPER_1);
+  await openParallels(page, "1:0.3");
+  const list = sheet(page, "1:0.3");
+  await list.getByRole("button", { name: "In the Papers" }).click();
+  await expect(list.getByText("Elsewhere in the Papers")).toBeVisible();
+  const refs = list.locator(".parallel-where b");
+  await expect(refs.first()).toHaveText("56:9.10");
+  // Paper 4 is three papers away, so it is elsewhere. Papers 0 to 3 are nearby.
+  await expect(refs).toContainText(["56:9.10", "130:4.3", "5:1.8", "5:6.1", "56:4.1", "40:7.4", "4:0.1", "106:9.11"]);
+  await expect(refs).toHaveCount(8);
+  await list.getByRole("button", { name: "Show 2 nearby passages" }).click();
+  await expect(list.getByText("In Paper 1 and the papers beside it.")).toBeVisible();
+  await expect(refs).toHaveCount(10);
+  await expect(refs.nth(8)).toHaveText("1:0.1");
+  await expect(refs.nth(9)).toHaveText("1:3.6");
+  await expect(list.getByRole("button", { name: /nearby passages/ })).toHaveCount(0);
 });
 
 test("a paragraph with no near passage says so in each half", async ({ page }) => {
@@ -110,9 +131,10 @@ test("the parallels address refuses what is not a paragraph reference", async ({
   expect((await request.get("/api/parallels/1:0.999")).status()).toBe(404);
   const ok = await request.get("/api/parallels/1:0.3");
   expect(ok.status()).toBe(200);
-  const body = (await ok.json()) as { outside: unknown[]; papers: unknown[] };
+  const body = (await ok.json()) as { outside: unknown[]; papers: unknown[]; nearby: unknown[] };
   expect(body.outside.length).toBeGreaterThan(0);
   expect(body.papers.length).toBeGreaterThan(0);
+  expect(body.nearby.length).toBeGreaterThan(0);
 });
 
 test.describe("the row of a marked paragraph on a phone", () => {
