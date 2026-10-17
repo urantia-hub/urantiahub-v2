@@ -52,6 +52,12 @@ test("the home button goes to the contents, which lists 197 papers", async ({ pa
   await expect(page.locator('.toc .part a[href^="/papers/"]')).toHaveCount(197);
 });
 
+// On Android the keyboard must shrink the page, or each sheet at the bottom (a note, a search) hides behind it.
+test("the keyboard of a phone shrinks the page, so a field in a sheet stays in view", async ({ page }) => {
+  await page.goto("/papers/paper-1-the-universal-father");
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute("content", /interactive-widget=resizes-content/);
+});
+
 test("About and Privacy render", async ({ page }) => {
   await page.goto("/about");
   await expect(page.getByRole("heading", { level: 1, name: "About" })).toBeVisible();

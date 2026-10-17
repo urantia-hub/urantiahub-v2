@@ -40,6 +40,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#fbf8f2",
+  // The keyboard of Android shrinks the page, so a sheet at the bottom with a field sits above it.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
