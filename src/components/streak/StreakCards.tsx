@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import type { StreakCard } from "@/account/streak-data";
+import { Icon } from "@/components/icons";
 import { MarksCard } from "@/components/marks/MarksCard";
 import { changeStreakSettings, loadStreak, openStreakQuestion, serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 import { GRACE_RETURNS_AFTER } from "@/streak/rules";
@@ -26,12 +27,16 @@ export function StreakCards() {
   if (!streaksOn() || !view.card) return null;
   if (!view.card.on)
     return (
-      <button type="button" className="streak-off" onClick={openStreakQuestion}>
-        <span>
-          Keep a streak
-          <small>One section a day, about 5 minutes</small>
-        </span>
-      </button>
+      <div className="you-card streak-off">
+        <button type="button" className="you-row" onClick={openStreakQuestion}>
+          <Icon name="progress" />
+          <span>
+            Keep a streak
+            <small>One section a day, about 5 minutes</small>
+          </span>
+          <Icon name="paperAfter" />
+        </button>
+      </div>
     );
   return (
     <div className="streak-cards">
