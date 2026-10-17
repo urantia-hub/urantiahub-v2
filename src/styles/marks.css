@@ -16,12 +16,134 @@
     margin-top: 30px;
   }
 }
+.marks-head {
+  display: flex;
+  align-items: baseline;
+  margin: 0 0 12px;
+}
+.marks-head b {
+  font: 500 16px/1.2 var(--font-text);
+}
+.marks-head span {
+  margin-left: auto;
+  color: var(--ref);
+  font: 500 12.5px/1.2 var(--font-ui);
+}
+.marks-got {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 8px 4px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.marks-got li {
+  text-align: center;
+}
+.marks-got svg {
+  display: block;
+  width: 34px;
+  margin: 0 auto 4px;
+  overflow: visible;
+}
+.marks-got small {
+  display: block;
+  font: 500 11px/1.25 var(--font-ui);
+}
+.marks-got .marks-more-count {
+  align-self: center;
+  color: var(--ref);
+  font: 500 13px/1 var(--font-ui);
+}
+.marks-sub {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font: 600 10.5px/1.2 var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.marks-next {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.marks-next li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.marks-next li + li {
+  border-top: 1px solid var(--rule);
+}
+/* A mark not earned yet keeps its tier color at 45 percent. */
+.marks-next svg {
+  flex: none;
+  width: 30px;
+  overflow: visible;
+  opacity: 0.45;
+}
+.marks-next div {
+  flex: 1;
+  min-width: 0;
+}
+.marks-next b {
+  display: block;
+  font: 500 13.5px/1.25 var(--font-ui);
+}
+.marks-next small {
+  display: block;
+  margin-top: 1px;
+  color: var(--ref);
+  font: 400 12px/1.35 var(--font-ui);
+}
+.marks-bar {
+  display: block;
+  height: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--rule);
+}
+.marks-bar i {
+  display: block;
+  height: 100%;
+  background: var(--voice-line);
+}
+.marks-all-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 6px 0 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 500 13.5px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.marks-all-toggle svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate 0.2s;
+}
+.marks-all-toggle[aria-expanded="true"] svg {
+  rotate: 180deg;
+}
+.marks-all[hidden] {
+  display: none;
+}
 .marks-tier-head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
-  margin: 18px 0 10px;
+  margin: 16px 0 8px;
 }
 .marks-tier-head b {
   font: 600 15px/1.2 var(--font-text);
@@ -45,14 +167,12 @@
 .marks-tier.tier-1 ul {
   grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
 }
-.marks-tier.tier-2 ul {
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-}
+.marks-tier.tier-2 ul,
 .marks-tier.tier-3 ul {
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
 }
 .marks-tier.tier-4 ul {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
 }
 .marks-tier li {
   padding: 10px 4px 9px;
@@ -68,13 +188,13 @@
   width: 34px;
 }
 .marks-tier.tier-2 li svg {
-  width: 44px;
+  width: 36px;
 }
 .marks-tier.tier-3 li svg {
-  width: 54px;
+  width: 40px;
 }
 .marks-tier.tier-4 li svg {
-  width: 76px;
+  width: 52px;
 }
 .marks-tier li b {
   display: block;

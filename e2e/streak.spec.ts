@@ -99,6 +99,29 @@ test.describe("the streak", () => {
     await expect(page.getByText("of 1,626 sections")).toBeVisible();
     await expect(page.getByText("1 grace day ready")).toBeVisible();
     await expect(page.locator(".streak-week li")).toHaveCount(7);
+    await expect(page.locator(".streak-week li").last()).toHaveAttribute("data-today", "");
+    await expect(page.locator(".streak-book")).toHaveText("The whole book · 3 of 1,626 sections");
+  });
+
+  test("shows the earned marks and the nearest ones, and all 30 behind See all", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({
+      streak: { on: true, asked: true, goal: 1, goals: [{ from: day(-30), goal: 1 }], hour: 21, zone: "UTC", since: day(-30), longest: 0, marks: { search: "2026-10-16T10:00:00.000Z" }, at: 1 },
+      sectionDays: [{ day: day(-1), paperId: "2", sectionId: "3", how: "read" }],
+    });
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.goto("/you");
+    const card = page.locator(".marks-card:visible");
+    await expect(card.locator(".marks-head")).toHaveText("Marks2 of 30");
+    await expect(card.locator(".marks-got li")).toHaveText(["First section", "Search"]);
+    await expect(card.locator(".marks-next li")).toHaveCount(3);
+    await expect(card.locator(".marks-tier").first()).toBeHidden();
+    await card.getByRole("button", { name: "See all 30 marks" }).click();
+    await expect(card.locator(".marks-tier")).toHaveCount(4);
+    await expect(card.locator(".marks-tier").first()).toBeVisible();
+    await card.getByRole("button", { name: "Show less" }).click();
+    await expect(card.locator(".marks-tier").first()).toBeHidden();
   });
 
   test("Listen on the card opens the section with the voice", async ({ page, context }) => {

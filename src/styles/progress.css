@@ -645,39 +645,34 @@
 .streak-week li[data-kind="grace"] i {
   background: repeating-linear-gradient(45deg, transparent 0 4px, var(--rule) 4px 7px);
 }
-.streak-week li[data-kind="today"] i {
-  border: 2px solid var(--accent);
+/* Today shows by ink, never by the color of links: its letter at full ink with a dot below. */
+.streak-week li[data-today] {
+  color: var(--ink);
+  font-weight: 700;
+}
+.streak-week li[data-today]::after {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 3px auto 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.streak-big em {
+  margin-left: auto;
+  color: var(--muted);
+  font: 400 12.5px/1.2 var(--font-ui);
+  font-style: normal;
 }
 .streak-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 22px;
-  margin: 14px 0 0;
-}
-.streak-facts div {
-  display: grid;
-  gap: 2px;
+  margin: 12px 0 0;
+  color: var(--ref);
+  font: 400 12.5px/1.4 var(--font-ui);
 }
 .streak-facts b {
-  font: 600 15px/1.3 var(--font-ui);
-}
-.streak-facts small {
-  color: var(--muted);
-  font: 400 12px/1.3 var(--font-ui);
-}
-.streak-pips {
-  display: flex;
-  gap: 3px;
-  padding-top: 6px;
-}
-.streak-pips i {
-  width: 9px;
-  height: 9px;
-  border: 1.5px solid var(--voice-line);
-  border-radius: 50%;
-}
-.streak-pips i[data-full] {
-  background: var(--voice-line);
+  color: var(--ink);
+  font-weight: 600;
 }
 .streak-next {
   display: flex;
@@ -713,9 +708,27 @@
   background: var(--ink);
   color: var(--bg);
 }
+.streak-book {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  color: var(--ref);
+  font: 400 12.5px/1.35 var(--font-ui);
+}
+.streak-book b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.streak-book .streak-line {
+  flex: 1;
+  min-width: 48px;
+}
 .streak-line {
-  height: 6px;
-  margin: 12px 0 8px;
+  height: 4px;
+  margin: 0;
   overflow: hidden;
   border-radius: 999px;
   background: var(--rule);
@@ -725,10 +738,6 @@
   height: 100%;
   border-radius: 999px;
   background: var(--voice-line);
-}
-.streak-card > small {
-  color: var(--muted);
-  font: 400 12.5px/1.3 var(--font-ui);
 }
 .streak-off {
   margin-bottom: 14px;
@@ -754,6 +763,9 @@
 .streak-cards {
   margin-bottom: 22px;
 }
+.streak-cards > .streak-card {
+  margin-bottom: 14px;
+}
 @media (max-width: 480px) {
   .streak-next {
     flex-wrap: wrap;
@@ -764,8 +776,5 @@
   .streak-next a {
     flex: 1;
     text-align: center;
-  }
-  .streak-facts {
-    gap: 10px 18px;
   }
 }

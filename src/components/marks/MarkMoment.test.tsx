@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MarkMoment } from "./MarkMoment";
@@ -64,11 +64,41 @@ describe("the moment of a new mark", () => {
 });
 
 describe("the marks card", () => {
-  it("counts the earned marks, and shows what each other mark takes", () => {
-    render(<MarksView marks={{ "first-section": "t", "papers-1": "t" }} place="stack" />);
-    expect(screen.getByText("Marks · 2 of 30")).toBeInTheDocument();
+  const next = [
+    { id: "terms", line: "Open the terms of a paragraph · 1 min", progress: null },
+    { id: "papers-5", line: "4 papers left · about 4 hours", progress: 0.2 },
+  ];
+
+  it("shows the earned marks, the newest first, and the nearest marks with what each takes", () => {
+    const { container } = render(<MarksView marks={{ "first-section": "2026-10-17T10:00:00Z", "papers-1": "2026-10-17T11:00:00Z" }} next={next} place="stack" />);
+    expect(container.querySelector(".marks-head")).toHaveTextContent("Marks2 of 30");
+    expect([...container.querySelectorAll(".marks-got li")].map((li) => li.querySelector("small")?.textContent)).toEqual(["1 paper", "First section"]);
+    expect(screen.getByText("Open the terms of a paragraph · 1 min")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "5 papers, progress" })).toHaveAttribute("aria-valuenow", "20");
+  });
+
+  it("keeps the four tiers closed until See all, and closes them again with Show less", () => {
+    const { container } = render(<MarksView marks={{ "first-section": "t", "papers-1": "t" }} next={next} place="stack" />);
+    const all = container.querySelector(".marks-all") as HTMLElement;
+    expect(all).not.toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "See all 30 marks" }));
+    expect(all).toBeVisible();
     expect(screen.getAllByText("✓ earned")).toHaveLength(2);
-    expect(screen.getByText("about 18 hours")).toBeInTheDocument();
     expect(screen.getByText("a year of days")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show less" }));
+    expect(all).not.toBeVisible();
+  });
+
+  it("shows only Next for a reader with no mark yet", () => {
+    const { container } = render(<MarksView marks={{}} next={next} place="stack" />);
+    expect(container.querySelector(".marks-got")).toBeNull();
+    expect(screen.getByText("Next")).toBeInTheDocument();
+  });
+
+  it("puts a count after the eighth earned mark", () => {
+    const ids = ["first-section", "first-listen", "search", "parallels", "terms", "note", "image", "share", "papers-1", "foreword"];
+    const { container } = render(<MarksView marks={Object.fromEntries(ids.map((id) => [id, "t"]))} next={[]} place="stack" />);
+    expect(container.querySelectorAll(".marks-got li")).toHaveLength(9);
+    expect(screen.getByText("+2")).toBeInTheDocument();
   });
 });
