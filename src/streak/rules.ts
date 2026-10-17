@@ -13,8 +13,9 @@ export type StreakState = {
   // Counted days still needed for the grace day to return. 0 when it is ready.
   graceBackIn: number;
   graceUsedOn: string | null;
-  // The day on which the last streak ended, if one ended.
+  // The day on which the last streak ended, if one ended, and its length.
   endedOn: string | null;
+  endedLength: number;
   lastMet: string | null;
   // The last 7 reading days, the oldest first, today last.
   week: { day: string; kind: DayKind }[];
@@ -59,6 +60,7 @@ export function computeStreak(counts: Record<string, number>, goals: Goals, toda
   let sinceGrace = 0;
   let graceUsedOn: string | null = null;
   let endedOn: string | null = null;
+  let endedLength = 0;
   let lastMet: string | null = null;
   // The day before was the grace day: one more miss ends the streak.
   let graced = false;
@@ -82,7 +84,10 @@ export function computeStreak(counts: Record<string, number>, goals: Goals, toda
       graced = true;
       kinds.set(day, "grace");
     } else {
-      if (current > 0) endedOn = day;
+      if (current > 0) {
+        endedOn = day;
+        endedLength = current;
+      }
       current = 0;
       graced = false;
       graceReady = true;
@@ -105,6 +110,7 @@ export function computeStreak(counts: Record<string, number>, goals: Goals, toda
     graceBackIn: graceReady ? 0 : GRACE_RETURNS_AFTER - sinceGrace,
     graceUsedOn,
     endedOn,
+    endedLength,
     lastMet,
     week,
   };

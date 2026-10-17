@@ -1,9 +1,15 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { accountKey } from "@/account/client";
+import { readerCall } from "@/account/reader-call";
 import { Sheet } from "@/components/reader/Sheet";
 import { answerStreak, closeStreakQuestion, serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
+import { registerDevice } from "@/notices/device-end";
+import { deviceState } from "@/notices/push";
 import type { Goal } from "@/streak/rules";
+
+const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
 
 const GOALS: { goal: Goal; label: string }[] = [
   { goal: 1, label: "1 section a day" },
@@ -22,7 +28,15 @@ export function StreakQuestion() {
 
   async function answer(yes: boolean) {
     setBusy(true);
+    // A yes asks this device for the push first, while the press still counts for the browser.
+    // A reader who refuses keeps the streak, with no push.
+    const key = accountKey();
+    const canAsk = yes && NOTICES_ON && key !== null && (deviceState() === "ask" || deviceState() === "allowed");
+    const joined = canAsk ? await registerDevice(key) : false;
     const saved = await answerStreak(yes, goal);
+    if (saved && joined && accountKey() === key) {
+      await readerCall("/api/me/notices", { method: "PUT", body: JSON.stringify({ push: { streak: true }, zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" }) });
+    }
     setBusy(false);
     setFailed(!saved);
   }

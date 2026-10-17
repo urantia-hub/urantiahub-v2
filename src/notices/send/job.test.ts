@@ -214,3 +214,23 @@ describe("the sample of the release email", () => {
     expect(out.mails[3].text).toContain("October 11, 2026");
   });
 });
+
+describe("the streak push", () => {
+  it("sends the text of the streak to each device, with no email", async () => {
+    const night = new Date("2026-10-21T04:00:00Z");
+    const keeper = reader(A, {
+      settings: { email: { ...OFF }, push: { ...OFF, streak: true }, hour: 7, zone: "America/Chicago" },
+      devices: [device("one")],
+      streak: { on: true, asked: true, goal: 1, goals: [{ from: "2026-09-01", goal: 1 }], hour: 23, zone: "America/Chicago", since: "2026-09-01", longest: 0, marks: {}, at: 1 },
+      sectionDays: [{ day: "2026-10-19", count: 1 }],
+      lastSection: { paperId: "3", sectionId: "3" },
+    });
+    const { deps, out, log } = world([keeper], { now: night });
+    expect(await runNotices(deps)).toMatchObject({ due: 1, claimed: 1, mails: 0, pushes: 1 });
+    expect(log).toEqual([{ userId: A, kind: "streak", key: "2026-10-20", channel: "push" }]);
+    expect(out.pushes[0].push).toEqual({ for: "key-of-a1", title: "Keep your 1-day streak 🔥", body: "Listen to “God’s Limitlessness” before you sleep · about 7 minutes", path: "/papers/paper-3-the-attributes-of-god#3:4" });
+    // A second run in the same night sends nothing.
+    await runNotices(deps);
+    expect(out.pushes).toHaveLength(1);
+  });
+});

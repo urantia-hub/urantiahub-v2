@@ -140,3 +140,29 @@ describe("the release notice", () => {
     expect(dueNotices(reader({ settings: { email: OFF, hour: 7, zone: "America/Chicago" } }), at("2026-10-11T15:00:00Z"), news)).toEqual([]);
   });
 });
+
+describe("the streak notice", () => {
+  // 11 PM in Chicago: the reader's streak hour.
+  const NIGHT = at("2026-10-21T04:00:00Z");
+  const streak = { on: true, asked: true, goal: 1, goals: [{ from: "2026-09-01", goal: 1 }], hour: 23, zone: "America/Chicago", since: "2026-09-01", longest: 0, marks: {}, at: 1 };
+  const keeper = (over: Partial<Reader> = {}) =>
+    reader({
+      settings: { email: { ...OFF, streak: true }, push: { ...OFF, streak: true }, hour: 7, zone: "America/Chicago" },
+      devices: [device([])],
+      streak,
+      sectionDays: [{ day: "2026-10-19", count: 1 }],
+      lastSection: { paperId: "3", sectionId: "3" },
+      ...over,
+    });
+
+  it("goes as a push only, keyed by the reading day, with its text", () => {
+    const due = dueNotices(keeper(), NIGHT);
+    expect(kinds(due)).toEqual(["streak/push/2026-10-20"]);
+    expect(due[0].streak).toMatchObject({ title: "Keep your 1-day streak 🔥", path: "/papers/paper-3-the-attributes-of-god#3:4" });
+  });
+
+  it("needs the push setting and a device", () => {
+    expect(dueNotices(keeper({ devices: [] }), NIGHT)).toEqual([]);
+    expect(dueNotices(keeper({ settings: { email: { ...OFF }, push: { ...OFF }, hour: 7, zone: "America/Chicago" } }), NIGHT)).toEqual([]);
+  });
+});

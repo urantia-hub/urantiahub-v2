@@ -31,9 +31,12 @@ export type JobDeps = {
   sendMails(mails: OutMail[]): Promise<boolean[]>;
   sendPush(device: Device, push: Push): Promise<"ok" | "gone" | "failed">;
   readerKey(userId: string): Promise<string>;
-  offUrl(userId: string, kind: Due["kind"]): string;
-  offPost(userId: string, kind: Due["kind"]): string;
+  // An email kind: the streak has no email.
+  offUrl(userId: string, kind: MailKind): string;
+  offPost(userId: string, kind: MailKind): string;
 };
+
+export type MailKind = Exclude<Due["kind"], "streak">;
 
 export type Report = { readers: number; due: number; claimed: number; mails: number; pushes: number; failed: number; gone: number };
 
@@ -64,7 +67,14 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
     return passages.get(ref) as Promise<Passage | null>;
   };
   const settingsUrl = `${deps.origin}/notifications`;
-  async function content(notice: Due): Promise<{ mail: Mail; push: Omit<Push, "for"> } | null> {
+  // A streak notice is a push only, so it has no mail.
+  async function content(notice: Due): Promise<{ mail: Mail | null; push: Omit<Push, "for"> } | null> {
+    // A push only: the text is made with the rules of the streak, in `dueNotices`.
+    if (notice.kind === "streak") {
+      if (!notice.streak) return null;
+      const { title, body, path } = notice.streak;
+      return { mail: null, push: { title, body, path } };
+    }
     const links = { offUrl: deps.offUrl(notice.userId, notice.kind), settingsUrl };
     if (notice.kind === "daily") {
       const passage = await passageOf(notice.key);
@@ -111,7 +121,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
       continue;
     }
     if (notice.channel === "email") {
-      if (notice.email) mails.push({ notice, mail: { ...made.mail, to: notice.email, offUrl: deps.offUrl(notice.userId, notice.kind), offPost: deps.offPost(notice.userId, notice.kind) } });
+      if (notice.email && made.mail && notice.kind !== "streak") mails.push({ notice, mail: { ...made.mail, to: notice.email, offUrl: deps.offUrl(notice.userId, notice.kind), offPost: deps.offPost(notice.userId, notice.kind) } });
       continue;
     }
     // Each push names its reader. The worker of the device shows it only for that reader.
@@ -141,8 +151,8 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
 // before any reader gets one. It claims nothing, so it changes nothing for a reader.
 export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string, sample: News | null = null): Promise<{ mails: number; sent: number }> {
   const settingsUrl = `${deps.origin}/notifications`;
-  const links = (kind: Due["kind"]) => ({ offUrl: deps.offUrl(userId, kind), settingsUrl });
-  const out = (mail: Mail, kind: Due["kind"]): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind), offPost: deps.offPost(userId, kind) });
+  const links = (kind: MailKind) => ({ offUrl: deps.offUrl(userId, kind), settingsUrl });
+  const out = (mail: Mail, kind: MailKind): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind), offPost: deps.offPost(userId, kind) });
   const mails: OutMail[] = [];
   // The passage of today, and the longest passage of the list, so a long text can be judged.
   for (const ref of [passageFor(deps.now.toISOString().slice(0, 10)), longRef]) {

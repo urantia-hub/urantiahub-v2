@@ -13,7 +13,7 @@ const card = (over: object = {}): Extract<StreakCard, { on: true }> => ({
   zone: "UTC",
   book: { done: 412, total: 1626 },
   next: { paperId: "3", sectionId: "4", title: "God’s Limitlessness", paper: "The Attributes of God", minutes: 5, href: "/papers/paper-3-the-attributes-of-god#3:4" },
-  state: { current: 12, longest: 31, todayMet: false, graceReady: false, graceBackIn: 3, graceUsedOn: "2026-10-13", endedOn: null, lastMet: "2026-10-16", week },
+  state: { current: 12, longest: 31, todayMet: false, graceReady: false, graceBackIn: 3, graceUsedOn: "2026-10-13", endedOn: null, endedLength: 0, lastMet: "2026-10-16", week },
   ...over,
 });
 

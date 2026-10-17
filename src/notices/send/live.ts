@@ -6,7 +6,7 @@ import { getPassage } from "@/content";
 import { releaseToNotify } from "@/content/releases";
 import type { Device, Reader } from "@/notices/due";
 import { site } from "@/site";
-import type { Claim, JobDeps, OutMail, Push } from "./job";
+import type { Claim, JobDeps, MailKind, OutMail, Push } from "./job";
 import { offToken } from "./token";
 
 // The real dependencies of the job: the API for the readers and the claims, Resend for the emails,
@@ -49,7 +49,7 @@ async function api(method: string, path: string, body?: unknown): Promise<unknow
 export const turnOff = (userId: string, kind: string): Promise<unknown> => api("POST", "/off", { userId, kind });
 
 // The list in the header of a mail program, and the link in the email.
-export const offLinks = (secret: string, userId: string, kind: Claim["kind"]) => {
+export const offLinks = (secret: string, userId: string, kind: MailKind) => {
   const token = offToken(secret, userId, kind);
   return { page: `${site.origin}/emails?off=${token}`, post: `${site.origin}/api/notices/off?token=${token}` };
 };

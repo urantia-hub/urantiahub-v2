@@ -1,7 +1,8 @@
 // The notices of a signed-in reader: which ones go by email, the hour, the time zone, and the devices.
 // The API keeps them. A browser sends the values, so each function checks them before a call.
 
-export const NOTICE_KINDS = ["daily", "reminder", "releases"] as const;
+// `streak` goes as a push only. The API refuses it by email.
+export const NOTICE_KINDS = ["daily", "reminder", "releases", "streak"] as const;
 export type NoticeKind = (typeof NOTICE_KINDS)[number];
 export const DEFAULT_HOUR = 7;
 
@@ -31,7 +32,7 @@ export function parseNotices(answer: unknown): Notices {
   const settings = isRecord(given.settings) ? given.settings : {};
   const flags = (given: unknown): Record<NoticeKind, boolean> => {
     const of = isRecord(given) ? given : {};
-    return { daily: of.daily === true, reminder: of.reminder === true, releases: of.releases === true };
+    return { daily: of.daily === true, reminder: of.reminder === true, releases: of.releases === true, streak: of.streak === true };
   };
   const devices = Array.isArray(given.devices) ? given.devices : [];
   return {
@@ -60,7 +61,7 @@ export async function changeNotices(gateway: NoticesGateway, accessToken: string
   for (const channel of ["email", "push"] as const) {
     const given = value[channel];
     if (!isRecord(given)) continue;
-    const flags = Object.fromEntries(Object.entries(given).filter(([kind, on]) => isKind(kind) && typeof on === "boolean"));
+    const flags = Object.fromEntries(Object.entries(given).filter(([kind, on]) => isKind(kind) && typeof on === "boolean" && !(channel === "email" && kind === "streak")));
     if (Object.keys(flags).length > 0) patch[channel] = flags;
   }
   if (isHour(value.hour)) patch.hour = value.hour;
