@@ -6,6 +6,7 @@ import { BOOK, minutesOf, nextAfter, orderOf, sectionAt, type SectionEntry, sect
 import { anchorFor } from "@/lib/paper-url";
 import { earnedMarks, mergeMarks } from "@/marks/earn";
 import { TOOL_MARKS } from "@/marks/list";
+import { type NextMark, nextMarks } from "@/marks/next";
 import { addDays, computeStreak, type Goal, type Goals, readingDay, type StreakState } from "@/streak/rules";
 import { parsePlace, PLACE_KEY } from "./reader-data";
 
@@ -40,6 +41,8 @@ export type StreakCard =
       // Each earned mark and its time, and the ids that this answer earned, for the moment.
       marks: Record<string, string>;
       fresh: string[];
+      // The 3 marks nearest to the reader, for the short marks card.
+      nextMarks: NextMark[];
     };
 
 export type StreakGateway = {
@@ -161,7 +164,9 @@ async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<
   const { marks, fresh } = mergeMarks(settings.marks, earnedMarks(rows, state.longest), now.toISOString());
   if (state.longest > settings.longest || fresh.length > 0) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, longest: state.longest, marks } });
   const done = new Set(rows.map((row) => `${row.paperId}:${row.sectionId}`)).size;
-  return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next: nextSection(rows, all[PLACE_KEY]), marks, fresh };
+  const next = nextSection(rows, all[PLACE_KEY]);
+  const nextMarksList = nextMarks({ rows, current: state.current, earned: marks, nextMinutes: next.minutes });
+  return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next, marks, fresh, nextMarks: nextMarksList };
 }
 
 // The first use of a tool of the Hub. Only while the streak is on: the marks belong to it.
