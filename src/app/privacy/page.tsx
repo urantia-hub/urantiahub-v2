@@ -1,4 +1,4 @@
-import { ACCOUNT_ITEMS, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
 import { pageMetadata } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
@@ -17,12 +17,19 @@ export default function PrivacyPage() {
   const accountsOn = process.env.NEXT_PUBLIC_SIGN_IN === "on";
   // A notice needs an account. While the notices are off, the page says nothing of them.
   const noticesOn = accountsOn && process.env.NEXT_PUBLIC_NOTICES === "on";
-  const accountVendors = noticesOn ? ACCOUNT_VENDORS.map((vendor) => (vendor.name === NOTICE_RESEND.name ? NOTICE_RESEND : vendor)) : ACCOUNT_VENDORS;
+  // The streak needs an account too. While it is off, the page says nothing of it.
+  const streaksOn = accountsOn && process.env.NEXT_PUBLIC_STREAKS === "on";
+  const accountVendors = ACCOUNT_VENDORS.map((vendor) => {
+    if (noticesOn && vendor.name === NOTICE_RESEND.name) return NOTICE_RESEND;
+    if (streaksOn && vendor.name === "Supabase") return { ...vendor, receives: vendor.receives.replace(/, and your notes\.$/, `, your notes, ${STREAK_SUPABASE_RECEIVES}.`) };
+    return vendor;
+  });
+  const browserItems = streaksOn ? [...BROWSER_ITEMS, STREAK_BROWSER_ITEM] : BROWSER_ITEMS;
   const vendors = accountsOn ? [...VENDORS.map((vendor) => (vendor.name === ACCOUNT_POSTHOG.name ? ACCOUNT_POSTHOG : vendor)), ...accountVendors] : VENDORS;
   return (
     <div className="prose privacy">
       <h1>Privacy</h1>
-      <p className="updated">Last updated: {noticesOn ? NOTICES_UPDATED : accountsOn ? ACCOUNT_UPDATED : PRIVACY_UPDATED}</p>
+      <p className="updated">Last updated: {streaksOn ? STREAKS_UPDATED : noticesOn ? NOTICES_UPDATED : accountsOn ? ACCOUNT_UPDATED : PRIVACY_UPDATED}</p>
 
       <h2>The short version</h2>
       <ul>
@@ -156,13 +163,32 @@ export default function PrivacyPage() {
         </>
       )}
 
+      {streaksOn && (
+        <>
+          <h3>If you keep a streak</h3>
+          <p>
+            A signed-in reader can keep a streak: a count of the days in a row with a finished section. It is off
+            until you say yes. If you keep one, the account also holds these things:
+          </p>
+          <ul>
+            {STREAK_ITEMS.map((item) => (
+              <li key={item}>{item}.</li>
+            ))}
+          </ul>
+          <p>
+            You can turn the streak off on your page. What the account holds for it stays, so a streak that you
+            turn on again has its count. When you delete the account, we delete all of this.
+          </p>
+        </>
+      )}
+
       <h2>What stays in your browser</h2>
       <p>
         The site keeps these things in your browser.{" "}
         {accountsOn ? "If you sign in, the place and the paragraphs that you read also go to your account. The theme and the text size never leave the device. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
       </p>
       <ul>
-        {BROWSER_ITEMS.map((item) => (
+        {browserItems.map((item) => (
           <li key={item.name}>
             {item.name}, {item.why}.
           </li>

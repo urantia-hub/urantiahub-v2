@@ -7,7 +7,7 @@ import ReleasesPage from "@/app/releases/page";
 import ResourcesPage from "@/app/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -69,6 +69,30 @@ describe("Privacy, about accounts", () => {
     expect(page).not.toContain("They do not leave your device.");
     expect(page).not.toContain("accounts, saved places, and notes are planned");
     expect(page).toMatch(/You can read and listen with no account/);
+  });
+});
+
+// The streak is on or off by one setting, and needs an account. The page names what it stores only then.
+describe("Privacy, about the streak", () => {
+  const text = () => render(<PrivacyPage />).container.textContent ?? "";
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("says nothing of a streak while it is off, or while the sign-in is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    expect(text()).not.toMatch(/streak/i);
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "");
+    vi.stubEnv("NEXT_PUBLIC_STREAKS", "on");
+    expect(text()).not.toMatch(/streak/i);
+  });
+
+  it("names what the account and the browser keep for the streak", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_STREAKS", "on");
+    const page = text();
+    expect(page).toContain(STREAKS_UPDATED);
+    for (const item of STREAK_ITEMS) expect(page).toContain(item);
+    expect(page).toContain(STREAK_BROWSER_ITEM.name);
+    expect(page).toContain("your notes, the sections that you finished each day, your streak settings.");
   });
 });
 

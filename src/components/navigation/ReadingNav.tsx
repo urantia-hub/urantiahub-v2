@@ -19,6 +19,8 @@ import { ASK_PAPER_EVENT, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, paperPrompt, par
 import { sharedFromAddress, sharePath } from "@/reader/share-link";
 import { clearSentence, markSentence, sentenceBox, sentenceMove } from "@/reader/voice-mark";
 import { clearVoicePlace, readVoicePlace, saveVoicePlace, subscribeToVoicePlace } from "@/reader/voice-place";
+import { createHearing } from "@/streak/heard";
+import { noteParagraphs } from "@/streak/client";
 import { Navigator } from "./Navigator";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
@@ -203,11 +205,16 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           onSystemPause,
         });
     engine.current = created;
+    // A paragraph that the voice played to near its end counts for the streak, also with the screen off.
+    const lengths = new Map(tracks.map((t) => [t.ref, t.duration]));
+    const hearing = createHearing((ref) => lengths.get(ref) ?? 0);
     const off = created.subscribe(() => {
       const state = created.getState();
       // The engine of paragraph files knows no titles and no sentences.
       const now: PaperVoiceState =
         "item" in state ? (state as PaperVoiceState) : { ...state, item: isSounding(state.status) ? tracks[state.index].ref : null, sentence: 0 };
+      const heard = hearing.observe(now.status === "idle" ? null : now.item, now.time);
+      if (heard) noteParagraphs("heard", [heard]);
       const was = latestVoice.current;
       latestVoice.current = now;
       setVoice(now);
@@ -484,7 +491,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     saveLastRead({ paperId: paper.id, sectionId: current, label: at && at.id !== "0" ? sectionLabel(at) : null });
   }, [paper.id, current, sections]);
 
-  function start(ref: string, from: "bar" | "paragraph" | "place") {
+  function start(ref: string, from: "bar" | "paragraph" | "place" | "streak") {
     const index = tracks?.findIndex((t) => t.ref === ref) ?? -1;
     if (index === -1) return;
     follow(true);
@@ -492,6 +499,32 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     track("audio_started", { paper_id: paper.id, from });
     engine.current?.playAt(index);
   }
+
+  // "Listen" on the streak card: `?listen=1` with the section in the address starts the voice there.
+  // The press on /you is in this document (a client move), so the browser lets the sound start.
+  useEffect(() => {
+    if (!tracks) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("listen") !== "1") return;
+    params.delete("listen");
+    const rest = params.toString();
+    let at = "";
+    try {
+      at = decodeURIComponent(window.location.hash.slice(1));
+    } catch {
+      return;
+    }
+    const first = at === "paper-top" || at === "" ? tracks[0] : tracks.find((t) => t.ref.startsWith(`${at}.`));
+    if (!first) return;
+    // After the engine of this render is ready, and outside the effect body.
+    const timer = window.setTimeout(() => {
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`);
+      start(first.ref, "streak");
+    }, 0);
+    return () => window.clearTimeout(timer);
+    // Only the first load of the page reads the address.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracks]);
 
   function onRound() {
     if (!tracks || !engine.current) return;

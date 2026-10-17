@@ -5,6 +5,8 @@ export const PRIVACY_UPDATED = "October 14, 2026";
 export const ACCOUNT_UPDATED = "October 12, 2026";
 // The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
 export const NOTICES_UPDATED = "October 12, 2026";
+// The date of the page while a reader can keep a streak. See `streaksOn` in the page.
+export const STREAKS_UPDATED = "October 17, 2026";
 export const PRIVACY_EMAIL = "privacy@urantiahub.com";
 // The company that runs the site. Kelson gave this name on 2026-10-08.
 export const PRIVACY_OPERATOR = "Adams Technologies LLC";
@@ -107,3 +109,19 @@ export const NOTICE_RESEND: Vendor = {
   receives: "Your email address, and the text of the email.",
   policy: "https://resend.com/legal/privacy-policy",
 };
+
+// What an account holds for the streak, while a reader can keep one. Each entry is one thing that
+// `src/account/streak-data.ts` or the API stores.
+export const STREAK_ITEMS: readonly string[] = [
+  "If you keep a streak: each section that you finished, the day, and if you read it or listened to it",
+  "Your streak settings: on or off, the sections a day, your time zone, the day that you started, and your longest streak",
+];
+
+// What the browser keeps for the streak of a signed-in reader. The day log never goes to the account.
+export const STREAK_BROWSER_ITEM: BrowserItem = {
+  name: "The paragraphs that you read or heard today, while you are signed in",
+  why: "so the site can tell when you finish a section for the streak; the next day replaces them, a sign-out removes them, and only a finished section goes to your account",
+};
+
+// With the streak on, Supabase also holds the finished sections.
+export const STREAK_SUPABASE_RECEIVES = "the sections that you finished each day, your streak settings";

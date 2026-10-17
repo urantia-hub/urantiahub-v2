@@ -27,7 +27,7 @@ export type SectionRow = { day: string; paperId: string; sectionId: string; how:
 export type NextSection = { paperId: string; sectionId: string; title: string; paper: string; minutes: number; href: string };
 export type StreakCard =
   | { on: false; asked: boolean }
-  | { on: true; state: StreakState; goal: Goal; hour: number; book: { done: number; total: number }; next: NextSection };
+  | { on: true; state: StreakState; goal: Goal; hour: number; zone: string; book: { done: number; total: number }; next: NextSection };
 
 export type StreakGateway = {
   preferences(accessToken: string): Promise<Record<string, unknown>>;
@@ -147,5 +147,5 @@ async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<
   const state = computeStreak(counts, settings.goals, readingDay(now, settings.zone), settings.longest);
   if (state.longest > settings.longest) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, longest: state.longest } });
   const done = new Set(rows.map((row) => `${row.paperId}:${row.sectionId}`)).size;
-  return { on: true, state, goal: settings.goal, hour: settings.hour, book: { done, total: TOTAL_SECTIONS }, next: nextSection(rows, all[PLACE_KEY]) };
+  return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next: nextSection(rows, all[PLACE_KEY]) };
 }

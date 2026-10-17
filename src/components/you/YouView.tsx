@@ -10,6 +10,7 @@ import { ACCOUNT_PAGE, AccountRows } from "@/components/AccountRows";
 import { Icon } from "@/components/icons";
 import { ProgressView } from "@/components/progress/ProgressView";
 import { SignInLink } from "@/components/SignInLink";
+import { StreakCards } from "@/components/streak/StreakCards";
 import { sortEntries } from "@/saved/list";
 
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
@@ -90,6 +91,7 @@ export function YouView() {
       <div className="you-cols">
         <section aria-labelledby="you-progress">
           <h2 id="you-progress">Progress</h2>
+          <StreakCards />
           <ProgressView />
         </section>
 

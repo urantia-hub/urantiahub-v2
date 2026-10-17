@@ -4,6 +4,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { flushRead, queueRead } from "@/account/sync";
 import { ReadTracker } from "@/reader/read-tracker";
+import { flushSections, loadStreak, noteParagraphs } from "@/streak/client";
 
 // On a paper, for a signed-in reader: marks each paragraph as read after its time in the reading zone
 // of the screen. It draws nothing, and it does nothing for a reader with no account.
@@ -27,13 +28,19 @@ export function ReadMarks({ paperId }: { paperId: string }) {
     );
     for (const paragraph of document.querySelectorAll(".paper .para[id]")) observer.observe(paragraph);
 
-    const collect = () => queueRead(tracker.collect());
+    void loadStreak();
+    const collect = () => {
+      const refs = tracker.collect();
+      queueRead(refs);
+      noteParagraphs("read", refs);
+    };
     const timer = window.setInterval(collect, 1000);
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         // The general listener sent its batch before this one ran, so this last part goes out here.
         collect();
         void flushRead(true);
+        void flushSections(true);
         tracker.pause();
       } else tracker.resume();
     };

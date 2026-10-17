@@ -6,7 +6,7 @@ import { paperById } from "./paper-index";
 export type SectionEntry = { paperId: string; id: string; title: string | null; paragraphs: number; words: number };
 
 type Row = [string, string | null, number, number];
-const papers = raw.papers as Record<string, Row[]>;
+const papers = raw.papers as unknown as Record<string, Row[]>;
 
 // The whole book in reading order: the Foreword, then Papers 1 to 196.
 export const BOOK: readonly SectionEntry[] = Array.from({ length: 197 }, (_, n) =>

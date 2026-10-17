@@ -547,3 +547,197 @@
     align-items: start;
   }
 }
+
+/* The streak: the question, the card, and the whole book (mock streaks-and-marks.html, 3 and 4). */
+.streak-goals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 4px;
+}
+.streak-goals button {
+  padding: 7px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--ink);
+  font: 500 13px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.streak-goals button[aria-checked="true"] {
+  border-color: var(--ink);
+  font-weight: 600;
+}
+.streak-card {
+  padding: 16px 18px 18px;
+}
+.streak-card + .streak-card {
+  margin-top: 14px;
+}
+.streak-card .streak-label {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font: 600 11px/1.3 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.streak-big {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font: 400 15px/1.2 var(--font-ui);
+}
+.streak-big b {
+  color: var(--ink);
+  font: 600 34px/1.1 var(--font-text);
+}
+.streak-week {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.streak-week li {
+  flex: 1;
+  color: var(--muted);
+  font: 400 11px/1.2 var(--font-ui);
+  text-align: center;
+}
+.streak-week li i {
+  display: block;
+  height: 28px;
+  margin-bottom: 4px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.streak-week li[data-kind="met"] i {
+  border-color: var(--voice-line);
+  background: var(--voice-line);
+  opacity: 0.85;
+}
+.streak-week li[data-kind="grace"] i {
+  background: repeating-linear-gradient(45deg, transparent 0 4px, var(--rule) 4px 7px);
+}
+.streak-week li[data-kind="today"] i {
+  border: 2px solid var(--accent);
+}
+.streak-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 14px 0 0;
+}
+.streak-facts div {
+  display: grid;
+  gap: 2px;
+}
+.streak-facts b {
+  font: 600 15px/1.3 var(--font-ui);
+}
+.streak-facts small {
+  color: var(--muted);
+  font: 400 12px/1.3 var(--font-ui);
+}
+.streak-pips {
+  display: flex;
+  gap: 3px;
+  padding-top: 6px;
+}
+.streak-pips i {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--voice-line);
+  border-radius: 50%;
+}
+.streak-pips i[data-full] {
+  background: var(--voice-line);
+}
+.streak-next {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--mark);
+}
+.streak-next > div {
+  flex: 1;
+  min-width: 0;
+}
+.streak-next b {
+  display: block;
+  font: 600 15px/1.35 var(--font-text);
+}
+.streak-next small {
+  color: var(--ref);
+  font: 400 12.5px/1.35 var(--font-ui);
+}
+.streak-next a {
+  padding: 8px 14px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  font: 600 13px/1.2 var(--font-ui);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.streak-next a.listen {
+  background: var(--ink);
+  color: var(--bg);
+}
+.streak-line {
+  height: 6px;
+  margin: 12px 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--rule);
+}
+.streak-line i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--voice-line);
+}
+.streak-card > small {
+  color: var(--muted);
+  font: 400 12.5px/1.3 var(--font-ui);
+}
+.streak-off {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 13px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 500 14.5px/1.3 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+.streak-off span {
+  flex: 1;
+}
+.streak-off small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.streak-stop {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 400 12.5px/1.3 var(--font-ui);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
