@@ -1,10 +1,42 @@
 // What changed in UrantiaHub, the newest first. Add an entry in the same change that ships a thing a
 // reader can see. Each line must be true of the live site on that date.
 
+import type { ReleasePictures } from "@/notices/send/mail";
+
 // `notify`: readers who chose "New releases" get one notice of this entry. Mark a few in a year.
-export type Release = { date: string; title: string; changes: string[]; notify?: true };
+// `mail`: the email of the notice with pictures; its files stay in `public/email/` after the send.
+export type Release = { date: string; title: string; changes: string[]; notify?: true; mail?: ReleasePictures };
 
 export const RELEASES: Release[] = [
+  {
+    date: "2026-10-17",
+    title: "A streak, an assistant, and more",
+    changes: [
+      "A streak: one section a day, about five minutes, with marks for papers, parts, and the tools of the Hub. It is off until you turn it on from your page.",
+      "Ask an assistant: press a paragraph, then More, and your question opens in Claude, ChatGPT, Gemini, or Grok.",
+      "The voice keeps playing with the screen off, to the end of the paper.",
+      "Read offline: keep all 197 papers on your device.",
+      "Share one sentence: the link shows the exact words.",
+      "Your page: your progress, what you saved, and your notifications in one place.",
+      "Elsewhere in the Papers: the parallels of a paragraph in other papers come first.",
+      "On Android, the keyboard no longer covers the field of a note.",
+    ],
+    mail: {
+      lead: "A streak to read a little each day, an assistant for any paragraph, and all 197 papers on your phone.",
+      features: [
+        { title: "A streak", line: "Read or listen to one section a day, about five minutes. Collect marks for papers, parts, and the tools of the Hub. Turn it on from your page.", image: "/email/release-2026-10-17/streak.png", alt: "The streak and the marks on the reader's page" },
+        { title: "Ask an assistant", line: "Press a paragraph, then More. Your question opens in Claude, ChatGPT, Gemini, or Grok, ready to send.", image: "/email/release-2026-10-17/ask.png", alt: "The questions for an assistant about a paragraph" },
+        { title: "Listen with the screen off", line: "The voice keeps playing when your phone is locked, to the end of the paper.", image: "/email/release-2026-10-17/listen.png", alt: "A paper with the voice playing" },
+        { title: "Read offline", line: "One switch in the menu keeps all 197 papers on your device. Read with no connection.", image: "/email/release-2026-10-17/offline.png", alt: "A paper open with no connection" },
+      ],
+      also: [
+        { title: "Share one sentence.", line: "The link shows the exact words." },
+        { title: "Your page.", line: "Your progress, what you saved, and your notifications in one place." },
+        { title: "Elsewhere in the Papers.", line: "The parallels of a paragraph in other papers come first." },
+      ],
+      video: { url: "https://www.youtube.com/watch?v=_y1Cme5eqeA", image: "/email/release-2026-10-17/video.png", line: "Watch the video · under one minute" },
+    },
+  },
   {
     date: "2026-10-11",
     title: "Notifications",

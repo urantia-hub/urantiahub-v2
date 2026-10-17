@@ -1,5 +1,5 @@
-// The emails of the notices. Inline styles only, and no remote file: a mail program shows the email
-// as it is, and nothing tells us that a reader opened it.
+// The emails of the notices. Inline styles only. The one remote file is a picture of a release, at the same
+// address for each reader, so nothing tells us that a reader opened an email.
 
 export type Mail = { subject: string; html: string; text: string };
 // A mail program turns an address into a blue link to a map, and nothing in an email stops that for
@@ -17,9 +17,22 @@ const SERIF = "Georgia,'Times New Roman',serif";
 type Frame = { label: string; body: string; list?: string[]; cite: string; button: string; url: string; reason: string; offUrl: string; settingsUrl: string };
 
 function html({ label, body, list, cite, button, url, reason, offUrl, settingsUrl }: Frame): string {
+  const inner = `<p style="margin:0;font-family:${UI};font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#756d5f;">${esc(label)}</p>
+<p style="margin:16px 0 14px;font-family:${SERIF};font-size:20px;line-height:1.55;color:#26221c;">${esc(body)}</p>
+${(list ?? []).map((line) => `<p style="margin:0 0 12px;font-family:${UI};font-size:15px;line-height:1.55;color:#26221c;">${esc(line)}</p>`).join("\n")}
+<p style="margin:${list?.length ? "18px" : "0"} 0 0;font-family:${UI};font-size:13px;color:#756d5f;">${esc(cite)}</p>
+${buttonHtml(button, url)}`;
+  return shell(label, inner, { reason, offUrl, settingsUrl });
+}
+
+const buttonHtml = (button: string, url: string): string =>
+  `<p style="margin:22px 0 0;"><a href="${esc(url)}" style="display:inline-block;padding:13px 22px;border-radius:999px;background:#26221c;border:1px solid #8d8676;color:#fbf8f2;font-family:${UI};font-size:14.5px;font-weight:500;text-decoration:none;">${esc(button)}</a></p>`;
+
+// The page of each email: the name at the top, the content, and the foot with the way off.
+function shell(title: string, inner: string, { reason, offUrl, settingsUrl }: { reason: string; offUrl: string; settingsUrl: string }): string {
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(label)}</title>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(title)}</title>
 <style>:root{color-scheme:light only;}.addr a{color:#756d5f !important;text-decoration:none !important;}</style></head>
 <body style="margin:0;padding:0;" bgcolor="#f1ede4">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f1ede4" style="padding:28px 14px;">
@@ -27,11 +40,7 @@ function html({ label, body, list, cite, button, url, reason, offUrl, settingsUr
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" bgcolor="#fbf8f2" style="max-width:600px;border:1px solid #e7e0d2;border-radius:10px;">
 <tr><td style="padding:44px 36px 42px;">
 <p style="margin:0 0 26px;font-family:${SERIF};font-size:18px;color:#26221c;">UrantiaHub</p>
-<p style="margin:0;font-family:${UI};font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#756d5f;">${esc(label)}</p>
-<p style="margin:16px 0 14px;font-family:${SERIF};font-size:20px;line-height:1.55;color:#26221c;">${esc(body)}</p>
-${(list ?? []).map((line) => `<p style="margin:0 0 12px;font-family:${UI};font-size:15px;line-height:1.55;color:#26221c;">${esc(line)}</p>`).join("\n")}
-<p style="margin:${list?.length ? "18px" : "0"} 0 0;font-family:${UI};font-size:13px;color:#756d5f;">${esc(cite)}</p>
-<p style="margin:22px 0 0;"><a href="${esc(url)}" style="display:inline-block;padding:13px 22px;border-radius:999px;background:#26221c;border:1px solid #8d8676;color:#fbf8f2;font-family:${UI};font-size:14.5px;font-weight:500;text-decoration:none;">${esc(button)}</a></p>
+${inner}
 </td></tr>
 <tr><td style="padding:22px 36px;border-top:1px solid #e7e0d2;font-family:${UI};font-size:12px;line-height:1.6;color:#756d5f;">
 ${esc(reason)}<br>
@@ -80,7 +89,20 @@ export function reminderMail(place: { paperId: string; paperTitle: string; url: 
   return { subject: "Your place in the Papers", html: html(frame), text: text(frame) };
 }
 
-export function releaseMail(release: { title: string; changes: string[]; date: string; url: string }, links: Links): Mail {
+// The email of a release with pictures: one line to start, each feature with its picture, more in a
+// line each, and the video. An image path is on the site (`origin`); the words are text.
+export type ReleasePictures = {
+  lead: string;
+  features: { title: string; line: string; image: string; alt: string }[];
+  also: { title: string; line: string }[];
+  video: { url: string; image: string; line: string };
+};
+
+const RELEASE_REASON = "You get this email because you chose Email for “New releases” in UrantiaHub. It comes a few times in a year.";
+
+export function releaseMail(release: { title: string; changes: string[]; date: string; url: string; origin?: string; mail?: ReleasePictures }, links: Links): Mail {
+  const subject = `New in UrantiaHub: ${release.title}`;
+  if (release.mail) return { subject, ...picturesMail(release.mail, release.origin ?? "", links) };
   const frame: Frame = {
     label: "New in UrantiaHub",
     body: release.title,
@@ -88,10 +110,51 @@ export function releaseMail(release: { title: string; changes: string[]; date: s
     cite: release.date,
     button: "See what is new",
     url: release.url,
-    reason: "You get this email because you chose Email for “New releases” in UrantiaHub. It comes a few times in a year.",
+    reason: RELEASE_REASON,
     ...links,
   };
-  return { subject: `New in UrantiaHub: ${release.title}`, html: html(frame), text: text(frame) };
+  return { subject, html: html(frame), text: text(frame) };
+}
+
+function picturesMail(m: ReleasePictures, origin: string, links: Links): { html: string; text: string } {
+  const p = (style: string, content: string) => `<p style="${style}">${content}</p>`;
+  const picture = (src: string, alt: string, margin: string) =>
+    `<img src="${esc(origin + src)}" width="528" alt="${esc(alt)}" style="display:block;width:100%;max-width:528px;height:auto;border:1px solid #e7e0d2;border-radius:8px;margin:${margin};">`;
+  const inner = [
+    p(`margin:0;font-family:${UI};font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#756d5f;`, "New in UrantiaHub"),
+    p(`margin:16px 0 26px;font-family:${SERIF};font-size:20px;line-height:1.5;color:#26221c;`, esc(m.lead)),
+    ...m.features.map((f) =>
+      [
+        p(`margin:0 0 6px;font-family:${SERIF};font-size:17px;color:#26221c;`, esc(f.title)),
+        p(`margin:0 0 12px;font-family:${UI};font-size:15px;line-height:1.55;color:#26221c;`, esc(f.line)),
+        picture(f.image, f.alt, "0 0 30px"),
+      ].join("\n"),
+    ),
+    p(`margin:0 0 10px;font-family:${UI};font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#756d5f;`, "Also"),
+    ...m.also.map((a, i) => p(`margin:0 0 ${i === m.also.length - 1 ? 26 : 10}px;font-family:${UI};font-size:15px;line-height:1.55;color:#26221c;`, `<b style="font-weight:600;">${esc(a.title)}</b> ${esc(a.line)}`)),
+    `<a href="${esc(m.video.url)}" style="display:block;text-decoration:none;">${picture(m.video.image, m.video.line, "0").replace("border:1px solid #e7e0d2;", "")}</a>`,
+    p(`margin:8px 0 0;font-family:${UI};font-size:13px;color:#756d5f;`, esc(m.video.line)),
+    buttonHtml("Open UrantiaHub", `${origin}/`),
+  ].join("\n");
+  const text = [
+    "New in UrantiaHub",
+    "",
+    m.lead,
+    "",
+    ...m.features.map((f) => `${f.title}: ${f.line}`),
+    "",
+    ...m.also.map((a) => `${a.title} ${a.line}`),
+    "",
+    `${m.video.line}: ${m.video.url}`,
+    `Open UrantiaHub: ${origin}/`,
+    "",
+    "--",
+    RELEASE_REASON,
+    `Turn this email off: ${links.offUrl}`,
+    `All notification settings: ${links.settingsUrl}`,
+    POSTAL,
+  ].join("\n");
+  return { html: shell("New in UrantiaHub", inner, { reason: RELEASE_REASON, ...links }), text };
 }
 
 // The first words of a text, cut at a word, for a reader to go on from.
