@@ -8,6 +8,7 @@ import { sentences } from "@/image/compose";
 import { hasShareSheet, shareParagraph } from "@/reader/share";
 import { cutWords, sharePath, sharedWords } from "@/reader/share-link";
 import { Sheet } from "./Sheet";
+import { earnToolMark } from "@/streak/client";
 
 type Props = {
   reference: string;
@@ -50,6 +51,7 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
       return;
     }
     track("paragraph_shared", { ref: reference, method, part: !whole });
+    void earnToolMark("share");
     if (method === "copy") onCopied();
   }
 

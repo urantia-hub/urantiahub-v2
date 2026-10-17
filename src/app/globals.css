@@ -10,6 +10,7 @@
 @import "../styles/saved.css";
 @import "../styles/prose.css";
 @import "../styles/progress.css";
+@import "../styles/marks.css";
 @import "../styles/motion.css";
 
 :root {

@@ -6,6 +6,7 @@ import { failureWords } from "@/account/limited";
 import { addNote, changeNote, deleteNote, loadSaved, type NoteResult, noSaved, savedState, subscribeToSaved } from "@/account/saved";
 import { NoteThread } from "./NoteThread";
 import { Sheet } from "./Sheet";
+import { earnToolMark } from "@/streak/client";
 
 type Props = { reference: string; paperId: string; onClose: () => void };
 
@@ -48,7 +49,10 @@ export default function NoteSheet({ reference, paperId, onClose }: Props) {
       <NoteThread
         reference={reference}
         notes={notes}
-        add={counted(addNote, () => track("note_saved", { paper_id: paperId, kind: "new" }))}
+        add={counted(addNote, () => {
+          track("note_saved", { paper_id: paperId, kind: "new" });
+          void earnToolMark("note");
+        })}
         change={counted(changeNote, () => track("note_saved", { paper_id: paperId, kind: "change" }))}
         remove={counted(deleteNote, () => track("note_deleted", { paper_id: paperId }))}
         last={IN_SHEET}

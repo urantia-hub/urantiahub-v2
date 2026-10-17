@@ -1,0 +1,419 @@
+/* The marks of the streak (mock streaks-and-marks.html, screens 3 to 5). The gold (#c9a24a and its
+   gradient) and the deep blue (#24245e) belong to the marks only. */
+.marks-card {
+  margin-bottom: 22px;
+  padding: 16px 18px 18px;
+}
+.marks-side {
+  display: none;
+}
+@media (min-width: 900px) {
+  .marks-stack {
+    display: none;
+  }
+  .marks-side {
+    display: block;
+    margin-top: 30px;
+  }
+}
+.marks-tier-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 18px 0 10px;
+}
+.marks-tier-head b {
+  font: 600 15px/1.2 var(--font-text);
+}
+.marks-tier-head small {
+  color: var(--muted);
+  font: 400 12.5px/1.2 var(--font-ui);
+}
+.marks-tier-head span {
+  margin-left: auto;
+  color: var(--ref);
+  font: 500 12px/1.2 var(--font-ui);
+}
+.marks-tier ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.marks-tier.tier-1 ul {
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+}
+.marks-tier.tier-2 ul {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+.marks-tier.tier-3 ul {
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+}
+.marks-tier.tier-4 ul {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+.marks-tier li {
+  padding: 10px 4px 9px;
+  border-radius: 12px;
+  text-align: center;
+}
+.marks-tier li svg {
+  display: block;
+  margin: 0 auto 6px;
+  overflow: visible;
+}
+.marks-tier.tier-1 li svg {
+  width: 34px;
+}
+.marks-tier.tier-2 li svg {
+  width: 44px;
+}
+.marks-tier.tier-3 li svg {
+  width: 54px;
+}
+.marks-tier.tier-4 li svg {
+  width: 76px;
+}
+.marks-tier li b {
+  display: block;
+  font: 500 12px/1.25 var(--font-ui);
+}
+.marks-tier li small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font: 400 11px/1.3 var(--font-ui);
+}
+/* A mark not earned yet keeps its tier color at 40 percent. */
+.marks-tier li:not([data-earned]) svg {
+  opacity: 0.4;
+}
+.marks-tier li:not([data-earned]) b {
+  color: var(--muted);
+}
+.marks-tier.tier-3 li {
+  background: linear-gradient(180deg, #d9b66a14, transparent);
+}
+.marks-tier.tier-4 li {
+  padding: 16px 6px;
+  border: 1px solid #d9b66a55;
+  background: radial-gradient(ellipse at 50% 30%, #d9b66a2e, transparent 70%);
+}
+.marks-tier.tier-4 li b {
+  font: 600 15px/1.25 var(--font-text);
+}
+.mark-text {
+  font-family: var(--font-text);
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+/* The moment of a new mark. */
+.mark-moment {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+.moment-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: #00000055;
+  animation: moment-fade 0.3s both;
+}
+.moment-sheet,
+.moment-full {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  text-align: center;
+}
+.moment-sheet {
+  inset: auto 0 0 0;
+  height: 78%;
+  border-radius: 20px 20px 0 0;
+  background: var(--bg);
+  box-shadow: 0 -10px 40px var(--shade);
+  color: var(--ink);
+  animation: moment-sheet 0.35s ease-out both;
+}
+.moment-1 .moment-sheet {
+  height: 48%;
+}
+@media (min-width: 768px) {
+  .moment-sheet {
+    left: 50%;
+    width: 440px;
+    margin-left: -220px;
+  }
+}
+.moment-full {
+  inset: 0;
+  animation: moment-fade 0.5s both;
+}
+.moment-3 .moment-full {
+  background: #16130e;
+  color: #f3ead2;
+}
+.moment-4 .moment-full {
+  background: radial-gradient(ellipse at 50% 35%, #2e2e7a, #0d0d2b 70%);
+  color: #f6ecc9;
+}
+.moment-mark {
+  position: relative;
+  z-index: 1;
+  width: 80px;
+}
+.moment-3 .moment-mark {
+  width: 104px;
+}
+.moment-4 .moment-mark {
+  width: 128px;
+}
+.moment-mark svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.moment-words {
+  position: relative;
+  z-index: 1;
+}
+.moment-words h2 {
+  margin: 16px 0 4px;
+  font: 600 22px/1.2 var(--font-text);
+}
+.moment-words p {
+  margin: 0 0 14px;
+  opacity: 0.8;
+}
+.moment-words .moment-kicker {
+  margin: 12px 0 0;
+  color: #d4a843;
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 1;
+}
+.moment-button {
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 600 14px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.moment-button.gold {
+  background: linear-gradient(135deg, #f3dc8f, #c9a24a);
+  color: #26221c;
+}
+/* The fill rises inside the shape; the edge draws; the star turns in. */
+.mark-moment .mark-fill {
+  transform: translateY(100%);
+  transform-box: fill-box;
+}
+.moment-1 .mark-fill {
+  animation: moment-pour 0.6s 0.45s ease-out forwards;
+}
+.moment-2 .mark-fill {
+  animation: moment-pour 0.9s 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.moment-3 .mark-fill {
+  animation: moment-pour 1s 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.moment-4 .mark-fill {
+  animation: moment-pour 1.3s 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.moment-2 .moment-mark {
+  animation: moment-drop 0.55s 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.moment-3 .moment-mark {
+  animation: moment-drop 0.7s 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.moment-4 .moment-mark {
+  animation: moment-fade 0.6s 0.3s both;
+}
+.mark-moment .mark-edge {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.moment-1 .mark-edge,
+.moment-2 .mark-edge {
+  stroke-dashoffset: 0;
+}
+.moment-3 .mark-edge {
+  animation: moment-draw 1s 0.5s ease-in-out forwards;
+}
+.moment-4 .mark-edge {
+  animation: moment-draw 1.2s 1.2s ease-in-out forwards;
+}
+.moment-4 .mark-star {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: moment-star 0.9s 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.moment-words {
+  animation: moment-rise 0.4s 1s both;
+}
+.moment-2 .moment-words {
+  animation: moment-rise 0.5s 1.5s both;
+}
+.moment-3 .moment-words {
+  animation: moment-rise 0.6s 2.4s both;
+}
+.moment-4 .moment-words {
+  animation: moment-rise 0.8s 3.8s both;
+}
+.moment-glow {
+  position: absolute;
+  top: 12%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #d4a84355, transparent 65%);
+  animation: moment-glow 3s 1.4s ease-out both;
+}
+/* The band of light starts and ends off the screen (Kelson). */
+.moment-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  width: 60%;
+  background: linear-gradient(105deg, transparent 0, #fff6 50%, transparent 100%);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  transform: translateX(-110%);
+}
+.moment-3 .moment-shine {
+  animation: moment-sweep 0.9s 1.9s ease-in-out forwards;
+}
+.moment-4 .moment-shine {
+  animation: moment-sweep 1.1s 3.3s ease-in-out forwards;
+}
+.moment-piece {
+  position: absolute;
+  width: 8px;
+  height: 11px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.moment-piece.burst {
+  top: 34%;
+  left: 50%;
+  animation: moment-burst 1.1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+.moment-piece.fall {
+  top: 0;
+  animation: moment-fall var(--d) linear forwards;
+}
+.moment-4 .moment-piece {
+  width: 5px;
+  height: 7px;
+}
+/* Less motion: the end state of each moment, with no movement. */
+.mark-moment.still *,
+.mark-moment.still {
+  animation: none !important;
+}
+.mark-moment.still .mark-fill {
+  transform: none;
+}
+.mark-moment.still .mark-edge {
+  stroke-dashoffset: 0;
+}
+.mark-moment.still .moment-shine,
+.mark-moment.still .moment-piece {
+  display: none;
+}
+@keyframes moment-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes moment-sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes moment-pour {
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes moment-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.6);
+  }
+}
+@keyframes moment-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes moment-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes moment-star {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-90deg);
+  }
+}
+@keyframes moment-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+@keyframes moment-sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}
+@keyframes moment-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--x)), var(--y)) rotate(var(--r));
+  }
+}
+@keyframes moment-fall {
+  0% {
+    opacity: 0;
+    transform: translate(0, -40px) rotate(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--w), 110vh) rotate(var(--r));
+  }
+}

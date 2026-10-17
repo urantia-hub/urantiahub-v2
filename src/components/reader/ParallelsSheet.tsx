@@ -9,6 +9,7 @@ import { Score } from "@/components/parallels/Score";
 import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 import type { Parallel, ParallelsAnswer } from "@/server/parallels";
+import { earnToolMark } from "@/streak/client";
 
 // `onGo` tells the controls of the paper that a passage of this paper opens: a link to the same page
 // with another "#" sends no event that they hear.
@@ -55,6 +56,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
       .then((answer) => {
         if (!current) return;
         setState({ for: reference, status: "ready", answer });
+        void earnToolMark("parallels");
         track("parallels_opened", { paper_id: paperId, outside: range(answer.outside.length), papers: range(answer.papers.length), nearby: range(answer.nearby?.length ?? 0) });
       })
       .catch(() => {

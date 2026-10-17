@@ -12,6 +12,7 @@ export type AnalyticsEvents = {
   // `place`: from "Continue listening at", the place where the voice stopped on an earlier visit.
   audio_started: { paper_id: string; from: "bar" | "paragraph" | "place" | "streak" };
   streak_asked: { answer: "yes" | "no"; goal: 1 | 2 | 3 };
+  mark_earned: { id: string; tier: 1 | 2 | 3 | 4 };
   // `one_file`: the voice played the one file of the paper, not a file for each paragraph.
   audio_finished_paper: { paper_id: string; speed: number; one_file: boolean };
   audio_failed: { paper_id: string };

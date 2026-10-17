@@ -56,6 +56,13 @@ test.describe("the streak", () => {
     await expect(question).toBeHidden();
     await expect.poll(async () => (await reader.seen()).sectionDays).toEqual([expect.objectContaining({ paperId: "1", sectionId: "0", how: "read" })]);
     expect((await reader.seen()).streak).toMatchObject({ on: true, asked: true, goal: 2, zone: "UTC" });
+    // The first section earns the first mark, and its moment plays.
+    await page.clock.fastForward(2000);
+    const moment = page.getByRole("dialog", { name: "A new mark: First section" });
+    await expect(moment).toBeVisible();
+    await moment.getByRole("button", { name: "Continue" }).click();
+    await expect(moment).toBeHidden();
+    expect(Object.keys((await reader.seen()).streak.marks)).toEqual(["first-section"]);
   });
 
   test("a no is kept, and nothing goes to the account", async ({ page, context }) => {

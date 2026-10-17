@@ -4,7 +4,7 @@ const world = vi.hoisted(() => ({ key: "r1" as string | null, card: { on: false,
 vi.mock("@/account/client", () => ({ accountKey: () => world.key, markSignedOut: vi.fn() }));
 vi.mock("@/analytics", () => ({ track: vi.fn() }));
 
-const onCard = { on: true, state: { current: 1 }, goal: 1, hour: 21, zone: Intl.DateTimeFormat().resolvedOptions().timeZone, book: { done: 1, total: 1626 }, next: {} };
+const onCard = { on: true, state: { current: 1 }, goal: 1, hour: 21, zone: Intl.DateTimeFormat().resolvedOptions().timeZone, book: { done: 1, total: 1626 }, next: {}, marks: {}, fresh: [] };
 
 function paper(refs: string[]) {
   document.body.innerHTML = `<article class="paper">${refs.map((ref) => `<p class="para" id="${ref}">x</p>`).join("")}</article>`;
@@ -32,6 +32,7 @@ beforeEach(() => {
         else if (body.asked) world.card = { on: false, asked: true };
         return Response.json({ saved: true });
       }
+      if (path === "/api/me/marks") return Response.json({ saved: true, fresh: [body.id] });
       return Response.json({ added: body.rows.length, card: world.card });
     }),
   );
@@ -114,5 +115,34 @@ describe("the streak in the browser", () => {
     client.noteParagraphs("read", ["3:4.2"]);
     await settle();
     expect(posts()).toEqual([]);
+  });
+});
+
+describe("the marks in the browser", () => {
+  it("queues the new marks of an answer, the lower tier first", async () => {
+    world.card = { ...onCard, fresh: ["papers-1", "first-section"] };
+    const client = await load();
+    await client.loadStreak();
+    client.noteParagraphs("read", ["3:4.1", "3:4.2"]);
+    await settle();
+    await settle();
+    expect(client.streakView().moments).toEqual(["first-section", "papers-1"]);
+    client.momentPlayed("first-section");
+    expect(client.streakView().moments).toEqual(["papers-1"]);
+  });
+
+  it("earns a tool mark one time, only while the streak is on", async () => {
+    const client = await load();
+    await client.loadStreak();
+    await client.earnToolMark("search");
+    expect(posts()).toEqual([]);
+    world.card = { ...onCard };
+    const again = await load();
+    await again.loadStreak();
+    await again.earnToolMark("search");
+    await again.earnToolMark("search");
+    expect(posts().map((call) => call.body)).toEqual([{ id: "search" }]);
+    expect(again.streakView().moments).toEqual(["search"]);
+    expect(Object.keys((again.streakView().card as { marks: object }).marks)).toEqual(["search"]);
   });
 });
