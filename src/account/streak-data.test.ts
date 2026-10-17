@@ -1,0 +1,130 @@
+// @vitest-environment node
+import { describe, expect, it, vi } from "vitest";
+import { changeStreak, parseStreak, readStreak, saveSections, type StreakGateway } from "./streak-data";
+
+// 10 AM in Chicago: the reading day is 2026-10-17.
+const NOW = new Date("2026-10-17T15:00:00Z");
+const ZONE = "America/Chicago";
+type Row = { day: string; paperId: string; sectionId: string; how: "read" | "heard" };
+
+function gateway(stored: Record<string, unknown> = {}, rows: Row[] = []): StreakGateway & { saved: Record<string, unknown>[]; added: Row[][] } {
+  const saved: Record<string, unknown>[] = [];
+  const added: Row[][] = [];
+  const prefs = { ...stored };
+  return {
+    saved,
+    added,
+    preferences: vi.fn(async () => prefs),
+    savePreferences: vi.fn(async (_token, patch) => {
+      saved.push(patch);
+      Object.assign(prefs, patch);
+    }),
+    sectionDays: vi.fn(async () => rows),
+    addSectionDays: vi.fn(async (_token, given: Row[]) => {
+      added.push(given);
+      rows.push(...given);
+    }),
+  };
+}
+
+const on = (over: object = {}) => ({
+  "hub.streak": { on: true, asked: true, goal: 1, goals: [{ from: "2026-10-01", goal: 1 }], hour: 23, zone: ZONE, since: "2026-10-01", longest: 0, marks: {}, at: 1, ...over },
+});
+
+describe("parseStreak", () => {
+  it("keeps the known fields and refuses a broken value", () => {
+    expect(parseStreak(on()["hub.streak"])).toMatchObject({ on: true, goal: 1, hour: 23, zone: ZONE });
+    expect(parseStreak("x")).toBeNull();
+    expect(parseStreak({ on: true, goal: 7 })).toMatchObject({ goal: 1, hour: 21, zone: "UTC", goals: [] });
+  });
+});
+
+describe("a change of the streak settings", () => {
+  it("turns it on with the day of the yes, and keeps that day", async () => {
+    const g = gateway();
+    expect(await changeStreak(g, "t", { on: true, asked: true, goal: 2, zone: ZONE, hour: 21 }, NOW)).toEqual({ saved: true });
+    expect(g.saved[0]["hub.streak"]).toMatchObject({ on: true, asked: true, goal: 2, goals: [{ from: "2026-10-17", goal: 2 }], since: "2026-10-17", hour: 21, zone: ZONE });
+    await changeStreak(g, "t", { on: false }, new Date("2026-10-20T15:00:00Z"));
+    await changeStreak(g, "t", { on: true }, new Date("2026-10-21T15:00:00Z"));
+    expect(g.saved.at(-1)?.["hub.streak"]).toMatchObject({ on: true, since: "2026-10-17" });
+  });
+
+  it("applies a new goal from the next reading day", async () => {
+    const g = gateway(on());
+    await changeStreak(g, "t", { goal: 3 }, NOW);
+    expect(g.saved[0]["hub.streak"]).toMatchObject({ goal: 3, goals: [{ from: "2026-10-01", goal: 1 }, { from: "2026-10-18", goal: 3 }] });
+  });
+
+  it("writes nothing for a value that is not valid", async () => {
+    const g = gateway(on());
+    expect(await changeStreak(g, "t", { goal: 4 }, NOW)).toEqual({ saved: false });
+    expect(await changeStreak(g, "t", { zone: "Mars/Base" }, NOW)).toEqual({ saved: false });
+    expect(await changeStreak(g, "t", { hour: 24 }, NOW)).toEqual({ saved: false });
+    expect(await changeStreak(g, "t", "x", NOW)).toEqual({ saved: false });
+    expect(g.saved).toEqual([]);
+  });
+});
+
+describe("a save of finished sections", () => {
+  it("adds the rows of today and yesterday for a section that exists", async () => {
+    const g = gateway(on());
+    const rows = [
+      { day: "2026-10-17", paperId: "3", sectionId: "4", how: "read" },
+      { day: "2026-10-16", paperId: "3", sectionId: "3", how: "heard" },
+      { day: "2026-10-14", paperId: "3", sectionId: "2", how: "read" },
+      { day: "2026-10-17", paperId: "3", sectionId: "99", how: "read" },
+      { day: "2026-10-17", paperId: "3", sectionId: "5", how: "skimmed" },
+    ];
+    const answer = await saveSections(g, "t", { rows }, NOW);
+    expect(g.added).toEqual([[rows[0], rows[1]]]);
+    expect(answer).toMatchObject({ added: 2, card: { on: true, state: { current: 2, todayMet: true } } });
+  });
+
+  it("adds nothing while the streak is off", async () => {
+    const g = gateway(on({ on: false }));
+    expect(await saveSections(g, "t", { rows: [{ day: "2026-10-17", paperId: "3", sectionId: "4", how: "read" }] }, NOW)).toMatchObject({ added: 0 });
+    expect(g.added).toEqual([]);
+  });
+});
+
+describe("the streak card", () => {
+  it("is off, with the question state, for a reader who did not say yes", async () => {
+    expect(await readStreak(gateway(), "t", NOW)).toEqual({ on: false, asked: false });
+    expect(await readStreak(gateway(on({ on: false })), "t", NOW)).toEqual({ on: false, asked: true });
+  });
+
+  it("names the next section by its title, and counts the book", async () => {
+    const rows: Row[] = [
+      { day: "2026-10-15", paperId: "3", sectionId: "3", how: "read" },
+      { day: "2026-10-16", paperId: "3", sectionId: "4", how: "read" },
+      { day: "2026-10-16", paperId: "3", sectionId: "3", how: "read" },
+    ];
+    const card = await readStreak(gateway(on(), rows), "t", NOW);
+    expect(card).toMatchObject({
+      on: true,
+      goal: 1,
+      hour: 23,
+      book: { done: 2, total: 1626 },
+      next: { paperId: "3", sectionId: "5", title: "The Father’s Supreme Rule", paper: "The Attributes of God", href: "/papers/paper-3-the-attributes-of-god#3:5" },
+      state: { current: 2, todayMet: false },
+    });
+    expect(card.on && card.next.minutes).toBeGreaterThan(0);
+  });
+
+  it("starts at the reader's place, else at the Foreword", async () => {
+    const atPlace = await readStreak(gateway({ ...on(), "hub.place": { paperId: "5", sectionId: "2", at: 1 } }), "t", NOW);
+    expect(atPlace.on && atPlace.next).toMatchObject({ paperId: "5", sectionId: "2" });
+    const fresh = await readStreak(gateway(on()), "t", NOW);
+    expect(fresh.on && fresh.next).toMatchObject({ paperId: "0", sectionId: "0", href: "/papers/foreword#paper-top" });
+  });
+
+  it("writes back a longest streak that grew, and never lowers it", async () => {
+    const rows: Row[] = ["2026-10-14", "2026-10-15", "2026-10-16"].map((day) => ({ day, paperId: "1", sectionId: "1", how: "read" }));
+    const g = gateway(on({ longest: 2 }), rows);
+    expect(await readStreak(g, "t", NOW)).toMatchObject({ state: { longest: 3 } });
+    expect(g.saved.at(-1)?.["hub.streak"]).toMatchObject({ longest: 3 });
+    const h = gateway(on({ longest: 31 }), rows);
+    expect(await readStreak(h, "t", NOW)).toMatchObject({ state: { longest: 31 } });
+    expect(h.saved).toEqual([]);
+  });
+});

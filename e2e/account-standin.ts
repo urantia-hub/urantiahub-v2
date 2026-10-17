@@ -25,6 +25,10 @@ type Reader = {
   // The paragraphs that the reader saved, and the reader's notes.
   saved: { ref: string; createdAt: string }[];
   notes: { id: string; ref: string; text: string; createdAt: string }[];
+  // The streak settings (`hub.streak`), apart from the other preferences: by default the reader was
+  // asked and said no, so no other test meets the question. A streak test sets it.
+  streak: unknown;
+  sectionDays: { day: string; paperId: string; sectionId: string; how: string }[];
 };
 
 // What the API answers for a paragraph. The text is made up: the tests of the Papers use the fixtures.
@@ -40,7 +44,7 @@ function listed<T extends { ref: string }>(all: T[], url: URL, shape: (item: T) 
 const readers = new Map<string, Reader>();
 const reader = (id: string): Reader => {
   let found = readers.get(id);
-  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], notices: { email: {}, hour: 7, zone: "UTC", asked: true }, devices: [], batches: [], progress: [], saved: [], notes: [] }));
+  if (!found) readers.set(id, (found = { mode: "ok", name: "Ana Reader", preferences: {}, prompts: [], revoked: 0, writes: 0, tokens: 0, read: [], notices: { email: {}, hour: 7, zone: "UTC", asked: true }, devices: [], batches: [], progress: [], saved: [], notes: [], streak: { on: false, asked: true }, sectionDays: [] }));
   return found;
 };
 
@@ -171,9 +175,20 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
     if (path === "/me/preferences") {
       if (request.method === "PUT") {
         r.writes += 1;
-        r.preferences = { ...r.preferences, ...body };
+        const { "hub.streak": streak, ...rest } = body;
+        if (streak !== undefined) r.streak = streak;
+        r.preferences = { ...r.preferences, ...rest };
       }
-      return json(200, { data: r.preferences });
+      return json(200, { data: r.streak == null ? r.preferences : { ...r.preferences, "hub.streak": r.streak } });
+    }
+    if (path === "/me/section-days") {
+      if (request.method === "POST") {
+        const rows = Array.isArray(body.rows) ? (body.rows as Reader["sectionDays"]) : [];
+        const fresh = rows.filter((row) => !r.sectionDays.some((had) => had.day === row.day && had.paperId === row.paperId && had.sectionId === row.sectionId));
+        r.sectionDays.push(...fresh);
+        return json(200, { data: { added: fresh.length } });
+      }
+      return json(200, { data: r.sectionDays });
     }
   }
   return null;

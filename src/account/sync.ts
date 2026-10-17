@@ -3,6 +3,7 @@
 // change, and the newer one wins. The theme and the text size belong to the device: they never go to
 // the account, because a phone and a computer need different ones.
 
+import { forgetStreak } from "@/streak/client";
 import { clearLastRead, readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
 import { accountKey, markSignedOut, refreshAccount } from "./client";
 import { clearProgress } from "./progress";
@@ -153,6 +154,7 @@ export function markAccountData(key: string): void {
 // The theme and the text size stay: they are not personal, and the page must not flash.
 export function forgetAccountData(): void {
   dropCollected();
+  forgetStreak();
   try {
     if (window.localStorage.getItem(ACCOUNT_DATA_KEY) === null) return;
     window.localStorage.removeItem(ACCOUNT_DATA_KEY);

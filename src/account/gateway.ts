@@ -4,6 +4,7 @@ import { Refused } from "./call";
 import type { Gateway } from "./data";
 import type { NoticesGateway } from "./notices";
 import type { SavedGateway } from "./saved-data";
+import type { SectionRow, StreakGateway } from "./streak-data";
 
 // The only place that asks api.urantia.dev for a reader's own data. `src/content` asks for the Papers.
 const api = (token: string) => new UrantiaAPI({ baseUrl: process.env.URANTIA_API_BASE_URL || undefined, token });
@@ -44,7 +45,7 @@ const total = (answer: unknown, fallback: number): number => {
 };
 const PAGE = 100;
 
-export const gateway: Gateway & SavedGateway & NoticesGateway & { profileName(accessToken: string): Promise<string | null> } = {
+export const gateway: Gateway & SavedGateway & NoticesGateway & StreakGateway & { profileName(accessToken: string): Promise<string | null> } = {
   bookmarks: async (token, { paperId, page }) => {
     const answer = await asked(api(token).me.bookmarks.list({ paperId, page, limit: PAGE }));
     return { items: answer.data.map(mark), total: total(answer, answer.data.length) };
@@ -84,6 +85,10 @@ export const gateway: Gateway & SavedGateway & NoticesGateway & { profileName(ac
   },
   removeDevice: async (token, which) => {
     await direct(token, "DELETE", "/me/push-subscriptions", which);
+  },
+  sectionDays: async (token) => ((await direct(token, "GET", "/me/section-days")) as SectionRow[] | null) ?? [],
+  addSectionDays: async (token, rows) => {
+    await direct(token, "POST", "/me/section-days", { rows });
   },
   profileName: async (token) => {
     const name = (await asked(api(token).me.get())).data?.name;
