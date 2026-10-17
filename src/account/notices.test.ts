@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { changeDevice, changeNotices, type NoticesGateway, parseNotices, readNotices, removeDevice } from "./notices";
 
-const OFF = { daily: false, reminder: false, releases: false };
+const OFF = { daily: false, reminder: false, releases: false, streak: false };
 const device = { endpoint: "https://fcm.googleapis.com/fcm/send/abc", p256dh: "BKey_0123456789", auth: "auth_0123456789", kinds: ["daily"], label: "Chrome on Android" };
 function gateway(answer: unknown = { settings: null, devices: [] }): NoticesGateway & { calls: unknown[][] } {
   const calls: unknown[][] = [];

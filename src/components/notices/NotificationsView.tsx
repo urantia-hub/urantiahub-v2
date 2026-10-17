@@ -9,13 +9,18 @@ import { Icon } from "@/components/icons";
 import { SignInLink } from "@/components/SignInLink";
 import { DEVICE_EVENT, registerDevice } from "@/notices/device-end";
 import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps } from "@/notices/push";
+import { changeStreakSettings, loadStreak, serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
 
 
 const NOTICES: Record<NoticeKind, { title: string; about: string }> = {
   daily: { title: "A passage each day", about: "One short passage of the Papers, with a link to its paper." },
   reminder: { title: "A reminder of your place", about: "One message when you did not read for a week, with a link to where you stopped. Never more than one for each pause." },
   releases: { title: "New releases", about: "A short note when UrantiaHub gets something new. A few times in a year." },
+  streak: { title: "Streak reminder", about: "One push at night on a day with no section yet, with the next section. Never by email." },
 };
+const STREAKS_ON = process.env.NEXT_PUBLIC_STREAKS === "on";
+// The streak row shows while the streak is a feature of the site. It is a push only.
+const KINDS = NOTICE_KINDS.filter((kind) => kind !== "streak" || STREAKS_ON);
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
 export const hourLabel = (hour: number) => `${hour % 12 || 12}:00 ${hour < 12 ? "AM" : "PM"}`;
 const zoneLabel = (zone: string) => zone.replace(/_/g, " ");
@@ -128,7 +133,7 @@ export function NotificationsView() {
 
   async function allOff() {
     if (!notices) return;
-    const none = { daily: false, reminder: false, releases: false };
+    const none = { daily: false, reminder: false, releases: false, streak: false };
     const off = await save("/api/me/notices", "PUT", { zone, email: none, push: none }, (was) => ({ ...was, settings: { ...was.settings, email: none, push: none } }), "The notices are still on. Try again.");
     if (!off) return;
     const gone = await save("/api/me/notices/device", "DELETE", { all: true }, (was) => ({ ...was, devices: [] }), "The devices are still on. Try again.");
@@ -171,17 +176,19 @@ export function NotificationsView() {
             {line?.text}
           </p>
 
-          {NOTICE_KINDS.map((kind) => (
+          {KINDS.map((kind) => (
             <div className="notice-row" key={kind} role="group" aria-label={NOTICES[kind].title}>
               <span>
                 <b>{NOTICES[kind].title}</b>
                 <small>{NOTICES[kind].about}</small>
               </span>
               <div className="notice-chips">
-                <button type="button" className="notice-chip" aria-pressed={notices.settings.email[kind]} onClick={() => void choose("email", kind, !notices.settings.email[kind])}>
-                  <Icon name="check" />
-                  Email
-                </button>
+                {kind !== "streak" && (
+                  <button type="button" className="notice-chip" aria-pressed={notices.settings.email[kind]} onClick={() => void choose("email", kind, !notices.settings.email[kind])}>
+                    <Icon name="check" />
+                    Email
+                  </button>
+                )}
                 <button type="button" className="notice-chip" aria-pressed={notices.settings.push[kind]} aria-busy={busy || undefined} disabled={busy || (!canPush && !notices.settings.push[kind])} onClick={() => void push(kind)}>
                   <Icon name="check" />
                   Push
@@ -201,6 +208,7 @@ export function NotificationsView() {
               ))}
             </select>
           </label>
+          {STREAKS_ON && <StreakHour />}
           <label className="notice-set">
             <span>
               Your time zone
@@ -258,4 +266,23 @@ function DeviceLine({ state, here, others }: { state: DeviceState; here: boolean
       </div>
     );
   return <p className="notice-device">This browser cannot show a push of UrantiaHub. You can choose Email.{elsewhere}</p>;
+}
+
+// The hour of the streak reminder, while the reader keeps a streak. It is a setting of the streak.
+function StreakHour() {
+  const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
+  useEffect(() => void loadStreak(), []);
+  if (!view.card?.on) return null;
+  return (
+    <label className="notice-set">
+      <span>The streak reminder comes at</span>
+      <select value={view.card.hour} onChange={(event) => void changeStreakSettings({ hour: Number(event.target.value) })}>
+        {HOURS.map((hour) => (
+          <option key={hour} value={hour}>
+            {hourLabel(hour)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 }

@@ -44,7 +44,7 @@ vi.mock("@/notices/push", () => ({
 
 import { hourLabel, NotificationsView } from "./NotificationsView";
 
-const OFF = { daily: false, reminder: false, releases: false };
+const OFF = { daily: false, reminder: false, releases: false, streak: false };
 const ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const other = { id: "o", label: "Safari on Mac", kinds: [], endpointHash: "hash-of-another" };
 const mine = { id: "a", label: "Chrome on Android", kinds: [], endpointHash: "hash-of-e" };

@@ -62,7 +62,7 @@ describe("computeStreak", () => {
 
   it("ends the streak on a second missed day in a row", () => {
     const state = computeStreak(counts("xxxxx.."), ONE, TODAY, 0);
-    expect(state).toMatchObject({ current: 0, longest: 5, endedOn: addDays(TODAY, -1), graceReady: true });
+    expect(state).toMatchObject({ current: 0, longest: 5, endedOn: addDays(TODAY, -1), endedLength: 5, graceReady: true });
   });
 
   it("ends the streak on a missed day when the grace day is spent", () => {

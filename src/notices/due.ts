@@ -3,8 +3,9 @@
 
 import passages from "@/content/daily-passages.json";
 import { paperById } from "@/content/paper-index";
+import { streakNotice, type StreakPush } from "./streak-text";
 
-export type Kind = "daily" | "reminder" | "releases";
+export type Kind = "daily" | "reminder" | "releases" | "streak";
 export type Channel = "email" | "push";
 export type Device = { endpoint: string; p256dh: string; auth: string; kinds: string[] };
 // A reader as the API lists it for the job.
@@ -12,8 +13,12 @@ export type Reader = {
   userId: string;
   email: string | null;
   // `push` is absent in a record from before push was a setting of the account.
-  settings: { email: Record<Kind, boolean>; push?: Record<Kind, boolean>; hour: number; zone: string } | null;
+  settings: { email: Partial<Record<Kind, boolean>>; push?: Partial<Record<Kind, boolean>>; hour: number; zone: string } | null;
   place: unknown;
+  // The streak (`hub.streak`), the count of finished sections of each recent day, and the last one.
+  streak?: unknown;
+  sectionDays?: { day: string; count: number }[];
+  lastSection?: { paperId: string; sectionId: string } | null;
   devices: Device[];
 };
 export type Due = {
@@ -26,6 +31,8 @@ export type Due = {
   email: string | null;
   devices: Device[];
   place: { paperId: string; sectionId: string } | null;
+  // The text of a streak push, made with the rules of the streak.
+  streak?: StreakPush;
 };
 
 const DEFAULT_HOUR = 7;
@@ -78,6 +85,11 @@ export function dueNotices(reader: Reader, now: Date, news: { date: string } | n
   if (place && day) {
     const days = (now.getTime() - place.at) / DAY_MS;
     if (days >= REMINDER_AFTER_DAYS && days <= REMINDER_UNTIL_DAYS) add("reminder", String(place.at), { paperId: place.paperId, sectionId: place.sectionId });
+  }
+  // The streak goes as a push only, at its own hour, outside the window of the day.
+  if (reader.settings?.push?.streak && reader.devices.length > 0) {
+    const streak = streakNotice({ streak: reader.streak, sectionDays: reader.sectionDays ?? [], lastSection: reader.lastSection ?? null }, now);
+    if (streak) due.push({ userId: reader.userId, kind: "streak", channel: "push", key: streak.key, email: null, devices: reader.devices, place: null, streak });
   }
   return due;
 }
