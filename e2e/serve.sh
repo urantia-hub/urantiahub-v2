@@ -22,6 +22,8 @@ export NEXT_PUBLIC_SIGN_IN=on
 # The notices pages are on for the tests. No push key: a test browser has no push service.
 export NEXT_PUBLIC_NOTICES=on
 export NEXT_PUBLIC_VAPID_KEY=
+# The streak is on for the tests. The stand-in says each reader was asked, unless a test sets it.
+export NEXT_PUBLIC_STREAKS=on
 # No analytics from a test run.
 export NEXT_PUBLIC_POSTHOG_KEY=
 

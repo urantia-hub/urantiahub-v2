@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import type { StreakCard } from "@/account/streak-data";
 import { changeStreakSettings, loadStreak, openStreakQuestion, serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 import { GRACE_RETURNS_AFTER } from "@/streak/rules";
@@ -17,7 +18,10 @@ type On = Extract<StreakCard, { on: true }>;
 // row that opens the question.
 export function StreakCards() {
   const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
-  useEffect(() => void loadStreak(), []);
+  const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
+  const key = account.status === "in" ? (account.user?.key ?? null) : null;
+  // The card loads when the page knows the reader.
+  useEffect(() => void loadStreak(), [key]);
   if (!streaksOn() || !view.card) return null;
   if (!view.card.on)
     return (
@@ -29,10 +33,10 @@ export function StreakCards() {
       </button>
     );
   return (
-    <>
+    <div className="streak-cards">
       <StreakCardView card={view.card} />
       <BookCardView book={view.card.book} />
-    </>
+    </div>
   );
 }
 
