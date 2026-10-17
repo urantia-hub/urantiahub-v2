@@ -11,6 +11,7 @@ export const RELEASES: Release[] = [
   {
     date: "2026-10-17",
     title: "A streak, an assistant, and more",
+    notify: true,
     changes: [
       "A streak: one section a day, about five minutes, with marks for papers, parts, and the tools of the Hub. It is off until you turn it on from your page.",
       "Ask an assistant: press a paragraph, then More, and your question opens in Claude, ChatGPT, Gemini, or Grok.",
