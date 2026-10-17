@@ -4,6 +4,8 @@
 import { paperPath } from "@/content/paper-index";
 import { BOOK, minutesOf, nextAfter, orderOf, sectionAt, type SectionEntry, sectionLabel, TOTAL_SECTIONS } from "@/content/section-index";
 import { anchorFor } from "@/lib/paper-url";
+import { earnedMarks, mergeMarks } from "@/marks/earn";
+import { TOOL_MARKS } from "@/marks/list";
 import { addDays, computeStreak, type Goal, type Goals, readingDay, type StreakState } from "@/streak/rules";
 import { parsePlace, PLACE_KEY } from "./reader-data";
 
@@ -27,7 +29,18 @@ export type SectionRow = { day: string; paperId: string; sectionId: string; how:
 export type NextSection = { paperId: string; sectionId: string; title: string; paper: string; minutes: number; href: string };
 export type StreakCard =
   | { on: false; asked: boolean }
-  | { on: true; state: StreakState; goal: Goal; hour: number; zone: string; book: { done: number; total: number }; next: NextSection };
+  | {
+      on: true;
+      state: StreakState;
+      goal: Goal;
+      hour: number;
+      zone: string;
+      book: { done: number; total: number };
+      next: NextSection;
+      // Each earned mark and its time, and the ids that this answer earned, for the moment.
+      marks: Record<string, string>;
+      fresh: string[];
+    };
 
 export type StreakGateway = {
   preferences(accessToken: string): Promise<Record<string, unknown>>;
@@ -145,7 +158,19 @@ async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<
   const counts: Record<string, number> = {};
   for (const row of rows) counts[row.day] = (counts[row.day] ?? 0) + 1;
   const state = computeStreak(counts, settings.goals, readingDay(now, settings.zone), settings.longest);
-  if (state.longest > settings.longest) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, longest: state.longest } });
+  const { marks, fresh } = mergeMarks(settings.marks, earnedMarks(rows, state.longest), now.toISOString());
+  if (state.longest > settings.longest || fresh.length > 0) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, longest: state.longest, marks } });
   const done = new Set(rows.map((row) => `${row.paperId}:${row.sectionId}`)).size;
-  return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next: nextSection(rows, all[PLACE_KEY]) };
+  return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next: nextSection(rows, all[PLACE_KEY]), marks, fresh };
+}
+
+// The first use of a tool of the Hub. Only while the streak is on: the marks belong to it.
+export async function earnTool(gateway: StreakGateway, accessToken: string, value: unknown, now: Date = new Date()): Promise<{ saved: boolean; fresh: string[] }> {
+  const id = isRecord(value) ? value.id : null;
+  if (typeof id !== "string" || !TOOL_MARKS.includes(id)) return { saved: false, fresh: [] };
+  const settings = parseStreak((await gateway.preferences(accessToken))[STREAK_KEY]);
+  if (!settings?.on) return { saved: false, fresh: [] };
+  const { marks, fresh } = mergeMarks(settings.marks, [id], now.toISOString());
+  if (fresh.length > 0) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, marks } });
+  return { saved: true, fresh };
 }

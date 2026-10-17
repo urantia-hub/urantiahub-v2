@@ -10,6 +10,7 @@ import { ACCOUNT_PAGE, AccountRows } from "@/components/AccountRows";
 import { Icon } from "@/components/icons";
 import { ProgressView } from "@/components/progress/ProgressView";
 import { SignInLink } from "@/components/SignInLink";
+import { MarksCard } from "@/components/marks/MarksCard";
 import { StreakCards } from "@/components/streak/StreakCards";
 import { sortEntries } from "@/saved/list";
 
@@ -96,6 +97,7 @@ export function YouView() {
         </section>
 
         <div>
+          <MarksCard place="side" />
           <section aria-labelledby="you-saved">
             <h2 id="you-saved">
               Saved

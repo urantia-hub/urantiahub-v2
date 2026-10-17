@@ -5,6 +5,7 @@ import { track } from "@/analytics";
 import { chosenText, sentences } from "@/image/compose";
 import { draw, type Fonts, fitsWell, LOOKS, measureWith } from "@/image/draw";
 import { Sheet } from "./Sheet";
+import { earnToolMark } from "@/streak/client";
 
 // `start` is the sentences that the reader chose in the share sheet. With none, the image takes as many
 // sentences from the start as fit.
@@ -89,6 +90,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
     track("image_made", { paper_id: paperId, look: look.id, method: "save" });
+    void earnToolMark("image");
     setNote("Image saved");
   }
 
@@ -98,6 +100,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
     try {
       await navigator.share({ files: [made] });
       track("image_made", { paper_id: paperId, look: look.id, method: "share" });
+      void earnToolMark("image");
     } catch (error) {
       // The reader closed the share sheet. That is a choice, not a fault.
       if ((error as { name?: string } | null)?.name !== "AbortError") setNote("The image did not share. Save it, then share it from your photos.");

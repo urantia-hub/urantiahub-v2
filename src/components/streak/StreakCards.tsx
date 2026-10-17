@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import type { StreakCard } from "@/account/streak-data";
+import { MarksCard } from "@/components/marks/MarksCard";
 import { changeStreakSettings, loadStreak, openStreakQuestion, serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 import { GRACE_RETURNS_AFTER } from "@/streak/rules";
 
@@ -36,6 +37,7 @@ export function StreakCards() {
     <div className="streak-cards">
       <StreakCardView card={view.card} />
       <BookCardView book={view.card.book} />
+      <MarksCard place="stack" />
     </div>
   );
 }

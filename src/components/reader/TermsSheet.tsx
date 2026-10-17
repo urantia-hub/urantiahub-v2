@@ -9,6 +9,7 @@ import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 import { searchHref } from "@/search/query";
 import type { Term, TermsAnswer } from "@/server/terms";
+import { earnToolMark } from "@/streak/client";
 
 type Props = { reference: string; paperId: string; onClose: () => void };
 type State = { for: string; status: "loading" } | { for: string; status: "failed" } | { for: string; status: "ready"; answer: TermsAnswer };
@@ -86,6 +87,7 @@ export function TermsSheet({ reference, paperId, onClose }: Props) {
 
   function show(term: Term) {
     track("term_opened", { kind: term.kind, term: term.id });
+    void earnToolMark("terms");
     setOpen(term);
   }
 

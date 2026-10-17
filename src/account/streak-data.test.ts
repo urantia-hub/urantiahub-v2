@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { changeStreak, parseStreak, readStreak, saveSections, type StreakGateway } from "./streak-data";
+import { changeStreak, earnTool, parseStreak, readStreak, saveSections, type StreakGateway } from "./streak-data";
 
 // 10 AM in Chicago: the reading day is 2026-10-17.
 const NOW = new Date("2026-10-17T15:00:00Z");
@@ -125,6 +125,35 @@ describe("the streak card", () => {
     expect(g.saved.at(-1)?.["hub.streak"]).toMatchObject({ longest: 3 });
     const h = gateway(on({ longest: 31 }), rows);
     expect(await readStreak(h, "t", NOW)).toMatchObject({ state: { longest: 31 } });
-    expect(h.saved).toEqual([]);
+    expect(h.saved.every((patch) => (patch["hub.streak"] as { longest: number }).longest === 31)).toBe(true);
+  });
+});
+
+describe("the marks", () => {
+  it("earns a mark from the rows, keeps its first time, and names it as new one time", async () => {
+    const rows: Row[] = [{ day: "2026-10-16", paperId: "3", sectionId: "4", how: "heard" }];
+    const g = gateway(on(), rows);
+    const first = await readStreak(g, "t", NOW);
+    expect(first.on && first.fresh).toEqual(["first-section", "first-listen"]);
+    expect(g.saved.at(-1)?.["hub.streak"]).toMatchObject({ marks: { "first-section": NOW.toISOString(), "first-listen": NOW.toISOString() } });
+    const again = await readStreak(g, "t", new Date("2026-10-18T15:00:00Z"));
+    expect(again.on && again.fresh).toEqual([]);
+    expect(again.on && again.marks["first-section"]).toBe(NOW.toISOString());
+  });
+
+  it("keeps a tool mark only for a known tool, while the streak is on", async () => {
+    const g = gateway(on());
+    expect(await earnTool(g, "t", { id: "search" }, NOW)).toEqual({ saved: true, fresh: ["search"] });
+    expect(await earnTool(g, "t", { id: "search" }, NOW)).toEqual({ saved: true, fresh: [] });
+    expect(await earnTool(g, "t", { id: "papers-20" }, NOW)).toEqual({ saved: false, fresh: [] });
+    const off = gateway(on({ on: false }));
+    expect(await earnTool(off, "t", { id: "search" }, NOW)).toEqual({ saved: false, fresh: [] });
+    expect(off.saved).toEqual([]);
+  });
+
+  it("keeps the tool marks through each other change of the settings", async () => {
+    const g = gateway(on({ marks: { search: "2026-10-01T00:00:00Z" } }));
+    await changeStreak(g, "t", { goal: 2 }, NOW);
+    expect(g.saved.at(-1)?.["hub.streak"]).toMatchObject({ marks: { search: "2026-10-01T00:00:00Z" } });
   });
 });

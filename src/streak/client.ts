@@ -5,16 +5,18 @@ import type { StreakCard } from "@/account/streak-data";
 import { accountKey, markSignedOut } from "@/account/client";
 import { track } from "@/analytics";
 import { clearDayLog, finished, noteHeard, noteRead } from "./day-log";
+import { markById } from "@/marks/list";
 import { readingDay, type Goal } from "./rules";
 
 export const streaksOn = (): boolean => process.env.NEXT_PUBLIC_STREAKS === "on";
 
 type Row = { day: string; paperId: string; sectionId: string; how: "read" | "heard" };
-export type StreakView = { card: StreakCard | null; asking: boolean };
+// `moments`: the ids of new marks that wait to play, in the order to play them.
+export type StreakView = { card: StreakCard | null; asking: boolean; moments: string[] };
 
 const PENDING_KEY = "hub:streak-first";
 const WAITING_MAX = 50;
-const NONE: StreakView = { card: null, asking: false };
+const NONE: StreakView = { card: null, asking: false, moments: [] };
 
 let view: StreakView = NONE;
 // The reader that the card, the queue, and the waiting first section belong to.
@@ -84,7 +86,7 @@ export function loadStreak(): Promise<void> {
     try {
       const card = (await ask("GET", "/api/me/streak")) as StreakCard | null;
       if (!card) return;
-      show({ ...view, card });
+      show({ ...view, card, moments: queueMoments(card.on ? card.fresh : []) });
       restorePending();
       if (card.on && card.zone !== browserZone()) void ask("PUT", "/api/me/streak", { zone: browserZone() }).catch(() => {});
     } catch {
@@ -170,10 +172,36 @@ export async function flushSections(keepalive = false): Promise<void> {
   const at = epoch;
   try {
     const answer = (await ask("POST", "/api/me/sections", { rows }, keepalive)) as { ok?: boolean; card?: StreakCard } | null;
-    if (answer?.card) show({ ...view, card: answer.card });
+    if (answer?.card) show({ ...view, card: answer.card, moments: queueMoments(answer.card.on ? answer.card.fresh : []) });
   } catch {
     // No connection, or the account refused for now. The rows hold their day, so they can go later.
     if (epoch === at) waiting = [...rows, ...waiting].slice(0, WAITING_MAX);
+  }
+}
+
+// New marks wait to play: the lower tier first, and each id one time.
+function queueMoments(ids: readonly string[]): string[] {
+  const all = [...view.moments, ...ids.filter((id) => !view.moments.includes(id))];
+  return all.sort((a, b) => (markById(a)?.tier ?? 0) - (markById(b)?.tier ?? 0));
+}
+
+export function momentPlayed(id: string): void {
+  show({ ...view, moments: view.moments.filter((moment) => moment !== id) });
+}
+
+// The first use of a tool of the Hub: search, parallels, terms, a note, an image, a share.
+export async function earnToolMark(id: string): Promise<void> {
+  const card = view.card;
+  if (!streaksOn() || !card?.on || card.marks[id]) return;
+  // The mark shows at once in this page; the account keeps the first time.
+  show({ ...view, card: { ...card, marks: { ...card.marks, [id]: new Date().toISOString() } } });
+  try {
+    const answer = (await ask("POST", "/api/me/marks", { id })) as { fresh?: string[] } | null;
+    if (answer?.fresh?.length) show({ ...view, moments: queueMoments(answer.fresh) });
+  } catch {
+    // No connection: the next use tries again.
+    const now = view.card;
+    if (now?.on) show({ ...view, card: { ...now, marks: Object.fromEntries(Object.entries(now.marks).filter(([key]) => key !== id)) } });
   }
 }
 
