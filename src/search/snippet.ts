@@ -75,6 +75,15 @@ export function exactSnippet(html: string): Part[] {
   return parts;
 }
 
+// The whole paragraph, for "Read more": each matched word marked, or none for a related passage.
+export function wholeParagraph(html: string, marks: boolean): Part[] {
+  const marked = toMarkedText(html);
+  return marks ? toParts(marked) : [{ text: marked.replaceAll(OPEN, "").replaceAll(CLOSE, ""), marked: false }];
+}
+
+// True when a snippet is not the whole paragraph.
+export const isCut = (parts: Part[]) => parts[0]?.text === "… " || parts.at(-1)?.text.endsWith(" …") === true;
+
 // The start of the paragraph, with no marks.
 export function relatedSnippet(html: string): Part[] {
   const plain = toMarkedText(html).replaceAll(OPEN, "").replaceAll(CLOSE, "");

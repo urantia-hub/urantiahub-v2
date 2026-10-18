@@ -87,12 +87,12 @@ test("a reference gives only the jump, and Enter goes to the paragraph with its 
   await expect(page.locator('[id="99:1.1"]')).toHaveCSS("background-color", "rgb(243, 234, 210)");
 });
 
-test("words show exact matches first, with the words marked, then related passages, and no paragraph twice", async ({ page }) => {
+test("words show matches first, with the words marked, then related passages, and no paragraph twice", async ({ page }) => {
   await openSearch(page, "/search");
   await field(page).fill("thought adjuster");
   await field(page).press("Enter");
   await expect(page).toHaveURL("/search?q=thought%20adjuster");
-  const exact = group(page, "Exact matches");
+  const exact = group(page, "Matches");
   const related = group(page, "Related passages");
   await expect(exact.locator(".result")).toHaveCount(5);
   await expect(related.locator(".result").first()).toBeVisible();
@@ -100,7 +100,7 @@ test("words show exact matches first, with the words marked, then related passag
   await expect(related.locator("mark")).toHaveCount(0);
   const [a, b] = [await exact.boundingBox(), await related.boundingBox()];
   expect(a!.y).toBeLessThan(b!.y);
-  const shown = [...(await refs(page, "Exact matches")), ...(await refs(page, "Related passages"))];
+  const shown = [...(await refs(page, "Matches")), ...(await refs(page, "Related passages"))];
   expect(new Set(shown).size).toBe(shown.length);
   // The direct hits for the same text stay above the groups.
   await expect(group(page, "Go to").getByRole("link")).toHaveCount(2);
@@ -109,7 +109,7 @@ test("words show exact matches first, with the words marked, then related passag
 test("a question shows related passages first", async ({ page }) => {
   await openSearch(page, "/search?q=what%20happens%20after%20death");
   const related = group(page, "Related passages");
-  const exact = group(page, "Exact matches");
+  const exact = group(page, "Matches");
   await expect(related.locator(".result")).toHaveCount(5);
   await expect(exact.getByRole("heading")).toBeVisible();
   expect((await related.boundingBox())!.y).toBeLessThan((await exact.boundingBox())!.y);
@@ -117,15 +117,53 @@ test("a question shows related passages first", async ({ page }) => {
 
 test("a result links to its paragraph", async ({ page }) => {
   await openSearch(page, "/search?q=thought%20adjuster");
-  const first = group(page, "Exact matches").locator(".result").first();
+  const first = group(page, "Matches").locator(".result").first();
   const reference = (await first.locator("footer").evaluate((el) => el.firstChild?.textContent))!;
-  const href = (await first.getAttribute("href"))!;
+  const href = (await first.locator(".result-text").getAttribute("href"))!;
   expect(href).toMatch(new RegExp(`^/papers/paper-\\d+-[a-z0-9-]+#${reference.replace(".", "\\.")}$`));
 });
 
-test("all exact matches open as a list with pages", async ({ page }) => {
+test("Read more shows the whole paragraph in place, with the words marked", async ({ page }) => {
   await openSearch(page, "/search?q=thought%20adjuster");
-  await page.getByRole("link", { name: /^All \d+ exact matches$/ }).click();
+  const rows = group(page, "Matches").locator(".result");
+  await expect(rows.first()).toBeVisible();
+  // The row stays the same row after its button changes to "Show less".
+  const index = await rows.evaluateAll((els) => els.findIndex((el) => el.querySelector(".more") !== null));
+  const cut = rows.nth(index);
+  const before = (await cut.locator(".result-text").textContent())!;
+  expect(before).toContain("…");
+  await cut.getByRole("button", { name: "Read more" }).click();
+  await expect(cut.getByRole("button", { name: "Show less" })).toHaveAttribute("aria-expanded", "true");
+  const after = (await cut.locator(".result-text").textContent())!;
+  expect(after.length).toBeGreaterThan(before.length);
+  expect(after).not.toContain("…");
+  await expect(cut.locator("mark").first()).toBeVisible();
+  await expect(page).toHaveURL("/search?q=thought%20adjuster");
+  await cut.getByRole("button", { name: "Show less" }).click();
+  expect((await cut.locator(".result-text").textContent())!).toBe(before);
+});
+
+test("a typo shows close matches and asks about the words it read", async ({ page }) => {
+  await openSearch(page, "/search?q=the%20universal%20fahter");
+  const matches = group(page, "Matches");
+  await expect(matches.locator(".result")).toHaveCount(5);
+  await expect(matches.locator(".result .close")).toHaveCount(5);
+  await expect(matches.locator(".close").first()).toHaveText("close match");
+  const fix = matches.getByRole("link", { name: "the universal father", exact: true });
+  await expect(matches.locator(".search-dym")).toHaveText("Did you mean the universal father?");
+  expect(await fix.getAttribute("href")).toBe("/search?q=the%20universal%20father");
+});
+
+test("a match of all the words has no close-match mark", async ({ page }) => {
+  await openSearch(page, "/search?q=thought%20adjuster");
+  await expect(group(page, "Matches").locator(".result").first()).toBeVisible();
+  await expect(page.locator(".close")).toHaveCount(0);
+  await expect(page.locator(".search-dym")).toHaveCount(0);
+});
+
+test("all matches open as a list with pages", async ({ page }) => {
+  await openSearch(page, "/search?q=thought%20adjuster");
+  await page.getByRole("link", { name: /^All \d+ matches$/ }).click();
   await expect(page).toHaveURL("/search?q=thought%20adjuster&all=exact");
   await expect(page.locator(".result")).toHaveCount(20);
   await page.getByRole("link", { name: "Next" }).click();
@@ -140,12 +178,12 @@ test("one failed search does not take the other group down", async ({ page }) =>
   await openSearch(page, "/search?q=fail%20related");
   await expect(group(page, "Related passages")).toContainText("The search did not load.");
   await expect(group(page, "Related passages").getByRole("link", { name: "Try again" })).toHaveAttribute("href", "/search?q=fail%20related");
-  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.");
+  await expect(group(page, "Matches")).toContainText("No paragraph has these words.");
 });
 
 test("a search with no result says so in each group", async ({ page }) => {
   await openSearch(page, "/search?q=zzzzqqqq");
-  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.");
+  await expect(group(page, "Matches")).toContainText("No paragraph has these words.");
   await expect(group(page, "Related passages")).toContainText("No related passage.");
 });
 
@@ -168,7 +206,7 @@ test("the navigator field searches for text that is not a reference", async ({ p
   await input.fill("thought adjuster");
   await input.press("Enter");
   await expect(page).toHaveURL("/search?q=thought%20adjuster");
-  await expect(group(page, "Exact matches").locator(".result")).toHaveCount(5);
+  await expect(group(page, "Matches").locator(".result")).toHaveCount(5);
 });
 
 // Review Focus 4.
@@ -179,7 +217,7 @@ test("a huge or hostile query is cut and shown as text", async ({ page }) => {
   expect(value.length).toBe(200);
   expect(value.startsWith("<img src=x")).toBe(true);
   await expect(page.locator("img[src='x']")).toHaveCount(0);
-  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.");
+  await expect(group(page, "Matches")).toContainText("No paragraph has these words.");
 });
 
 test("a results page is not for a search engine", async ({ page }) => {
@@ -198,7 +236,7 @@ test("the results column is centered with margins on a desktop", async ({ page }
 // The live API refuses such a text. The page must say "no result", not "did not load".
 test("a search with no letter and no number says that nothing matches", async ({ page }) => {
   await openSearch(page, `/search?q=${encodeURIComponent("???")}`);
-  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.");
+  await expect(group(page, "Matches")).toContainText("No paragraph has these words.");
   await expect(group(page, "Related passages")).toContainText("No related passage.");
 });
 
@@ -224,7 +262,7 @@ test("a reader with recent searches never sees the starter questions first", asy
 
 test("a crafted text with half of a character does not break the page", async ({ page }) => {
   await openSearch(page, `/search?q=${"god%20".repeat(49)}abc%F0%9F%98%80&all=exact`);
-  await expect(page.getByRole("heading", { name: /Exact matches/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Matches/ })).toBeVisible();
   await expect(page.getByText("Page not found")).toHaveCount(0);
 });
 
@@ -281,7 +319,7 @@ test("Enter shows at once that the search runs", async ({ page }) => {
   await field(page).press("Enter");
   await expect(page.locator(".waiting").first()).toBeVisible({ timeout: 700 });
   await expect(page).toHaveURL("/search?q=slow%20search");
-  await expect(group(page, "Exact matches")).toContainText("No paragraph has all of these words.", { timeout: 8000 });
+  await expect(group(page, "Matches")).toContainText("No paragraph has these words.", { timeout: 8000 });
 });
 
 test("a starter question shows at once that the search runs", async ({ page }) => {
@@ -289,7 +327,7 @@ test("a starter question shows at once that the search runs", async ({ page }) =
   await group(page, "Ask in your own words").getByRole("link").first().click();
   await expect(page).toHaveURL(/\/search\?q=/);
   // The question is one of sixteen, and the test data holds results for one of them. Each group must end.
-  await expect(group(page, "Exact matches").locator(".result, .search-empty").first()).toBeVisible();
+  await expect(group(page, "Matches").locator(".result, .search-empty").first()).toBeVisible();
   await expect(group(page, "Related passages").locator(".result, .search-empty").first()).toBeVisible();
 });
 

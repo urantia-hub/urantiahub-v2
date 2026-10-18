@@ -45,10 +45,10 @@ function search(kind: "search" | "semantic", body: string) {
   const limit = Number(params.limit) || 20;
   const page = Number(params.page) || 0;
   if (!existsSync(file)) return json(200, JSON.stringify({ data: [], meta: { page, limit, total: 0, totalPages: 0 } }));
-  const recorded = JSON.parse(readFileSync(file, "utf8")) as { data: unknown[]; meta: { total: number } };
+  const recorded = JSON.parse(readFileSync(file, "utf8")) as { data: unknown[]; meta: { total: number; didYouMean?: string } };
   // The record holds the first 50 rows. The total is the count of rows that the server can page through.
   const total = kind === "search" ? recorded.data.length : recorded.meta.total;
-  return json(200, JSON.stringify({ data: recorded.data.slice(page * limit, page * limit + limit), meta: { page, limit, total, totalPages: Math.ceil(total / limit) } }));
+  return json(200, JSON.stringify({ data: recorded.data.slice(page * limit, page * limit + limit), meta: { page, limit, total, totalPages: Math.ceil(total / limit), didYouMean: recorded.meta.didYouMean } }));
 }
 
 function read(request: IncomingMessage): Promise<string> {

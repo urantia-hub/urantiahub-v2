@@ -312,16 +312,31 @@ describe("the two searches", () => {
     return { client, calls };
   }
 
-  it("asks for all of the words, and gives the hits and the total", async () => {
+  it("asks in the default mode, and gives the hits and the total", async () => {
     const { client, calls } = searchClient();
     await expect(fetchExact(client, "thought adjuster", 2, 20)).resolves.toEqual({
       hits: [
-        { ref: "16:8.3", paperId: "16", paperTitle: "A Paper", html: "<span>Text 16:8.3</span>" },
-        { ref: "108:5.5", paperId: "108", paperTitle: "A Paper", html: "<span>Text 108:5.5</span>" },
+        { ref: "16:8.3", paperId: "16", paperTitle: "A Paper", html: "<span>Text 16:8.3</span>", close: false },
+        { ref: "108:5.5", paperId: "108", paperTitle: "A Paper", html: "<span>Text 108:5.5</span>", close: false },
       ],
       total: 244,
     });
-    expect(calls).toEqual([["exact", { q: "thought adjuster", type: "and", page: 2, limit: 20 }]]);
+    expect(calls).toEqual([["exact", { q: "thought adjuster", page: 2, limit: 20 }]]);
+  });
+
+  it("marks a close match, and gives the words the search read", async () => {
+    const exact = {
+      data: [
+        { ...row("1:0.3"), match: "exact" },
+        { ...row("1:1.4"), match: "near" },
+        { ...row("111:7.5"), match: "most" },
+      ],
+      meta: { total: 3, didYouMean: "the universal father" },
+    };
+    const { client } = searchClient({ exact });
+    const page = await fetchExact(client, "the universal fahter", 0, 8);
+    expect(page.hits.map((hit) => hit.close)).toEqual([false, true, true]);
+    expect(page.didYouMean).toBe("the universal father");
   });
 
   it("asks the semantic search with a limit", async () => {

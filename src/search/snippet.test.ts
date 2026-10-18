@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exactSnippet, relatedSnippet } from "./snippet";
+import { exactSnippet, isCut, relatedSnippet, wholeParagraph } from "./snippet";
 
 const mark = (word: string) => `<span class=urantia-dev-highlighted>${word}</span>`;
 const text = (parts: { text: string }[]) => parts.map((p) => p.text).join("");
@@ -71,5 +71,23 @@ describe("faults that the branch review found", () => {
       { text: "abc ", marked: false },
       { text: "word", marked: true },
     ]);
+  });
+});
+
+describe("the whole paragraph, for Read more", () => {
+  const long = `${"word ".repeat(80)}${mark("target")} ${"tail ".repeat(80)}${mark("again")}`;
+  it("gives every word and marks each matched word", () => {
+    const whole = wholeParagraph(long, true);
+    expect(text(whole)).toBe(`${"word ".repeat(80)}target ${"tail ".repeat(80)}again`);
+    expect(whole.filter((p) => p.marked).map((p) => p.text)).toEqual(["target", "again"]);
+  });
+  it("marks nothing for a related passage", () => {
+    expect(wholeParagraph(long, false).some((p) => p.marked)).toBe(false);
+  });
+  it("is offered only when the snippet is cut", () => {
+    expect(isCut(exactSnippet(long))).toBe(true);
+    expect(isCut(relatedSnippet(long))).toBe(true);
+    expect(isCut(exactSnippet(`A short ${mark("one")}.`))).toBe(false);
+    expect(isCut(relatedSnippet("A short one."))).toBe(false);
   });
 });
