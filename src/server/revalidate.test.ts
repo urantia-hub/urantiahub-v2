@@ -32,6 +32,14 @@ describe("handleRevalidate", () => {
     expect(notify).toHaveBeenCalledWith([]);
   });
 
+  // An API release changes the results, and the Hub keeps each search for a day.
+  it("refreshes the search results, and tells no search engine about it", async () => {
+    const { response, revalidate, notify } = await call({ tags: ["search"] });
+    expect(response.status).toBe(200);
+    expect(revalidate.mock.calls).toEqual([["search"]]);
+    expect(notify).toHaveBeenCalledWith([]);
+  });
+
   it.each([
     ["no header", null],
     ["a wrong secret", "Bearer wrong"],
