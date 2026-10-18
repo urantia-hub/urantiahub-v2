@@ -12,7 +12,7 @@ import { referenceHref } from "@/content/paper-index";
 import { parseReference } from "@/lib/paper-url";
 import { isQuestion, normalizeQuery, searchHref } from "@/search/query";
 import { settle, type Outcome } from "@/search/settle";
-import { exactSnippet, relatedSnippet } from "@/search/snippet";
+import { exactSnippet, isCut, relatedSnippet, wholeParagraph, type Part } from "@/search/snippet";
 import { asksForNoTracking, logSearch } from "@/server/search-log";
 
 // A results page is not a page of the text. It stays out of each search engine, at each index setting.
@@ -24,7 +24,7 @@ type Kind = "exact" | "related";
 const SHOWN = 5;
 const LIST = 20;
 const LAST_PAGE = 50;
-const LABEL: Record<Kind, string> = { exact: "Exact matches", related: "Related passages" };
+const LABEL: Record<Kind, string> = { exact: "Matches", related: "Related passages" };
 
 export default function SearchPage({ searchParams }: Props) {
   return (
@@ -98,6 +98,26 @@ function hitHref(hit: SearchHit): string {
   return ref ? referenceHref(ref) : "/papers";
 }
 const paperName = (hit: SearchHit) => (hit.paperId === "0" ? "Foreword" : `Paper ${hit.paperId} · ${hit.paperTitle}`);
+// The snippet, and the whole paragraph when the snippet is cut.
+function texts(hit: SearchHit, kind: Kind): { parts: Part[]; whole?: Part[] } {
+  const parts = kind === "exact" ? exactSnippet(hit.html) : relatedSnippet(hit.html);
+  return isCut(parts) ? { parts, whole: wholeParagraph(hit.html, kind === "exact") } : { parts };
+}
+
+// "Did you mean …?" when the search read a word as another word. The link searches the words it read.
+function DidYouMean({ words }: { words?: string }) {
+  if (!words) return null;
+  return (
+    <p className="search-dym">
+      Did you mean{" "}
+      <Link prefetch={false} href={searchHref(words)}>
+        {words}
+      </Link>
+      ?
+    </p>
+  );
+}
+
 const bucket = (total: number) => (total === 0 ? "0" : total <= 5 ? "1-5" : total <= 50 ? "6-50" : "51+");
 
 function TwoGroups({ q, record }: { q: string; record: boolean }) {
@@ -164,11 +184,13 @@ async function Group({ kind, q, own, before, question }: GroupProps) {
         {kind === "exact" && <em>{total.toLocaleString("en-US")}</em>}
       </h2>
       {kind === "exact" && <ShownTracker kind={question ? "question" : "words"} exact={bucket(total)} />}
+      {kind === "exact" && <DidYouMean words={mine.page.didYouMean} />}
       {hits.map((hit, i) => (
         <ResultLink
           key={hit.ref}
           href={hitHref(hit)}
-          parts={kind === "exact" ? exactSnippet(hit.html) : relatedSnippet(hit.html)}
+          {...texts(hit, kind)}
+          close={kind === "exact" && hit.close}
           reference={hit.ref}
           paper={paperName(hit)}
           group={kind}
@@ -177,12 +199,12 @@ async function Group({ kind, q, own, before, question }: GroupProps) {
       ))}
       {hits.length === 0 && (
         <p className="search-empty">
-          {kind === "related" ? "No related passage." : mine.page.hits.length > 0 ? "The exact matches are in the passages above." : "No paragraph has all of these words."}
+          {kind === "related" ? "No related passage." : mine.page.hits.length > 0 ? "The matches are in the passages above." : "No paragraph has these words."}
         </p>
       )}
       {kind === "exact" && total > SHOWN && (
         <Link className="search-more" prefetch={false} href={`${searchHref(q)}&all=exact`}>
-          All {total.toLocaleString("en-US")} exact matches
+          All {total.toLocaleString("en-US")} matches
         </Link>
       )}
     </>
@@ -202,7 +224,7 @@ async function AllExact({ q, page }: { q: string; page: number }) {
       </section>
     );
   }
-  const { hits, total } = outcome.page;
+  const { hits, total, didYouMean } = outcome.page;
   const pages = Math.min(LAST_PAGE, Math.ceil(total / LIST));
   return (
     <section aria-label={LABEL.exact}>
@@ -213,11 +235,13 @@ async function AllExact({ q, page }: { q: string; page: number }) {
           {pages > 1 ? ` · page ${Math.min(page, pages)} of ${pages}` : ""}
         </em>
       </h2>
+      <DidYouMean words={didYouMean} />
       {hits.map((hit, i) => (
         <ResultLink
           key={hit.ref}
           href={hitHref(hit)}
-          parts={exactSnippet(hit.html)}
+          {...texts(hit, "exact")}
+          close={hit.close}
           reference={hit.ref}
           paper={paperName(hit)}
           group="exact"

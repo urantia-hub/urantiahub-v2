@@ -207,19 +207,23 @@ const SearchResponseSchema = z.object({
       paperId: z.string(),
       paperTitle: z.string(),
       htmlText: z.string().min(1),
+      // How the paragraph matched (keyword search). An answer from before the API gave it has none.
+      match: z.string().optional(),
     }),
   ),
-  meta: z.object({ total: z.number().int().nonnegative() }),
+  meta: z.object({ total: z.number().int().nonnegative(), didYouMean: z.string().optional() }),
 });
 
 // `html` is the paragraph as the API gives it, with matched words marked. It is input for the snippet builder.
 // It never reaches the page as HTML.
-export type SearchHit = { ref: string; paperId: string; paperTitle: string; html: string };
-export type SearchPage = { hits: SearchHit[]; total: number };
+// `close`: the paragraph matched after a typo fix, or with most of the words, not all of them.
+export type SearchHit = { ref: string; paperId: string; paperTitle: string; html: string; close: boolean };
+// `didYouMean`: the words that the search read in place of the typed ones.
+export type SearchPage = { hits: SearchHit[]; total: number; didYouMean?: string };
 
 export type SearchClient = {
   search: {
-    fullText(params: { q: string; type: "and"; page: number; limit: number }): Promise<unknown>;
+    fullText(params: { q: string; page: number; limit: number }): Promise<unknown>;
     semantic(params: { q: string; limit: number }): Promise<unknown>;
   };
 };
@@ -228,18 +232,26 @@ function toSearchPage(raw: unknown, what: string): SearchPage {
   const parsed = SearchResponseSchema.safeParse(raw);
   if (!parsed.success) throw new ContentError(`${what}: the content API response has an unknown shape`, parsed.error);
   return {
-    hits: parsed.data.data.map((row) => ({ ref: row.standardReferenceId, paperId: row.paperId, paperTitle: row.paperTitle, html: row.htmlText })),
+    hits: parsed.data.data.map((row) => ({
+      ref: row.standardReferenceId,
+      paperId: row.paperId,
+      paperTitle: row.paperTitle,
+      html: row.htmlText,
+      close: row.match === "near" || row.match === "most",
+    })),
     total: parsed.data.meta.total,
+    ...(parsed.data.meta.didYouMean ? { didYouMean: parsed.data.meta.didYouMean } : {}),
   };
 }
 
-// Paragraphs that hold all of the words.
+// Paragraphs that match the words: the API's default mode puts a reference, the exact phrase, and all the
+// words first, then close matches.
 export async function fetchExact(client: SearchClient, q: string, page: number, limit: number): Promise<SearchPage> {
   // The API answers 400 for a text with no letter and no number. That is "no result", not a failure.
   if (!hasWord(q)) return { hits: [], total: 0 };
   let raw: unknown;
   try {
-    raw = await client.search.fullText({ q, type: "and", page, limit });
+    raw = await client.search.fullText({ q, page, limit });
   } catch (cause) {
     throw new ContentError("Exact search: the content API request failed", cause);
   }

@@ -1,0 +1,1780 @@
+{
+  "data": [
+    {
+      "id": "1:1.1.4",
+      "standardReferenceId": "1:1.4",
+      "sortId": "1.001.001.004",
+      "paperId": "1",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "The Father’s Name",
+      "paragraphId": "4",
+      "text": "Near the center of the universe of universes, the Universal Father is generally known by names which may be regarded as meaning the First Source. Farther out in the universes of space, the terms employed to designate the Universal Father more often mean the Universal Center. Still farther out in the starry creation, he is known, as on the headquarters world of your local universe, as the First Creative Source and Divine Center. In one near-by constellation God is called the Father of Universes. In another, the Infinite Upholder, and to the east, the Divine Controller. He has also been designated the Father of Lights, the Gift of Life, and the All-powerful One.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">Near the center of the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>, the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is generally known by names which may be regarded as meaning the First Source. Farther out in the <span class=urantia-dev-highlighted>universes</span> of space, the terms employed to designate the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> more often mean the <span class=urantia-dev-highlighted>Universal</span> Center. Still farther out in the starry creation, he is known, as on the headquarters world of your local <span class=urantia-dev-highlighted>universe</span>, as the First Creative Source and Divine Center. In one near-by constellation God is called the <span class=urantia-dev-highlighted>Father</span> of <span class=urantia-dev-highlighted>Universes</span>. In another, the Infinite Upholder, and to the east, the Divine Controller. He has also been designated the <span class=urantia-dev-highlighted>Father</span> of Lights, the Gift of Life, and the All-powerful One.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 41,
+            "fileSize": 819360
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 41.4,
+            "fileSize": 828000
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 40.6,
+            "fileSize": 976186
+          }
+        }
+      },
+      "rank": 0.059800435,
+      "match": "near"
+    },
+    {
+      "id": "1:1.2.9",
+      "standardReferenceId": "1:2.9",
+      "sortId": "1.001.002.009",
+      "paperId": "1",
+      "sectionId": "2",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "The Reality of God",
+      "paragraphId": "9",
+      "text": "In theory you may think of God as the Creator, and he is the personal creator of Paradise and the central universe of perfection, but the universes of time and space are all created and organized by the Paradise corps of the Creator Sons. The Universal Father is not the personal creator of the local universe of Nebadon; the universe in which you live is the creation of his Son Michael. Though the Father does not personally create the evolutionary universes, he does control them in many of their universal relationships and in certain of their manifestations of physical, mindal, and spiritual energies. God the Father is the personal creator of the Paradise universe and, in association with the Eternal Son, the creator of all other personal universe Creators.",
+      "htmlText": "<span class=\"urantia-dev-pb-2\">In theory you may think of God as the Creator, and he is the personal creator of Paradise and the central <span class=urantia-dev-highlighted>universe</span> of perfection, but the <span class=urantia-dev-highlighted>universes</span> of time and space are all created and organized by the Paradise corps of the Creator Sons. The <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is not the personal creator of the local <span class=urantia-dev-highlighted>universe</span> of Nebadon; the <span class=urantia-dev-highlighted>universe</span> in which you live is the creation of his Son Michael. Though the <span class=urantia-dev-highlighted>Father</span> does not personally create the evolutionary <span class=urantia-dev-highlighted>universes</span>, he does control them in many of their <span class=urantia-dev-highlighted>universal</span> relationships and in certain of their manifestations of physical, mindal, and spiritual energies. God the <span class=urantia-dev-highlighted>Father</span> is the personal creator of the Paradise <span class=urantia-dev-highlighted>universe</span> and, in association with the Eternal Son, the creator of all other personal <span class=urantia-dev-highlighted>universe</span> Creators.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.2.9.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 46.9,
+            "fileSize": 937920
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.2.9.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 47.9,
+            "fileSize": 958560
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.2.9.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 45.5,
+            "fileSize": 1092170
+          }
+        }
+      },
+      "rank": 0.058784094,
+      "match": "near"
+    },
+    {
+      "id": "1:1.0.3",
+      "standardReferenceId": "1:0.3",
+      "sortId": "1.001.000.003",
+      "paperId": "1",
+      "sectionId": "0",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": null,
+      "paragraphId": "3",
+      "text": "The enlightened worlds all recognize and worship the Universal Father, the eternal maker and infinite upholder of all creation. The will creatures of universe upon universe have embarked upon the long, long Paradise journey, the fascinating struggle of the eternal adventure of attaining God the Father. The transcendent goal of the children of time is to find the eternal God, to comprehend the divine nature, to recognize the Universal Father. God-knowing creatures have only one supreme ambition, just one consuming desire, and that is to become, as they are in their spheres, like him as he is in his Paradise perfection of personality and in his universal sphere of righteous supremacy. From the Universal Father who inhabits eternity there has gone forth the supreme mandate, “Be you perfect, even as I am perfect.” In love and mercy the messengers of Paradise have carried this divine exhortation down through the ages and out through the universes, even to such lowly animal-origin creatures as the human races of Urantia.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The enlightened worlds all recognize and worship the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, the eternal maker and infinite upholder of all creation. The will creatures of <span class=urantia-dev-highlighted>universe</span> upon <span class=urantia-dev-highlighted>universe</span> have embarked upon the long, long Paradise journey, the fascinating struggle of the eternal adventure of attaining God the <span class=urantia-dev-highlighted>Father</span>. The transcendent goal of the children of time is to find the eternal God, to comprehend the divine nature, to recognize the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. God-knowing creatures have only one supreme ambition, just one consuming desire, and that is to become, as they are in their spheres, like him as he is in his Paradise perfection of personality and in his <span class=urantia-dev-highlighted>universal</span> sphere of righteous supremacy. From the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> who inhabits eternity there has gone forth the supreme mandate, “Be you perfect, even as I am perfect.” In love and mercy the messengers of Paradise have carried this divine exhortation down through the ages and out through the <span class=urantia-dev-highlighted>universes</span>, even to such lowly animal-origin creatures as the human races of Urantia.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.0.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 63.8,
+            "fileSize": 1275360
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.0.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 64.5,
+            "fileSize": 1289760
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.0.3.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 64.6,
+            "fileSize": 1551716
+          }
+        }
+      },
+      "rank": 0.059483808,
+      "match": "near"
+    },
+    {
+      "id": "2:33.5.1",
+      "standardReferenceId": "33:5.1",
+      "sortId": "2.033.005.001",
+      "paperId": "33",
+      "sectionId": "5",
+      "partId": "2",
+      "paperTitle": "Administration of the Local Universe",
+      "sectionTitle": "The Trinity Ambassadors",
+      "paragraphId": "1",
+      "text": "The administration of Trinity-origin personalities ends with the government of the superuniverses. The local universes are characterized by dual supervision, the beginning of the father-mother concept. The universe father is the Creator Son; the universe mother is the Divine Minister, the local universe Creative Spirit. Every local universe is, however, blessed with the presence of certain personalities from the central universe and Paradise. At the head of this Paradise group in Nebadon is the ambassador of the Paradise Trinity — Immanuel of Salvington — the Union of Days assigned to the local universe of Nebadon. In a certain sense this high Trinity Son is also the personal representative of the Universal Father to the court of the Creator Son; hence his name, Immanuel.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The administration of Trinity-origin personalities ends with the government of the superuniverses. The local <span class=urantia-dev-highlighted>universes</span> are characterized by dual supervision, the beginning of the <span class=urantia-dev-highlighted>father</span>-mother concept. The <span class=urantia-dev-highlighted>universe</span> <span class=urantia-dev-highlighted>father</span> is the Creator Son; the <span class=urantia-dev-highlighted>universe</span> mother is the Divine Minister, the local <span class=urantia-dev-highlighted>universe</span> Creative Spirit. Every local <span class=urantia-dev-highlighted>universe</span> is, however, blessed with the presence of certain personalities from the central <span class=urantia-dev-highlighted>universe</span> and Paradise. At the head of this Paradise group in Nebadon is the ambassador of the Paradise Trinity — Immanuel of Salvington — the Union of Days assigned to the local <span class=urantia-dev-highlighted>universe</span> of Nebadon. In a certain sense this high Trinity Son is also the personal representative of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> to the court of the Creator Son; hence his name, Immanuel.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:33.5.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 48.2,
+            "fileSize": 963840
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:33.5.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 49.6,
+            "fileSize": 1191853
+          }
+        }
+      },
+      "rank": 0.05853392,
+      "match": "near"
+    },
+    {
+      "id": "2:53.3.2",
+      "standardReferenceId": "53:3.2",
+      "sortId": "2.053.003.002",
+      "paperId": "53",
+      "sectionId": "3",
+      "partId": "2",
+      "paperTitle": "The Lucifer Rebellion",
+      "sectionTitle": "The Lucifer Manifesto",
+      "paragraphId": "2",
+      "text": "1. The reality of the Universal Father. Lucifer charged that the Universal Father did not really exist, that physical gravity and space-energy were inherent in the universe, and that the Father was a myth invented by the Paradise Sons to enable them to maintain the rule of the universes in the Father’s name. He denied that personality was a gift of the Universal Father. He even intimated that the finaliters were in collusion with the Paradise Sons to foist fraud upon all creation since they never brought back a very clear-cut idea of the Father’s actual personality as it is discernible on Paradise. He traded on reverence as ignorance. The charge was sweeping, terrible, and blasphemous. It was this veiled attack upon the finaliters that no doubt influenced the ascendant citizens then on Jerusem to stand firm and remain steadfast in resistance to all the rebel’s proposals.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">1. <em>The reality of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>.</em> Lucifer charged that the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> did not really exist, that physical gravity and space-energy were inherent in the <span class=urantia-dev-highlighted>universe</span>, and that the <span class=urantia-dev-highlighted>Father</span> was a myth invented by the Paradise Sons to enable them to maintain the rule of the <span class=urantia-dev-highlighted>universes</span> in the <span class=urantia-dev-highlighted>Father</span>’s name. He denied that personality was a gift of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. He even intimated that the finaliters were in collusion with the Paradise Sons to foist fraud upon all creation since they never brought back a very clear-cut idea of the <span class=urantia-dev-highlighted>Father</span>’s actual personality as it is discernible on Paradise. He traded on reverence as ignorance. The charge was sweeping, terrible, and blasphemous. It was this veiled attack upon the finaliters that no doubt influenced the ascendant citizens then on Jerusem to stand firm and remain steadfast in resistance to all the rebel’s proposals.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:53.3.2.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 55.5,
+            "fileSize": 1110240
+          }
+        }
+      },
+      "rank": 0.059880823,
+      "match": "near"
+    },
+    {
+      "id": "1:5.3.6",
+      "standardReferenceId": "5:3.6",
+      "sortId": "1.005.003.006",
+      "paperId": "5",
+      "sectionId": "3",
+      "partId": "1",
+      "paperTitle": "God’s Relation to the Individual",
+      "sectionTitle": "True Worship",
+      "paragraphId": "6",
+      "text": "The Creator or Sovereign Sons who preside over the destinies of the local universes stand in the place of both the Universal Father and the Eternal Son of Paradise. These Universe Sons receive, in the name of the Father, the adoration of worship and give ear to the pleas of their petitioning subjects throughout their respective creations. To the children of a local universe a Michael Son is, to all practical intents and purposes, God. He is the local universe personification of the Universal Father and the Eternal Son. The Infinite Spirit maintains personal contact with the children of these realms through the Universe Spirits, the administrative and creative associates of the Paradise Creator Sons.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">The Creator or Sovereign Sons who preside over the destinies of the local <span class=urantia-dev-highlighted>universes</span> stand in the place of both the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the Eternal Son of Paradise. These <span class=urantia-dev-highlighted>Universe</span> Sons receive, in the name of the <span class=urantia-dev-highlighted>Father</span>, the adoration of worship and give ear to the pleas of their petitioning subjects throughout their respective creations. To the children of a local <span class=urantia-dev-highlighted>universe</span> a Michael Son is, to all practical intents and purposes, God. He is the local <span class=urantia-dev-highlighted>universe</span> personification of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the Eternal Son. The Infinite Spirit maintains personal contact with the children of these realms through the <span class=urantia-dev-highlighted>Universe</span> Spirits, the administrative and creative associates of the Paradise Creator Sons.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:5.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 44.3,
+            "fileSize": 885120
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:5.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 40.8,
+            "fileSize": 979321
+          }
+        }
+      },
+      "rank": 0.05821729,
+      "match": "near"
+    },
+    {
+      "id": "1:9.0.2",
+      "standardReferenceId": "9:0.2",
+      "sortId": "1.009.000.002",
+      "paperId": "9",
+      "sectionId": "0",
+      "partId": "1",
+      "paperTitle": "Relation of the Infinite Spirit to the Universe",
+      "sectionTitle": null,
+      "paragraphId": "2",
+      "text": "The Father is infinite in love and volition, in spiritual thought and purpose; he is the universal upholder. The Son is infinite in wisdom and truth, in spiritual expression and interpretation; he is the universal revealer. Paradise is infinite in potential for force endowment and in capacity for energy dominance; it is the universal stabilizer. The Conjoint Actor possesses unique prerogatives of synthesis, infinite capacity to co-ordinate all existing universe energies, all actual universe spirits, and all real universe intellects; the Third Source and Center is the universal unifier of the manifold energies and diverse creations which have appeared in consequence of the divine plan and the eternal purpose of the Universal Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The <span class=urantia-dev-highlighted>Father</span> is infinite in love and volition, in spiritual thought and purpose; he is the <span class=urantia-dev-highlighted>universal</span> upholder. The Son is infinite in wisdom and truth, in spiritual expression and interpretation; he is the <span class=urantia-dev-highlighted>universal</span> revealer. Paradise is infinite in potential for force endowment and in capacity for energy dominance; it is the <span class=urantia-dev-highlighted>universal</span> stabilizer. The Conjoint Actor possesses unique prerogatives of synthesis, infinite capacity to co-ordinate all existing <span class=urantia-dev-highlighted>universe</span> energies, all actual <span class=urantia-dev-highlighted>universe</span> spirits, and all real <span class=urantia-dev-highlighted>universe</span> intellects; the Third Source and Center is the <span class=urantia-dev-highlighted>universal</span> unifier of the manifold energies and diverse creations which have appeared in consequence of the divine plan and the eternal purpose of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:9.0.2.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 46.4,
+            "fileSize": 928320
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:9.0.2.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 46.4,
+            "fileSize": 1114113
+          }
+        }
+      },
+      "rank": 0.056282338,
+      "match": "near"
+    },
+    {
+      "id": "1:13.1.4",
+      "standardReferenceId": "13:1.4",
+      "sortId": "1.013.001.004",
+      "paperId": "13",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Sacred Spheres of Paradise",
+      "sectionTitle": "The Seven Sacred Worlds of the Father",
+      "paragraphId": "4",
+      "text": "1. DIVININGTON. This world is, in a unique sense, the “bosom of the Father,” the personal-communion sphere of the Universal Father, and thereon is a special manifestation of his divinity. Divinington is the Paradise rendezvous of the Thought Adjusters, but it is also the home of numerous other entities, personalities, and other beings taking origin in the Universal Father. Many personalities besides the Eternal Son are of direct origin by the solitary acts of the Universal Father. Only the Father fragments and those personalities and other beings of direct and exclusive origin in the Universal Father fraternize and function on this abode.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">1. DIVININGTON. This world is, in a unique sense, the “bosom of the <span class=urantia-dev-highlighted>Father</span>,” the personal-communion sphere of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, and thereon is a special manifestation of his divinity. Divinington is the Paradise rendezvous of the Thought Adjusters, but it is also the home of numerous other entities, personalities, and other beings taking origin in the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. Many personalities besides the Eternal Son are of direct origin by the solitary acts of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. Only the <span class=urantia-dev-highlighted>Father</span> fragments and those personalities and other beings of direct and exclusive origin in the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> fraternize and function on this abode.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:13.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 39.4,
+            "fileSize": 788160
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:13.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 40.2,
+            "fileSize": 964901
+          }
+        }
+      },
+      "rank": 0.05907025,
+      "match": "near"
+    },
+    {
+      "id": "2:32.3.4",
+      "standardReferenceId": "32:3.4",
+      "sortId": "2.032.003.004",
+      "paperId": "32",
+      "sectionId": "3",
+      "partId": "2",
+      "paperTitle": "The Evolution of Local Universes",
+      "sectionTitle": "The Evolutionary Idea",
+      "paragraphId": "4",
+      "text": "With the exception of the deity presence of the Father, every local universe is, in a certain sense, a duplication of the administrative organization of the central or pattern creation. Although the Universal Father is personally present in the residential universe, he does not indwell the minds of the beings originating in that universe as he does literally dwell with the souls of the mortals of time and space. There seems to be an all-wise compensation in the adjustment and regulation of the spiritual affairs of the far-flung creation. In the central universe the Father is personally present as such but absent in the minds of the children of that perfect creation; in the universes of space the Father is absent in person, being represented by his Sovereign Sons, while he is intimately present in the minds of his mortal children, being spiritually represented by the prepersonal presence of the Mystery Monitors that reside in the minds of these will creatures.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">With the exception of the deity presence of the <span class=urantia-dev-highlighted>Father</span>, every local <span class=urantia-dev-highlighted>universe</span> is, in a certain sense, a duplication of the administrative organization of the central or pattern creation. Although the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is personally present in the residential <span class=urantia-dev-highlighted>universe</span>, he does not indwell the minds of the beings originating in that <span class=urantia-dev-highlighted>universe</span> as he does literally dwell with the souls of the mortals of time and space. There seems to be an all-wise compensation in the adjustment and regulation of the spiritual affairs of the far-flung creation. In the central <span class=urantia-dev-highlighted>universe</span> the <span class=urantia-dev-highlighted>Father</span> is personally present as such but absent in the minds of the children of that perfect creation; in the <span class=urantia-dev-highlighted>universes</span> of space the <span class=urantia-dev-highlighted>Father</span> is absent in person, being represented by his Sovereign Sons, while he is intimately present in the minds of his mortal children, being spiritually represented by the prepersonal presence of the Mystery Monitors that reside in the minds of these will creatures.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:32.3.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 60.2,
+            "fileSize": 1204320
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:32.3.4.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 59.2,
+            "fileSize": 1421313
+          }
+        }
+      },
+      "rank": 0.05907025,
+      "match": "near"
+    },
+    {
+      "id": "2:32.3.5",
+      "standardReferenceId": "32:3.5",
+      "sortId": "2.032.003.005",
+      "paperId": "32",
+      "sectionId": "3",
+      "partId": "2",
+      "paperTitle": "The Evolution of Local Universes",
+      "sectionTitle": "The Evolutionary Idea",
+      "paragraphId": "5",
+      "text": "On the headquarters of a local universe there reside all those creator and creative personalities who represent self-contained authority and administrative autonomy except the personal presence of the Universal Father. In the local universe there are to be found something of everyone and someone of almost every class of intelligent beings existing in the central universe except the Universal Father. Although the Universal Father is not personally present in a local universe, he is personally represented by its Creator Son, sometime vicegerent of God and subsequently supreme and sovereign ruler in his own right.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">On the headquarters of a local <span class=urantia-dev-highlighted>universe</span> there reside all those creator and creative personalities who represent self-contained authority and administrative autonomy except the personal presence of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. In the local <span class=urantia-dev-highlighted>universe</span> there are to be found something of everyone and someone of almost every class of intelligent beings existing in the central <span class=urantia-dev-highlighted>universe</span> except the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. Although the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is not personally present in a local <span class=urantia-dev-highlighted>universe</span>, he is personally represented by its Creator Son, sometime vicegerent of God and subsequently supreme and sovereign ruler in his own right.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:32.3.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 38,
+            "fileSize": 759840
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:32.3.5.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 36.5,
+            "fileSize": 876503
+          }
+        }
+      },
+      "rank": 0.05821729,
+      "match": "near"
+    },
+    {
+      "id": "4:120.0.4",
+      "standardReferenceId": "120:0.4",
+      "sortId": "4.120.000.004",
+      "paperId": "120",
+      "sectionId": "0",
+      "partId": "4",
+      "paperTitle": "The Bestowal of Michael on Urantia",
+      "sectionTitle": null,
+      "paragraphId": "4",
+      "text": "Michael, therefore, had a double purpose in the making of these seven bestowals upon the various orders of his universe creatures: First, he was completing the required experience in creature understanding which is demanded of all Creator Sons before they assume complete sovereignty. At any time a Creator Son may rule his universe in his own right, but he can rule as the supreme representative of the Paradise Trinity only after passing through the seven universe-creature bestowals. Second, he was aspiring to the privilege of representing the maximum authority of the Paradise Trinity which can be exercised in the direct and personal administration of a local universe. Accordingly, did Michael, during the experience of each of his universe bestowals, successfully and acceptably voluntarily subordinate himself to the variously constituted wills of the diverse associations of the persons of the Paradise Trinity. That is, on the first bestowal he was subject to the combined will of the Father, Son, and Spirit; on the second bestowal to the will of the Father and the Son; on the third bestowal to the will of the Father and the Spirit; on the fourth bestowal to the will of the Son and the Spirit; on the fifth bestowal to the will of the Infinite Spirit; on the sixth bestowal to the will of the Eternal Son; and during the seventh and final bestowal, on Urantia, to the will of the Universal Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">Michael, therefore, had a double purpose in the making of these seven bestowals upon the various orders of his <span class=urantia-dev-highlighted>universe</span> creatures: First, he was completing the required experience in creature understanding which is demanded of all Creator Sons before they assume complete sovereignty. At any time a Creator Son may rule his <span class=urantia-dev-highlighted>universe</span> in his own right, but he can rule as the supreme representative of the Paradise Trinity only after passing through the seven <span class=urantia-dev-highlighted>universe</span>-creature bestowals. Second, he was aspiring to the privilege of representing the maximum authority of the Paradise Trinity which can be exercised in the direct and personal administration of a local <span class=urantia-dev-highlighted>universe</span>. Accordingly, did Michael, during the experience of each of his <span class=urantia-dev-highlighted>universe</span> bestowals, successfully and acceptably voluntarily subordinate himself to the variously constituted wills of the diverse associations of the persons of the Paradise Trinity. That is, on the first bestowal he was subject to the combined will of the <span class=urantia-dev-highlighted>Father</span>, Son, and Spirit; on the second bestowal to the will of the <span class=urantia-dev-highlighted>Father</span> and the Son; on the third bestowal to the will of the <span class=urantia-dev-highlighted>Father</span> and the Spirit; on the fourth bestowal to the will of the Son and the Spirit; on the fifth bestowal to the will of the Infinite Spirit; on the sixth bestowal to the will of the Eternal Son; and during the seventh and final bestowal, on Urantia, to the will of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-4:120.0.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 88.3,
+            "fileSize": 1766400
+          }
+        }
+      },
+      "rank": 0.05907025,
+      "match": "near"
+    },
+    {
+      "id": "1:1.1.5",
+      "standardReferenceId": "1:1.5",
+      "sortId": "1.001.001.005",
+      "paperId": "1",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "The Father’s Name",
+      "paragraphId": "5",
+      "text": "On those worlds where a Paradise Son has lived a bestowal life, God is generally known by some name indicative of personal relationship, tender affection, and fatherly devotion. On your constellation headquarters God is referred to as the Universal Father, and on different planets in your local system of inhabited worlds he is variously known as the Father of Fathers, the Paradise Father, the Havona Father, and the Spirit Father. Those who know God through the revelations of the bestowals of the Paradise Sons, eventually yield to the sentimental appeal of the touching relationship of the creature-Creator association and refer to God as “our Father.”",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">On those worlds where a Paradise Son has lived a bestowal life, God is generally known by some name indicative of personal relationship, tender affection, and <span class=urantia-dev-highlighted>fatherly</span> devotion. On your constellation headquarters God is referred to as the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, and on different planets in your local system of inhabited worlds he is variously known as the <span class=urantia-dev-highlighted>Father</span> of <span class=urantia-dev-highlighted>Fathers</span>, the Paradise <span class=urantia-dev-highlighted>Father</span>, the Havona <span class=urantia-dev-highlighted>Father</span>, and the Spirit <span class=urantia-dev-highlighted>Father</span>. Those who know God through the revelations of the bestowals of the Paradise Sons, eventually yield to the sentimental appeal of the touching relationship of the creature-Creator association and refer to God as “our <span class=urantia-dev-highlighted>Father</span>.”</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.1.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 40.3,
+            "fileSize": 806880
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.1.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 41.1,
+            "fileSize": 822240
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.1.5.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 41,
+            "fileSize": 984336
+          }
+        }
+      },
+      "rank": 0.05121628,
+      "match": "near"
+    },
+    {
+      "id": "1:1.2.10",
+      "standardReferenceId": "1:2.10",
+      "sortId": "1.001.002.010",
+      "paperId": "1",
+      "sectionId": "2",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "The Reality of God",
+      "paragraphId": "10",
+      "text": "As a physical controller in the material universe of universes, the First Source and Center functions in the patterns of the eternal Isle of Paradise, and through this absolute gravity center the eternal God exercises cosmic overcontrol of the physical level equally in the central universe and throughout the universe of universes. As mind, God functions in the Deity of the Infinite Spirit; as spirit, God is manifest in the person of the Eternal Son and in the persons of the divine children of the Eternal Son. This interrelation of the First Source and Center with the co-ordinate Persons and Absolutes of Paradise does not in the least preclude the direct personal action of the Universal Father throughout all creation and on all levels thereof. Through the presence of his fragmentized spirit the Creator Father maintains immediate contact with his creature children and his created universes.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">As a physical controller in the material <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>, the First Source and Center functions in the patterns of the eternal Isle of Paradise, and through this absolute gravity center the eternal God exercises cosmic overcontrol of the physical level equally in the central <span class=urantia-dev-highlighted>universe</span> and throughout the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>. As mind, God functions in the Deity of the Infinite Spirit; as spirit, God is manifest in the person of the Eternal Son and in the persons of the divine children of the Eternal Son. This interrelation of the First Source and Center with the co-ordinate Persons and Absolutes of Paradise does not in the least preclude the <em>direct</em> personal action of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> throughout all creation and on all levels thereof. Through the presence of his fragmentized spirit the Creator <span class=urantia-dev-highlighted>Father</span> maintains immediate contact with his creature children and his created <span class=urantia-dev-highlighted>universes</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.2.10.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 55.5,
+            "fileSize": 1109280
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.2.10.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 56.7,
+            "fileSize": 1133760
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.2.10.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 51.9,
+            "fileSize": 1247024
+          }
+        }
+      },
+      "rank": 0.055965707,
+      "match": "near"
+    },
+    {
+      "id": "1:2.2.1",
+      "standardReferenceId": "2:2.1",
+      "sortId": "1.002.002.001",
+      "paperId": "2",
+      "sectionId": "2",
+      "partId": "1",
+      "paperTitle": "The Nature of God",
+      "sectionTitle": "The Father’s Eternal Perfection",
+      "paragraphId": "1",
+      "text": "Even your olden prophets understood the eternal, never-beginning, never-ending, circular nature of the Universal Father. God is literally and eternally present in his universe of universes. He inhabits the present moment with all his absolute majesty and eternal greatness. “The Father has life in himself, and this life is eternal life.” Throughout the eternal ages it has been the Father who “gives to all life.” There is infinite perfection in the divine integrity. “I am the Lord; I change not.” Our knowledge of the universe of universes discloses not only that he is the Father of lights, but also that in his conduct of interplanetary affairs there “is no variableness neither shadow of changing.” He “declares the end from the beginning.” He says: “My counsel shall stand; I will do all my pleasures” “according to the eternal purpose which I purposed in my Son.” Thus are the plans and purposes of the First Source and Center like himself: eternal, perfect, and forever changeless.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">Even your olden prophets understood the eternal, never-beginning, never-ending, circular nature of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. God is literally and eternally present in his <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>. He inhabits the present moment with all his absolute majesty and eternal greatness. “The <span class=urantia-dev-highlighted>Father</span> has life in himself, and this life is eternal life.” Throughout the eternal ages it has been the <span class=urantia-dev-highlighted>Father</span> who “gives to all life.” There is infinite perfection in the divine integrity. “I am the Lord; I change not.” Our knowledge of the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span> discloses not only that he is the <span class=urantia-dev-highlighted>Father</span> of lights, but also that in his conduct of interplanetary affairs there “is no variableness neither shadow of changing.” He “declares the end from the beginning.” He says: “My counsel shall stand; I will do all my pleasures” “according to the eternal purpose which I purposed in my Son.” Thus are the plans and purposes of the First Source and Center like himself: eternal, perfect, and forever changeless.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:2.2.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 61.1,
+            "fileSize": 1221600
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:2.2.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 61.6,
+            "fileSize": 1231200
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:2.2.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 59.6,
+            "fileSize": 1430717
+          }
+        }
+      },
+      "rank": 0.058507353,
+      "match": "near"
+    },
+    {
+      "id": "1:7.7.3",
+      "standardReferenceId": "7:7.3",
+      "sortId": "1.007.007.003",
+      "paperId": "7",
+      "sectionId": "7",
+      "partId": "1",
+      "paperTitle": "Relation of the Eternal Son to the Universe",
+      "sectionTitle": "The Supreme Revelation of the Father",
+      "paragraphId": "3",
+      "text": "The primal Son and his Sons are engaged in making a universal revelation of the spiritual and personal nature of the Father to all creation. In the central universe, the superuniverses, the local universes, or on the inhabited planets, it is a Paradise Son who reveals the Universal Father to men and angels. The Eternal Son and his Sons reveal the avenue of creature approach to the Universal Father. And even we of high origin understand the Father much more fully as we study the revelation of his character and personality in the Eternal Son and in the Sons of the Eternal Son.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The primal Son and his Sons are engaged in making a <span class=urantia-dev-highlighted>universal</span> revelation of the spiritual and personal nature of the <span class=urantia-dev-highlighted>Father</span> to all creation. In the central <span class=urantia-dev-highlighted>universe</span>, the superuniverses, the local <span class=urantia-dev-highlighted>universes</span>, or on the inhabited planets, it is a Paradise Son who reveals the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> to men and angels. The Eternal Son and his Sons reveal the avenue of creature approach to the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. And even we of high origin understand the <span class=urantia-dev-highlighted>Father</span> much more fully as we study the revelation of his character and personality in the Eternal Son and in the Sons of the Eternal Son.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:7.7.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 36.2,
+            "fileSize": 723360
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:7.7.3.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 36.8,
+            "fileSize": 884653
+          }
+        }
+      },
+      "rank": 0.058507353,
+      "match": "near"
+    },
+    {
+      "id": "2:32.3.6",
+      "standardReferenceId": "32:3.6",
+      "sortId": "2.032.003.006",
+      "paperId": "32",
+      "sectionId": "3",
+      "partId": "2",
+      "paperTitle": "The Evolution of Local Universes",
+      "sectionTitle": "The Evolutionary Idea",
+      "paragraphId": "6",
+      "text": "The farther down the scale of life we go, the more difficult it becomes to locate, with the eye of faith, the invisible Father. The lower creatures — and sometimes even the higher personalities — find it difficult always to envisage the Universal Father in his Creator Sons. And so, pending the time of their spiritual exaltation, when perfection of development will enable them to see God in person, they grow weary in progression, entertain spiritual doubts, stumble into confusion, and thus isolate themselves from the progressive spiritual aims of their time and universe. In this way they lose the ability to see the Father when beholding the Creator Son. The surest safeguard for the creature throughout the long struggle to attain the Father, during this time when inherent conditions make such attainment impossible, is tenaciously to hold on to the truth-fact of the Father’s presence in his Sons. Literally and figuratively, spiritually and personally, the Father and the Sons are one. It is a fact: He who has seen a Creator Son has seen the Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">The farther down the scale of life we go, the more difficult it becomes to locate, with the eye of faith, the invisible <span class=urantia-dev-highlighted>Father</span>. The lower creatures — and sometimes even the higher personalities — find it difficult always to envisage the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> in his Creator Sons. And so, pending the time of their spiritual exaltation, when perfection of development will enable them to see God in person, they grow weary in progression, entertain spiritual doubts, stumble into confusion, and thus isolate themselves from the progressive spiritual aims of their time and <span class=urantia-dev-highlighted>universe</span>. In this way they lose the ability to see the <span class=urantia-dev-highlighted>Father</span> when beholding the Creator Son. The surest safeguard for the creature throughout the long struggle to attain the <span class=urantia-dev-highlighted>Father</span>, during this time when inherent conditions make such attainment impossible, is tenaciously to hold on to the truth-fact of the <span class=urantia-dev-highlighted>Father</span>’s presence in his Sons. Literally and figuratively, spiritually and personally, the <span class=urantia-dev-highlighted>Father</span> and the Sons are one. It is a fact: He who has seen a Creator Son has seen the <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:32.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 65.6,
+            "fileSize": 1312320
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:32.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 65.6,
+            "fileSize": 1576167
+          }
+        }
+      },
+      "rank": 0.055965707,
+      "match": "near"
+    },
+    {
+      "id": "3:105.1.6",
+      "standardReferenceId": "105:1.6",
+      "sortId": "3.105.001.006",
+      "paperId": "105",
+      "sectionId": "1",
+      "partId": "3",
+      "paperTitle": "Deity and Reality",
+      "sectionTitle": "The Philosophic Concept of the I AM",
+      "paragraphId": "6",
+      "text": "Ever remember that man’s comprehension of the Universal Father is a personal experience. God, as your spiritual Father, is comprehensible to you and to all other mortals; but your experiential worshipful concept of the Universal Father must always be less than your philosophic postulate of the infinity of the First Source and Center, the I AM. When we speak of the Father, we mean God as he is understandable by his creatures both high and low, but there is much more of Deity which is not comprehensible to universe creatures. God, your Father and my Father, is that phase of the Infinite which we perceive in our personalities as an actual experiential reality, but the I AM ever remains as our hypothesis of all that we feel is unknowable of the First Source and Center. And even that hypothesis probably falls far short of the unfathomed infinity of original reality.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">Ever remember that man’s comprehension of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is a personal experience. God, as your spiritual <span class=urantia-dev-highlighted>Father</span>, is comprehensible to you and to all other mortals; but <em>your experiential worshipful concept of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> must always be less than your philosophic postulate of the infinity of the First Source and Center, the I AM.</em> When we speak of the <span class=urantia-dev-highlighted>Father</span>, we mean God as he is understandable by his creatures both high and low, but there is much more of Deity which is not comprehensible to <span class=urantia-dev-highlighted>universe</span> creatures. God, your <span class=urantia-dev-highlighted>Father</span> and my <span class=urantia-dev-highlighted>Father</span>, is that phase of the Infinite which we perceive in our personalities as an actual experiential reality, but the I AM ever remains as our hypothesis of all that we feel is unknowable of the First Source and Center. And even that hypothesis probably falls far short of the unfathomed infinity of original reality.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:105.1.6.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 54.8,
+            "fileSize": 1095840
+          }
+        }
+      },
+      "rank": 0.057803735,
+      "match": "near"
+    },
+    {
+      "id": "4:120.1.4",
+      "standardReferenceId": "120:1.4",
+      "sortId": "4.120.001.004",
+      "paperId": "120",
+      "sectionId": "1",
+      "partId": "4",
+      "paperTitle": "The Bestowal of Michael on Urantia",
+      "sectionTitle": "The Seventh Bestowal Commission",
+      "paragraphId": "4",
+      "text": "“Throughout your Urantia bestowal you need be concerned with but one thing, the unbroken communion between you and your Paradise Father; and it will be by the perfection of such a relationship that the world of your bestowal, even all the universe of your creation, will behold a new and more understandable revelation of your Father and my Father, the Universal Father of all. Your concern, therefore, has only to do with your personal life on Urantia. I will be fully and efficiently responsible for the security and unbroken administration of your universe from the moment of your voluntary relinquishment of authority until you return to us as Universe Sovereign, confirmed by Paradise, and receive back from my hands, not the vicegerent authority which you now surrender to me, but, instead, the supreme power over, and jurisdiction of, your universe.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">“Throughout your Urantia bestowal you need be concerned with but one thing, the unbroken communion between you and your Paradise <span class=urantia-dev-highlighted>Father</span>; and it will be by the perfection of such a relationship that the world of your bestowal, even all the <span class=urantia-dev-highlighted>universe</span> of your creation, will behold a new and more understandable revelation of your <span class=urantia-dev-highlighted>Father</span> and my <span class=urantia-dev-highlighted>Father</span>, the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> of all. Your concern, therefore, has only to do with your personal life on Urantia. I will be fully and efficiently responsible for the security and unbroken administration of your <span class=urantia-dev-highlighted>universe</span> from the moment of your voluntary relinquishment of authority until you return to us as <span class=urantia-dev-highlighted>Universe</span> Sovereign, confirmed by Paradise, and receive back from my hands, not the vicegerent authority which you now surrender to me, but, instead, the supreme power over, and jurisdiction of, your <span class=urantia-dev-highlighted>universe</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-4:120.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 52.9,
+            "fileSize": 1058880
+          }
+        }
+      },
+      "rank": 0.058507353,
+      "match": "near"
+    },
+    {
+      "id": "1:1.0.1",
+      "standardReferenceId": "1:0.1",
+      "sortId": "1.001.000.001",
+      "paperId": "1",
+      "sectionId": "0",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": null,
+      "paragraphId": "1",
+      "text": "THE Universal Father is the God of all creation, the First Source and Center of all things and beings. First think of God as a creator, then as a controller, and lastly as an infinite upholder. The truth about the Universal Father had begun to dawn upon mankind when the prophet said: “You, God, are alone; there is none beside you. You have created the heaven and the heaven of heavens, with all their hosts; you preserve and control them. By the Sons of God were the universes made. The Creator covers himself with light as with a garment and stretches out the heavens as a curtain.” Only the concept of the Universal Father — one God in the place of many gods — enabled mortal man to comprehend the Father as divine creator and infinite controller.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">THE <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is the God of all creation, the First Source and Center of all things and beings. First think of God as a creator, then as a controller, and lastly as an infinite upholder. The truth about the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> had begun to dawn upon mankind when the prophet said: “You, God, are alone; there is none beside you. You have created the heaven and the heaven of heavens, with all their hosts; you preserve and control them. By the Sons of God were the <span class=urantia-dev-highlighted>universes</span> made. The Creator covers himself with light as with a garment and stretches out the heavens as a curtain.” Only the concept of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> — one God in the place of many gods — enabled mortal man to comprehend the <span class=urantia-dev-highlighted>Father</span> as divine creator and infinite controller.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 45.6,
+            "fileSize": 912480
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 46.8,
+            "fileSize": 936960
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 46.2,
+            "fileSize": 1110351
+          }
+        }
+      },
+      "rank": 0.057696786,
+      "match": "near"
+    },
+    {
+      "id": "1:1.1.2",
+      "standardReferenceId": "1:1.2",
+      "sortId": "1.001.001.002",
+      "paperId": "1",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "The Father’s Name",
+      "paragraphId": "2",
+      "text": "The Universal Father never imposes any form of arbitrary recognition, formal worship, or slavish service upon the intelligent will creatures of the universes. The evolutionary inhabitants of the worlds of time and space must of themselves — in their own hearts — recognize, love, and voluntarily worship him. The Creator refuses to coerce or compel the submission of the spiritual free wills of his material creatures. The affectionate dedication of the human will to the doing of the Father’s will is man’s choicest gift to God; in fact, such a consecration of creature will constitutes man’s only possible gift of true value to the Paradise Father. In God, man lives, moves, and has his being; there is nothing which man can give to God except this choosing to abide by the Father’s will, and such decisions, effected by the intelligent will creatures of the universes, constitute the reality of that true worship which is so satisfying to the love-dominated nature of the Creator Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> never imposes any form of arbitrary recognition, formal worship, or slavish service upon the intelligent will creatures of the <span class=urantia-dev-highlighted>universes</span>. The evolutionary inhabitants of the worlds of time and space must of themselves — in their own hearts — recognize, love, and voluntarily worship him. The Creator refuses to coerce or compel the submission of the spiritual free wills of his material creatures. The affectionate dedication of the human will to the doing of the <span class=urantia-dev-highlighted>Father</span>’s will is man’s choicest gift to God; in fact, such a consecration of creature will constitutes man’s only possible gift of true value to the Paradise <span class=urantia-dev-highlighted>Father</span>. In God, man lives, moves, and has his being; there is nothing which man can give to God except this choosing to abide by the <span class=urantia-dev-highlighted>Father</span>’s will, and such decisions, effected by the intelligent will creatures of the <span class=urantia-dev-highlighted>universes</span>, constitute the reality of that true worship which is so satisfying to the love-dominated nature of the Creator <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.1.2.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 61.2,
+            "fileSize": 1224960
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.1.2.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 61.8,
+            "fileSize": 1235040
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.1.2.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 59.3,
+            "fileSize": 1423821
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "1:2.1.4",
+      "standardReferenceId": "2:1.4",
+      "sortId": "1.002.001.004",
+      "paperId": "2",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Nature of God",
+      "sectionTitle": "The Infinity of God",
+      "paragraphId": "4",
+      "text": "The Father constantly and unfailingly meets the need of the differential of demand for himself as it changes from time to time in various sections of his master universe. The great God knows and understands himself; he is infinitely self-conscious of all his primal attributes of perfection. God is not a cosmic accident; neither is he a universe experimenter. The Universe Sovereigns may engage in adventure; the Constellation Fathers may experiment; the system heads may practice; but the Universal Father sees the end from the beginning, and his divine plan and eternal purpose actually embrace and comprehend all the experiments and all the adventures of all his subordinates in every world, system, and constellation in every universe of his vast domains.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The <span class=urantia-dev-highlighted>Father</span> constantly and unfailingly meets the need of the differential of demand for himself as it changes from time to time in various sections of his master <span class=urantia-dev-highlighted>universe</span>. The great God knows and understands himself; he is infinitely self-conscious of all his primal attributes of perfection. God is not a cosmic accident; neither is he a <span class=urantia-dev-highlighted>universe</span> experimenter. The <span class=urantia-dev-highlighted>Universe</span> Sovereigns may engage in adventure; the Constellation <span class=urantia-dev-highlighted>Fathers</span> may experiment; the system heads may practice; but the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> sees the end from the beginning, and his divine plan and eternal purpose actually embrace and comprehend all the experiments and all the adventures of all his subordinates in every world, system, and constellation in every <span class=urantia-dev-highlighted>universe</span> of his vast domains.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:2.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 47.3,
+            "fileSize": 945600
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:2.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 47.9,
+            "fileSize": 957600
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:2.1.4.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 46.5,
+            "fileSize": 1116621
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "1:4.4.5",
+      "standardReferenceId": "4:4.5",
+      "sortId": "1.004.004.005",
+      "paperId": "4",
+      "sectionId": "4",
+      "partId": "1",
+      "paperTitle": "God’s Relation to the Universe",
+      "sectionTitle": "The Realization of God",
+      "paragraphId": "5",
+      "text": "God’s absoluteness pervades all seven levels of universe reality. And the whole of this absolute nature is subject to the relationship of the Creator to his universe creature family. Precision may characterize trinitarian justice in the universe of universes, but in all his vast family relationship with the creatures of time the God of universes is governed by divine sentiment. First and last—eternally—the infinite God is a Father. Of all the possible titles by which he might appropriately be known, I have been instructed to portray the God of all creation as the Universal Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">God’s absoluteness pervades all seven levels of <span class=urantia-dev-highlighted>universe</span> reality. And the whole of this absolute nature is subject to the relationship of the Creator to his <span class=urantia-dev-highlighted>universe</span> creature family. Precision may characterize trinitarian justice in the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>, but in all his vast family relationship with the creatures of time the God of <span class=urantia-dev-highlighted>universes</span> is governed by <em>divine sentiment.</em> First and last—eternally—the infinite God is a <em><span class=urantia-dev-highlighted>Father</span>.</em> Of all the possible titles by which he might appropriately be known, I have been instructed to portray the God of all creation as the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:4.4.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 36.6,
+            "fileSize": 732960
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:4.4.5.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 37.4,
+            "fileSize": 899073
+          }
+        }
+      },
+      "rank": 0.055552155,
+      "match": "near"
+    },
+    {
+      "id": "1:5.1.1",
+      "standardReferenceId": "5:1.1",
+      "sortId": "1.005.001.001",
+      "paperId": "5",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "God’s Relation to the Individual",
+      "sectionTitle": "The Approach to God",
+      "paragraphId": "1",
+      "text": "The inability of the finite creature to approach the infinite Father is inherent, not in the Father’s aloofness, but in the finiteness and material limitations of created beings. The magnitude of the spiritual difference between the highest personality of universe existence and the lower groups of created intelligences is inconceivable. Were it possible for the lower orders of intelligence to be transported instantly into the presence of the Father himself, they would not know they were there. They would there be just as oblivious of the presence of the Universal Father as where they now are. There is a long, long road ahead of mortal man before he can consistently and within the realms of possibility ask for safe conduct into the Paradise presence of the Universal Father. Spiritually, man must be translated many times before he can attain a plane that will yield the spiritual vision which will enable him to see even any one of the Seven Master Spirits.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The inability of the finite creature to approach the infinite <span class=urantia-dev-highlighted>Father</span> is inherent, not in the <span class=urantia-dev-highlighted>Father</span>’s aloofness, but in the finiteness and material limitations of created beings. The magnitude of the spiritual difference between the highest personality of <span class=urantia-dev-highlighted>universe</span> existence and the lower groups of created intelligences is inconceivable. Were it possible for the lower orders of intelligence to be transported instantly into the presence of the <span class=urantia-dev-highlighted>Father</span> himself, they would not know they were there. They would there be just as oblivious of the presence of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> as where they now are. There is a long, long road ahead of mortal man before he can consistently and within the realms of possibility ask for safe conduct into the Paradise presence of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. Spiritually, man must be translated many times before he can attain a plane that will yield the spiritual vision which will enable him to see even any one of the Seven Master Spirits.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:5.1.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 60.5,
+            "fileSize": 1210080
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:5.1.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 56.6,
+            "fileSize": 1359873
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "1:5.3.2",
+      "standardReferenceId": "5:3.2",
+      "sortId": "1.005.003.002",
+      "paperId": "5",
+      "sectionId": "3",
+      "partId": "1",
+      "paperTitle": "God’s Relation to the Individual",
+      "sectionTitle": "True Worship",
+      "paragraphId": "2",
+      "text": "Supplications of all kinds belong to the realm of the Eternal Son and the Son’s spiritual organization. Prayers, all formal communications, everything except adoration and worship of the Universal Father, are matters that concern a local universe; they do not ordinarily proceed out of the realm of the jurisdiction of a Creator Son. But worship is undoubtedly encircuited and dispatched to the person of the Creator by the function of the Father’s personality circuit. We further believe that such registry of the homage of an Adjuster-indwelt creature is facilitated by the Father’s spirit presence. There exists a tremendous amount of evidence to substantiate such a belief, and I know that all orders of Father fragments are empowered to register the bona fide adoration of their subjects acceptably in the presence of the Universal Father. The Adjusters undoubtedly also utilize direct prepersonal channels of communication with God, and they are likewise able to utilize the spirit-gravity circuits of the Eternal Son.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">Supplications of all kinds belong to the realm of the Eternal Son and the Son’s spiritual organization. Prayers, all formal communications, everything except adoration and worship of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, are matters that concern a local <span class=urantia-dev-highlighted>universe</span>; they do not ordinarily proceed out of the realm of the jurisdiction of a Creator Son. But worship is undoubtedly encircuited and dispatched to the person of the Creator by the function of the <span class=urantia-dev-highlighted>Father</span>’s personality circuit. We further believe that such registry of the homage of an Adjuster-indwelt creature is facilitated by the <span class=urantia-dev-highlighted>Father</span>’s spirit presence. There exists a tremendous amount of evidence to substantiate such a belief, and I know that all orders of <span class=urantia-dev-highlighted>Father</span> fragments are empowered to register the bona fide adoration of their subjects acceptably in the presence of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. The Adjusters undoubtedly also utilize direct prepersonal channels of communication with God, and they are likewise able to utilize the spirit-gravity circuits of the Eternal Son.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:5.3.2.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 62.9,
+            "fileSize": 1257600
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:5.3.2.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 60.6,
+            "fileSize": 1453914
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "1:6.3.4",
+      "standardReferenceId": "6:3.4",
+      "sortId": "1.006.003.004",
+      "paperId": "6",
+      "sectionId": "3",
+      "partId": "1",
+      "paperTitle": "The Eternal Son",
+      "sectionTitle": "Ministry of the Father’s Love",
+      "paragraphId": "4",
+      "text": "The ministry of the Eternal Son is devoted to the revelation of the God of love to the universe of universes. This divine Son is not engaged in the ignoble task of trying to persuade his gracious Father to love his lowly creatures and to show mercy to the wrongdoers of time. How wrong to envisage the Eternal Son as appealing to the Universal Father to show mercy to his lowly creatures on the material worlds of space! Such concepts of God are crude and grotesque. Rather should you realize that all the merciful ministrations of the Sons of God are a direct revelation of the Father’s heart of universal love and infinite compassion. The Father’s love is the real and eternal source of the Son’s mercy.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The ministry of the Eternal Son is devoted to the revelation of the God of love to the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>. This divine Son is not engaged in the ignoble task of trying to persuade his gracious <span class=urantia-dev-highlighted>Father</span> to love his lowly creatures and to show mercy to the wrongdoers of time. How wrong to envisage the Eternal Son as appealing to the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> to show mercy to his lowly creatures on the material worlds of space! Such concepts of God are crude and grotesque. Rather should you realize that all the merciful ministrations of the Sons of God are a direct revelation of the <span class=urantia-dev-highlighted>Father</span>’s heart of <span class=urantia-dev-highlighted>universal</span> love and infinite compassion. The <span class=urantia-dev-highlighted>Father</span>’s love is the real and eternal source of the Son’s mercy.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:6.3.4.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 44.6,
+            "fileSize": 892320
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:6.3.4.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 47.2,
+            "fileSize": 1132921
+          }
+        }
+      },
+      "rank": 0.057696786,
+      "match": "near"
+    },
+    {
+      "id": "1:15.0.1",
+      "standardReferenceId": "15:0.1",
+      "sortId": "1.015.000.001",
+      "paperId": "15",
+      "sectionId": "0",
+      "partId": "1",
+      "paperTitle": "The Seven Superuniverses",
+      "sectionTitle": null,
+      "paragraphId": "1",
+      "text": "AS FAR as the Universal Father is concerned — as a Father — the universes are virtually nonexistent; he deals with personalities; he is the Father of personalities. As far as the Eternal Son and the Infinite Spirit are concerned — as creator partners — the universes are localized and individual under the joint rule of the Creator Sons and the Creative Spirits. As far as the Paradise Trinity is concerned, outside Havona there are just seven inhabited universes, the seven superuniverses which hold jurisdiction over the circle of the first post-Havona space level. The Seven Master Spirits radiate their influence out from the central Isle, thus constituting the vast creation one gigantic wheel, the hub being the eternal Isle of Paradise, the seven spokes the radiations of the Seven Master Spirits, the rim the outer regions of the grand universe.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">AS FAR as the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is concerned — as a <span class=urantia-dev-highlighted>Father</span> — the <span class=urantia-dev-highlighted>universes</span> are virtually nonexistent; he deals with personalities; he is the <span class=urantia-dev-highlighted>Father</span> of personalities. As far as the Eternal Son and the Infinite Spirit are concerned — as creator partners — the <span class=urantia-dev-highlighted>universes</span> are localized and individual under the joint rule of the Creator Sons and the Creative Spirits. As far as the Paradise Trinity is concerned, outside Havona there are just seven inhabited <span class=urantia-dev-highlighted>universes</span>, the seven superuniverses which hold jurisdiction over the circle of the first post-Havona space level. The Seven Master Spirits radiate their influence out from the central Isle, thus constituting the vast creation one gigantic wheel, the hub being the eternal Isle of Paradise, the seven spokes the radiations of the Seven Master Spirits, the rim the outer regions of the grand <span class=urantia-dev-highlighted>universe</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:15.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 53.1,
+            "fileSize": 1061760
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:15.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 50.8,
+            "fileSize": 1220692
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "2:33.0.1",
+      "standardReferenceId": "33:0.1",
+      "sortId": "2.033.000.001",
+      "paperId": "33",
+      "sectionId": "0",
+      "partId": "2",
+      "paperTitle": "Administration of the Local Universe",
+      "sectionTitle": null,
+      "paragraphId": "1",
+      "text": "WHILE the Universal Father most certainly rules over his vast creation, he functions in a local universe administration through the person of the Creator Son. The Father does not otherwise personally function in the administrative affairs of a local universe. These matters are intrusted to the Creator Son and to the local universe Mother Spirit and to their manifold children. The plans, policies, and administrative acts of the local universe are formed and executed by this Son, who, in conjunction with his Spirit associate, delegates executive power to Gabriel and jurisdictional authority to the Constellation Fathers, System Sovereigns, and Planetary Princes.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">WHILE the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> most certainly rules over his vast creation, he functions in a local <span class=urantia-dev-highlighted>universe</span> administration through the person of the Creator Son. The <span class=urantia-dev-highlighted>Father</span> does not otherwise personally function in the administrative affairs of a local <span class=urantia-dev-highlighted>universe</span>. These matters are intrusted to the Creator Son and to the local <span class=urantia-dev-highlighted>universe</span> Mother Spirit and to their manifold children. The plans, policies, and administrative acts of the local <span class=urantia-dev-highlighted>universe</span> are formed and executed by this Son, who, in conjunction with his Spirit associate, delegates executive power to Gabriel and jurisdictional authority to the Constellation <span class=urantia-dev-highlighted>Fathers</span>, System Sovereigns, and Planetary Princes.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:33.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 41.5,
+            "fileSize": 830400
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:33.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 38.2,
+            "fileSize": 917254
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "3:105.2.11",
+      "standardReferenceId": "105:2.11",
+      "sortId": "3.105.002.011",
+      "paperId": "105",
+      "sectionId": "2",
+      "partId": "3",
+      "paperTitle": "Deity and Reality",
+      "sectionTitle": "The I AM as Triune and as Sevenfold",
+      "paragraphId": "11",
+      "text": "7. The Universal One of Infinity. I AM as I AM. This is the stasis or self-relationship of Infinity, the eternal fact of infinity-reality and the universal truth of reality-infinity. In so far as this relationship is discernible as personality, it is revealed to the universes in the divine Father of all personality—even of absolute personality. In so far as this relationship is impersonally expressible, it is contacted by the universe as the absolute coherence of pure energy and of pure spirit in the presence of the Universal Father. In so far as this relationship is conceivable as an absolute, it is revealed in the primacy of the First Source and Center; in him we all live and move and have our being, from the creatures of space to the citizens of Paradise; and this is just as true of the master universe as of the infinitesimal ultimaton, just as true of what is to be as of that which is and of what has been.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">7. <em>The <span class=urantia-dev-highlighted>Universal</span> One of Infinity.</em> I AM as I AM. This is the stasis or self-relationship of Infinity, the eternal fact of infinity-reality and the <span class=urantia-dev-highlighted>universal</span> truth of reality-infinity. In so far as this relationship is discernible as personality, it is revealed to the <span class=urantia-dev-highlighted>universes</span> in the divine <span class=urantia-dev-highlighted>Father</span> of all personality—even of absolute personality. In so far as this relationship is impersonally expressible, it is contacted by the <span class=urantia-dev-highlighted>universe</span> as the absolute coherence of pure energy and of pure spirit in the presence of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. In so far as this relationship is conceivable as an absolute, it is revealed in the primacy of the First Source and Center; in him we all live and move and have our being, from the creatures of space to the citizens of Paradise; and this is just as true of the master <span class=urantia-dev-highlighted>universe</span> as of the infinitesimal ultimaton, just as true of what is to be as of that which is and of what has been.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:105.2.11.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 58.5,
+            "fileSize": 1170720
+          }
+        }
+      },
+      "rank": 0.055552155,
+      "match": "near"
+    },
+    {
+      "id": "3:117.6.5",
+      "standardReferenceId": "117:6.5",
+      "sortId": "3.117.006.005",
+      "paperId": "117",
+      "sectionId": "6",
+      "partId": "3",
+      "paperTitle": "God the Supreme",
+      "sectionTitle": "The Quest for the Supreme",
+      "paragraphId": "5",
+      "text": "The morontia soul of an evolving mortal is really the son of the Adjuster action of the Universal Father and the child of the cosmic reaction of the Supreme Being, the Universal Mother. The mother influence dominates the human personality throughout the local universe childhood of the growing soul. The influence of the Deity parents becomes more equal after the Adjuster fusion and during the superuniverse career, but when the creatures of time begin the traversal of the central universe of eternity, the Father nature becomes increasingly manifest, attaining its height of finite manifestation upon the recognition of the Universal Father and the admission into the Corps of the Finality.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The morontia soul of an evolving mortal is really the son of the Adjuster action of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the child of the cosmic reaction of the Supreme Being, the <span class=urantia-dev-highlighted>Universal</span> Mother. The mother influence dominates the human personality throughout the local <span class=urantia-dev-highlighted>universe</span> childhood of the growing soul. The influence of the Deity parents becomes more equal after the Adjuster fusion and during the superuniverse career, but when the creatures of time begin the traversal of the central <span class=urantia-dev-highlighted>universe</span> of eternity, the <span class=urantia-dev-highlighted>Father</span> nature becomes increasingly manifest, attaining its height of finite manifestation upon the recognition of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the admission into the Corps of the Finality.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:117.6.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 43,
+            "fileSize": 859680
+          }
+        }
+      },
+      "rank": 0.05724084,
+      "match": "near"
+    },
+    {
+      "id": "1:1.3.6",
+      "standardReferenceId": "1:3.6",
+      "sortId": "1.001.003.006",
+      "paperId": "1",
+      "sectionId": "3",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "God is a Universal Spirit",
+      "paragraphId": "6",
+      "text": "In the universes God the Father is, in potential, the overcontroller of matter, mind, and spirit. Only by means of his far-flung personality circuit does God deal directly with the personalities of his vast creation of will creatures, but he is contactable (outside of Paradise) only in the presences of his fragmented entities, the will of God abroad in the universes. This Paradise spirit that indwells the minds of the mortals of time and there fosters the evolution of the immortal soul of the surviving creature is of the nature and divinity of the Universal Father. But the minds of such evolutionary creatures originate in the local universes and must gain divine perfection by achieving those experiential transformations of spiritual attainment which are the inevitable result of a creature’s choosing to do the will of the Father in heaven.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">In the <span class=urantia-dev-highlighted>universes</span> God the <span class=urantia-dev-highlighted>Father</span> is, in potential, the overcontroller of matter, mind, and spirit. Only by means of his far-flung personality circuit does God deal directly with the personalities of his vast creation of will creatures, but he is contactable (outside of Paradise) only in the presences of his fragmented entities, the will of God abroad in the <span class=urantia-dev-highlighted>universes</span>. This Paradise spirit that indwells the minds of the mortals of time and there fosters the evolution of the immortal soul of the surviving creature is of the nature and divinity of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. But the minds of such evolutionary creatures originate in the local <span class=urantia-dev-highlighted>universes</span> and must gain divine perfection by achieving those experiential transformations of spiritual attainment which are the inevitable result of a creature’s choosing to do the will of the <span class=urantia-dev-highlighted>Father</span> in heaven.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 53.1,
+            "fileSize": 1061280
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 53.2,
+            "fileSize": 1063680
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.3.6.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 53,
+            "fileSize": 1273355
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "1:5.6.1",
+      "standardReferenceId": "5:6.1",
+      "sortId": "1.005.006.001",
+      "paperId": "5",
+      "sectionId": "6",
+      "partId": "1",
+      "paperTitle": "God’s Relation to the Individual",
+      "sectionTitle": "The God of Personality",
+      "paragraphId": "1",
+      "text": "The Universal Father is the God of personalities. The domain of universe personality, from the lowest mortal and material creature of personality status to the highest persons of creator dignity and divine status, has its center and circumference in the Universal Father. God the Father is the bestower and the conservator of every personality. And the Paradise Father is likewise the destiny of all those finite personalities who wholeheartedly choose to do the divine will, those who love God and long to be like him.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">The <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is the God of personalities. The domain of <span class=urantia-dev-highlighted>universe</span> personality, from the lowest mortal and material creature of personality status to the highest persons of creator dignity and divine status, has its center and circumference in the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. God the <span class=urantia-dev-highlighted>Father</span> is the bestower and the conservator of every personality. And the Paradise <span class=urantia-dev-highlighted>Father</span> is likewise the destiny of all those finite personalities who wholeheartedly choose to do the divine will, those who love God and long to be like him.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:5.6.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 32.3,
+            "fileSize": 646560
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:5.6.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 30.8,
+            "fileSize": 739830
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "1:6.3.1",
+      "standardReferenceId": "6:3.1",
+      "sortId": "1.006.003.001",
+      "paperId": "6",
+      "sectionId": "3",
+      "partId": "1",
+      "paperTitle": "The Eternal Son",
+      "sectionTitle": "Ministry of the Father’s Love",
+      "paragraphId": "1",
+      "text": "The Son shares the justice and righteousness of the Trinity but overshadows these divinity traits by the infinite personalization of the Father’s love and mercy; the Son is the revelation of divine love to the universes. As God is love, so the Son is mercy. The Son cannot love more than the Father, but he can show mercy to creatures in one additional way, for he not only is a primal creator like the Father, but he is also the Eternal Son of that same Father, thereby sharing in the sonship experience of all other sons of the Universal Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The Son shares the justice and righteousness of the Trinity but overshadows these divinity traits by the infinite personalization of the <span class=urantia-dev-highlighted>Father</span>’s love and mercy; the Son is the revelation of divine love to the <span class=urantia-dev-highlighted>universes</span>. As God is love, so the Son is mercy. The Son cannot love more than the <span class=urantia-dev-highlighted>Father</span>, but he can show mercy to creatures in one additional way, for he not only is a primal creator like the <span class=urantia-dev-highlighted>Father</span>, but he is also the Eternal Son of that same <span class=urantia-dev-highlighted>Father</span>, thereby sharing in the sonship experience of all other sons of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:6.3.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 34.1,
+            "fileSize": 681120
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:6.3.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 37.5,
+            "fileSize": 900327
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "1:6.7.1",
+      "standardReferenceId": "6:7.1",
+      "sortId": "1.006.007.001",
+      "paperId": "6",
+      "sectionId": "7",
+      "partId": "1",
+      "paperTitle": "The Eternal Son",
+      "sectionTitle": "Personality of the Eternal Son",
+      "paragraphId": "1",
+      "text": "The Eternal Son is that infinite personality from whose unqualified personality fetters the Universal Father escaped by the technique of trinitization, and by virtue of which he has ever since continued to bestow himself in endless profusion upon his ever-expanding universe of Creators and creatures. The Son is absolute personality; God is father personality—the source of personality, the bestower of personality, the cause of personality. Every personal being derives personality from the Universal Father just as the Original Son eternally derives his personality from the Paradise Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The Eternal Son is that infinite personality from whose unqualified personality fetters the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> escaped by the technique of trinitization, and by virtue of which he has ever since continued to bestow himself in endless profusion upon his ever-expanding <span class=urantia-dev-highlighted>universe</span> of Creators and creatures. The Son is <em>absolute personality;</em> God is <em><span class=urantia-dev-highlighted>father</span> personality—</em>the source of personality, the bestower of personality, the cause of personality. Every personal being derives personality from the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> just as the Original Son eternally derives his personality from the Paradise <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:6.7.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 37.4,
+            "fileSize": 747360
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:6.7.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 38.1,
+            "fileSize": 916000
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "1:6.8.3",
+      "standardReferenceId": "6:8.3",
+      "sortId": "1.006.008.003",
+      "paperId": "6",
+      "sectionId": "8",
+      "partId": "1",
+      "paperTitle": "The Eternal Son",
+      "sectionTitle": "Realization of the Eternal Son",
+      "paragraphId": "3",
+      "text": "As persons you may conceive of the Universal Father and the Eternal Son as separate individuals, for they indeed are; but in the administration of the universes they are so intertwined and interrelated that it is not always possible to distinguish between them. When, in the affairs of the universes, the Father and the Son are encountered in confusing interassociations, it is not always profitable to attempt to segregate their operations; merely recall that God is the initiating thought and the Son is the expressionful word. In each local universe this inseparability is personalized in the divinity of the Creator Son, who stands for both Father and Son to the creatures of ten million inhabited worlds.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">As persons you may conceive of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the Eternal Son as separate individuals, for they indeed are; but in the administration of the <span class=urantia-dev-highlighted>universes</span> they are so intertwined and interrelated that it is not always possible to distinguish between them. When, in the affairs of the <span class=urantia-dev-highlighted>universes</span>, the <span class=urantia-dev-highlighted>Father</span> and the Son are encountered in confusing interassociations, it is not always profitable to attempt to segregate their operations; merely recall that God is the initiating thought and the Son is the expressionful word. In each local <span class=urantia-dev-highlighted>universe</span> this inseparability is personalized in the divinity of the Creator Son, who stands for both <span class=urantia-dev-highlighted>Father</span> and Son to the creatures of ten million inhabited worlds.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:6.8.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 44.3,
+            "fileSize": 885120
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:6.8.3.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 43.7,
+            "fileSize": 1048284
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "1:10.3.5",
+      "standardReferenceId": "10:3.5",
+      "sortId": "1.010.003.005",
+      "paperId": "10",
+      "sectionId": "3",
+      "partId": "1",
+      "paperTitle": "The Paradise Trinity",
+      "sectionTitle": "The Three Persons of Deity",
+      "paragraphId": "5",
+      "text": "The Universal Father, prior to his self-willed divestment of the personality, powers, and attributes which constitute the Son and the Spirit, seems to have been (philosophically considered) an unqualified, absolute, and infinite Deity. But such a theoretical First Source and Center without a Son could not in any sense of the word be considered the Universal Father; fatherhood is not real without sonship. Furthermore, the Father, to have been absolute in a total sense, must have existed at some eternally distant moment alone. But he never had such a solitary existence; the Son and the Spirit are both coeternal with the Father. The First Source and Center has always been, and will forever be, the eternal Father of the Original Son and, with the Son, the eternal progenitor of the Infinite Spirit.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, prior to his self-willed divestment of the personality, powers, and attributes which constitute the Son and the Spirit, seems to have been (philosophically considered) an unqualified, absolute, and infinite Deity. But such a theoretical First Source and Center without a Son could not in any sense of the word be considered the <em><span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>;</em> fatherhood is not real without sonship. Furthermore, the <span class=urantia-dev-highlighted>Father</span>, to have been absolute in a total sense, must have existed at some eternally distant moment alone. But he never had such a solitary existence; the Son and the Spirit are both coeternal with the <span class=urantia-dev-highlighted>Father</span>. The First Source and Center has always been, and will forever be, the eternal <span class=urantia-dev-highlighted>Father</span> of the Original Son and, with the Son, the eternal progenitor of the Infinite Spirit.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:10.3.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 48.9,
+            "fileSize": 977760
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:10.3.5.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 48.7,
+            "fileSize": 1170537
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "1:11.0.1",
+      "standardReferenceId": "11:0.1",
+      "sortId": "1.011.000.001",
+      "paperId": "11",
+      "sectionId": "0",
+      "partId": "1",
+      "paperTitle": "The Eternal Isle of Paradise",
+      "sectionTitle": null,
+      "paragraphId": "1",
+      "text": "PARADISE is the eternal center of the universe of universes and the abiding place of the Universal Father, the Eternal Son, the Infinite Spirit, and their divine co-ordinates and associates. This central Isle is the most gigantic organized body of cosmic reality in all the master universe. Paradise is a material sphere as well as a spiritual abode. All of the intelligent creation of the Universal Father is domiciled on material abodes; hence must the absolute controlling center also be material, literal. And again it should be reiterated that spirit things and spiritual beings are real.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">PARADISE is the eternal center of the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span> and the abiding place of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, the Eternal Son, the Infinite Spirit, and their divine co-ordinates and associates. This central Isle is the most gigantic organized body of cosmic reality in all the master <span class=urantia-dev-highlighted>universe</span>. Paradise is a material sphere as well as a spiritual abode. All of the intelligent creation of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is domiciled on material abodes; hence must the absolute controlling center also be material, literal. And again it should be reiterated that spirit things and spiritual beings are <em>real.</em></span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:11.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 37,
+            "fileSize": 740640
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:11.0.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 37.1,
+            "fileSize": 892176
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "1:11.1.3",
+      "standardReferenceId": "11:1.3",
+      "sortId": "1.011.001.003",
+      "paperId": "11",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Eternal Isle of Paradise",
+      "sectionTitle": "The Divine Residence",
+      "paragraphId": "3",
+      "text": "We all know the direct course to pursue to find the Universal Father. You are not able to comprehend much about the divine residence because of its remoteness from you and the immensity of the intervening space, but those who are able to comprehend the meaning of these enormous distances know God’s location and residence just as certainly and literally as you know the location of New York, London, Rome, or Singapore, cities definitely and geographically located on Urantia. If you were an intelligent navigator, equipped with ship, maps, and compass, you could readily find these cities. Likewise, if you had the time and means of passage, were spiritually qualified, and had the necessary guidance, you could be piloted through universe upon universe and from circuit to circuit, ever journeying inward through the starry realms, until at last you would stand before the central shining of the spiritual glory of the Universal Father. Provided with all the necessities for the journey, it is just as possible to find the personal presence of God at the center of all things as to find distant cities on your own planet. That you have not visited these places in no way disproves their reality or actual existence. That so few of the universe creatures have found God on Paradise in no way disproves either the reality of his existence or the actuality of his spiritual person at the center of all things.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">We all know the direct course to pursue to find the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. You are not able to comprehend much about the divine residence because of its remoteness from you and the immensity of the intervening space, but those who are able to comprehend the meaning of these enormous distances know God’s location and residence just as certainly and literally as you know the location of New York, London, Rome, or Singapore, cities definitely and geographically located on Urantia. If you were an intelligent navigator, equipped with ship, maps, and compass, you could readily find these cities. Likewise, if you had the time and means of passage, were spiritually qualified, and had the necessary guidance, you could be piloted through <span class=urantia-dev-highlighted>universe</span> upon <span class=urantia-dev-highlighted>universe</span> and from circuit to circuit, ever journeying inward through the starry realms, until at last you would stand before the central shining of the spiritual glory of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. Provided with all the necessities for the journey, it is just as possible to find the personal presence of God at the center of all things as to find distant cities on your own planet. That you have not visited these places in no way disproves their reality or actual existence. That so few of the <span class=urantia-dev-highlighted>universe</span> creatures have found God on Paradise in no way disproves either the reality of his existence or the actuality of his spiritual person at the center of all things.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:11.1.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 86.4,
+            "fileSize": 1728000
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:11.1.3.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 83.3,
+            "fileSize": 2000604
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "1:12.7.9",
+      "standardReferenceId": "12:7.9",
+      "sortId": "1.012.007.009",
+      "paperId": "12",
+      "sectionId": "7",
+      "partId": "1",
+      "paperTitle": "The Universe of Universes",
+      "sectionTitle": "The Part and the Whole",
+      "paragraphId": "9",
+      "text": "The love of the Father absolutely individualizes each personality as a unique child of the Universal Father, a child without duplicate in infinity, a will creature irreplaceable in all eternity. The Father’s love glorifies each child of God, illuminating each member of the celestial family, sharply silhouetting the unique nature of each personal being against the impersonal levels that lie outside the fraternal circuit of the Father of all. The love of God strikingly portrays the transcendent value of each will creature, unmistakably reveals the high value which the Universal Father has placed upon each and every one of his children from the highest creator personality of Paradise status to the lowest personality of will dignity among the savage tribes of men in the dawn of the human species on some evolutionary world of time and space.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The love of the <span class=urantia-dev-highlighted>Father</span> absolutely individualizes each personality as a unique child of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, a child without duplicate in infinity, a will creature irreplaceable in all eternity. The <span class=urantia-dev-highlighted>Father</span>’s love glorifies each child of God, illuminating each member of the celestial family, sharply silhouetting the unique nature of each personal being against the impersonal levels that lie outside the fraternal circuit of the <span class=urantia-dev-highlighted>Father</span> of all. The love of God strikingly portrays the transcendent value of each will creature, unmistakably reveals the high value which the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> has placed upon each and every one of his children from the highest creator personality of Paradise status to the lowest personality of will dignity among the savage tribes of men in the dawn of the human species on some evolutionary world of time and space.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:12.7.9.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 52.3,
+            "fileSize": 1045920
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:12.7.9.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 50.3,
+            "fileSize": 1208781
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "1:21.1.3",
+      "standardReferenceId": "21:1.3",
+      "sortId": "1.021.001.003",
+      "paperId": "21",
+      "sectionId": "1",
+      "partId": "1",
+      "paperTitle": "The Paradise Creator Sons",
+      "sectionTitle": "Origin and Nature of Creator Sons",
+      "paragraphId": "3",
+      "text": "The divine natures of these Creator Sons are, in principle, derived equally from the attributes of both Paradise parents. All partake of the fullness of the divine nature of the Universal Father and of the creative prerogatives of the Eternal Son, but as we observe the practical outworking of the Michael functions in the universes, we discern apparent differences. Some Creator Sons appear to be more like God the Father; others more like God the Son. For example: The trend of administration in the universe of Nebadon suggests that its Creator and ruling Son is one whose nature and character more resemble that of the Eternal Mother Son. It should be further stated that some universes are presided over by Paradise Michaels who appear equally to resemble God the Father and God the Son. And these observations are in no sense implied criticisms; they are simply a recording of fact.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The divine natures of these Creator Sons are, in principle, derived equally from the attributes of both Paradise parents. All partake of the fullness of the divine nature of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and of the creative prerogatives of the Eternal Son, but as we observe the practical outworking of the Michael functions in the <span class=urantia-dev-highlighted>universes</span>, we discern apparent differences. Some Creator Sons appear to be more like God the <span class=urantia-dev-highlighted>Father</span>; others more like God the Son. For example: The trend of administration in the <span class=urantia-dev-highlighted>universe</span> of Nebadon suggests that its Creator and ruling Son is one whose nature and character more resemble that of the Eternal Mother Son. It should be further stated that some <span class=urantia-dev-highlighted>universes</span> are presided over by Paradise Michaels who appear equally to resemble God the <span class=urantia-dev-highlighted>Father</span> and God the Son. And these observations are in no sense implied criticisms; they are simply a recording of fact.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:21.1.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 55.5,
+            "fileSize": 1110720
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:21.1.3.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 54.8,
+            "fileSize": 1316614
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "2:32.4.3",
+      "standardReferenceId": "32:4.3",
+      "sortId": "2.032.004.003",
+      "paperId": "32",
+      "sectionId": "4",
+      "partId": "2",
+      "paperTitle": "The Evolution of Local Universes",
+      "sectionTitle": "God’s Relation to a Local Universe",
+      "paragraphId": "3",
+      "text": "As regards the policies, conduct, and administration of a local universe, the Universal Father acts in the person of his Creator Son. In the interrelationships of the Sons of God, in the group associations of the personalities of origin in the Third Source and Center, or in the relationship between any other creatures, such as human beings — as concerns such associations the Universal Father never intervenes. The law of the Creator Son, the rule of the Constellation Fathers, the System Sovereigns, and the Planetary Princes — the ordained policies and procedures for that universe — always prevail. There is no division of authority; never is there a cross working of divine power and purpose. The Deities are in perfect and eternal unanimity.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">As regards the policies, conduct, and administration of a local <span class=urantia-dev-highlighted>universe</span>, the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> acts in the person of his Creator Son. In the interrelationships of the Sons of God, in the group associations of the personalities of origin in the Third Source and Center, or in the relationship between any other creatures, such as human beings — as concerns such associations the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> never intervenes. The law of the Creator Son, the rule of the Constellation <span class=urantia-dev-highlighted>Fathers</span>, the System Sovereigns, and the Planetary Princes — the ordained policies and procedures for that <span class=urantia-dev-highlighted>universe</span> — always prevail. There is no division of authority; never is there a cross working of divine power and purpose. The Deities are in perfect and eternal unanimity.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:32.4.3.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 46.1,
+            "fileSize": 921120
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:32.4.3.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 44.4,
+            "fileSize": 1067092
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "2:32.4.8",
+      "standardReferenceId": "32:4.8",
+      "sortId": "2.032.004.008",
+      "paperId": "32",
+      "sectionId": "4",
+      "partId": "2",
+      "paperTitle": "The Evolution of Local Universes",
+      "sectionTitle": "God’s Relation to a Local Universe",
+      "paragraphId": "8",
+      "text": "We can see and understand the mechanism whereby the Sons enjoy intimate and complete knowledge regarding the universes of their jurisdiction; but we cannot fully comprehend the methods whereby God is so fully and personally conversant with the details of the universe of universes, although we at least can recognize the avenue whereby the Universal Father can receive information regarding, and manifest his presence to, the beings of his immense creation. Through the personality circuit the Father is cognizant — has personal knowledge — of all the thoughts and acts of all the beings in all the systems of all the universes of all creation. Though we cannot fully grasp this technique of God’s communion with his children, we can be strengthened in the assurance that the “Lord knows his children,” and that of each one of us “he takes note where we were born.”",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">We can see and understand the mechanism whereby the Sons enjoy intimate and complete knowledge regarding the <span class=urantia-dev-highlighted>universes</span> of their jurisdiction; but we cannot fully comprehend the methods whereby God is so fully and personally conversant with the details of the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span>, although we at least can recognize the avenue whereby the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> can receive information regarding, and manifest his presence to, the beings of his immense creation. Through the personality circuit the <span class=urantia-dev-highlighted>Father</span> is cognizant — has personal knowledge — of all the thoughts and acts of all the beings in all the systems of all the <span class=urantia-dev-highlighted>universes</span> of all creation. Though we cannot fully grasp this technique of God’s communion with his children, we can be strengthened in the assurance that the “Lord knows his children,” and that of each one of us “he takes note where we were born.”</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:32.4.8.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 53.8,
+            "fileSize": 1076160
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:32.4.8.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 48.3,
+            "fileSize": 1159879
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "2:33.1.2",
+      "standardReferenceId": "33:1.2",
+      "sortId": "2.033.001.002",
+      "paperId": "33",
+      "sectionId": "1",
+      "partId": "2",
+      "paperTitle": "Administration of the Local Universe",
+      "sectionTitle": "Michael of Nebadon",
+      "paragraphId": "2",
+      "text": "Our Creator Son is not the Eternal Son, the existential Paradise associate of the Universal Father and the Infinite Spirit. Michael of Nebadon is not a member of the Paradise Trinity. Nevertheless our Master Son possesses in his realm all of the divine attributes and powers that the Eternal Son himself would manifest were he actually to be present on Salvington and functioning in Nebadon. Michael possesses even additional power and authority, for he not only personifies the Eternal Son but also fully represents and actually embodies the personality presence of the Universal Father to and in this local universe. He even represents the Father-Son. These relationships constitute a Creator Son the most powerful, versatile, and influential of all divine beings who are capable of direct administration of evolutionary universes and of personality contact with immature creature beings.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">Our Creator Son is not the Eternal Son, the existential Paradise associate of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the Infinite Spirit. Michael of Nebadon is not a member of the Paradise Trinity. Nevertheless our Master Son possesses in his realm all of the divine attributes and powers that the Eternal Son himself would manifest were he actually to be present on Salvington and functioning in Nebadon. Michael possesses even additional power and authority, for he not only personifies the Eternal Son but also fully represents and actually embodies the personality presence of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> to and in this local <span class=urantia-dev-highlighted>universe</span>. He even represents the <span class=urantia-dev-highlighted>Father</span>-Son. These relationships constitute a Creator Son the most powerful, versatile, and influential of all divine beings who are capable of direct administration of evolutionary <span class=urantia-dev-highlighted>universes</span> and of personality contact with immature creature beings.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:33.1.2.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 56.1,
+            "fileSize": 1122240
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-2:33.1.2.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 59.5,
+            "fileSize": 1428209
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "2:56.9.5",
+      "standardReferenceId": "56:9.5",
+      "sortId": "2.056.009.005",
+      "paperId": "56",
+      "sectionId": "9",
+      "partId": "2",
+      "paperTitle": "Universal Unity",
+      "sectionTitle": "Universal Absolute Unity",
+      "paragraphId": "5",
+      "text": "As creature minds may view this problem, they are led to the final postulate of the Universal I AM as the primal cause and the unqualified source of both the Trinity and the Absolute. When, therefore, we crave to entertain a personal concept of the Absolute, we revert to our ideas and ideals of the Paradise Father. When we desire to facilitate comprehension or to augment consciousness of this otherwise impersonal Absolute, we revert to the fact that the Universal Father is the existential Father of absolute personality; the Eternal Son is the Absolute Person, though not, in the experiential sense, the personalization of the Absolute. And then we go on to envisage the experiential Trinities as culminating in the experiential personalization of the Deity Absolute, while conceiving the Universal Absolute as constituting the universe and the extrauniverse phenomena of the manifest presence of the impersonal activities of the unified and co-ordinated Deity associations of supremacy, ultimacy, and infinity — the Trinity of Trinities.",
+      "htmlText": "<span class=\"urantia-dev-pb-2\">As creature minds may view this problem, they are led to the final postulate of the <span class=urantia-dev-highlighted>Universal</span> I AM as the primal cause and the unqualified source of both the Trinity and the Absolute. When, therefore, we crave to entertain a personal concept of the Absolute, we revert to our ideas and ideals of the Paradise <span class=urantia-dev-highlighted>Father</span>. When we desire to facilitate comprehension or to augment consciousness of this otherwise impersonal Absolute, we revert to the fact that the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is the existential <span class=urantia-dev-highlighted>Father</span> of absolute personality; the Eternal Son is the Absolute Person, though not, in the experiential sense, the personalization of the Absolute. And then we go on to envisage the experiential Trinities as culminating in the experiential personalization of the Deity Absolute, while conceiving the <span class=urantia-dev-highlighted>Universal</span> Absolute as constituting the <span class=urantia-dev-highlighted>universe</span> and the extrauniverse phenomena of the manifest presence of the impersonal activities of the unified and co-ordinated Deity associations of supremacy, ultimacy, and infinity — the Trinity of Trinities.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-2:56.9.5.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 64.8,
+            "fileSize": 1295040
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "3:102.7.1",
+      "standardReferenceId": "102:7.1",
+      "sortId": "3.102.007.001",
+      "paperId": "102",
+      "sectionId": "7",
+      "partId": "3",
+      "paperTitle": "The Foundations of Religious Faith",
+      "sectionTitle": "The Certitude of the Divine",
+      "paragraphId": "1",
+      "text": "The Universal Father, being self-existent, is also self-explanatory; he actually lives in every rational mortal. But you cannot be sure about God unless you know him; sonship is the only experience which makes fatherhood certain. The universe is everywhere undergoing change. A changing universe is a dependent universe; such a creation cannot be either final or absolute. A finite universe is wholly dependent on the Ultimate and the Absolute. The universe and God are not identical; one is cause, the other effect. The cause is absolute, infinite, eternal, and changeless; the effect, time-space and transcendental but ever changing, always growing.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>, being self-existent, is also self-explanatory; he actually lives in every rational mortal. But you cannot be sure about God unless you know him; sonship is the only experience which makes fatherhood certain. The <span class=urantia-dev-highlighted>universe</span> is everywhere undergoing change. A changing <span class=urantia-dev-highlighted>universe</span> is a dependent <span class=urantia-dev-highlighted>universe</span>; such a creation cannot be either final or absolute. A finite <span class=urantia-dev-highlighted>universe</span> is wholly dependent on the Ultimate and the Absolute. The <span class=urantia-dev-highlighted>universe</span> and God are not identical; one is cause, the other effect. The cause is absolute, infinite, eternal, and changeless; the effect, time-space and transcendental but ever changing, always growing.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:102.7.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 39.6,
+            "fileSize": 792960
+          }
+        }
+      },
+      "rank": 0.0504861,
+      "match": "near"
+    },
+    {
+      "id": "3:104.4.1",
+      "standardReferenceId": "104:4.1",
+      "sortId": "3.104.004.001",
+      "paperId": "104",
+      "sectionId": "4",
+      "partId": "3",
+      "paperTitle": "Growth of the Trinity Concept",
+      "sectionTitle": "The Seven Triunities",
+      "paragraphId": "1",
+      "text": "In attempting the description of seven triunities, attention is directed to the fact that the Universal Father is the primal member of each. He is, was, and ever will be: the First Universal Father-Source, Absolute Center, Primal Cause, Universal Controller, Limitless Energizer, Original Unity, Unqualified Upholder, First Person of Deity, Primal Cosmic Pattern, and Essence of Infinity. The Universal Father is the personal cause of the Absolutes; he is the absolute of Absolutes.",
+      "htmlText": "<span class=\"urantia-dev-pb-2\">In attempting the description of seven triunities, attention is directed to the fact that the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is the primal member of each. He is, was, and ever will be: the First <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>-Source, Absolute Center, Primal Cause, <span class=urantia-dev-highlighted>Universal</span> Controller, Limitless Energizer, Original Unity, Unqualified Upholder, First Person of Deity, Primal Cosmic Pattern, and Essence of Infinity. The <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> is the personal cause of the Absolutes; he is the absolute of Absolutes.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:104.4.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 29.4,
+            "fileSize": 587040
+          }
+        }
+      },
+      "rank": 0.05643027,
+      "match": "near"
+    },
+    {
+      "id": "3:112.7.8",
+      "standardReferenceId": "112:7.8",
+      "sortId": "3.112.007.008",
+      "paperId": "112",
+      "sectionId": "7",
+      "partId": "3",
+      "paperTitle": "Personality Survival",
+      "sectionTitle": "Adjuster Fusion",
+      "paragraphId": "8",
+      "text": "But the fused individual is really one personality, one being, whose unity defies all attempts at analysis by any intelligence of the universes. And so, having passed the tribunals of the local universe from the lowest to the highest, none of which have been able to identify man or Adjuster, the one apart from the other, you shall finally be taken before the Sovereign of Nebadon, your local universe Father. And there, at the hand of the very being whose creative fatherhood in this universe of time has made possible the fact of your life, you will be granted those credentials which entitle you eventually to proceed upon your superuniverse career in quest of the Universal Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">But the fused individual is really one personality, one being, whose unity defies all attempts at analysis by any intelligence of the <span class=urantia-dev-highlighted>universes</span>. And so, having passed the tribunals of the local <span class=urantia-dev-highlighted>universe</span> from the lowest to the highest, none of which have been able to identify man or Adjuster, the one apart from the other, you shall finally be taken before the Sovereign of Nebadon, your local <span class=urantia-dev-highlighted>universe</span> <span class=urantia-dev-highlighted>Father</span>. And there, at the hand of the very being whose creative fatherhood in this <span class=urantia-dev-highlighted>universe</span> of time has made possible the fact of your life, you will be granted those credentials which entitle you eventually to proceed upon your superuniverse career in quest of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:112.7.8.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 42.8,
+            "fileSize": 855840
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "3:119.8.1",
+      "standardReferenceId": "119:8.1",
+      "sortId": "3.119.008.001",
+      "paperId": "119",
+      "sectionId": "8",
+      "partId": "3",
+      "paperTitle": "The Bestowals of Christ Michael",
+      "sectionTitle": "Michael’s Postbestowal Status",
+      "paragraphId": "1",
+      "text": "After Michael’s final and successful bestowal on Urantia he was not only accepted by the Ancients of Days as sovereign ruler of Nebadon, but he was also recognized by the Universal Father as the established director of the local universe of his own creation. Upon his return to Salvington this Michael, the Son of Man and the Son of God, was proclaimed the settled ruler of Nebadon. From Uversa came the eighth proclamation of Michael’s sovereignty, while from Paradise came the joint pronouncement of the Universal Father and the Eternal Son constituting this union of God and man sole head of the universe and directing the Union of Days stationed on Salvington to signify his intention of withdrawing to Paradise. The Faithfuls of Days on the constellation headquarters were also instructed to retire from the councils of the Most Highs. But Michael would not consent to the withdrawal of the Trinity Sons of counsel and co-operation. He assembled them on Salvington and personally requested them forever to remain on duty in Nebadon. They signified their desire to comply with this request to their directors on Paradise, and shortly thereafter there were issued those mandates of Paradise divorcement which forever attached these Sons of the central universe to the court of Michael of Nebadon.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">After Michael’s final and successful bestowal on Urantia he was not only accepted by the Ancients of Days as sovereign ruler of Nebadon, but he was also recognized by the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> as the established director of the local <span class=urantia-dev-highlighted>universe</span> of his own creation. Upon his return to Salvington this Michael, the Son of Man and the Son of God, was proclaimed the settled ruler of Nebadon. From Uversa came the eighth proclamation of Michael’s sovereignty, while from Paradise came the joint pronouncement of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the Eternal Son constituting this union of God and man sole head of the <span class=urantia-dev-highlighted>universe</span> and directing the Union of Days stationed on Salvington to signify his intention of withdrawing to Paradise. The Faithfuls of Days on the constellation headquarters were also instructed to retire from the councils of the Most Highs. But Michael would not consent to the withdrawal of the Trinity Sons of counsel and co-operation. He assembled them on Salvington and personally requested them forever to remain on duty in Nebadon. They signified their desire to comply with this request to their directors on Paradise, and shortly thereafter there were issued those mandates of Paradise divorcement which forever attached these Sons of the central <span class=urantia-dev-highlighted>universe</span> to the court of Michael of Nebadon.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-3:119.8.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 81.9,
+            "fileSize": 1637760
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "4:196.3.35",
+      "standardReferenceId": "196:3.35",
+      "sortId": "4.196.003.035",
+      "paperId": "196",
+      "sectionId": "3",
+      "partId": "4",
+      "paperTitle": "The Faith of Jesus",
+      "sectionTitle": "The Supremacy of Religion",
+      "paragraphId": "35",
+      "text": "And God-consciousness is equivalent to the integration of the self with the universe, and on its highest levels of spiritual reality. Only the spirit content of any value is imperishable. Even that which is true, beautiful, and good may not perish in human experience. If man does not choose to survive, then does the surviving Adjuster conserve those realities born of love and nurtured in service. And all these things are a part of the Universal Father. The Father is living love, and this life of the Father is in his Sons. And the spirit of the Father is in his Sons’ sons — mortal men. When all is said and done, the Father idea is still the highest human concept of God.",
+      "htmlText": "<span class=\"urantia-dev-pb-4\">And God-consciousness is equivalent to the integration of the self with the <span class=urantia-dev-highlighted>universe</span>, and on its highest levels of spiritual reality. Only the spirit content of any value is imperishable. Even that which is true, beautiful, and good may not perish in human experience. If man does not choose to survive, then does the surviving Adjuster conserve those realities born of love and nurtured in service. And all these things are a part of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span>. The <span class=urantia-dev-highlighted>Father</span> is living love, and this life of the <span class=urantia-dev-highlighted>Father</span> is in his Sons. And the spirit of the <span class=urantia-dev-highlighted>Father</span> is in his Sons’ sons — mortal men. When all is said and done, the <span class=urantia-dev-highlighted>Father</span> idea is still the highest human concept of God.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-4:196.3.35.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 42,
+            "fileSize": 839040
+          }
+        }
+      },
+      "rank": 0.05498926,
+      "match": "near"
+    },
+    {
+      "id": "0:0.11.1",
+      "standardReferenceId": "0:11.1",
+      "sortId": "0.000.011.001",
+      "paperId": "0",
+      "sectionId": "11",
+      "partId": "0",
+      "paperTitle": "Foreword",
+      "sectionTitle": "XI. The Three Absolutes",
+      "paragraphId": "1",
+      "text": "When the combined thought of the Universal Father and the Eternal Son, functioning in the God of Action, constituted the creation of the divine and central universe, the Father followed the expression of his thought into the word of his Son and the act of their Conjoint Executive by differentiating his Havona presence from the potentials of infinity. And these undisclosed infinity potentials remain space concealed in the Unqualified Absolute and divinely enshrouded in the Deity Absolute, while these two become one in the functioning of the Universal Absolute, the unrevealed infinity-unity of the Paradise Father.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">When the combined thought of the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> and the Eternal Son, functioning in the God of Action, constituted the creation of the divine and central <span class=urantia-dev-highlighted>universe</span>, the <span class=urantia-dev-highlighted>Father</span> followed the expression of his thought into the word of his Son and the act of their Conjoint Executive by differentiating his Havona presence from the potentials of infinity. And these undisclosed infinity potentials remain space concealed in the Unqualified Absolute and divinely enshrouded in the Deity Absolute, while these two become one in the functioning of the <span class=urantia-dev-highlighted>Universal</span> Absolute, the unrevealed infinity-unity of the Paradise <span class=urantia-dev-highlighted>Father</span>.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-0:0.11.1.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 38.9,
+            "fileSize": 777600
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-0:0.11.1.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 35.3,
+            "fileSize": 848918
+          }
+        }
+      },
+      "rank": 0.055163756,
+      "match": "near"
+    },
+    {
+      "id": "1:1.5.15",
+      "standardReferenceId": "1:5.15",
+      "sortId": "1.001.005.015",
+      "paperId": "1",
+      "sectionId": "5",
+      "partId": "1",
+      "paperTitle": "The Universal Father",
+      "sectionTitle": "Personality of the Universal Father",
+      "paragraphId": "15",
+      "text": "The absolute perfection of the infinite God would cause him to suffer the awful limitations of unqualified finality of perfectness were it not a fact that the Universal Father directly participates in the personality struggle of every imperfect soul in the wide universe who seeks, by divine aid, to ascend to the spiritually perfect worlds on high. This progressive experience of every spirit being and every mortal creature throughout the universe of universes is a part of the Father’s ever-expanding Deity-consciousness of the never-ending divine circle of ceaseless self-realization.",
+      "htmlText": "<span class=\"urantia-dev-pb-0\">The absolute perfection of the infinite God would cause him to suffer the awful limitations of unqualified finality of perfectness were it not a fact that the <span class=urantia-dev-highlighted>Universal</span> <span class=urantia-dev-highlighted>Father</span> directly participates in the personality struggle of every imperfect soul in the wide <span class=urantia-dev-highlighted>universe</span> who seeks, by divine aid, to ascend to the spiritually perfect worlds on high. This progressive experience of every spirit being and every mortal creature throughout the <span class=urantia-dev-highlighted>universe</span> of <span class=urantia-dev-highlighted>universes</span> is a part of the <span class=urantia-dev-highlighted>Father</span>’s ever-expanding Deity-consciousness of the never-ending divine circle of ceaseless self-realization.</span>",
+      "labels": [],
+      "audio": {
+        "tts-1-hd": {
+          "nova": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/nova/tts-1-hd-nova-1:1.5.15.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 35.8,
+            "fileSize": 716160
+          },
+          "onyx": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/onyx/tts-1-hd-onyx-1:1.5.15.mp3",
+            "format": "mp3",
+            "bitrate": 160,
+            "duration": 36.8,
+            "fileSize": 735840
+          }
+        },
+        "gpt-4o-mini-tts": {
+          "cedar": {
+            "url": "https://cdn.urantia.dev/audio/eng/paragraphs/cedar/gpt-4o-mini-tts-cedar-1:1.5.15.mp3",
+            "format": "mp3",
+            "bitrate": 192,
+            "duration": 35,
+            "fileSize": 841394
+          }
+        }
+      },
+      "rank": 0.054178685,
+      "match": "near"
+    }
+  ],
+  "meta": {
+    "page": 0,
+    "limit": 50,
+    "total": 911,
+    "totalPages": 19,
+    "didYouMean": "the universal father"
+  }
+}
