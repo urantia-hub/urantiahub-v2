@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ContentError, ParagraphNotFound } from "@/content/fetchers";
 import type { RawParallels } from "@/content/parallels";
 import { WORKS } from "@/parallels-works";
-import { handleParallels, NEARBY_PAPERS, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, shapeWorks, WEAK_FLOOR } from "./parallels";
+import { handleParallels, NEARBY_PAPERS, OUTSIDE_FLOOR, type ParallelsAnswer, shapeParallels, shapeWorks, WEAK_FLOOR, WORK_FLOORS } from "./parallels";
 
 const corpus = (id: string, refPrefix: string, translator: string, year: number) => ({ id, refPrefix, title: id, translator, year });
 const GITA = corpus("bhagavad-gita-besant-1922", "BG", "Annie Besant (4th edition)", 1922);
@@ -81,6 +81,25 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
     expect(weaker.map((p) => [p.ref, p.percent])).toEqual([["Sirach 18:1", 39]]);
     const many = shapeParallels({ ...RAW, bible: Array.from({ length: 8 }, (_, i) => ({ reference: `Job 1:${i + 1}`, text: "x", similarity: 0.31 + i / 100, url: null })) });
     expect(many.weaker.map((p) => p.percent)).toEqual([38, 37, 36, 35, 34]);
+  });
+
+  // From 0.40 to 0.45 these two shared a word or the style of the Bible, not a meaning (2026-10-18).
+  it("holds the Book of Mormon and the Rig Veda to a floor of their own, and keeps a passage under it apart", () => {
+    const at = (id: string, prefix: string, reference: string, similarity: number) => ({ reference, text: "x", similarity, url: null, corpus: corpus(id, prefix, "T", 1900) });
+    const answer = shapeParallels({
+      bible: [],
+      papers: [],
+      scripture: [
+        at("book-of-mormon-1830", "BoM", "Alma 13:18", 0.46),
+        at("book-of-mormon-1830", "BoM", "Ether 9:11", 0.44),
+        at("rig-veda-griffith-1896", "RV", "RV 10.82.3", 0.45),
+        at("rig-veda-griffith-1896", "RV", "RV 1.164.1", 0.43),
+        at("koran-pickthall-1930", "Quran", "Quran 12.39", 0.41),
+      ],
+    });
+    expect(WORK_FLOORS).toEqual({ "book-of-mormon-1830": 0.45, "rig-veda-griffith-1896": 0.45 });
+    expect(answer.outside.map((p) => p.ref)).toEqual(["Alma 13:18", "RV 10.82.3", "Quran 12.39"]);
+    expect(answer.weaker.map((p) => p.ref)).toEqual(["Ether 9:11", "RV 1.164.1"]);
   });
 
   it("names each work in a short form, with the translator and the year", () => {
