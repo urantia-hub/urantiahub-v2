@@ -19,6 +19,7 @@ export async function handleLibraryAt({ work: slug, ref: raw }: { work: string; 
   const start = ref.replace(/-\d+$/, "");
   const passages = await getWorkPage(slug, page.key);
   const passage = passages.find((p) => p.ref === ref) ?? passages.find((p) => p.ref === start) ?? passages.find((p) => p.ref.startsWith(`${start}-`));
-  const to = `/library/${slug}/${page.key}${passage ? `#${refId(passage.ref)}` : ""}`;
+  // Encoded, so a letter outside ASCII ("Skáldskaparmál") reaches the browser whole. WorkNav decodes the hash.
+  const to = `/library/${slug}/${page.key}${passage ? `#${encodeURIComponent(refId(passage.ref))}` : ""}`;
   return new Response(null, { status: 307, headers: { location: to } });
 }

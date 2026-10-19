@@ -50,7 +50,14 @@ export function pageReadRef(levels: number, page: { firstRef: string; lastRef: s
     const first = span(page.firstRef)?.[0];
     return last === undefined || last === first ? page.firstRef : `${page.firstRef.replace(/-\d+$/, "")}-${last}`;
   }
+  // A page of one ref with one number ("Isa 5" in the Upanishads) reads by that ref: its division name holds more.
+  if (page.firstRef === page.lastRef && single(page.firstRef)) return page.firstRef;
   return base(page.firstRef) ?? page.firstRef;
+}
+
+/** True for a ref with one number or one range and no "." or ":": "Isa 5", "Hovamol 77", "Theogony 1-25". */
+function single(ref: string): boolean {
+  return span(ref) !== null;
 }
 
 /** The page that holds a reference in a work with `levels` levels, or null. */
@@ -61,5 +68,12 @@ export function pageOfRef<P extends PageRefs>(levels: number, pages: P[], ref: s
     return pages.find((p) => (span(p.firstRef)?.[0] ?? Infinity) <= at[0] && at[0] <= (span(p.lastRef)?.[1] ?? -1)) ?? null;
   }
   const b = base(ref);
-  return b === null ? null : (pages.find((p) => base(p.firstRef) === b) ?? null);
+  if (b === null) return null;
+  const named = pages.filter((p) => base(p.firstRef) === b);
+  // A division split into pages of single-number refs ("Isa 1" to "Isa 18") is found by the number.
+  if (named.length > 1 && single(ref)) {
+    const at = span(ref) as [number, number];
+    return named.find((p) => (span(p.firstRef)?.[0] ?? Infinity) <= at[0] && at[0] <= (span(p.lastRef)?.[1] ?? -1)) ?? null;
+  }
+  return named[0] ?? null;
 }

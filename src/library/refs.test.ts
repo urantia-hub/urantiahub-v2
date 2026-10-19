@@ -57,3 +57,27 @@ describe("keys, ids, and numbers", () => {
     expect(unitNumber("Theogony 1-25")).toBe("1-25");
   });
 });
+
+// The live Upanishads (2026-10-19): a work of three levels whose Isa is 18 pages of one verse each, "Isa 1" to "Isa 18".
+describe("a division of single-number refs in a work of three levels", () => {
+  const isa = Array.from({ length: 18 }, (_, i) => ({ key: `3-${i + 1}`, firstRef: `Isa ${i + 1}`, lastRef: `Isa ${i + 1}`, count: 1 }));
+  const pages = [{ key: "1-1", firstRef: "Khandogya 1.1", lastRef: "Khandogya 1.13", count: 13 }, ...isa];
+
+  it("reads a page of one verse by its own ref, not by the name of its division", () => {
+    expect(pageReadRef(3, isa[4])).toBe("Isa 5");
+    expect(pageReadRef(3, pages[0])).toBe("Khandogya 1");
+  });
+
+  it("finds the page that holds the number", () => {
+    expect(pageOfRef(3, pages, "Isa 5")?.key).toBe("3-5");
+    expect(pageOfRef(3, pages, "Isa 18")?.key).toBe("3-18");
+    expect(pageOfRef(3, pages, "Isa 19")).toBeNull();
+    expect(pageOfRef(3, pages, "Khandogya 1.4")?.key).toBe("1-1");
+  });
+
+  it("still reads a named division of a work of two levels by its name", () => {
+    const edda = [{ key: "1", firstRef: "Voluspo 1", lastRef: "Voluspo 66", count: 66 }, { key: "2", firstRef: "Hovamol 1", lastRef: "Hovamol 165", count: 165 }];
+    expect(pageReadRef(2, edda[1])).toBe("Hovamol");
+    expect(pageOfRef(2, edda, "Hovamol 77")?.key).toBe("2");
+  });
+});
