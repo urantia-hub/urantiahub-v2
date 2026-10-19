@@ -9,6 +9,7 @@ describe("WorkView", () => {
   it("shows the page of a work: its eyebrow, title, line, passages, and pager", () => {
     const { container } = render(<WorkView work={DHAMMAPADA} page={pages[1]} pages={pages} passages={dhammapadaPage2()} />);
     expect(screen.getByText("The Dhammapada · Chapter 2")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "World texts" })).toHaveAttribute("href", "/texts");
     expect(screen.getByRole("heading", { level: 1, name: "On Earnestness" })).toBeInTheDocument();
     const meta = container.querySelector(".work-meta") as HTMLElement;
     expect(meta.textContent).toBe("F. Max Muller, 1881 · 12 verses · Read at the source");

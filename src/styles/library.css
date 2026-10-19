@@ -1,5 +1,23 @@
 /* A work page of the Library has the form of a paper page. These rules add only what a paper has not. */
 
+/* The way back to the list of the works, above the name of the work. */
+.work-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 22px;
+  font: 400 13px/1 var(--font-ui);
+  color: var(--muted);
+  text-decoration: none;
+}
+.work-back:hover {
+  color: var(--ink);
+}
+.work-back .icon {
+  width: 14px;
+  height: 14px;
+}
+
 /* The line under the title: translator, year, count, and the source. */
 .work-meta {
   margin: -1.6em 0 2.6em;
