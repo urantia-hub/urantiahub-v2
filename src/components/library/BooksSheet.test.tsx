@@ -2,12 +2,13 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { bibleBooks, biblePages } from "@/library/bible";
+import { workBooks } from "@/library/books";
 import { BooksSheet } from "./BooksSheet";
 
 const books = bibleBooks(biblePages(JSON.parse(readFileSync("e2e/fixtures/library/bible_books.json", "utf8")).data));
-const work = { title: "The Bible (World English Bible)", summary: "The Hebrew Bible, the deuterocanon, and the New Testament." };
+const work = { slug: "bible", title: "The Bible (World English Bible)", summary: "The Hebrew Bible, the deuterocanon, and the New Testament." };
 const open = (onClose = vi.fn()) => {
-  render(<BooksSheet work={work} books={books} current={{ book: "John", chapter: 3 }} onClose={onClose} />);
+  render(<BooksSheet work={work} books={books} label="The books of the Bible" unit="chapter" current={{ book: "John", chapter: 3 }} onClose={onClose} />);
   return { sheet: screen.getByRole("dialog", { name: "The books of the Bible" }), onClose };
 };
 
@@ -44,5 +45,21 @@ describe("BooksSheet", () => {
     expect(within(sheet).queryByRole("link", { current: "page" })).toBeNull();
     await act(async () => fireEvent.keyDown(document, { key: "Escape" }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+});
+
+describe("BooksSheet for a work in books", () => {
+  it("opens a book of the Rig Veda as the numbers of its hymns, with no parts and no lead line", async () => {
+    const pages = JSON.parse(readFileSync("e2e/fixtures/library/scriptures_rig-veda.json", "utf8")).data.pages.map(
+      (p: { division: number; subdivision: number; firstRef: string }) => ({ ...p, key: `${p.division}-${p.subdivision}`, title: null, lastRef: p.firstRef, count: 1 }),
+    );
+    const rows = workBooks({ refPrefix: "RV", divisionLabel: "book" }, pages);
+    render(<BooksSheet work={{ slug: "rig-veda", title: "The Hymns of the Rigveda", summary: "" }} books={rows} label="Books" unit="hymn" current={{ book: "10", chapter: 129 }} onClose={vi.fn()} />);
+    const sheet = screen.getByRole("dialog", { name: "Books" });
+    expect(within(sheet).queryAllByRole("heading", { level: 3 })).toHaveLength(0);
+    await act(async () => fireEvent.click(within(sheet).getByRole("button", { name: "Book 10 191 hymns" })));
+    expect(within(sheet).getByRole("link", { name: "129" })).toHaveAttribute("aria-current", "page");
+    expect(within(sheet).getByRole("link", { name: "1" })).toHaveAttribute("href", "/texts/rig-veda/10-1");
+    expect(sheet.querySelectorAll(".parallel-lead")).toHaveLength(0);
   });
 });

@@ -4,6 +4,7 @@ import { WorkNav } from "@/components/library/WorkNav";
 import { WorkView } from "@/components/library/WorkView";
 import { getLibrary, getWorkPage, getWorkPages, PageNotFound } from "@/content";
 import { BIBLE, bibleBooks } from "@/library/bible";
+import { GROUPED, workBooks } from "@/library/books";
 import { LIBRARY_LINKS } from "@/library/flags";
 import { chapterRow, pageLabels, unitCount } from "@/library/labels";
 import { pageMetadata } from "@/seo/metadata";
@@ -47,17 +48,23 @@ export default async function WorkPagePage({ params }: Props) {
   const { work, pages, page, passages } = found;
   const nav = { slug: work.slug, title: work.title, short: workName({ id: work.corpusId, title: work.title }), summary: work.summary };
   const title = pageLabels(work, page, pages).title;
-  if (work.slug === BIBLE) {
-    // The Bible sends its 81 books, not a row for each of its 1,402 chapters.
+  const bible = work.slug === BIBLE;
+  if (bible || GROUPED[work.slug]) {
+    // A work in books sends its books, not a row for each page (the Bible has 1,402, the Rig Veda 1,027).
     const at = pages.findIndex((p) => p.key === page.key);
     const near = (p: (typeof pages)[number] | undefined) => (p ? { key: p.key, title: pageLabels(work, p, pages).title } : undefined);
     return (
       <>
         <WorkView work={work} page={page} pages={pages} passages={passages} />
         <WorkNav
-          work={{ ...nav, short: "Bible" }}
+          work={bible ? { ...nav, short: "Bible" } : nav}
           pages={[]}
-          books={{ rows: bibleBooks(pages), current: { book: page.book?.code ?? "", chapter: page.subdivision ?? 0 } }}
+          books={{
+            rows: bible ? bibleBooks(pages) : workBooks(work, pages),
+            label: bible ? "The books of the Bible" : work.divisionLabel === "part" ? "Parts" : "Books",
+            unit: bible ? "chapter" : GROUPED[work.slug],
+            current: { book: bible ? (page.book?.code ?? "") : String(page.division), chapter: page.subdivision ?? 0 },
+          }}
           previous={near(pages[at - 1])}
           next={near(pages[at + 1])}
           current={page.key}

@@ -10,7 +10,7 @@ describe("the books of the Bible", () => {
   it("gives each book once, with its part, its address, and its count of chapters", () => {
     const books = bibleBooks(pages);
     expect(books).toHaveLength(81);
-    expect(books.find((b) => b.code === "DanGr")).toEqual({ code: "DanGr", name: "Daniel (Greek)", title: expect.any(String), part: "Deuterocanon", slug: "daniel-greek", chapters: 14 });
+    expect(books.find((b) => b.code === "DanGr")).toEqual({ code: "DanGr", name: "Daniel (Greek)", title: expect.any(String), part: "Deuterocanon", base: "daniel-greek-", numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] });
     expect(books.map((b) => b.part).filter((p, i, all) => all.indexOf(p) === i)).toEqual(["Old Testament", "Deuterocanon", "New Testament"]);
   });
 });
