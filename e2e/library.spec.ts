@@ -80,3 +80,14 @@ test("the old addresses of the Library and the address of a verse land on their 
   await page.waitForURL("/texts/bible/john-3#John_3%3A16");
   await expect(page.getByRole("dialog", { name: /^Parallels for John 3/ })).toBeVisible();
 });
+
+test("a work in books opens its books from the dock, and a book as the numbers of its pages", async ({ page }) => {
+  await page.goto("/texts/rig-veda/10-129");
+  await page.getByRole("button", { name: /Open the books/ }).click();
+  const books = page.getByRole("dialog", { name: "Books" });
+  await expect(books.getByRole("button", { name: /^Book 10 / })).toHaveAttribute("aria-current", "true");
+  await books.getByRole("button", { name: /^Book 10 / }).click();
+  await expect(books.getByRole("link", { name: "129", exact: true })).toHaveAttribute("aria-current", "page");
+  await books.getByRole("link", { name: "1", exact: true }).click();
+  await page.waitForURL("/texts/rig-veda/10-1");
+});

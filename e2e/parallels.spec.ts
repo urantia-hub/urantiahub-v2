@@ -268,7 +268,7 @@ test.describe("the study page", () => {
     const menu = page.locator(".study-works");
     await expect(menu.locator("summary")).toHaveText("All works");
     await menu.locator("summary").click();
-    await expect(menu.locator(".work")).toHaveCount(11);
+    await expect(menu.locator(".work")).toHaveCount(23);
     const counts = await menu.locator(".work b").evaluateAll((all) => all.map((el) => Number(el.textContent)));
     expect(counts).toEqual([...counts].sort((a, b) => b - a));
     expect(counts.reduce((a, b) => a + b, 0)).toBe(first.length);
@@ -278,7 +278,7 @@ test.describe("the study page", () => {
     await expect(none.first().locator("input")).toBeDisabled();
     // Each work but the Papers has a link to the page of its source, on a site of the list.
     const sources = await menu.locator(".work a").evaluateAll((all) => all.map((a) => [a.getAttribute("href")!, a.getAttribute("target")]));
-    expect(sources).toHaveLength(10);
+    expect(sources).toHaveLength(22);
     for (const [href, target] of sources) {
       expect(href).toMatch(/^https:\/\/(ebible\.org|en\.wikisource\.org|www\.gutenberg\.org)\//);
       expect(target).toBe("_blank");

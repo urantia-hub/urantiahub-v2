@@ -201,3 +201,5 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - The Bible is a work with the slug `bible`: one page for each chapter (`src/library/bible.ts`), keyed `john-3`, read by its book code (`DanGr 3`), its verses named by the book name (`Daniel (Greek) 3:5`). The books sheet (`BooksSheet`) takes the place of the chapters list.
 - "Other works" for a Bible verse comes from the work passages that have its chunk in their top 10 (the API, reverse lookup). Most are from the Book of Mormon, which has the language of the King James Bible.
 - The sheet title of a passage names the chunk that the parallels belong to ("John 3:10-21"), as for the other works.
+- The Book of Mormon, the Rig Veda, and the Prose Edda read by books too (`GROUPED` in `src/library/books.ts`): the books sheet, and a book opens as a grid of the numbers of its pages. The Rig Veda has gaps in its hymn numbers, so the grid shows the numbers that are there.
+- The fixture server answers `/scriptures` with the list of all 21 works (`e2e/fixtures/scriptures.json`), and each work has its page list in `e2e/fixtures/library/`: the build makes the first page of each work.

@@ -69,15 +69,15 @@ describe("WorkNav", () => {
 
 describe("WorkNav for the Bible", () => {
   const books = [
-    { code: "John", name: "John", title: "The Gospel According to John", part: "New Testament", slug: "john", chapters: 21 },
-    { code: "Acts", name: "Acts", title: "The Acts of the Apostles", part: "New Testament", slug: "acts", chapters: 28 },
+    { code: "John", name: "John", title: "The Gospel According to John", part: "New Testament", base: "john-", numbers: Array.from({ length: 21 }, (_, i) => i + 1) },
+    { code: "Acts", name: "Acts", title: "The Acts of the Apostles", part: "New Testament", base: "acts-", numbers: Array.from({ length: 28 }, (_, i) => i + 1) },
   ];
   const bible = () =>
     render(
       <WorkNav
         work={{ slug: "bible", title: "The Bible (World English Bible)", short: "Bible", summary: "" }}
         pages={[]}
-        books={{ rows: books, current: { book: "John", chapter: 3 } }}
+        books={{ rows: books, label: "The books of the Bible", unit: "chapter", current: { book: "John", chapter: 3 } }}
         previous={{ key: "john-2", title: "John 2" }}
         next={{ key: "john-4", title: "John 4" }}
         current="john-3"

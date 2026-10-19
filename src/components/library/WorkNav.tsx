@@ -10,13 +10,13 @@ import { ChaptersSheet, type ChapterRow } from "./ChaptersSheet";
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
 
 type Near = { key: string; title: string };
-// The Bible has 1,402 chapters: it gives its books, and its previous and next chapter, in place of the rows.
+// A work in books (the Bible has 1,402 chapters) gives its books, and its previous and next page, in place of the rows.
 type Props = {
   work: { slug: string; title: string; short: string; summary: string };
   pages: ChapterRow[];
   current: string;
   title: string;
-  books?: { rows: BookRow[]; current: { book: string; chapter: number } };
+  books?: { rows: BookRow[]; label: string; unit: string; current: { book: string; chapter: number } };
   previous?: Near;
   next?: Near;
 };
@@ -102,7 +102,7 @@ export function WorkNav({ work, pages, current, title, books, ...near }: Props) 
         </div>
       </div>
       {chapters && !books && <ChaptersSheet work={work} pages={pages} current={current} onClose={() => setChapters(false)} />}
-      {chapters && books && <BooksSheet work={work} books={books.rows} current={books.current} onClose={() => setChapters(false)} />}
+      {chapters && books && <BooksSheet work={work} books={books.rows} label={books.label} unit={books.unit} current={books.current} onClose={() => setChapters(false)} />}
       {picked && (
         <Suspense fallback={null}>
           <ParallelsSheet reference={picked.ref} paperId="" work={work.slug} onClose={() => setPicked(null)} />
