@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { LibraryWork, WorkPage } from "@/content/library";
-import { GROUPED, workBooks } from "./books";
+import { GROUPED, NUMBERED, workBooks } from "./books";
 
 const pagesOf = (slug: string): WorkPage[] =>
   JSON.parse(readFileSync(`e2e/fixtures/library/scriptures_${slug}.json`, "utf8")).data.pages.map(
@@ -43,5 +43,11 @@ describe("the books of a work in books", () => {
 
   it("lists the works that read by books, with the word for their pages", () => {
     expect(GROUPED).toEqual({ "book-of-mormon": "chapter", "rig-veda": "hymn", "prose-edda": "chapter" });
+  });
+});
+
+describe("the works that list their pages as numbers", () => {
+  it("are the ones whose pages have no title", () => {
+    expect([...NUMBERED]).toEqual(["quran", "tao-te-ching"]);
   });
 });

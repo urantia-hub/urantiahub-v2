@@ -275,12 +275,14 @@ describe("the parallels of a passage of the Library", () => {
     expect(within(passageSheet()).getByText("131:8.2", { selector: "b" })).toBeInTheDocument();
   });
 
-  it("keeps the other works without a link to the Library while the Library is unlinked", async () => {
+  it("gives a passage of a work in World texts a link to its place there, and none to a passage of no page", async () => {
     answers(PASSAGE);
     openPassage();
     await within(passageSheet()).findByText("56:9.10", { selector: "b" });
     await userEvent.click(within(passageSheet()).getByRole("button", { name: "Other works" }));
     expect(within(passageSheet()).getByText("Koran 2.255-257", { selector: "b" })).toBeInTheDocument();
-    expect(within(passageSheet()).queryByRole("link", { name: /Read here/ })).toBeNull();
+    const here = within(passageSheet()).getAllByRole("link", { name: /Read here/ });
+    expect(here).toHaveLength(1);
+    expect(here[0]).toHaveAttribute("href", "/texts/quran/at/Quran%202.255-257");
   });
 });

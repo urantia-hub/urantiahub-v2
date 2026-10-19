@@ -1,14 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { stubAudio } from "./audio";
 
-// The Library is unlinked (LIBRARY_LINKS), so each test goes to it by its address.
+// Each test goes to World texts by its address.
 test.beforeEach(async ({ page }) => {
   await stubAudio(page);
 });
 
 test("a reader opens a work from the Library, reads a page, and sees the parallels of a passage", async ({ page }) => {
   await page.goto("/texts");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await page.getByRole("link", { name: /The Dhammapada/ }).click();
   await page.waitForURL("/texts/dhammapada/1");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("The Twin-Verses");
@@ -90,4 +89,21 @@ test("a work in books opens its books from the dock, and a book as the numbers o
   await expect(books.getByRole("link", { name: "129", exact: true })).toHaveAttribute("aria-current", "page");
   await books.getByRole("link", { name: "1", exact: true }).click();
   await page.waitForURL("/texts/rig-veda/10-1");
+});
+
+test("the contents page links to World texts", async ({ page }) => {
+  await page.goto("/papers");
+  await page.getByRole("link", { name: "Browse world texts" }).click();
+  await page.waitForURL("/texts");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("World texts");
+});
+
+test("a work whose pages have no title lists them as a grid of numbers", async ({ page }) => {
+  await page.goto("/texts/quran/1");
+  await page.getByRole("button", { name: /Open the chapters/ }).click();
+  const chapters = page.getByRole("dialog", { name: "Chapters" });
+  await expect(chapters.locator(".chapter-grid a")).toHaveCount(114);
+  await expect(chapters.locator(".chapter-grid a[aria-current]")).toHaveText("1");
+  await chapters.locator(".chapter-grid a", { hasText: /^112$/ }).click();
+  await page.waitForURL("/texts/quran/112");
 });

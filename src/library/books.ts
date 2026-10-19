@@ -5,6 +5,9 @@ import type { BookRow } from "./bible";
 // of numbers. The value is the word for one page of the work. The Bible has its own books (`bibleBooks`).
 export const GROUPED: Record<string, string> = { "book-of-mormon": "chapter", "rig-veda": "hymn", "prose-edda": "chapter" };
 
+// The works whose pages have no title: their chapters sheet is a grid of numbers, with no book step.
+export const NUMBERED: ReadonlySet<string> = new Set(["quran", "tao-te-ching"]);
+
 const capital = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
 /** Each book of a work once, in order: named by its references ("1 Nephi", "Gylfaginning"), or "Book 3". */
