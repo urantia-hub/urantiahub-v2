@@ -1,3 +1,3 @@
-// While false, the Library is reachable only by its address: no link to it from the Hub, no "Read here"
-// row in the parallels, `noindex`, and no line in the sitemap.
-export const LIBRARY_LINKS = false;
+// On since 2026-10-19 (Kelson): World texts has a link from the contents page, a "Read here" row in the
+// parallels, its pages are indexed, and the sitemap lists /texts and the first page of each work. False hides all four.
+export const LIBRARY_LINKS = true;

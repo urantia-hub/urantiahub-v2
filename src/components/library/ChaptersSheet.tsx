@@ -8,11 +8,11 @@ import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
 
 export type ChapterRow = { key: string; number: string | null; title: string; count: string };
-type Props = { work: { slug: string; title: string; summary: string }; pages: ChapterRow[]; current: string; onClose: () => void };
+type Props = { work: { slug: string; title: string; summary: string }; pages: ChapterRow[]; current: string; grid?: boolean; onClose: () => void };
 
 // The pages of a work, the current one marked, and the way back to all the works. It has the frame of the
 // parallels: a sheet on a phone, a card in the right margin on a wide screen.
-export function ChaptersSheet({ work, pages, current, onClose }: Props) {
+export function ChaptersSheet({ work, pages, current, grid = false, onClose }: Props) {
   const scroll = useMoreBelow<HTMLDivElement>();
   const box = scroll.ref;
   const { leaving, leave } = useLeave(onClose);
@@ -37,17 +37,30 @@ export function ChaptersSheet({ work, pages, current, onClose }: Props) {
         </button>
         <h2 className="terms-title">{work.title}</h2>
         {work.summary && <p className="parallel-lead">{work.summary}</p>}
-        <ul className="chapter-list">
-          {pages.map((p) => (
-            <li key={p.key}>
-              <Link href={`/texts/${work.slug}/${p.key}`} aria-current={p.key === current ? "page" : undefined} onClick={onClose}>
-                {p.number && <span className="n">{p.number}</span>}
-                <span className="t">{p.title}</span>
-                <small>{p.count}</small>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {grid ? (
+          // A page with no title shows as its number; its full name is for a screen reader.
+          <ul className="chapter-grid">
+            {pages.map((p) => (
+              <li key={p.key}>
+                <Link href={`/texts/${work.slug}/${p.key}`} aria-label={p.title} aria-current={p.key === current ? "page" : undefined} onClick={onClose}>
+                  {p.number ?? p.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="chapter-list">
+            {pages.map((p) => (
+              <li key={p.key}>
+                <Link href={`/texts/${work.slug}/${p.key}`} aria-current={p.key === current ? "page" : undefined} onClick={onClose}>
+                  {p.number && <span className="n">{p.number}</span>}
+                  <span className="t">{p.title}</span>
+                  <small>{p.count}</small>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
         <Link className="parallel-more" href="/texts" onClick={onClose}>
           All world texts
         </Link>

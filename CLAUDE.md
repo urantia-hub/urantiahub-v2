@@ -197,7 +197,8 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 ## World texts (2026-10-19)
 
 - The works beside the Papers are "World texts" at `/texts` (Kelson, 2026-10-19: "Library" read like the place of a reader's saved things). The old `/library` addresses redirect (`MOVED_ADDRESSES`). The code keeps the name `library` inside (`src/library`, `LibraryWork`, `LIBRARY_LINKS`).
-- While `LIBRARY_LINKS` is false: no link from the Hub, `noindex`, no sitemap line, and no "Read here" link in a parallel.
+- `LIBRARY_LINKS` is on since 2026-10-19 (Kelson): the contents page links to `/texts`, a parallel of a work has "Read here", the pages are indexed, and the sitemap lists `/texts` and the first page of each work. Off hides all four.
+- The Quran and the Tao Te Ching have no page titles, so their chapters sheet is a grid of numbers (`NUMBERED` in `src/library/books.ts`); each number has the full page name for a screen reader.
 - The Bible is a work with the slug `bible`: one page for each chapter (`src/library/bible.ts`), keyed `john-3`, read by its book code (`DanGr 3`), its verses named by the book name (`Daniel (Greek) 3:5`). The books sheet (`BooksSheet`) takes the place of the chapters list.
 - "Other works" for a Bible verse comes from the work passages that have its chunk in their top 10 (the API, reverse lookup). Most are from the Book of Mormon, which has the language of the King James Bible.
 - The sheet title of a passage names the chunk that the parallels belong to ("John 3:10-21"), as for the other works.

@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Icon } from "@/components/icons";
 import type { BookRow } from "@/library/bible";
 import { BooksSheet } from "./BooksSheet";
+import { NUMBERED } from "@/library/books";
 import { ChaptersSheet, type ChapterRow } from "./ChaptersSheet";
 
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
@@ -101,7 +102,7 @@ export function WorkNav({ work, pages, current, title, books, ...near }: Props) 
           </div>
         </div>
       </div>
-      {chapters && !books && <ChaptersSheet work={work} pages={pages} current={current} onClose={() => setChapters(false)} />}
+      {chapters && !books && <ChaptersSheet work={work} pages={pages} current={current} grid={NUMBERED.has(work.slug)} onClose={() => setChapters(false)} />}
       {chapters && books && <BooksSheet work={work} books={books.rows} label={books.label} unit={books.unit} current={books.current} onClose={() => setChapters(false)} />}
       {picked && (
         <Suspense fallback={null}>
