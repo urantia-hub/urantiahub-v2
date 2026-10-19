@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BIBLE, biblePages } from "@/library/bible";
 import { pageKey, pageReadRef, unitNumber } from "@/library/refs";
 import { ContentError } from "./fetchers";
 
@@ -13,13 +14,27 @@ export type LibraryWork = {
   kind: "scripture" | "classic";
   summary: string;
   translator: string;
-  year: number;
+  year: number | null;
+  /** The translation in one line: "F. Max Muller, 1881", or "World English Bible". */
+  byline: string;
   refPrefix: string;
   refLevels: 1 | 2 | 3;
   divisionLabel: string;
   unitLabel: string;
 };
-export type WorkPage = { key: string; division: number; subdivision: number | null; title: string | null; firstRef: string; lastRef: string; count: number };
+// A page of the Bible also has the reference that reads it, its part of the Bible, and its book code.
+export type WorkPage = {
+  key: string;
+  division: number;
+  subdivision: number | null;
+  title: string | null;
+  firstRef: string;
+  lastRef: string;
+  count: number;
+  readRef?: string;
+  part?: string | null;
+  book?: string;
+};
 export type WorkPassage = { ref: string; number: string; text: string; url: string | null };
 
 /** A work or a page that the Library does not have. */
@@ -31,7 +46,9 @@ export class PageNotFound extends Error {
 }
 
 const WorksSchema = z.object({
-  data: z.array(z.object({ id: z.string().min(1), tradition: z.string().min(1), kind: z.string(), summary: z.string().nullish() })),
+  data: z.array(
+    z.object({ id: z.string().min(1), title: z.string().nullish(), tradition: z.string().min(1), kind: z.string(), summary: z.string().nullish(), translator: z.string().nullish(), year: z.number().nullish() }),
+  ),
 });
 const CorporaSchema = z.object({
   data: z.array(
@@ -62,6 +79,9 @@ const PagesSchema = z.object({
     ),
   }),
 });
+const BooksSchema = z.object({
+  data: z.array(z.object({ bookCode: z.string().min(1), bookName: z.string().min(1), bookOrder: z.number().int(), canon: z.string(), chapterCount: z.number().int().positive() })),
+});
 const ReadSchema = z.object({ data: z.array(z.object({ reference: z.string().min(1), text: z.string().min(1), url: z.string().nullish() })) });
 
 async function getJson<T>(baseUrl: string, path: string, schema: z.ZodType<T>, what: string): Promise<T> {
@@ -78,14 +98,39 @@ async function getJson<T>(baseUrl: string, path: string, schema: z.ZodType<T>, w
   return parsed.data;
 }
 
-/** The works of the Library, in the order of `GET /works`, with no Bible. */
+const byline = (translator: string, year: number | null) => {
+  const name = translator.replace(/\s*\(.*?\)/g, "");
+  return year === null ? name : `${name}, ${year}`;
+};
+
+/** The works of the Library, in the order of `GET /works`: the Bible first. */
 export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
   const [works, corpora] = await Promise.all([
     getJson(baseUrl, "/works", WorksSchema, "The Library"),
     getJson(baseUrl, "/scriptures", CorporaSchema, "The Library"),
   ]);
   const bySlug = new Map(corpora.data.map((c) => [c.slug, c]));
-  return works.data.flatMap((w) => {
+  return works.data.flatMap((w): LibraryWork[] => {
+    if (w.id === BIBLE) {
+      const translator = w.translator ?? "World English Bible";
+      return [
+        {
+          slug: BIBLE,
+          corpusId: BIBLE,
+          title: w.title ?? "The Bible",
+          tradition: w.tradition,
+          kind: "scripture",
+          summary: w.summary ?? "",
+          translator,
+          year: w.year ?? null,
+          byline: byline(translator, w.year ?? null),
+          refPrefix: "",
+          refLevels: 2,
+          divisionLabel: "book",
+          unitLabel: "verse",
+        },
+      ];
+    }
     const c = bySlug.get(w.id);
     if (!c) return [];
     return [
@@ -98,6 +143,7 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
         summary: w.summary ?? "",
         translator: c.translator,
         year: c.year,
+        byline: byline(c.translator, c.year),
         refPrefix: c.refPrefix,
         refLevels: c.refLevels,
         divisionLabel: c.divisionLabel,
@@ -109,6 +155,7 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
 
 /** The reading pages of one work, in order. */
 export async function fetchWorkPages(baseUrl: string, slug: string): Promise<WorkPage[]> {
+  if (slug === BIBLE) return biblePages((await getJson(baseUrl, "/bible/books", BooksSchema, "The books of the Bible")).data);
   const found = await getJson(baseUrl, `/scriptures/${encodeURIComponent(slug)}`, PagesSchema, `The pages of ${slug}`);
   return found.data.pages.map((p) => ({
     key: pageKey(p.division, p.subdivision),
@@ -121,13 +168,16 @@ export async function fetchWorkPages(baseUrl: string, slug: string): Promise<Wor
   }));
 }
 
-/** The passages of one page. A page that comes back short is an error, not a short page. */
+/** The passages of one page. A page that comes back short is an error, not a short page. A chapter of the
+ * Bible has no count before its read (0), so it needs at least one verse. A verse shows its own number only. */
 export async function fetchWorkPage(baseUrl: string, work: LibraryWork, page: WorkPage): Promise<WorkPassage[]> {
-  const ref = pageReadRef(work.refLevels, page);
+  const ref = page.readRef ?? pageReadRef(work.refLevels, page);
   const what = `Page ${page.key} of ${work.slug}`;
   const found = await getJson(baseUrl, `/works/${encodeURIComponent(work.slug)}/${encodeURIComponent(ref)}`, ReadSchema, what);
-  if (found.data.length !== page.count) throw new ContentError(`${what}: ${found.data.length} passages, not ${page.count}`);
-  return found.data.map((p) => ({ ref: p.reference, number: unitNumber(p.reference), text: p.text, url: p.url ?? null }));
+  const short = page.count === 0 ? found.data.length === 0 : found.data.length !== page.count;
+  if (short) throw new ContentError(`${what}: ${found.data.length} passages, not ${page.count}`);
+  const number = (reference: string) => (work.slug === BIBLE ? (reference.split(":").pop() ?? reference) : unitNumber(reference));
+  return found.data.map((p) => ({ ref: p.reference, number: number(p.reference), text: p.text, url: p.url ?? null }));
 }
 
 // The parallels of one passage: the paragraphs of the Papers, and the passages of the other works.

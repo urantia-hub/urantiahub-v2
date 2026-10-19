@@ -51,7 +51,7 @@ describe("ContentsView", () => {
     expect(within(jump).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["#part-1", "#part-2", "#part-3", "#part-4", "/texts"]);
     const beside = screen.getByRole("region", { name: "Beside the Papers" });
     expect(within(beside).getByRole("heading", { level: 2, name: "World texts" })).toBeInTheDocument();
-    expect(beside).toHaveTextContent("21 texts of the world's religions, each with the passages of the Papers that are near to it in meaning.");
+    expect(beside).toHaveTextContent("The Bible and 21 other texts of the world's religions, each with the passages of the Papers that are near to it in meaning.");
     expect(within(beside).getByRole("link", { name: "Browse world texts" })).toHaveAttribute("href", "/texts");
   });
 });

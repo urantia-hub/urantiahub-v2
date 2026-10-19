@@ -14,6 +14,7 @@ export const DHAMMAPADA: LibraryWork = {
   summary: "A collection of the Buddha's sayings in verse.",
   translator: "F. Max Muller",
   year: 1881,
+  byline: "F. Max Muller, 1881",
   refPrefix: "Dhp",
   refLevels: 1,
   divisionLabel: "chapter",

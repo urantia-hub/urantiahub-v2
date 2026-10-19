@@ -3,7 +3,6 @@ import type { LibraryWork, WorkPage, WorkPassage } from "@/content/library";
 import { pageLabels, unitCount } from "@/library/labels";
 import { refId } from "@/library/refs";
 import { outsideHref } from "@/server/parallels";
-import { shortTranslator } from "./LibraryView";
 
 type Props = { work: LibraryWork; page: WorkPage; pages: WorkPage[]; passages: WorkPassage[] };
 
@@ -24,7 +23,7 @@ export function WorkView({ work, page, pages, passages }: Props) {
         <h1 id="paper-top">{title}</h1>
       </header>
       <p className="work-meta">
-        {shortTranslator(work.translator)}, {work.year} · {unitCount(passages.length, work.unitLabel)}
+        {work.byline} · {unitCount(passages.length, work.unitLabel)}
         {source && (
           <>
             {" · "}

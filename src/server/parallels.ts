@@ -1,6 +1,7 @@
 import { ParagraphNotFound } from "@/content/fetchers";
 import { paperById, paperPath } from "@/content/paper-index";
 import type { RawCorpus, RawParallels, RawWork } from "@/content/parallels";
+import { BIBLE } from "@/library/bible";
 import { WORKS } from "@/parallels-works";
 
 // The exact form of a paragraph reference. Anything else is refused before any work.
@@ -102,7 +103,7 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string, s
   // `least` and `below` are the floors of a passage: its work's own one, or OUTSIDE_FLOOR.
   const from = (least: (floor: number) => number, below: (floor: number) => number): Parallel[] =>
     [
-      ...raw.bible.filter((b) => b.similarity >= least(OUTSIDE_FLOOR) && b.similarity < below(OUTSIDE_FLOOR)).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url) })),
+      ...raw.bible.filter((b) => b.similarity >= least(OUTSIDE_FLOOR) && b.similarity < below(OUTSIDE_FLOOR)).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url), library: { slug: BIBLE, ref: b.reference } })),
       ...raw.scripture
         .filter((s) => {
           const floor = WORK_FLOORS[s.corpus.id] ?? OUTSIDE_FLOOR;

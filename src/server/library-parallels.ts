@@ -54,7 +54,7 @@ export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageO
   return {
     text: "",
     label: shortRef(others?.label ?? raw.reference, work),
-    source: `${surname(work.translator)}, ${work.year}`,
+    source: work.year === null ? work.translator : `${surname(work.translator)}, ${work.year}`,
     href: outsideHref(raw.url ?? null),
     papers: pick(papers, false),
     weakerPapers: pick(papers, true).slice(0, WEAK_MOST),
@@ -74,7 +74,8 @@ type Deps = {
 };
 
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });
-const REF = /^[\p{L}\p{N} .:,-]{1,40}$/u;
+// Brackets are in the name of a book of the Bible: "Daniel (Greek) 3:5".
+const REF = /^[\p{L}\p{N} .:,()-]{1,40}$/u;
 
 // The parallels of one passage of a work, for the sheet of a work page. The passage must be one of its page,
 // so no one can fill the shared cache with references that do not exist.
@@ -84,7 +85,7 @@ export async function handlePassageParallels(slug: string, ref: string, deps: De
   let held = false;
   try {
     work = (await deps.library()).find((w) => w.slug === slug);
-    if (!work) return refuse(400, "This work is not in the Library.");
+    if (!work) return refuse(400, "This work is not in World texts.");
     const pages = await deps.pages(slug);
     const page = pageOfRef(work.refLevels, pages, ref);
     held = page !== null && (await deps.page(slug, page.key)).some((p) => p.ref === ref);

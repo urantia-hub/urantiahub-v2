@@ -88,7 +88,8 @@ describe("the works that the Hub compares", () => {
     const withSlugs = CORPORA.map((c) => ({ ...c, slug: c.id === "bhagavad-gita-besant-1922" ? "bhagavad-gita" : null }));
     const answer = (await (await handleParallels("1:0.3", load, undefined, async () => withSlugs)).json()) as ParallelsAnswer;
     expect(answer.outside.find((p) => p.ref === "Bhagavad Gita 7.22-24")?.library).toEqual({ slug: "bhagavad-gita", ref: "BG 7.22-24" });
-    expect(answer.outside.find((p) => p.ref === "Tobit 13:4")?.library ?? null).toBeNull();
+    // The Bible is always in World texts.
+    expect(answer.outside.find((p) => p.ref === "Tobit 13:4")?.library).toEqual({ slug: "bible", ref: "Tobit 13:4" });
   });
 
   it("is in the answer, and the answer stands with the names only when the list did not load", async () => {

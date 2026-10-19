@@ -61,7 +61,7 @@ export function ContentsView({ libraryLinks = LIBRARY_LINKS }: { libraryLinks?: 
         <section className="part" id="library" aria-label="Beside the Papers">
           <p className="eyebrow">Beside the Papers</p>
           <h2>World texts</h2>
-          <p className="spons">21 texts of the world&apos;s religions, each with the passages of the Papers that are near to it in meaning.</p>
+          <p className="spons">The Bible and 21 other texts of the world&apos;s religions, each with the passages of the Papers that are near to it in meaning.</p>
           <Link className="way" href="/texts">
             Browse world texts
             <Icon name="paperAfter" />
