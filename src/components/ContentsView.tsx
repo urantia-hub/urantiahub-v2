@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PAPERS, PARTS, paperPath, partNumeral } from "@/content/paper-index";
 import { LIBRARY_LINKS } from "@/library/flags";
 import { PLACE_INIT_SCRIPT } from "@/reader/place-script";
-import { SavedLink, SignInInvite } from "./AccountRows";
+import { SignInInvite } from "./AccountRows";
 import { Icon } from "./icons";
 import { ContinueCard } from "./ContinueCard";
 import { PaperMark, ProgressLoader } from "./PaperMark";
@@ -18,7 +18,6 @@ export function ContentsView({ libraryLinks = LIBRARY_LINKS }: { libraryLinks?: 
       <script dangerouslySetInnerHTML={{ __html: PLACE_INIT_SCRIPT }} />
       <ContinueCard />
       <SignInInvite />
-      <SavedLink />
       <ProgressLoader />
       <nav className="jump" aria-label="Parts">
         {parts.map((part) => (

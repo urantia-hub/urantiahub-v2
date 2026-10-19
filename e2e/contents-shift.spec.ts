@@ -50,8 +50,8 @@ test.describe("the contents page does not move when its cards arrive", () => {
     await page.evaluate((place) => window.localStorage.setItem("hub:last-read", place), PLACE);
     const { before, after } = await jumpBeforeAndAfter(page, ".toc .continue");
     await expect(page.locator(".toc .invite")).toHaveCount(0);
-    // A signed-in reader also gets the link to Saved, with its room from the first paint.
-    await expect(page.locator(".toc .saved-way")).toBeVisible();
+    // The contents page has no link to Saved: the account sheet holds it.
+    await expect(page.getByRole("main").getByRole("link", { name: "Saved" })).toHaveCount(0);
     expect(after).toBe(before);
   });
 
@@ -75,10 +75,9 @@ test.describe("the contents page does not move when its cards arrive", () => {
     await page.goto("/papers");
     await page.locator(".toc .invite").getByRole("link", { name: "Sign in" }).click();
     await page.waitForURL((url) => url.pathname === "/papers");
-    await expect(page.locator(".toc .saved-way")).toBeVisible();
     await page.reload();
-    await expect(page.locator(".toc .saved-way")).toBeVisible();
-    const gap = () => page.evaluate(() => document.querySelector(".toc .saved-way")!.getBoundingClientRect().top - document.querySelector(".toc .lead")!.getBoundingClientRect().bottom);
+    await expect(page.locator(".toc .invite")).toHaveCount(0);
+    const gap = () => page.evaluate(() => document.querySelector(".toc .jump")!.getBoundingClientRect().top - document.querySelector(".toc .lead")!.getBoundingClientRect().bottom);
     await expect.poll(gap).toBeLessThan(40);
   });
 
