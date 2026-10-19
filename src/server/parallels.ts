@@ -97,7 +97,7 @@ export const percent = (similarity: number) => Math.floor(similarity * 100 + 1e-
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
 // `paperId` is the paper of the paragraph. With none, no passage is nearby.
-// `slugs` maps a corpus id to its work in the Library, for the link "In the Library".
+// `slugs` maps a corpus id to its work in the Library, for the link "Read here".
 export function shapeParallels(raw: RawParallels, text = "", paperId?: string, slugs: ReadonlyMap<string, string> = new Map()): ParallelsAnswer {
   // `least` and `below` are the floors of a passage: its work's own one, or OUTSIDE_FLOOR.
   const from = (least: (floor: number) => number, below: (floor: number) => number): Parallel[] =>

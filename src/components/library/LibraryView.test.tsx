@@ -15,7 +15,7 @@ const firstKeys = (list: LibraryWork[]) => Object.fromEntries(list.map((w) => [w
 describe("LibraryView", () => {
   it("lists the works in two groups, Scriptures then Classics, with no Bible", () => {
     render(<LibraryView works={works} firstKeys={firstKeys(works)} />);
-    expect(screen.getByRole("heading", { level: 1, name: "Library" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "World texts" })).toBeInTheDocument();
     expect(screen.getByText("21 texts of the world's religions, each in the US public domain.")).toBeInTheDocument();
     const groups = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
     expect(groups).toEqual(["Scriptures", "Classics"]);
@@ -28,10 +28,10 @@ describe("LibraryView", () => {
     render(<LibraryView works={works} firstKeys={firstKeys(works)} />);
     const scriptures = screen.getByRole("region", { name: "Scriptures" });
     const dhp = within(scriptures).getByRole("link", { name: /The Dhammapada/ });
-    expect(dhp).toHaveAttribute("href", "/library/dhammapada/1");
+    expect(dhp).toHaveAttribute("href", "/texts/dhammapada/1");
     expect(within(dhp).getByText("Buddhist · F. Max Muller, 1881")).toBeInTheDocument();
     const classics = screen.getByRole("region", { name: "Classics" });
-    expect(within(classics).getByRole("link", { name: /Discourses 3.22/ })).toHaveAttribute("href", "/library/epictetus-cynic/3-22");
+    expect(within(classics).getByRole("link", { name: /Discourses 3.22/ })).toHaveAttribute("href", "/texts/epictetus-cynic/3-22");
     expect(within(scriptures).getAllByRole("link")).toHaveLength(works.filter((w) => w.kind === "scripture").length);
   });
 

@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = await load(slug, key);
   if (!found) return {};
   const { title } = pageLabels(found.work, found.page, found.pages);
-  const meta = pageMetadata({ title: `${title} · ${found.work.title}`, description: found.work.summary, path: `/library/${slug}/${key}` });
+  const meta = pageMetadata({ title: `${title} · ${found.work.title}`, description: found.work.summary, path: `/texts/${slug}/${key}` });
   return LIBRARY_LINKS ? meta : { ...meta, robots: { index: false, follow: false } };
 }
 

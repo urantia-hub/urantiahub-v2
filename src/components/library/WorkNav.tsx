@@ -69,7 +69,7 @@ export function WorkNav({ work, pages, current, title }: Props) {
         <div className="pill">
           <div className="row read">
             {previous ? (
-              <Link className="arrow" href={`/library/${work.slug}/${previous.key}`} aria-label={`Previous: ${previous.title}`}>
+              <Link className="arrow" href={`/texts/${work.slug}/${previous.key}`} aria-label={`Previous: ${previous.title}`}>
                 <Icon name="paperBefore" />
               </Link>
             ) : (
@@ -80,7 +80,7 @@ export function WorkNav({ work, pages, current, title }: Props) {
               <span>{title}</span>
             </button>
             {next ? (
-              <Link className="arrow" href={`/library/${work.slug}/${next.key}`} aria-label={`Next: ${next.title}`}>
+              <Link className="arrow" href={`/texts/${work.slug}/${next.key}`} aria-label={`Next: ${next.title}`}>
                 <Icon name="paperAfter" />
               </Link>
             ) : (

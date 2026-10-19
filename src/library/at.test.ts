@@ -17,24 +17,24 @@ describe("the address of one passage in the Library", () => {
   it("goes to the page of the passage, at the passage", async () => {
     const res = await handleLibraryAt({ work: "dhammapada", ref: "Dhp 25" });
     expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toBe("/library/dhammapada/2#Dhp_25");
+    expect(res.headers.get("location")).toBe("/texts/dhammapada/2#Dhp_25");
   });
 
   it("lands on the first passage of a range, and on a passage that holds the number", async () => {
-    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 21-23" })).headers.get("location")).toBe("/library/dhammapada/2#Dhp_21");
-    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26" })).headers.get("location")).toBe("/library/dhammapada/2#Dhp_26-27");
-    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26-27" })).headers.get("location")).toBe("/library/dhammapada/2#Dhp_26-27");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 21-23" })).headers.get("location")).toBe("/texts/dhammapada/2#Dhp_21");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26" })).headers.get("location")).toBe("/texts/dhammapada/2#Dhp_26-27");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26-27" })).headers.get("location")).toBe("/texts/dhammapada/2#Dhp_26-27");
   });
 
   // A raw "á" in a Location header goes out as Latin-1, and the browser reads it as UTF-8 (Prose Edda, 2026-10-19).
   it("encodes the passage in the address, so a letter outside ASCII arrives whole", async () => {
     const location = (await handleLibraryAt({ work: "prose-edda", ref: "Skáldskaparmál 8.2" })).headers.get("location") ?? "";
-    expect(location).toBe("/library/prose-edda/8#Sk%C3%A1ldskaparm%C3%A1l_8.2");
+    expect(location).toBe("/texts/prose-edda/8#Sk%C3%A1ldskaparm%C3%A1l_8.2");
     expect(decodeURIComponent(location.split("#")[1])).toBe("Skáldskaparmál_8.2");
   });
 
   it("goes to the first page for a passage that it cannot place, and 404s for an unknown work", async () => {
-    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 999" })).headers.get("location")).toBe("/library/dhammapada/1");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 999" })).headers.get("location")).toBe("/texts/dhammapada/1");
     expect((await handleLibraryAt({ work: "bible", ref: "John 3:16" })).status).toBe(404);
   });
 });

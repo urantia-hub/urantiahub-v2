@@ -15,7 +15,7 @@ export const libraryLead = (count: number) => `${count} texts of the world's rel
 export function LibraryView({ works, firstKeys }: { works: LibraryWork[]; firstKeys: Record<string, string> }) {
   return (
     <div className="toc library">
-      <h1>Library</h1>
+      <h1>World texts</h1>
       <p className="lead">{libraryLead(works.length)}</p>
       <nav className="jump" aria-label="Groups">
         {GROUPS.map((g) => (
@@ -33,7 +33,7 @@ export function LibraryView({ works, firstKeys }: { works: LibraryWork[]; firstK
               .filter((w) => w.kind === g.kind)
               .map((w) => (
                 <li key={w.slug}>
-                  <Link href={`/library/${w.slug}/${firstKeys[w.slug]}`}>
+                  <Link href={`/texts/${w.slug}/${firstKeys[w.slug]}`}>
                     <span className="t">{w.title}</span>
                     <span className="m">
                       {w.tradition} · {shortTranslator(w.translator)}, {w.year}

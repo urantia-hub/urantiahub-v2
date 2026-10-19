@@ -15,7 +15,7 @@ export function WorkView({ work, page, pages, passages }: Props) {
   const next = pages[at + 1];
   // The page of the source, with no words to find: the first passage is the top of this page.
   const source = outsideHref(passages[0]?.url?.split("#")[0] ?? null);
-  const href = (p: WorkPage) => `/library/${work.slug}/${p.key}`;
+  const href = (p: WorkPage) => `/texts/${work.slug}/${p.key}`;
 
   return (
     <article className="paper work" data-work={work.slug}>
@@ -61,8 +61,8 @@ export function WorkView({ work, page, pages, passages }: Props) {
             {pageLabels(work, next, pages).title}
           </Link>
         ) : (
-          <Link className="next" href="/library">
-            <small>Library</small>
+          <Link className="next" href="/texts">
+            <small>World texts</small>
             All the works
           </Link>
         )}

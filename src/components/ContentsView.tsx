@@ -26,7 +26,7 @@ export function ContentsView({ libraryLinks = LIBRARY_LINKS }: { libraryLinks?: 
             Part {partNumeral(part.id)}
           </a>
         ))}
-        {libraryLinks && <Link href="/library">Library</Link>}
+        {libraryLinks && <Link href="/texts">World texts</Link>}
       </nav>
 
       {/* The Foreword is a peer of the four parts, so it has the form of a part title. */}
@@ -60,10 +60,10 @@ export function ContentsView({ libraryLinks = LIBRARY_LINKS }: { libraryLinks?: 
       {libraryLinks && (
         <section className="part" id="library" aria-label="Beside the Papers">
           <p className="eyebrow">Beside the Papers</p>
-          <h2>Library</h2>
+          <h2>World texts</h2>
           <p className="spons">21 texts of the world&apos;s religions, each with the passages of the Papers that are near to it in meaning.</p>
-          <Link className="way" href="/library">
-            Open the Library
+          <Link className="way" href="/texts">
+            Browse world texts
             <Icon name="paperAfter" />
           </Link>
         </section>

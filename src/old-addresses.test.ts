@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { OLD_ADDRESSES } from "./old-addresses";
+import { MOVED_ADDRESSES, OLD_ADDRESSES } from "./old-addresses";
 
 describe("the addresses of the old Hub", () => {
   it("each have one answer", () => {
@@ -22,5 +22,14 @@ describe("the addresses of the old Hub", () => {
   it("go to a page of this Hub, and an answer that can change is not permanent", () => {
     for (const { destination } of OLD_ADDRESSES) expect(["/", "/:path*", "/saved", "/papers", "/papers/:paper", "/privacy", "/terms", "/emails", "/about", "/resources", "/releases"]).toContain(destination);
     for (const a of OLD_ADDRESSES.filter((a) => ["/about", "/emails"].includes(a.destination))) expect(a.permanent).toBe(false);
+  });
+});
+
+describe("the addresses that this Hub moved", () => {
+  it("send the Library to World texts, page by page, for good", () => {
+    expect(MOVED_ADDRESSES).toEqual([
+      { source: "/library", destination: "/texts", permanent: true },
+      { source: "/library/:path*", destination: "/texts/:path*", permanent: true },
+    ]);
   });
 });

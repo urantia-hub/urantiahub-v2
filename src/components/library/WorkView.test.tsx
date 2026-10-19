@@ -18,8 +18,8 @@ describe("WorkView", () => {
     expect(within(first).getByRole("link", { name: "21" })).toHaveAttribute("href", "#Dhp_21");
     expect(container.querySelectorAll("p.para")).toHaveLength(12);
     const pager = screen.getByRole("navigation", { name: "Pages" });
-    expect(within(pager).getByRole("link", { name: /Previous/ })).toHaveAttribute("href", "/library/dhammapada/1");
-    expect(within(pager).getByRole("link", { name: /Next/ })).toHaveAttribute("href", "/library/dhammapada/3");
+    expect(within(pager).getByRole("link", { name: /Previous/ })).toHaveAttribute("href", "/texts/dhammapada/1");
+    expect(within(pager).getByRole("link", { name: /Next/ })).toHaveAttribute("href", "/texts/dhammapada/3");
   });
 
   it("shows no source link when the first passage has no address, and the Library after the last page", () => {
@@ -27,7 +27,7 @@ describe("WorkView", () => {
     const { container } = render(<WorkView work={DHAMMAPADA} page={pages[25]} pages={pages} passages={passages} />);
     expect((container.querySelector(".work-meta") as HTMLElement).textContent).toBe("F. Max Muller, 1881 · 12 verses");
     const pager = screen.getByRole("navigation", { name: "Pages" });
-    expect(within(pager).getByRole("link", { name: /All the works/ })).toHaveAttribute("href", "/library");
+    expect(within(pager).getByRole("link", { name: /All the works/ })).toHaveAttribute("href", "/texts");
   });
 
   it("keeps a passage as plain text", () => {

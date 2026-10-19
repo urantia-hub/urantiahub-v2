@@ -23,3 +23,6 @@ export const OLD_ADDRESSES: OldAddress[] = [
   // This page is to come.
   ...to("/about", false, "/blockchain-archive"),
 ];
+
+// The addresses that this Hub moved. The Library became World texts on 2026-10-19.
+export const MOVED_ADDRESSES: OldAddress[] = [...to("/texts", true, "/library"), ...to("/texts/:path*", true, "/library/:path*")];
