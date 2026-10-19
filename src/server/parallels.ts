@@ -76,7 +76,7 @@ const surname = (translator: string) => translator.replace(/\s*\(.*?\)/g, "").tr
 
 // The sites that hold the texts. An address of another site, or of another form, is not a link.
 const SITES = new Set(["ebible.org", "en.wikisource.org", "www.gutenberg.org"]);
-function outsideHref(url: string | null): string | null {
+export function outsideHref(url: string | null): string | null {
   if (!url) return null;
   try {
     // "https:ebible.org/x" has no "//": a browser reads it as a path of this site.
@@ -116,7 +116,7 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string): 
   return { text, outside, weaker, papers: papers.filter((p) => !near(p)), nearby: papers.filter(near), works: [] };
 }
 
-const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
+export const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
 const OWN: Work[] = [
   { work: "The Urantia Papers", source: "", href: "/papers" },
   { work: "Bible", source: "World English Bible", href: "https://ebible.org/eng-web/" },

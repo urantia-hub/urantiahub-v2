@@ -1,0 +1,59 @@
+/* A work page of the Library has the form of a paper page. These rules add only what a paper has not. */
+
+/* The line under the title: translator, year, count, and the source. */
+.work-meta {
+  margin: -1.6em 0 2.6em;
+  text-align: center;
+  font: 400 13px/1.5 var(--font-ui);
+  color: var(--muted);
+}
+.work-meta a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* The chapters of a work, in the small panel. The current page is in a stronger weight. */
+.panel.chapters .chapter-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+.panel.chapters .chapter-list a {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  text-decoration: none;
+  font: 400 16.5px/1.3 var(--font-text);
+}
+.panel.chapters .chapter-list li:last-child a {
+  border-bottom: 0;
+}
+.panel.chapters .chapter-list a[aria-current] {
+  font-weight: 500;
+}
+.panel.chapters .chapter-list .n {
+  width: 2.4em;
+  flex: none;
+  font: 400 12.5px/1 var(--font-ui);
+  color: var(--muted);
+  text-align: right;
+}
+.panel.chapters .chapter-list small {
+  margin-left: auto;
+  font: 400 12px/1 var(--font-ui);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.panel.chapters .parallel-more {
+  display: block;
+  margin: 14px 0 4px;
+  text-align: center;
+  font: 500 13.5px/1 var(--font-ui);
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

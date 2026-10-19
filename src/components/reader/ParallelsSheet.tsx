@@ -13,7 +13,9 @@ import { earnToolMark } from "@/streak/client";
 
 // `onGo` tells the controls of the paper that a passage of this paper opens: a link to the same page
 // with another "#" sends no event that they hear.
-type Props = { reference: string; paperId: string; onClose: () => void; onGo?: (reference: string) => void };
+// With `work`, the reference is a passage of that work in the Library: its parallels come from another
+// address, and "In the Papers" comes first.
+type Props = { reference: string; paperId: string; work?: string; onClose: () => void; onGo?: (reference: string) => void };
 type Half = "outside" | "papers";
 type State = { for: string; status: "loading" } | { for: string; status: "failed" } | { for: string; status: "ready"; answer: ParallelsAnswer };
 
@@ -21,12 +23,15 @@ const FIRST = 8;
 const LONG = 170;
 const range = (n: number) => (n === 0 ? "0" : n <= 5 ? "1-5" : "6+");
 const HALVES: [Half, string][] = [["outside", "Other works"], ["papers", "In the Papers"]];
+const PASSAGE_HALVES: [Half, string][] = [["papers", "In the Papers"], ["outside", "Other works"]];
 
 // The passages that are near in meaning to one paragraph, in two halves: the other works, and the Papers.
 // It has the place of the terms: a sheet on a phone, a card in the right margin on a wide screen.
-export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Props) {
+export default function ParallelsSheet({ reference, paperId, work, onClose, onGo }: Props) {
   const [state, setState] = useState<State>({ for: reference, status: "loading" });
-  const [half, setHalf] = useState<Half>("outside");
+  const [half, setHalf] = useState<Half>(work ? "papers" : "outside");
+  const halves = work ? PASSAGE_HALVES : HALVES;
+  const endpoint = work ? `/api/library/parallels/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}`;
   const [all, setAll] = useState(false);
   // The reader asked for the passages below the floor.
   const [weak, setWeak] = useState(false);
@@ -51,7 +56,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
     let current = true;
     const control = new AbortController();
     const timer = window.setTimeout(() => control.abort(), 8000);
-    fetch(`/api/parallels/${encodeURIComponent(reference)}`, { signal: control.signal })
+    fetch(endpoint, { signal: control.signal })
       .then((res) => (res.ok ? (res.json() as Promise<ParallelsAnswer>) : Promise.reject(new Error(String(res.status)))))
       .then((answer) => {
         if (!current) return;
@@ -68,7 +73,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
       window.clearTimeout(timer);
       control.abort();
     };
-  }, [reference, paperId, attempt]);
+  }, [reference, paperId, attempt, endpoint]);
 
   useEffect(() => {
     box.current?.focus({ preventScroll: true });
@@ -157,7 +162,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
       <p className="parallel-lead">Passages that are near in meaning. The nearest is first.</p>
       {/* Two halves of one control, as the theme in the reader settings. */}
       <div className="segment parallel-halves" role="group" aria-label="Works">
-        {HALVES.map(([value, label]) => (
+        {halves.map(([value, label]) => (
           <button type="button" key={value} aria-pressed={half === value} onClick={() => choose(value)}>
             {label}
           </button>
@@ -222,7 +227,7 @@ export default function ParallelsSheet({ reference, paperId, onClose, onGo }: Pr
           <ul className="parallel-list">{nearby.map(item)}</ul>
         </>
       )}
-      {state.status === "ready" && (
+      {state.status === "ready" && !work && (
         <Link className="parallel-study" href={`/parallels?ref=${encodeURIComponent(reference)}`} prefetch={false}>
           Study these parallels
           <Icon name="paperAfter" />
