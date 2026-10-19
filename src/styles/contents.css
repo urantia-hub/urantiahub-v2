@@ -286,3 +286,22 @@ html[data-place] .toc .continue-slot {
     column-gap: 44px;
   }
 }
+
+/* The way to the Library at the end of the contents. */
+.toc .way {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font: 500 13.5px/1 var(--font-ui);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--raised);
+}
+.toc .way svg {
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+}

@@ -40,6 +40,14 @@ describe("handleRevalidate", () => {
     expect(notify).toHaveBeenCalledWith([]);
   });
 
+  // A new text in the Library, or a corrected one, must not wait weeks for the kept pages to expire.
+  it("refreshes the Library, and tells no search engine about it while the Library is unlinked", async () => {
+    const { response, revalidate, notify } = await call({ tags: ["library"] });
+    expect(response.status).toBe(200);
+    expect(revalidate.mock.calls).toEqual([["library"]]);
+    expect(notify).toHaveBeenCalledWith([]);
+  });
+
   it.each([
     ["no header", null],
     ["a wrong secret", "Bearer wrong"],
