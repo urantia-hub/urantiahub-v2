@@ -314,11 +314,13 @@ test("on a desktop, the text of the search field starts on the left edge of the 
 
 // Found by Kelson: Enter seemed to do nothing, because the page showed no sign of work until the results came.
 test("Enter shows at once that the search runs", async ({ page }) => {
+  // A text of its own for each run: the server keeps each result, and a kept result shows the rows for a few ms only.
+  const text = `slow search ${Date.now()}${Math.floor(Math.random() * 1e6)}`;
   await openSearch(page);
-  await field(page).fill("slow search");
+  await field(page).fill(text);
   await field(page).press("Enter");
   await expect(page.locator(".waiting").first()).toBeVisible({ timeout: 700 });
-  await expect(page).toHaveURL("/search?q=slow%20search");
+  await expect(page).toHaveURL(`/search?q=${encodeURIComponent(text)}`);
   await expect(group(page, "Matches")).toContainText("No paragraph has these words.", { timeout: 8000 });
 });
 

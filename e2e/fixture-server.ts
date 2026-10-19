@@ -92,8 +92,8 @@ createServer(async (request, response) => {
     response.end(forAccount.body);
     return;
   }
-  // The text "slow search" takes a second and a half, for the test of the sign that a search runs.
-  if (text.includes('"slow search"')) await new Promise((resolve) => setTimeout(resolve, 1500));
+  // A text that starts with "slow search" takes a second and a half, for the test of the sign that a search runs.
+  if (text.includes('"slow search')) await new Promise((resolve) => setTimeout(resolve, 1500));
   const { status, body } =
     request.method === "POST" && path === "/search"
       ? search("search", text)
