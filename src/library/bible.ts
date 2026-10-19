@@ -4,7 +4,9 @@ import type { WorkPage } from "@/content/library";
 // code ("DanGr 3"), and its verses are named by the book name ("Daniel (Greek) 3:5").
 export const BIBLE = "bible";
 
-export type BibleBook = { bookCode: string; bookName: string; bookOrder: number; canon: string; chapterCount: number };
+export type BibleBook = { bookCode: string; bookName: string; fullName: string; bookOrder: number; canon: string; chapterCount: number };
+/** A row of the books sheet. */
+export type BookRow = { code: string; name: string; title: string; part: string; slug: string; chapters: number };
 
 const PARTS: Record<string, string> = { ot: "Old Testament", deuterocanon: "Deuterocanon", nt: "New Testament" };
 
@@ -31,8 +33,20 @@ export function biblePages(books: BibleBook[]): WorkPage[] {
         count: 0,
         readRef: `${b.bookCode} ${chapter}`,
         part: PARTS[b.canon] ?? null,
-        book: b.bookCode,
+        book: { code: b.bookCode, name: b.bookName, title: b.fullName },
       };
     }),
   );
+}
+
+/** Each book once, in order, from the pages of the Bible. */
+export function bibleBooks(pages: WorkPage[]): BookRow[] {
+  const rows = new Map<string, BookRow>();
+  for (const p of pages) {
+    if (!p.book) continue;
+    const row = rows.get(p.book.code);
+    if (row) row.chapters += 1;
+    else rows.set(p.book.code, { code: p.book.code, name: p.book.name, title: p.book.title, part: p.part ?? "", slug: bookSlug(p.book.name), chapters: 1 });
+  }
+  return [...rows.values()];
 }

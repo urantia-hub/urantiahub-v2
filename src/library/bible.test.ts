@@ -1,10 +1,19 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { biblePages, bookSlug } from "./bible";
+import { bibleBooks, biblePages, bookSlug } from "./bible";
 import { pageOfRef } from "./refs";
 
 const books = JSON.parse(readFileSync("e2e/fixtures/library/bible_books.json", "utf8")).data;
 const pages = biblePages(books);
+
+describe("the books of the Bible", () => {
+  it("gives each book once, with its part, its address, and its count of chapters", () => {
+    const books = bibleBooks(pages);
+    expect(books).toHaveLength(81);
+    expect(books.find((b) => b.code === "DanGr")).toEqual({ code: "DanGr", name: "Daniel (Greek)", title: expect.any(String), part: "Deuterocanon", slug: "daniel-greek", chapters: 14 });
+    expect(books.map((b) => b.part).filter((p, i, all) => all.indexOf(p) === i)).toEqual(["Old Testament", "Deuterocanon", "New Testament"]);
+  });
+});
 
 describe("the pages of the Bible", () => {
   it("gives one page for each chapter, in the order of the books", () => {
@@ -20,7 +29,7 @@ describe("the pages of the Bible", () => {
       count: 0,
       readRef: "John 3",
       part: "New Testament",
-      book: "John",
+      book: { code: "John", name: "John", title: "The Gospel According to John" },
     });
   });
 

@@ -3,11 +3,23 @@
 import Link from "next/link";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Icon } from "@/components/icons";
+import type { BookRow } from "@/library/bible";
+import { BooksSheet } from "./BooksSheet";
 import { ChaptersSheet, type ChapterRow } from "./ChaptersSheet";
 
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
 
-type Props = { work: { slug: string; title: string; short: string; summary: string }; pages: ChapterRow[]; current: string; title: string };
+type Near = { key: string; title: string };
+// The Bible has 1,402 chapters: it gives its books, and its previous and next chapter, in place of the rows.
+type Props = {
+  work: { slug: string; title: string; short: string; summary: string };
+  pages: ChapterRow[];
+  current: string;
+  title: string;
+  books?: { rows: BookRow[]; current: { book: string; chapter: number } };
+  previous?: Near;
+  next?: Near;
+};
 
 // The passages are server HTML. A press on one marks it (`data-picked`, as on a paper page) and opens its parallels.
 function mark(id: string | null) {
@@ -18,12 +30,12 @@ function mark(id: string | null) {
 const passageOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>(".paper.work p.para") : null);
 
 // The controls of a work page: the dock with the previous and next page, the chapters, and the parallels.
-export function WorkNav({ work, pages, current, title }: Props) {
+export function WorkNav({ work, pages, current, title, books, ...near }: Props) {
   const [picked, setPicked] = useState<{ id: string; ref: string } | null>(null);
   const [chapters, setChapters] = useState(false);
   const at = pages.findIndex((p) => p.key === current);
-  const previous = pages[at - 1];
-  const next = pages[at + 1];
+  const previous = books ? near.previous : pages[at - 1];
+  const next = books ? near.next : pages[at + 1];
 
   useEffect(() => mark(picked?.id ?? null), [picked]);
 
@@ -75,7 +87,7 @@ export function WorkNav({ work, pages, current, title }: Props) {
             ) : (
               <span className="arrow" />
             )}
-            <button type="button" className="where" aria-haspopup="dialog" aria-label={`${work.short} ${title}. Open the chapters`} onClick={() => setChapters(true)}>
+            <button type="button" className="where" aria-haspopup="dialog" aria-label={`${work.short} ${title}. Open the ${books ? "books" : "chapters"}`} onClick={() => setChapters(true)}>
               <small>{work.short}</small>
               <span>{title}</span>
             </button>
@@ -89,7 +101,8 @@ export function WorkNav({ work, pages, current, title }: Props) {
           </div>
         </div>
       </div>
-      {chapters && <ChaptersSheet work={work} pages={pages} current={current} onClose={() => setChapters(false)} />}
+      {chapters && !books && <ChaptersSheet work={work} pages={pages} current={current} onClose={() => setChapters(false)} />}
+      {chapters && books && <BooksSheet work={work} books={books.rows} current={books.current} onClose={() => setChapters(false)} />}
       {picked && (
         <Suspense fallback={null}>
           <ParallelsSheet reference={picked.ref} paperId="" work={work.slug} onClose={() => setPicked(null)} />

@@ -25,7 +25,7 @@ describe("the eyebrow and the title of a page", () => {
   });
 
   it("names a chapter of the Bible by its book and number, with its part of the Bible above", () => {
-    const john = page({ key: "john-3", division: 58, subdivision: 3, firstRef: "John 3:1", lastRef: "John 3:1", count: 0, readRef: "John 3", part: "New Testament", book: "John" });
+    const john = page({ key: "john-3", division: 58, subdivision: 3, firstRef: "John 3:1", lastRef: "John 3:1", count: 0, readRef: "John 3", part: "New Testament", book: { code: "John", name: "John", title: "The Gospel According to John" } });
     expect(pageLabels(work({ title: "The Bible (World English Bible)", refLevels: 2, divisionLabel: "book" }), john, [john])).toEqual({ eyebrow: "The Bible · New Testament", title: "John 3" });
   });
 

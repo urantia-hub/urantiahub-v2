@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WorkNav } from "@/components/library/WorkNav";
 import { WorkView } from "@/components/library/WorkView";
 import { getLibrary, getWorkPage, getWorkPages, PageNotFound } from "@/content";
+import { BIBLE, bibleBooks } from "@/library/bible";
 import { LIBRARY_LINKS } from "@/library/flags";
 import { chapterRow, pageLabels, unitCount } from "@/library/labels";
 import { pageMetadata } from "@/seo/metadata";
@@ -44,16 +45,32 @@ export default async function WorkPagePage({ params }: Props) {
   const found = await load(slug, key);
   if (!found) notFound();
   const { work, pages, page, passages } = found;
+  const nav = { slug: work.slug, title: work.title, short: workName({ id: work.corpusId, title: work.title }), summary: work.summary };
+  const title = pageLabels(work, page, pages).title;
+  if (work.slug === BIBLE) {
+    // The Bible sends its 81 books, not a row for each of its 1,402 chapters.
+    const at = pages.findIndex((p) => p.key === page.key);
+    const near = (p: (typeof pages)[number] | undefined) => (p ? { key: p.key, title: pageLabels(work, p, pages).title } : undefined);
+    return (
+      <>
+        <WorkView work={work} page={page} pages={pages} passages={passages} />
+        <WorkNav
+          work={{ ...nav, short: "Bible" }}
+          pages={[]}
+          books={{ rows: bibleBooks(pages), current: { book: page.book?.code ?? "", chapter: page.subdivision ?? 0 } }}
+          previous={near(pages[at - 1])}
+          next={near(pages[at + 1])}
+          current={page.key}
+          title={title}
+        />
+      </>
+    );
+  }
   const rows = pages.map((p) => ({ key: p.key, ...chapterRow(work, p, pages), count: unitCount(p.count, work.unitLabel) }));
   return (
     <>
       <WorkView work={work} page={page} pages={pages} passages={passages} />
-      <WorkNav
-        work={{ slug: work.slug, title: work.title, short: workName({ id: work.corpusId, title: work.title }), summary: work.summary }}
-        pages={rows}
-        current={page.key}
-        title={pageLabels(work, page, pages).title}
-      />
+      <WorkNav work={nav} pages={rows} current={page.key} title={title} />
     </>
   );
 }

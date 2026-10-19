@@ -33,7 +33,7 @@ export type WorkPage = {
   count: number;
   readRef?: string;
   part?: string | null;
-  book?: string;
+  book?: { code: string; name: string; title: string };
 };
 export type WorkPassage = { ref: string; number: string; text: string; url: string | null };
 
@@ -80,7 +80,7 @@ const PagesSchema = z.object({
   }),
 });
 const BooksSchema = z.object({
-  data: z.array(z.object({ bookCode: z.string().min(1), bookName: z.string().min(1), bookOrder: z.number().int(), canon: z.string(), chapterCount: z.number().int().positive() })),
+  data: z.array(z.object({ bookCode: z.string().min(1), bookName: z.string().min(1), fullName: z.string(), bookOrder: z.number().int(), canon: z.string(), chapterCount: z.number().int().positive() })),
 });
 const ReadSchema = z.object({ data: z.array(z.object({ reference: z.string().min(1), text: z.string().min(1), url: z.string().nullish() })) });
 
