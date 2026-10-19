@@ -3,7 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { flushRead, queueRead } from "@/account/sync";
-import { ReadTracker } from "@/reader/read-tracker";
+import { watchReading } from "@/reader/read-zone";
 import { flushSections, loadStreak, noteParagraphs } from "@/streak/client";
 
 // On a paper, for a signed-in reader: marks each paragraph as read after its time in the reading zone
@@ -15,44 +15,23 @@ export function ReadMarks({ paperId }: { paperId: string }) {
 
   useEffect(() => {
     if (!key || !("IntersectionObserver" in window)) return;
-    const tracker = new ReadTracker();
-    // The reading zone: the middle of the screen, away from the bars at the top and the bottom.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) tracker.enter(entry.target.id, entry.target.textContent?.length ?? 0);
-          else tracker.leave(entry.target.id);
-        }
-      },
-      { rootMargin: "-12% 0px -30% 0px" },
-    );
-    for (const paragraph of document.querySelectorAll(".paper .para[id]")) observer.observe(paragraph);
-
     void loadStreak();
-    const collect = () => {
-      const refs = tracker.collect();
-      queueRead(refs);
-      noteParagraphs("read", refs);
-    };
-    const timer = window.setInterval(collect, 1000);
-    const onVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        // The general listener sent its batch before this one ran, so this last part goes out here.
-        collect();
+    const stop = watchReading(
+      ".paper .para[id]",
+      (refs) => {
+        queueRead(refs);
+        noteParagraphs("read", refs);
+      },
+      // The general listener sent its batch before this one ran, so this last part goes out here.
+      () => {
         void flushRead(true);
         void flushSections(true);
-        tracker.pause();
-      } else tracker.resume();
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    if (document.visibilityState === "hidden") tracker.pause();
+      },
+    );
     return () => {
       // The reader leaves the paper: what was read goes out now.
-      collect();
+      stop();
       void flushRead();
-      window.clearInterval(timer);
-      observer.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [key, paperId]);
 

@@ -4,13 +4,16 @@
 import { paperPath } from "@/content/paper-index";
 import { BOOK, minutesOf, nextAfter, orderOf, sectionAt, type SectionEntry, sectionLabel, TOTAL_SECTIONS } from "@/content/section-index";
 import { anchorFor } from "@/lib/paper-url";
-import { earnedMarks, mergeMarks } from "@/marks/earn";
+import { isTextPage } from "@/content/text-index";
+import { earnedMarks, mergeMarks, type TextPages } from "@/marks/earn";
 import { TOOL_MARKS } from "@/marks/list";
 import { type NextMark, nextMarks } from "@/marks/next";
 import { addDays, computeStreak, type Goal, type Goals, readingDay, type StreakState } from "@/streak/rules";
 import { parsePlace, PLACE_KEY } from "./reader-data";
 
 export const STREAK_KEY = "hub.streak";
+// The finished pages of each world text, by the slug of the work: for the marks only, never the streak.
+export const TEXTS_KEY = "hub.texts";
 export const DEFAULT_STREAK_HOUR = 21;
 
 export type StreakSettings = {
@@ -154,6 +157,36 @@ function nextSection(rows: SectionRow[], place: unknown): NextSection {
   return { paperId: entry.paperId, sectionId: entry.id, ...sectionLabel(entry), minutes: minutesOf(entry.words), href: hrefOf(entry) };
 }
 
+// The stored pages that the index has. A value of another form counts as no pages.
+function parseTexts(value: unknown): Record<string, string[]> {
+  if (!isRecord(value)) return {};
+  const out: Record<string, string[]> = {};
+  for (const [slug, keys] of Object.entries(value)) {
+    if (!Array.isArray(keys)) continue;
+    const valid = keys.filter((key): key is string => typeof key === "string" && isTextPage(slug, key));
+    if (valid.length > 0) out[slug] = [...new Set(valid)];
+  }
+  return out;
+}
+
+// A page of a world text that the reader finished, from the browser. Only while the streak is on: the
+// marks belong to it.
+export async function saveTextPage(gateway: StreakGateway, accessToken: string, value: unknown, now: Date = new Date()): Promise<{ saved: boolean; card: StreakCard }> {
+  const all = await gateway.preferences(accessToken);
+  const settings = parseStreak(all[STREAK_KEY]);
+  const work = isRecord(value) ? value.work : null;
+  const page = isRecord(value) ? value.page : null;
+  const valid = typeof work === "string" && typeof page === "string" && isTextPage(work, page);
+  if (!settings?.on || !valid) return { saved: false, card: await cardFor(gateway, accessToken, all, now) };
+  const texts = parseTexts(all[TEXTS_KEY]);
+  if (!texts[work]?.includes(page)) {
+    const next = { ...texts, [work]: [...(texts[work] ?? []), page] };
+    await gateway.savePreferences(accessToken, { [TEXTS_KEY]: next });
+    all[TEXTS_KEY] = next;
+  }
+  return { saved: true, card: await cardFor(gateway, accessToken, all, now) };
+}
+
 async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<string, unknown>, now: Date): Promise<StreakCard> {
   const settings = parseStreak(all[STREAK_KEY]);
   if (!settings?.on) return { on: false, asked: settings?.asked ?? false };
@@ -161,11 +194,12 @@ async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<
   const counts: Record<string, number> = {};
   for (const row of rows) counts[row.day] = (counts[row.day] ?? 0) + 1;
   const state = computeStreak(counts, settings.goals, readingDay(now, settings.zone), settings.longest);
-  const { marks, fresh } = mergeMarks(settings.marks, earnedMarks(rows, state.longest), now.toISOString());
+  const texts: TextPages = parseTexts(all[TEXTS_KEY]);
+  const { marks, fresh } = mergeMarks(settings.marks, earnedMarks(rows, state.longest, texts), now.toISOString());
   if (state.longest > settings.longest || fresh.length > 0) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, longest: state.longest, marks } });
   const done = new Set(rows.map((row) => `${row.paperId}:${row.sectionId}`)).size;
   const next = nextSection(rows, all[PLACE_KEY]);
-  const nextMarksList = nextMarks({ rows, current: state.current, earned: marks, nextMinutes: next.minutes });
+  const nextMarksList = nextMarks({ rows, current: state.current, earned: marks, nextMinutes: next.minutes, texts });
   return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next, marks, fresh, nextMarks: nextMarksList };
 }
 

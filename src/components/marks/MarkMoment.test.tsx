@@ -44,7 +44,7 @@ describe("the moment of a new mark", () => {
     render(<MarkMoment />);
     await act(() => vi.advanceTimersByTimeAsync(500));
     expect(screen.getByRole("dialog", { name: "A new mark: Search" })).toBeInTheDocument();
-    expect(screen.getByText("A new mark · 1 of 30")).toBeInTheDocument();
+    expect(screen.getByText("A new mark · 1 of 35")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
     await act(() => vi.advanceTimersByTimeAsync(500));
     expect(state.played).toEqual(["search"]);
@@ -71,7 +71,7 @@ describe("the marks card", () => {
 
   it("shows the earned marks, the newest first, and the nearest marks with what each takes", () => {
     const { container } = render(<MarksView marks={{ "first-section": "2026-10-17T10:00:00Z", "papers-1": "2026-10-17T11:00:00Z" }} next={next} place="stack" />);
-    expect(container.querySelector(".marks-head")).toHaveTextContent("Marks2 of 30");
+    expect(container.querySelector(".marks-head")).toHaveTextContent("Marks2 of 35");
     expect([...container.querySelectorAll(".marks-got li")].map((li) => li.querySelector("small")?.textContent)).toEqual(["1 paper", "First section"]);
     expect(screen.getByText("Open the terms of a paragraph · 1 min")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "5 papers, progress" })).toHaveAttribute("aria-valuenow", "20");
@@ -81,7 +81,7 @@ describe("the marks card", () => {
     const { container } = render(<MarksView marks={{ "first-section": "t", "papers-1": "t" }} next={next} place="stack" />);
     const all = container.querySelector(".marks-all") as HTMLElement;
     expect(all).not.toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "See all 30 marks" }));
+    fireEvent.click(screen.getByRole("button", { name: "See all 35 marks" }));
     expect(all).toBeVisible();
     expect(screen.getAllByText("✓ earned")).toHaveLength(2);
     expect(screen.getByText("a year of days")).toBeInTheDocument();

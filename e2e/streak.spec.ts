@@ -103,7 +103,7 @@ test.describe("the streak", () => {
     await expect(page.locator(".streak-book")).toHaveText("The whole book · 3 of 1,626 sections");
   });
 
-  test("shows the earned marks and the nearest ones, and all 30 behind See all", async ({ page, context }) => {
+  test("shows the earned marks and the nearest ones, and all 35 behind See all", async ({ page, context }) => {
     const reader = await asReader(context);
     await reader.set({
       streak: { on: true, asked: true, goal: 1, goals: [{ from: day(-30), goal: 1 }], hour: 21, zone: "UTC", since: day(-30), longest: 0, marks: { search: "2026-10-16T10:00:00.000Z" }, at: 1 },
@@ -113,15 +113,44 @@ test.describe("the streak", () => {
     await signIn(page);
     await page.goto("/you");
     const card = page.locator(".marks-card:visible");
-    await expect(card.locator(".marks-head")).toHaveText("Marks2 of 30");
+    await expect(card.locator(".marks-head")).toHaveText("Marks2 of 35");
     await expect(card.locator(".marks-got li")).toHaveText(["First section", "Search"]);
     await expect(card.locator(".marks-next li")).toHaveCount(3);
     await expect(card.locator(".marks-tier").first()).toBeHidden();
-    await card.getByRole("button", { name: "See all 30 marks" }).click();
+    await card.getByRole("button", { name: "See all 35 marks" }).click();
     await expect(card.locator(".marks-tier")).toHaveCount(4);
     await expect(card.locator(".marks-tier").first()).toBeVisible();
     await card.getByRole("button", { name: "Show less" }).click();
     await expect(card.locator(".marks-tier").first()).toBeHidden();
+  });
+
+  test("a finished world text earns its marks, and goes to the account as pages", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await reader.set({ streak: { on: true, asked: true, goal: 1, goals: [{ from: day(-30), goal: 1 }], hour: 21, zone: "UTC", since: day(-30), longest: 0, marks: {}, at: 1 } });
+    await page.clock.install();
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.keyboard.press("Escape");
+    await page.goto("/texts/shinto-oracles");
+    const passages = page.locator(".paper.work .para[id]");
+    const count = await passages.count();
+    expect(count).toBeGreaterThan(2);
+    for (let n = 0; n < count; n++) {
+      await passages.nth(n).evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await page.waitForTimeout(300);
+      await page.clock.fastForward(9000);
+    }
+    await expect.poll(async () => (await reader.seen()).preferences["hub.texts"]).toEqual({ "shinto-oracles": [expect.any(String)] });
+    // The work has one page, so both marks come: the lower tier first.
+    await page.clock.fastForward(2000);
+    const first = page.getByRole("dialog", { name: "A new mark: First world text" });
+    await expect(first).toBeVisible();
+    await first.getByRole("button", { name: "Continue" }).click();
+    await page.clock.fastForward(2000);
+    await expect(page.getByRole("dialog", { name: "A new mark: A whole world text" })).toBeVisible();
+    expect(Object.keys((await reader.seen()).streak.marks).sort()).toEqual(["first-text", "texts-1"]);
+    // No day of the streak comes from a world text.
+    expect((await reader.seen()).sectionDays).toEqual([]);
   });
 
   test("Listen on the card opens the section with the voice", async ({ page, context }) => {

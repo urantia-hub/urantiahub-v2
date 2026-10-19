@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { TextMarks } from "@/components/library/TextMarks";
 import { WorkNav } from "@/components/library/WorkNav";
 import { WorkView } from "@/components/library/WorkView";
 import { getLibrary, getWorkPage, getWorkPages, PageNotFound } from "@/content";
@@ -61,6 +62,7 @@ export default async function WorkPagePage({ params }: Props) {
     return (
       <>
         <WorkView work={work} page={page} pages={pages} passages={passages} />
+        <TextMarks work={work.slug} page={page.key} />
         <WorkNav
           work={bible ? { ...nav, short: "Bible" } : nav}
           pages={[]}
@@ -83,6 +85,7 @@ export default async function WorkPagePage({ params }: Props) {
   return (
     <>
       <WorkView work={work} page={page} pages={pages} passages={passages} />
+      <TextMarks work={work.slug} page={page.key} />
       <WorkNav work={nav} pages={rows} current={page.key} title={title} label={label} />
     </>
   );

@@ -3,6 +3,8 @@
 
 import { PARTS, paperById } from "@/content/paper-index";
 import { BOOK } from "@/content/section-index";
+import { isTextPage, TEXT_WORKS } from "@/content/text-index";
+import type { TextPages } from "./earn";
 import { MARKS, type Mark } from "./list";
 
 type Row = { paperId: string; sectionId: string; how: "read" | "heard" };
@@ -41,10 +43,43 @@ function minutesLeft(rows: readonly Row[]): Map<string, { minutes: number; secti
   return left;
 }
 
+// The world texts that the reader did not finish: the minutes and the pages left in each, the shortest first.
+type WorkLeft = { title: string; unit: string; pages: number; left: number; minutes: number };
+function worksLeft(texts: TextPages): { open: WorkLeft[]; finished: number } {
+  const open: WorkLeft[] = [];
+  for (const work of TEXT_WORKS) {
+    const done = new Set((texts[work.slug] ?? []).filter((key) => isTextPage(work.slug, key)));
+    const rest = work.pages.filter((page) => !done.has(page.key));
+    if (rest.length > 0) open.push({ title: work.title, unit: work.unit, pages: work.pages.length, left: rest.length, minutes: rest.reduce((n, page) => n + page.words / 100, 0) });
+  }
+  return { open: open.sort((a, b) => a.minutes - b.minutes), finished: TEXT_WORKS.length - open.length };
+}
+const units = (unit: string) => (unit.endsWith("s") ? unit : `${unit}s`);
+const startedText = (texts: TextPages) => Object.entries(texts).some(([slug, keys]) => keys.some((key) => isTextPage(slug, key)));
+
 type Reach = { minutes: number; line: string; progress: number | null };
 
-function reach(mark: Mark, rows: readonly Row[], left: ReturnType<typeof minutesLeft>, current: number, nextMinutes: number): Reach {
+function reachText(rule: { kind: "texts"; count: number | "all" }, texts: TextPages): Reach {
+  const { open, finished } = worksLeft(texts);
+  const target = rule.count === "all" ? TEXT_WORKS.length : rule.count;
+  // One whole work names a work that the reader started, when there is one.
+  const started = open.filter((work) => work.left < work.pages);
+  const chosen = (target === 1 && started.length > 0 ? started : open).slice(0, target - finished);
+  const minutes = chosen.reduce((sum, work) => sum + work.minutes, 0);
+  const one = chosen.length === 1 ? chosen[0] : null;
+  if (one) {
+    // A work that the reader started names its pages left; a work of one page, or one not started, its time.
+    const started = one.left < one.pages;
+    const line = started ? `${one.title} · ${one.left} of ${one.pages} ${units(one.unit)} left · ${timeWords(minutes)}` : `${one.title} · ${timeWords(minutes)}`;
+    return { minutes, line, progress: target === 1 ? (one.pages - one.left) / one.pages : finished / target };
+  }
+  return { minutes, line: `${plural(chosen.length, "work", "works")} left · ${timeWords(minutes)}`, progress: finished / target };
+}
+
+function reach(mark: Mark, rows: readonly Row[], left: ReturnType<typeof minutesLeft>, current: number, nextMinutes: number, texts: TextPages): Reach {
   const rule = mark.rule;
+  if (rule.kind === "texts") return reachText(rule, texts);
+  if (rule.kind === "first-text") return { minutes: 0, line: "", progress: null };
   if (rule.kind === "first-section") return { minutes: nextMinutes, line: `Finish one section · ${timeWords(nextMinutes)}`, progress: null };
   if (rule.kind === "first-listen") return { minutes: nextMinutes, line: `Listen to one section · ${timeWords(nextMinutes)}`, progress: null };
   if (rule.kind === "tool") {
@@ -76,11 +111,13 @@ function reach(mark: Mark, rows: readonly Row[], left: ReturnType<typeof minutes
   return { minutes, line, progress: papers.length > 1 ? (papers.length - open.length) / papers.length : null };
 }
 
-export function nextMarks(input: { rows: readonly Row[]; current: number; earned: Record<string, string>; nextMinutes: number }, count = 3): NextMark[] {
+export function nextMarks(input: { rows: readonly Row[]; current: number; earned: Record<string, string>; nextMinutes: number; texts?: TextPages }, count = 3): NextMark[] {
   const left = minutesLeft(input.rows);
   const nextMinutes = input.nextMinutes;
-  return MARKS.filter((mark) => !input.earned[mark.id])
-    .map((mark, order) => ({ mark, order, ...reach(mark, input.rows, left, input.current, nextMinutes) }))
+  // The world-text marks wait until the reader starts a world text: a short page would push the Papers out.
+  const texts = startedText(input.texts ?? {});
+  return MARKS.filter((mark) => !input.earned[mark.id] && (texts || (mark.rule.kind !== "texts" && mark.rule.kind !== "first-text")))
+    .map((mark, order) => ({ mark, order, ...reach(mark, input.rows, left, input.current, nextMinutes, input.texts ?? {}) }))
     .sort((a, b) => a.minutes - b.minutes || a.order - b.order)
     .slice(0, count)
     .map(({ mark, line, progress }) => ({ id: mark.id, line, progress: progress && progress > 0 ? progress : null }));

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BOOK } from "@/content/section-index";
+import { TEXT_WORKS, textWork } from "@/content/text-index";
 import { nextMarks, timeWords } from "./next";
 
 const all = (paperId: string) => BOOK.filter((entry) => entry.paperId === paperId).map((entry) => ({ paperId, sectionId: entry.id, how: "read" as const }));
@@ -31,6 +32,27 @@ describe("the nearest marks", () => {
     const rows = all("1");
     const five = nextMarks({ rows, current: 0, earned, nextMinutes: 3 }, 40).find((item) => item.id === "papers-5");
     expect(five?.line).toMatch(/^4 papers left · about \d+ (min|hour|hours)$/);
+    expect(five?.progress).toBeCloseTo(1 / 5);
+  });
+
+  it("offers no world-text mark before the reader starts a world text", () => {
+    const list = nextMarks({ rows: [], current: 0, earned: {}, nextMinutes: 1 }, 40);
+    expect(list.some((mark) => mark.id === "first-text" || mark.id.startsWith("texts-"))).toBe(false);
+  });
+
+  it("names the world text when one is left, with its pages left and its progress", () => {
+    const dhammapada = textWork("dhammapada")!;
+    const keys = dhammapada.pages.slice(0, -4).map((page) => page.key);
+    const whole = nextMarks({ rows: [], current: 0, earned: {}, nextMinutes: 1, texts: { dhammapada: keys } }, 40).find((mark) => mark.id === "texts-1");
+    expect(whole?.line).toMatch(/^The Dhammapada · 4 of 26 chapters left · about \d+ min$/);
+    expect(whole?.progress).toBeCloseTo(22 / 26);
+  });
+
+  it("counts world texts by the shortest ones left", () => {
+    const shortest = [...TEXT_WORKS].sort((a, b) => a.words - b.words)[0];
+    const texts = { [shortest.slug]: shortest.pages.map((page) => page.key) };
+    const five = nextMarks({ rows: [], current: 0, earned: { "texts-1": "t" }, nextMinutes: 1, texts }, 40).find((mark) => mark.id === "texts-5");
+    expect(five?.line).toMatch(/^4 works left · about \d+ (min|hour|hours)$/);
     expect(five?.progress).toBeCloseTo(1 / 5);
   });
 

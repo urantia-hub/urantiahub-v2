@@ -5,6 +5,7 @@ import type { StreakCard } from "@/account/streak-data";
 import { accountKey, markSignedOut } from "@/account/client";
 import { track } from "@/analytics";
 import { clearDayLog, finished, noteHeard, noteRead } from "./day-log";
+import { clearTextLog, noteTextRead, textPageSent } from "./text-log";
 import { markById } from "@/marks/list";
 import { readingDay, type Goal } from "./rules";
 
@@ -179,6 +180,34 @@ export async function flushSections(keepalive = false): Promise<void> {
   }
 }
 
+// Passages that the reader read on a page of a world text. A finished page goes to the account for the
+// marks, only while the streak is on; it never counts as a day of the streak. One page is sent at a time.
+let sendingText: string | null = null;
+export function noteTextPassages(work: string, page: string, refs: readonly string[]): void {
+  if (!streaksOn() || refs.length === 0 || !view.card?.on) return;
+  const key = ready();
+  if (!key) return;
+  const all = [...document.querySelectorAll(".paper.work .para[id]")].map((el) => el.id);
+  if (!noteTextRead(key, work, page, refs, all) || sendingText === `${work}/${page}`) return;
+  void sendTextPage(key, work, page);
+}
+
+async function sendTextPage(key: string, work: string, page: string): Promise<void> {
+  sendingText = `${work}/${page}`;
+  const at = epoch;
+  try {
+    const answer = (await ask("POST", "/api/me/texts", { work, page })) as { saved?: boolean; card?: StreakCard } | null;
+    if (epoch !== at) return;
+    // A page that the account refused is not sent again either: only a failed request tries again.
+    textPageSent(key, work, page);
+    if (answer?.card) show({ ...view, card: answer.card, moments: queueMoments(answer.card.on ? answer.card.fresh : []) });
+  } catch {
+    // No connection: the page stays in the log, and the next passage read on it sends it again.
+  } finally {
+    sendingText = null;
+  }
+}
+
 // New marks wait to play: the lower tier first, and each id one time.
 function queueMoments(ids: readonly string[]): string[] {
   const all = [...view.moments, ...ids.filter((id) => !view.moments.includes(id))];
@@ -260,6 +289,7 @@ export function forgetStreak(): void {
   loading = null;
   clearPending();
   clearDayLog();
+  clearTextLog();
   show(NONE);
 }
 

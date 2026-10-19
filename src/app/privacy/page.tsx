@@ -1,4 +1,4 @@
-import { ACCOUNT_ITEMS, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
 import { pageMetadata } from "@/seo/metadata";
 
 export const metadata = pageMetadata({
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
     if (streaksOn && vendor.name === "Supabase") return { ...vendor, receives: vendor.receives.replace(/, and your notes\.$/, `, your notes, ${STREAK_SUPABASE_RECEIVES}.`) };
     return vendor;
   });
-  const browserItems = streaksOn ? [...BROWSER_ITEMS, STREAK_BROWSER_ITEM] : BROWSER_ITEMS;
+  const browserItems = streaksOn ? [...BROWSER_ITEMS, STREAK_BROWSER_ITEM, STREAK_TEXT_ITEM] : BROWSER_ITEMS;
   const vendors = accountsOn ? [...VENDORS.map((vendor) => (vendor.name === ACCOUNT_POSTHOG.name ? ACCOUNT_POSTHOG : vendor)), ...accountVendors] : VENDORS;
   return (
     <div className="prose privacy">

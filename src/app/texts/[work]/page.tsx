@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WorkExtras, WorkHead, WorkHome } from "@/components/library/WorkHome";
+import { TextMarks } from "@/components/library/TextMarks";
 import { WorkNav } from "@/components/library/WorkNav";
 import { WorkView } from "@/components/library/WorkView";
 import { getLibrary, getWorkPage, getWorkPages, getWorkPairs } from "@/content";
@@ -53,6 +54,7 @@ export default async function WorkHomePage({ params }: Props) {
         head={<WorkHead work={work} facts={facts} source={source} start={null} />}
         after={<WorkExtras work={work} pairs={pairs} source={source} />}
       />
+      <TextMarks work={work.slug} page={page.key} />
       <WorkNav work={nav} pages={[{ key: page.key, ...chapterRow(work, page, pages), count: unitCount(page.count, work.unitLabel) }]} current={page.key} title={work.title} place={false} />
     </>
   );
