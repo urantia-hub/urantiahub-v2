@@ -7,6 +7,8 @@ const FIXTURES: Record<string, string> = {
   "/works": "works",
   "/scriptures": "scriptures",
   "/scriptures/dhammapada": "scriptures_dhammapada",
+  "/bible/books": "bible_books",
+  "/works/bible/John%203": "works_bible_John-3",
   "/scriptures/rig-veda": "scriptures_rig-veda",
   "/works/dhammapada/Dhp%2021-32": "works_dhammapada_Dhp-21-32",
   "/works/rig-veda/RV%2010.129": "works_rig-veda_RV-10.129",
@@ -28,11 +30,23 @@ afterEach(() => {
 const BASE = "https://api.test";
 
 describe("fetchLibrary", () => {
-  it("gives the 21 works with no Bible, each with its facts from both lists", async () => {
+  it("gives the Bible first and the 21 works, each with its facts and its byline", async () => {
     serve();
     const works = await fetchLibrary(BASE);
-    expect(works).toHaveLength(21);
-    expect(works.some((w) => w.slug === "bible")).toBe(false);
+    expect(works).toHaveLength(22);
+    expect(works[0]).toMatchObject({
+      slug: "bible",
+      corpusId: "bible",
+      title: "The Bible (World English Bible)",
+      tradition: "Jewish and Christian",
+      kind: "scripture",
+      translator: "World English Bible",
+      year: null,
+      byline: "World English Bible",
+      refLevels: 2,
+      unitLabel: "verse",
+    });
+    expect(works.find((w) => w.slug === "dhammapada")?.byline).toBe("F. Max Muller, 1881");
     expect(works.find((w) => w.slug === "dhammapada")).toMatchObject({
       corpusId: "dhammapada-muller-1881",
       title: "The Dhammapada",
@@ -71,6 +85,17 @@ describe("the pages of a work", () => {
     expect(passages[0]).toMatchObject({ ref: "Dhp 21", number: "21" });
     expect(passages[0].text.length).toBeGreaterThan(20);
     await expect(fetchWorkPage(BASE, dhp, { ...page, count: 13 })).rejects.toBeInstanceOf(ContentError);
+  });
+
+  it("gives the chapters of the Bible from its books, and reads a chapter by its book code", async () => {
+    serve();
+    const bible = (await fetchLibrary(BASE))[0];
+    const pages = await fetchWorkPages(BASE, "bible");
+    expect(pages).toHaveLength(1402);
+    const passages = await fetchWorkPage(BASE, bible, pages.find((p) => p.key === "john-3") as never);
+    expect(asked).toContain("/works/bible/John%203");
+    expect(passages).toHaveLength(36);
+    expect(passages[15]).toMatchObject({ ref: "John 3:16", number: "16" });
   });
 
   it("reads a page of a work with three levels by its hymn", async () => {

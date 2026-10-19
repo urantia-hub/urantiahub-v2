@@ -24,6 +24,11 @@ describe("the eyebrow and the title of a page", () => {
     expect(pageLabels(work({ title: "The Hymns of the Rigveda", refLevels: 3, divisionLabel: "book" }), rv[0], rv)).toEqual({ eyebrow: "The Hymns of the Rigveda · Book 1", title: "RV 1.1" });
   });
 
+  it("names a chapter of the Bible by its book and number, with its part of the Bible above", () => {
+    const john = page({ key: "john-3", division: 58, subdivision: 3, firstRef: "John 3:1", lastRef: "John 3:1", count: 0, readRef: "John 3", part: "New Testament", book: { code: "John", name: "John", title: "The Gospel According to John" } });
+    expect(pageLabels(work({ title: "The Bible (World English Bible)", refLevels: 2, divisionLabel: "book" }), john, [john])).toEqual({ eyebrow: "The Bible · New Testament", title: "John 3" });
+  });
+
   it("drops a part in brackets from the title of the work", () => {
     const pages = [page({ title: "A" }), page({ title: "B" })];
     expect(pageLabels(work({ title: "The Bible (World English Bible)" }), pages[0], pages).eyebrow).toBe("The Bible · Chapter 2");

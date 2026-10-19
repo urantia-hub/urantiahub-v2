@@ -6,7 +6,7 @@ import { pageMetadata } from "@/seo/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   const works = await getLibrary();
-  const meta = pageMetadata({ title: "Library", description: libraryLead(works.length), path: "/library" });
+  const meta = pageMetadata({ title: "World texts", description: libraryLead(works), path: "/texts" });
   return LIBRARY_LINKS ? meta : { ...meta, robots: { index: false, follow: false } };
 }
 

@@ -193,3 +193,11 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - The gold (`#c9a24a` and its gradient) and the deep blue (`#24245e`) belong to the marks only. The three-color rule is unchanged.
 - /you stays calm (Kelson, 2026-10-17; mock `mocks/hub-v2/you-calmer.html`): the whole book is one line at the foot of the streak card, and today in the week shows by ink (its letter and a dot), never by `--accent`. The marks card shows the earned marks (the newest first, 8 then "+N") and the 3 nearest (`nextMarks` in `src/marks/next.ts`: the least time left, a streak day counts as 5 minutes); "See all 30 marks" opens the tiers in place.
 - The moment of a new mark (`MarkMoment`) is the ONE place where the Hub moves for reader state. It waits while a sheet is open or the voice plays, plays the lower tier first, and shows its end state with no movement and no buzz for "reduce motion".
+
+## World texts (2026-10-19)
+
+- The works beside the Papers are "World texts" at `/texts` (Kelson, 2026-10-19: "Library" read like the place of a reader's saved things). The old `/library` addresses redirect (`MOVED_ADDRESSES`). The code keeps the name `library` inside (`src/library`, `LibraryWork`, `LIBRARY_LINKS`).
+- While `LIBRARY_LINKS` is false: no link from the Hub, `noindex`, no sitemap line, and no "Read here" link in a parallel.
+- The Bible is a work with the slug `bible`: one page for each chapter (`src/library/bible.ts`), keyed `john-3`, read by its book code (`DanGr 3`), its verses named by the book name (`Daniel (Greek) 3:5`). The books sheet (`BooksSheet`) takes the place of the chapters list.
+- "Other works" for a Bible verse comes from the work passages that have its chunk in their top 10 (the API, reverse lookup). Most are from the Book of Mormon, which has the language of the King James Bible.
+- The sheet title of a passage names the chunk that the parallels belong to ("John 3:10-21"), as for the other works.

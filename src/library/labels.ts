@@ -10,6 +10,8 @@ const ownTitles = (pages: WorkPage[]) => pages.every((p) => p.title) && new Set(
 
 /** The line above the title of a page, and the title. */
 export function pageLabels(work: Work, page: WorkPage, pages: WorkPage[]): { eyebrow: string; title: string } {
+  // A chapter of the Bible: "The Bible · New Testament" above "John 3".
+  if (page.part) return { eyebrow: `${shortTitle(work.title)} · ${page.part}`, title: page.firstRef.replace(/:\d+$/, "") };
   const division = `${cap(work.divisionLabel)} ${page.division}`;
   if (ownTitles(pages)) return { eyebrow: `${shortTitle(work.title)} · ${division}`, title: page.title as string };
   if (work.refLevels === 3) {

@@ -12,7 +12,7 @@ describe("the Library in the sitemap", () => {
   });
 
   it("lists the Library and the first page of each work when it is linked", async () => {
-    expect(await libraryPaths(true, async () => ({ works, firstKeys }))).toEqual(["/library", "/library/dhammapada/1", "/library/rig-veda/1-1"]);
+    expect(await libraryPaths(true, async () => ({ works, firstKeys }))).toEqual(["/texts", "/texts/dhammapada/1", "/texts/rig-veda/1-1"]);
   });
 
   it("lists nothing of the Library when its list does not load, so the sitemap stands", async () => {

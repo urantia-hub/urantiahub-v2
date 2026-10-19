@@ -233,7 +233,7 @@ describe("the parallels of a passage of the Library", () => {
     answers(PASSAGE);
     openPassage();
     expect(await within(passageSheet()).findByText("56:9.10", { selector: "b" })).toBeInTheDocument();
-    expect(fetchMock.mock.calls[0][0]).toBe("/api/parallels/library/dhammapada/Dhp%2021");
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/parallels/texts/dhammapada/Dhp%2021");
     const halves = within(passageSheet()).getAllByRole("button", { pressed: undefined }).filter((b) => b.hasAttribute("aria-pressed"));
     expect(halves.map((b) => b.textContent)).toEqual(["In the Papers", "Other works"]);
     expect(halves[0]).toHaveAttribute("aria-pressed", "true");
@@ -281,6 +281,6 @@ describe("the parallels of a passage of the Library", () => {
     await within(passageSheet()).findByText("56:9.10", { selector: "b" });
     await userEvent.click(within(passageSheet()).getByRole("button", { name: "Other works" }));
     expect(within(passageSheet()).getByText("Koran 2.255-257", { selector: "b" })).toBeInTheDocument();
-    expect(within(passageSheet()).queryByRole("link", { name: /In the Library/ })).toBeNull();
+    expect(within(passageSheet()).queryByRole("link", { name: /Read here/ })).toBeNull();
   });
 });

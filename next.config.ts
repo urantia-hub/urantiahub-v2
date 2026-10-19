@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { OLD_ADDRESSES } from "./src/old-addresses";
+import { MOVED_ADDRESSES, OLD_ADDRESSES } from "./src/old-addresses";
 import { securityHeaders } from "./src/security-headers";
 
 const nextConfig: NextConfig = {
@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
   },
   // No link to the Hub before this one breaks.
   async redirects() {
-    return OLD_ADDRESSES;
+    return [...OLD_ADDRESSES, ...MOVED_ADDRESSES];
   },
   async headers() {
     return [

@@ -40,7 +40,7 @@ export function ChaptersSheet({ work, pages, current, onClose }: Props) {
         <ul className="chapter-list">
           {pages.map((p) => (
             <li key={p.key}>
-              <Link href={`/library/${work.slug}/${p.key}`} aria-current={p.key === current ? "page" : undefined} onClick={onClose}>
+              <Link href={`/texts/${work.slug}/${p.key}`} aria-current={p.key === current ? "page" : undefined} onClick={onClose}>
                 {p.number && <span className="n">{p.number}</span>}
                 <span className="t">{p.title}</span>
                 <small>{p.count}</small>
@@ -48,8 +48,8 @@ export function ChaptersSheet({ work, pages, current, onClose }: Props) {
             </li>
           ))}
         </ul>
-        <Link className="parallel-more" href="/library" onClick={onClose}>
-          All the works in the Library
+        <Link className="parallel-more" href="/texts" onClick={onClose}>
+          All world texts
         </Link>
       </div>
     </>,

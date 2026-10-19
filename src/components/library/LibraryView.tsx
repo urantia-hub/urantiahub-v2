@@ -10,13 +10,16 @@ const GROUPS = [
 /** "Annie Besant (and Bhagavan Das)" reads as "Annie Besant": the line beside a title is short. */
 export const shortTranslator = (translator: string) => translator.replace(/\s*\(.*?\)/g, "");
 
-export const libraryLead = (count: number) => `${count} texts of the world's religions, each in the US public domain.`;
+export const libraryLead = (works: readonly { slug: string }[]) =>
+  works.some((w) => w.slug === "bible")
+    ? `The Bible and ${works.length - 1} other texts of the world's religions, each in the US public domain.`
+    : `${works.length} texts of the world's religions, each in the US public domain.`;
 
 export function LibraryView({ works, firstKeys }: { works: LibraryWork[]; firstKeys: Record<string, string> }) {
   return (
     <div className="toc library">
-      <h1>Library</h1>
-      <p className="lead">{libraryLead(works.length)}</p>
+      <h1>World texts</h1>
+      <p className="lead">{libraryLead(works)}</p>
       <nav className="jump" aria-label="Groups">
         {GROUPS.map((g) => (
           <a key={g.id} href={`#${g.id}`}>
@@ -33,10 +36,10 @@ export function LibraryView({ works, firstKeys }: { works: LibraryWork[]; firstK
               .filter((w) => w.kind === g.kind)
               .map((w) => (
                 <li key={w.slug}>
-                  <Link href={`/library/${w.slug}/${firstKeys[w.slug]}`}>
+                  <Link href={`/texts/${w.slug}/${firstKeys[w.slug]}`}>
                     <span className="t">{w.title}</span>
                     <span className="m">
-                      {w.tradition} · {shortTranslator(w.translator)}, {w.year}
+                      {w.tradition} · {w.byline}
                     </span>
                     <span className="s">{w.summary}</span>
                   </Link>

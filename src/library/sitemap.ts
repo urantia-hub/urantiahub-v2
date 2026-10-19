@@ -6,7 +6,7 @@ export async function libraryPaths(linked: boolean, load: Load): Promise<string[
   if (!linked) return [];
   try {
     const { works, firstKeys } = await load();
-    return ["/library", ...works.flatMap((w) => (firstKeys[w.slug] ? [`/library/${w.slug}/${firstKeys[w.slug]}`] : []))];
+    return ["/texts", ...works.flatMap((w) => (firstKeys[w.slug] ? [`/texts/${w.slug}/${firstKeys[w.slug]}`] : []))];
   } catch {
     return [];
   }

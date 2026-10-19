@@ -33,7 +33,7 @@ describe("WorkNav", () => {
     await act(async () => fireEvent.click(passage));
     expect(passage).toHaveAttribute("data-picked");
     expect(await screen.findByRole("dialog", { name: "Parallels for Dhp 21" })).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith("/api/parallels/library/dhammapada/Dhp%2021", expect.anything());
+    expect(fetch).toHaveBeenCalledWith("/api/parallels/texts/dhammapada/Dhp%2021", expect.anything());
     await act(async () => fireEvent.click(passage));
     expect(passage).not.toHaveAttribute("data-picked");
   });
@@ -42,10 +42,10 @@ describe("WorkNav", () => {
     page();
     await act(async () => fireEvent.click(screen.getByRole("button", { name: /Dhammapada On Earnestness/ })));
     const sheet = screen.getByRole("dialog", { name: "Chapters" });
-    const links = within(sheet).getAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("/library/dhammapada/"));
+    const links = within(sheet).getAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("/texts/dhammapada/"));
     expect(links).toHaveLength(26);
     expect(within(sheet).getByRole("link", { name: /On Earnestness/ })).toHaveAttribute("aria-current", "page");
-    expect(within(sheet).getByRole("link", { name: "All the works in the Library" })).toHaveAttribute("href", "/library");
+    expect(within(sheet).getByRole("link", { name: "All world texts" })).toHaveAttribute("href", "/texts");
   });
 
   // The chapters have the frame of the parallels: a sheet on a phone, a card in the margin from 1100 px (mock, state 7).
@@ -60,9 +60,38 @@ describe("WorkNav", () => {
   });
 
   it("marks the passage that the address names, and opens its parallels", async () => {
-    window.history.replaceState(null, "", "/library/dhammapada/2#Dhp_25");
+    window.history.replaceState(null, "", "/texts/dhammapada/2#Dhp_25");
     page();
     expect(await screen.findByRole("dialog", { name: "Parallels for Dhp 25" })).toBeInTheDocument();
     expect(document.getElementById("Dhp_25")).toHaveAttribute("data-picked");
+  });
+});
+
+describe("WorkNav for the Bible", () => {
+  const books = [
+    { code: "John", name: "John", title: "The Gospel According to John", part: "New Testament", slug: "john", chapters: 21 },
+    { code: "Acts", name: "Acts", title: "The Acts of the Apostles", part: "New Testament", slug: "acts", chapters: 28 },
+  ];
+  const bible = () =>
+    render(
+      <WorkNav
+        work={{ slug: "bible", title: "The Bible (World English Bible)", short: "Bible", summary: "" }}
+        pages={[]}
+        books={{ rows: books, current: { book: "John", chapter: 3 } }}
+        previous={{ key: "john-2", title: "John 2" }}
+        next={{ key: "john-4", title: "John 4" }}
+        current="john-3"
+        title="John 3"
+      />,
+    );
+
+  it("opens the books from the middle of the dock, and goes to the next chapter by its arrow", async () => {
+    bible();
+    expect(screen.getByRole("link", { name: "Next: John 4" })).toHaveAttribute("href", "/texts/bible/john-4");
+    expect(screen.getByRole("link", { name: "Previous: John 2" })).toHaveAttribute("href", "/texts/bible/john-2");
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: /Bible John 3/ })));
+    const sheet = screen.getByRole("dialog", { name: "The books of the Bible" });
+    expect(within(sheet).getByRole("button", { name: "John 21 chapters" })).toHaveAttribute("aria-current", "true");
+    expect(screen.queryByRole("dialog", { name: "Chapters" })).toBeNull();
   });
 });

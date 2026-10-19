@@ -39,19 +39,19 @@ describe("ContentsView", () => {
   });
 
   // The Library is unlinked until Kelson turns it on (LIBRARY_LINKS).
-  it("has no way to the Library while the Library is unlinked", () => {
+  it("has no way to World texts while they are unlinked", () => {
     render(<ContentsView libraryLinks={false} />);
     expect(screen.queryByRole("region", { name: "Beside the Papers" })).toBeNull();
-    expect(screen.queryByRole("link", { name: /Library/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /World texts/ })).toBeNull();
   });
 
-  it("ends the jump row and the page with the Library when it is linked", () => {
+  it("ends the jump row and the page with World texts when it is linked", () => {
     render(<ContentsView libraryLinks />);
     const jump = screen.getByRole("navigation", { name: "Parts" });
-    expect(within(jump).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["#part-1", "#part-2", "#part-3", "#part-4", "/library"]);
+    expect(within(jump).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["#part-1", "#part-2", "#part-3", "#part-4", "/texts"]);
     const beside = screen.getByRole("region", { name: "Beside the Papers" });
-    expect(within(beside).getByRole("heading", { level: 2, name: "Library" })).toBeInTheDocument();
-    expect(beside).toHaveTextContent("21 texts of the world's religions, each with the passages of the Papers that are near to it in meaning.");
-    expect(within(beside).getByRole("link", { name: "Open the Library" })).toHaveAttribute("href", "/library");
+    expect(within(beside).getByRole("heading", { level: 2, name: "World texts" })).toBeInTheDocument();
+    expect(beside).toHaveTextContent("The Bible and 21 other texts of the world's religions, each with the passages of the Papers that are near to it in meaning.");
+    expect(within(beside).getByRole("link", { name: "Browse world texts" })).toHaveAttribute("href", "/texts");
   });
 });

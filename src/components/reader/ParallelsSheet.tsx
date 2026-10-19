@@ -36,7 +36,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
   const halves = work ? PASSAGE_HALVES : HALVES;
   // Each event of a passage says so; the events of a paragraph stay as they were.
   const from = work ? { source: "passage" } : {};
-  const endpoint = work ? `/api/parallels/library/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}`;
+  const endpoint = work ? `/api/parallels/texts/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}`;
   const [all, setAll] = useState(false);
   // The reader asked for the passages below the floor.
   const [weak, setWeak] = useState(false);
@@ -133,8 +133,8 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
             </button>
           )}
           {LIBRARY_LINKS && half === "outside" && p.library && (
-            <Link className="parallel-open" href={`/library/${p.library.slug}/at/${encodeURIComponent(p.library.ref)}`} prefetch={false} onClick={opened}>
-              In the Library
+            <Link className="parallel-open" href={`/texts/${p.library.slug}/at/${encodeURIComponent(p.library.ref)}`} prefetch={false} onClick={opened}>
+              Read here
               <span className="sr-only"> {p.ref}</span>
               <Icon name="paperAfter" />
             </Link>

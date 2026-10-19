@@ -12,14 +12,15 @@ function json(status: number, body: string | Buffer) {
 }
 
 // The Library: the list of works, the pages of a work, a page, and the two parallels of a passage. A reference
-// is in the file name with "-" for each space. Null is a Library address with no record; undefined is not one.
+// is in the file name with "-" for each space and "." for each colon. Null is a Library address with no record; undefined is not one.
 function libraryFile(path: string): string | null | undefined {
   if (path === "works") return join(dir, "library", "works.json");
+  if (path === "bible/books") return join(dir, "library", "bible_books.json");
   const pages = /^scriptures\/([a-z0-9-]+)$/.exec(path);
   if (pages) return join(dir, "library", `scriptures_${pages[1]}.json`);
   const read = /^works\/([a-z0-9-]+)\/([A-Za-z0-9 .:-]+?)(?:\/(urantia-parallels|work-parallels))?$/.exec(path);
   if (!read) return undefined;
-  return join(dir, "library", `${read[3] ?? "works"}_${read[1]}_${read[2].replace(/ /g, "-")}.json`);
+  return join(dir, "library", `${read[3] ?? "works"}_${read[1]}_${read[2].replace(/ /g, "-").replace(/:/g, ".")}.json`);
 }
 
 function answer(url: string) {

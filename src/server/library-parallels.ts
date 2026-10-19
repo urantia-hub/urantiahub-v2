@@ -54,7 +54,7 @@ export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageO
   return {
     text: "",
     label: shortRef(others?.label ?? raw.reference, work),
-    source: `${surname(work.translator)}, ${work.year}`,
+    source: work.year === null ? work.translator : `${surname(work.translator)}, ${work.year}`,
     href: outsideHref(raw.url ?? null),
     papers: pick(papers, false),
     weakerPapers: pick(papers, true).slice(0, WEAK_MOST),
@@ -74,7 +74,8 @@ type Deps = {
 };
 
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });
-const REF = /^[\p{L}\p{N} .:,-]{1,40}$/u;
+// Brackets are in the name of a book of the Bible: "Daniel (Greek) 3:5".
+const REF = /^[\p{L}\p{N} .:,()-]{1,40}$/u;
 
 // The parallels of one passage of a work, for the sheet of a work page. The passage must be one of its page,
 // so no one can fill the shared cache with references that do not exist.
@@ -82,12 +83,15 @@ export async function handlePassageParallels(slug: string, ref: string, deps: De
   if (!REF.test(ref)) return refuse(400, "This is not a passage reference.");
   let work: LibraryWork | undefined;
   let held = false;
+  let asked = ref;
   try {
     work = (await deps.library()).find((w) => w.slug === slug);
-    if (!work) return refuse(400, "This work is not in the Library.");
+    if (!work) return refuse(400, "This work is not in World texts.");
     const pages = await deps.pages(slug);
     const page = pageOfRef(work.refLevels, pages, ref);
     held = page !== null && (await deps.page(slug, page.key)).some((p) => p.ref === ref);
+    // A verse of the Bible goes to the API by its book code: it refuses "Daniel (Greek) 3:5" and "Psalm 151 1:3".
+    if (page?.book && ref.startsWith(`${page.book.name} `)) asked = `${page.book.code}${ref.slice(page.book.name.length)}`;
   } catch {
     return refuse(502, "The parallels did not load.");
   }
@@ -95,12 +99,12 @@ export async function handlePassageParallels(slug: string, ref: string, deps: De
 
   let raw: RawPassagePapers;
   try {
-    raw = await deps.papers(slug, ref);
+    raw = await deps.papers(slug, asked);
   } catch {
     return refuse(502, "The parallels did not load.");
   }
   // The other works are a second source. When it fails or is not there yet, the half is empty.
-  const others = await deps.others(slug, ref).catch(() => null);
+  const others = await deps.others(slug, asked).catch(() => null);
   const answer = shapePassageParallels(raw, others, work as LibraryWork, await deps.library());
   return Response.json(answer, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }
