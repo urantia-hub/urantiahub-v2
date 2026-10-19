@@ -2,16 +2,20 @@ import Link from "next/link";
 import { BookmarkMark } from "@/brand/BookmarkMark";
 import { site } from "@/site";
 import { Icon } from "./icons";
+import { HeaderBack } from "./library/HeaderBack";
 import { ReaderSettings } from "./ReaderSettings";
 import { SearchShortcut } from "./search/SearchShortcut";
 
 export function SiteHeader() {
   return (
     <header className="site-header">
-      <Link className="brand" href="/">
-        <BookmarkMark size={22} />
-        <span className="brand-name">{site.name}</span>
-      </Link>
+      <div className="header-start">
+        <Link className="brand" href="/">
+          <BookmarkMark size={22} />
+          <span className="brand-name">{site.name}</span>
+        </Link>
+        <HeaderBack />
+      </div>
       <nav aria-label="Site">
         <Link href="/papers">Papers</Link>
         <Link href="/about">About</Link>

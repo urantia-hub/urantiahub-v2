@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { WorkNav } from "@/components/library/WorkNav";
 import { WorkView } from "@/components/library/WorkView";
 import { getLibrary, getWorkPage, getWorkPages, PageNotFound } from "@/content";
@@ -12,10 +12,12 @@ import { workName } from "@/server/parallels";
 
 type Props = { params: Promise<{ work: string; page: string }> };
 
-// The first page of each work is built with the site. The other pages are built at their first visit.
+// The first page of each work is built with the site. The other pages are built at their first visit. A work of
+// one page has its text on the page of the work, and its one page redirects there.
 export async function generateStaticParams() {
   const works = await getLibrary();
-  return Promise.all(works.map(async (w) => ({ work: w.slug, page: (await getWorkPages(w.slug))[0].key })));
+  const firsts = await Promise.all(works.map(async (w) => ({ work: w.slug, pages: await getWorkPages(w.slug) })));
+  return firsts.filter((f) => f.pages.length > 1).map((f) => ({ work: f.work, page: f.pages[0].key }));
 }
 
 async function load(slug: string, key: string) {
@@ -46,6 +48,7 @@ export default async function WorkPagePage({ params }: Props) {
   const found = await load(slug, key);
   if (!found) notFound();
   const { work, pages, page, passages } = found;
+  if (pages.length === 1) permanentRedirect(`/texts/${work.slug}`);
   const nav = { slug: work.slug, title: work.title, short: workName({ id: work.corpusId, title: work.title }), summary: work.summary };
   const title = pageLabels(work, page, pages).title;
   const bible = work.slug === BIBLE;

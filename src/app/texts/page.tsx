@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LibraryView, libraryLead } from "@/components/library/LibraryView";
-import { getLibrary, getWorkPages } from "@/content";
+import { getLibrary } from "@/content";
 import { LIBRARY_LINKS } from "@/library/flags";
 import { pageMetadata } from "@/seo/metadata";
 
@@ -11,7 +11,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LibraryPage() {
-  const works = await getLibrary();
-  const firstKeys = Object.fromEntries(await Promise.all(works.map(async (w) => [w.slug, (await getWorkPages(w.slug))[0].key] as const)));
-  return <LibraryView works={works} firstKeys={firstKeys} />;
+  return <LibraryView works={await getLibrary()} />;
 }

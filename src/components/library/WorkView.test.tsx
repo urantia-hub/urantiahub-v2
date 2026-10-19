@@ -9,7 +9,8 @@ describe("WorkView", () => {
   it("shows the page of a work: its eyebrow, title, line, passages, and pager", () => {
     const { container } = render(<WorkView work={DHAMMAPADA} page={pages[1]} pages={pages} passages={dhammapadaPage2()} />);
     expect(screen.getByText("The Dhammapada · Chapter 2")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "World texts" })).toHaveAttribute("href", "/texts");
+    // The way back is in the header now (HeaderBack), not above the title.
+    expect(screen.queryByRole("link", { name: "World texts" })).toBeNull();
     expect(screen.getByRole("heading", { level: 1, name: "On Earnestness" })).toBeInTheDocument();
     const meta = container.querySelector(".work-meta") as HTMLElement;
     expect(meta.textContent).toBe("F. Max Muller, 1881 · 12 verses · Read at the source");
@@ -23,12 +24,12 @@ describe("WorkView", () => {
     expect(within(pager).getByRole("link", { name: /Next/ })).toHaveAttribute("href", "/texts/dhammapada/3");
   });
 
-  it("shows no source link when the first passage has no address, and the Library after the last page", () => {
+  it("shows no source link when the first passage has no address, and the contents of the work after the last page", () => {
     const passages = dhammapadaPage2().map((p) => ({ ...p, url: null }));
     const { container } = render(<WorkView work={DHAMMAPADA} page={pages[25]} pages={pages} passages={passages} />);
     expect((container.querySelector(".work-meta") as HTMLElement).textContent).toBe("F. Max Muller, 1881 · 12 verses");
     const pager = screen.getByRole("navigation", { name: "Pages" });
-    expect(within(pager).getByRole("link", { name: /All the works/ })).toHaveAttribute("href", "/texts");
+    expect(within(pager).getByRole("link", { name: /Contents/ })).toHaveAttribute("href", "/texts/dhammapada");
   });
 
   it("keeps a passage as plain text", () => {

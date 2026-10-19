@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { Icon } from "@/components/icons";
+import type { ReactNode } from "react";
 import type { LibraryWork, WorkPage, WorkPassage } from "@/content/library";
 import { pageLabels, unitCount } from "@/library/labels";
 import { refId } from "@/library/refs";
 import { outsideHref } from "@/server/parallels";
 
-type Props = { work: LibraryWork; page: WorkPage; pages: WorkPage[]; passages: WorkPassage[] };
+// A work of one page has this view on the page of the work: `head` takes the place of the title, `after`
+// follows the text, and it has no pager.
+type Props = { work: LibraryWork; page: WorkPage; pages: WorkPage[]; passages: WorkPassage[]; head?: ReactNode; after?: ReactNode };
 
 // One page of a work: the form of a paper page. A passage is plain text, with its number as a link to itself.
-export function WorkView({ work, page, pages, passages }: Props) {
+export function WorkView({ work, page, pages, passages, head, after }: Props) {
   const { eyebrow, title } = pageLabels(work, page, pages);
   const at = pages.findIndex((p) => p.key === page.key);
   const previous = pages[at - 1];
@@ -19,25 +21,25 @@ export function WorkView({ work, page, pages, passages }: Props) {
 
   return (
     <article className="paper work" data-work={work.slug}>
-      <header className="paper-head">
-        <Link className="work-back" href="/texts">
-          <Icon name="back" />
-          World texts
-        </Link>
-        <p className="eyebrow">{eyebrow}</p>
-        <h1 id="paper-top">{title}</h1>
-      </header>
-      <p className="work-meta">
-        {work.byline} · {unitCount(passages.length, work.unitLabel)}
-        {source && (
-          <>
-            {" · "}
-            <a href={source} target="_blank" rel="noopener noreferrer">
-              Read at the source
-            </a>
-          </>
-        )}
-      </p>
+      {head ?? (
+        <>
+          <header className="paper-head">
+            <p className="eyebrow">{eyebrow}</p>
+            <h1 id="paper-top">{title}</h1>
+          </header>
+          <p className="work-meta">
+            {work.byline} · {unitCount(passages.length, work.unitLabel)}
+            {source && (
+              <>
+                {" · "}
+                <a href={source} target="_blank" rel="noopener noreferrer">
+                  Read at the source
+                </a>
+              </>
+            )}
+          </p>
+        </>
+      )}
 
       {passages.map((p) => (
         <p className="para" id={refId(p.ref)} data-ref={p.ref} key={p.ref}>
@@ -50,27 +52,31 @@ export function WorkView({ work, page, pages, passages }: Props) {
         </p>
       ))}
 
-      <nav className="pager" aria-label="Pages">
-        {previous ? (
-          <Link href={href(previous)}>
-            <small>Previous</small>
-            {pageLabels(work, previous, pages).title}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {next ? (
-          <Link className="next" href={href(next)}>
-            <small>Next</small>
-            {pageLabels(work, next, pages).title}
-          </Link>
-        ) : (
-          <Link className="next" href="/texts">
-            <small>World texts</small>
-            All the works
-          </Link>
-        )}
-      </nav>
+      {after && <div className="work-extras">{after}</div>}
+
+      {!head && (
+        <nav className="pager" aria-label="Pages">
+          {previous ? (
+            <Link href={href(previous)}>
+              <small>Previous</small>
+              {pageLabels(work, previous, pages).title}
+            </Link>
+          ) : (
+            <span />
+          )}
+          {next ? (
+            <Link className="next" href={href(next)}>
+              <small>Next</small>
+              {pageLabels(work, next, pages).title}
+            </Link>
+          ) : (
+            <Link className="next" href={`/texts/${work.slug}`}>
+              <small>Contents</small>
+              {work.title}
+            </Link>
+          )}
+        </nav>
+      )}
     </article>
   );
 }

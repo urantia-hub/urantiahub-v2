@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { pageKey, unitNumber } from "@/library/refs";
-import type { LibraryWork, WorkPage, WorkPassage } from "@/content/library";
+import type { LibraryWork, WorkPage, WorkPair, WorkPassage } from "@/content/library";
 
 // The recorded answers of the API, in the shapes of the content gateway, for the tests of the Library.
 const read = (name: string) => JSON.parse(readFileSync(`e2e/fixtures/library/${name}.json`, "utf8")).data;
@@ -19,6 +19,8 @@ export const DHAMMAPADA: LibraryWork = {
   refLevels: 1,
   divisionLabel: "chapter",
   unitLabel: "verse",
+  units: 414,
+  urantiaSection: "131:3",
 };
 
 export function dhammapadaPages(): WorkPage[] {
@@ -35,4 +37,13 @@ export function dhammapadaPages(): WorkPage[] {
 
 export function dhammapadaPage2(): WorkPassage[] {
   return read("works_dhammapada_Dhp-21-32").map((p: { reference: string; text: string; url: string | null }) => ({ ref: p.reference, number: unitNumber(p.reference), text: p.text, url: p.url }));
+}
+
+export function dhammapadaPairs(): WorkPair[] {
+  return read("pairs_dhammapada").map((d: { paragraph: { standardReferenceId: string; paperId: string; paperTitle: string; text: string }; passage: { reference: string; text: string }; similarity: number }) => ({
+    ref: d.passage.reference,
+    text: d.passage.text,
+    percent: Math.floor(d.similarity * 100),
+    paragraph: { ref: d.paragraph.standardReferenceId, paperId: d.paragraph.paperId, paperTitle: d.paragraph.paperTitle, text: d.paragraph.text },
+  }));
 }

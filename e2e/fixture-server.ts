@@ -25,10 +25,18 @@ function libraryFile(path: string): string | null | undefined {
 
 function answer(url: string) {
   let path: string;
+  let query: URLSearchParams;
   try {
-    path = decodeURIComponent(new URL(url, "http://localhost").pathname).slice(1);
+    const parsed = new URL(url, "http://localhost");
+    path = decodeURIComponent(parsed.pathname).slice(1);
+    query = parsed.searchParams;
   } catch {
     return json(400, JSON.stringify({ error: "bad path" }));
+  }
+  // The pairs of a work nearest to the Papers. A work with no record gets none.
+  if (path === "scriptures/insights/pairs") {
+    const file = join(dir, "library", `pairs_${(query.get("corpus") ?? "").replace(/[^a-z0-9-]/g, "")}.json`);
+    return json(200, existsSync(file) ? readFileSync(file) : JSON.stringify({ data: [], meta: { page: 0, limit: 3, total: 0, totalPages: 0 } }));
   }
   // The list of the texts that the API compares with the Papers.
   if (path === "scriptures") return json(200, readFileSync(join(dir, "scriptures.json")));

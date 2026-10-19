@@ -2,7 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
-import { fetchLibrary, fetchPassageOthers, fetchPassagePapers, fetchWorkPage, fetchWorkPages, type LibraryWork, PageNotFound, type RawPassageOthers, type RawPassagePapers, type WorkPage, type WorkPassage } from "./library";
+import { fetchLibrary, fetchPassageOthers, fetchPassagePapers, fetchWorkPage, fetchWorkPages, fetchWorkPairs, type LibraryWork, PageNotFound, type RawPassageOthers, type RawPassagePapers, type WorkPage, type WorkPair, type WorkPassage } from "./library";
 import { fetchParallels, fetchWorks, type RawParallels, type RawWork } from "./parallels";
 import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
@@ -108,6 +108,22 @@ export async function getWorkPage(slug: string, key: string): Promise<WorkPassag
   return cachedWorkPage(slug, key);
 }
 
+async function cachedWorkPairs(slug: string): Promise<WorkPair[]> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("library");
+  return fetchWorkPairs(apiBase(), slug);
+}
+
+// The pairs are an extra on the page of a work: a failure gives none, and it is not kept, so they come back.
+export async function getWorkPairs(slug: string): Promise<WorkPair[]> {
+  try {
+    return await cachedWorkPairs(slug);
+  } catch {
+    return [];
+  }
+}
+
 // The parallels of one passage. The route checks first that the passage is one of its page. A failure is not
 // kept, so a source that comes back is used at the next request.
 export async function getPassagePapers(slug: string, ref: string): Promise<RawPassagePapers> {
@@ -124,7 +140,7 @@ export async function getPassageOthers(slug: string, ref: string): Promise<RawPa
   return fetchPassageOthers(apiBase(), slug, ref);
 }
 
-export type { LibraryWork, WorkPage, WorkPassage } from "./library";
+export type { LibraryWork, WorkPage, WorkPair, WorkPassage } from "./library";
 export { PageNotFound } from "./library";
 export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";
 export type { PaperDoc, Paragraph, ParagraphAudio, Passage, SearchHit, SearchPage, Section } from "./fetchers";

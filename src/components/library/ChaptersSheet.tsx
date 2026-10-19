@@ -61,8 +61,8 @@ export function ChaptersSheet({ work, pages, current, grid = false, onClose }: P
             ))}
           </ul>
         )}
-        <Link className="parallel-more" href="/texts" onClick={onClose}>
-          All world texts
+        <Link className="parallel-more" href={`/texts/${work.slug}`} onClick={onClose}>
+          About this work
         </Link>
       </div>
     </>,
