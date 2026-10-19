@@ -2,7 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
-import { fetchLibrary, fetchWorkPage, fetchWorkPages, type LibraryWork, PageNotFound, type WorkPage, type WorkPassage } from "./library";
+import { fetchLibrary, fetchPassageOthers, fetchPassagePapers, fetchWorkPage, fetchWorkPages, type LibraryWork, PageNotFound, type RawPassageOthers, type RawPassagePapers, type WorkPage, type WorkPassage } from "./library";
 import { fetchParallels, fetchWorks, type RawParallels, type RawWork } from "./parallels";
 import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
@@ -106,6 +106,22 @@ export async function getWorkPage(slug: string, key: string): Promise<WorkPassag
   const pages = await getWorkPages(slug);
   if (!pages.some((p) => p.key === key)) throw new PageNotFound(`Page ${key} of ${slug}`);
   return cachedWorkPage(slug, key);
+}
+
+// The parallels of one passage. The route checks first that the passage is one of its page. A failure is not
+// kept, so a source that comes back is used at the next request.
+export async function getPassagePapers(slug: string, ref: string): Promise<RawPassagePapers> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("parallels");
+  return fetchPassagePapers(apiBase(), slug, ref);
+}
+
+export async function getPassageOthers(slug: string, ref: string): Promise<RawPassageOthers> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("parallels");
+  return fetchPassageOthers(apiBase(), slug, ref);
 }
 
 export type { LibraryWork, WorkPage, WorkPassage } from "./library";

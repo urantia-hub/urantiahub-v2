@@ -83,6 +83,14 @@ describe("the works that the Hub compares", () => {
     expect(works.find((w) => w.work.includes("Aztec"))?.work).toBe("Aztec hymns");
   });
 
+  it("gives a passage of a work in the Library its slug and its reference there", async () => {
+    const load = vi.fn().mockResolvedValue(RAW);
+    const withSlugs = CORPORA.map((c) => ({ ...c, slug: c.id === "bhagavad-gita-besant-1922" ? "bhagavad-gita" : null }));
+    const answer = (await (await handleParallels("1:0.3", load, undefined, async () => withSlugs)).json()) as ParallelsAnswer;
+    expect(answer.outside.find((p) => p.ref === "Bhagavad Gita 7.22-24")?.library).toEqual({ slug: "bhagavad-gita", ref: "BG 7.22-24" });
+    expect(answer.outside.find((p) => p.ref === "Tobit 13:4")?.library ?? null).toBeNull();
+  });
+
   it("is in the answer, and the answer stands with the names only when the list did not load", async () => {
     const load = vi.fn().mockResolvedValue(RAW);
     const good = (await (await handleParallels("1:0.3", load, undefined, async () => CORPORA)).json()) as ParallelsAnswer;
@@ -121,6 +129,13 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
   });
 
   // From 0.40 to 0.45 these two shared a word or the style of the Bible, not a meaning (2026-10-18).
+  it("rounds a score down, so a passage under the floor never shows the number of the floor", () => {
+    const bible = [0.399, 0.57, 0.6383].map((similarity, i) => ({ reference: `Job 1:${i + 1}`, text: "x", similarity, url: null }));
+    const answer = shapeParallels({ ...RAW, bible, scripture: [] });
+    expect(answer.outside.map((p) => [p.ref, p.percent])).toEqual([["Job 1:3", 63], ["Job 1:2", 57]]);
+    expect(answer.weaker.map((p) => [p.ref, p.percent])).toContainEqual(["Job 1:1", 39]);
+  });
+
   it("holds the Book of Mormon and the Rig Veda to a floor of their own, and keeps a passage under it apart", () => {
     const at = (id: string, prefix: string, reference: string, similarity: number) => ({ reference, text: "x", similarity, url: null, corpus: corpus(id, prefix, "T", 1900) });
     const answer = shapeParallels({

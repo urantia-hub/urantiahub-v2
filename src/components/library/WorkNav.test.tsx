@@ -33,7 +33,7 @@ describe("WorkNav", () => {
     await act(async () => fireEvent.click(passage));
     expect(passage).toHaveAttribute("data-picked");
     expect(await screen.findByRole("dialog", { name: "Parallels for Dhp 21" })).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith("/api/library/parallels/dhammapada/Dhp%2021", expect.anything());
+    expect(fetch).toHaveBeenCalledWith("/api/parallels/library/dhammapada/Dhp%2021", expect.anything());
     await act(async () => fireEvent.click(passage));
     expect(passage).not.toHaveAttribute("data-picked");
   });

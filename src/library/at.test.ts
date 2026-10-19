@@ -7,6 +7,8 @@ const pages = [
 vi.mock("@/content", () => ({
   getLibrary: async () => [{ slug: "dhammapada", refLevels: 1 }],
   getWorkPages: async () => pages,
+  getWorkPage: async (_slug: string, key: string) =>
+    key === "2" ? ["Dhp 21", "Dhp 22", "Dhp 23", "Dhp 24", "Dhp 25", "Dhp 26-27"].map((ref) => ({ ref, number: ref.slice(4), text: "x", url: null })) : [],
 }));
 const { handleLibraryAt } = await import("./at");
 
@@ -15,6 +17,12 @@ describe("the address of one passage in the Library", () => {
     const res = await handleLibraryAt({ work: "dhammapada", ref: "Dhp 25" });
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe("/library/dhammapada/2#Dhp_25");
+  });
+
+  it("lands on the first passage of a range, and on a passage that holds the number", async () => {
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 21-23" })).headers.get("location")).toBe("/library/dhammapada/2#Dhp_21");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26" })).headers.get("location")).toBe("/library/dhammapada/2#Dhp_26-27");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26-27" })).headers.get("location")).toBe("/library/dhammapada/2#Dhp_26-27");
   });
 
   it("goes to the first page for a passage that it cannot place, and 404s for an unknown work", async () => {

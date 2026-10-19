@@ -61,8 +61,9 @@ export async function fetchParallels(client: ParallelsClient, ref: string): Prom
 }
 
 // One text that the API compares with the Papers, as its list gives it.
-export type RawWork = { id: string; title: string; translator: string; year: number; sourceUrl: string | null };
-const WorksSchema = z.object({ data: z.array(z.object({ id: z.string().min(1), title: z.string().min(1), translator: z.string(), year: z.number(), sourceUrl: z.string().nullish() })) });
+// `slug` is the id of the work in the Library and in `/works`.
+export type RawWork = { id: string; title: string; translator: string; year: number; sourceUrl: string | null; slug?: string | null };
+const WorksSchema = z.object({ data: z.array(z.object({ id: z.string().min(1), slug: z.string().nullish(), title: z.string().min(1), translator: z.string(), year: z.number(), sourceUrl: z.string().nullish() })) });
 
 // The list of the texts (GET /scriptures). The package has no call for it yet.
 export async function fetchWorks(baseUrl: string): Promise<RawWork[]> {
@@ -76,5 +77,5 @@ export async function fetchWorks(baseUrl: string): Promise<RawWork[]> {
   }
   const parsed = WorksSchema.safeParse(raw);
   if (!parsed.success) throw new ContentError("The works: the content API response has an unknown shape", parsed.error);
-  return parsed.data.data.map((c) => ({ id: c.id, title: c.title, translator: c.translator, year: c.year, sourceUrl: c.sourceUrl ?? null }));
+  return parsed.data.data.map((c) => ({ id: c.id, slug: c.slug ?? null, title: c.title, translator: c.translator, year: c.year, sourceUrl: c.sourceUrl ?? null }));
 }

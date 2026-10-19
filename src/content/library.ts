@@ -129,3 +129,49 @@ export async function fetchWorkPage(baseUrl: string, work: LibraryWork, page: Wo
   if (found.data.length !== page.count) throw new ContentError(`${what}: ${found.data.length} passages, not ${page.count}`);
   return found.data.map((p) => ({ ref: p.reference, number: unitNumber(p.reference), text: p.text, url: p.url ?? null }));
 }
+
+// The parallels of one passage: the paragraphs of the Papers, and the passages of the other works.
+export type RawPassagePapers = { reference: string; papers: { reference: string; paperTitle: string; text: string; similarity: number }[] };
+export type RawPassageOthers = {
+  label: string;
+  others: { workId: string; workTitle: string; reference: string; text: string; url: string | null; similarity: number }[];
+};
+
+const PapersSchema = z.object({
+  data: z.object({
+    reference: z.string().min(1),
+    urantiaParallels: z.array(z.object({ standardReferenceId: z.string().min(1), paperTitle: z.string(), text: z.string().min(1), similarity: z.number().finite() })),
+  }),
+});
+const OthersSchema = z.object({
+  data: z.object({
+    chunk: z.object({ label: z.string().min(1) }),
+    parallels: z.array(
+      z.object({
+        work: z.object({ id: z.string().min(1), title: z.string() }),
+        reference: z.string().min(1),
+        text: z.string().min(1),
+        url: z.string().nullish(),
+        similarity: z.number().finite(),
+      }),
+    ),
+  }),
+});
+
+const passagePath = (slug: string, ref: string, kind: string) => `/works/${encodeURIComponent(slug)}/${encodeURIComponent(ref)}/${kind}`;
+
+export async function fetchPassagePapers(baseUrl: string, slug: string, ref: string): Promise<RawPassagePapers> {
+  const found = await getJson(baseUrl, passagePath(slug, ref, "urantia-parallels"), PapersSchema, `The Papers parallels of ${ref}`);
+  return {
+    reference: found.data.reference,
+    papers: found.data.urantiaParallels.map((u) => ({ reference: u.standardReferenceId, paperTitle: u.paperTitle, text: u.text, similarity: u.similarity })),
+  };
+}
+
+export async function fetchPassageOthers(baseUrl: string, slug: string, ref: string): Promise<RawPassageOthers> {
+  const found = await getJson(baseUrl, passagePath(slug, ref, "work-parallels"), OthersSchema, `The other works near ${ref}`);
+  return {
+    label: found.data.chunk.label,
+    others: found.data.parallels.map((p) => ({ workId: p.work.id, workTitle: p.work.title, reference: p.reference, text: p.text, url: p.url ?? null, similarity: p.similarity })),
+  };
+}
