@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/icons";
 import type { LibraryWork, WorkPage, WorkPassage } from "@/content/library";
 import { pageLabels, unitCount } from "@/library/labels";
 import { refId } from "@/library/refs";
@@ -19,6 +20,10 @@ export function WorkView({ work, page, pages, passages }: Props) {
   return (
     <article className="paper work" data-work={work.slug}>
       <header className="paper-head">
+        <Link className="work-back" href="/texts">
+          <Icon name="back" />
+          World texts
+        </Link>
         <p className="eyebrow">{eyebrow}</p>
         <h1 id="paper-top">{title}</h1>
       </header>
