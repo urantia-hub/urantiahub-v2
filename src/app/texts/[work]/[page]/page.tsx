@@ -50,7 +50,9 @@ export default async function WorkPagePage({ params }: Props) {
   const { work, pages, page, passages } = found;
   if (pages.length === 1) permanentRedirect(`/texts/${work.slug}`);
   const nav = { slug: work.slug, title: work.title, short: workName({ id: work.corpusId, title: work.title }), summary: work.summary };
-  const title = pageLabels(work, page, pages).title;
+  const { eyebrow, title } = pageLabels(work, page, pages);
+  // "Chapter 2" from "The Dhammapada · Chapter 2": the place names the page without the work.
+  const label = eyebrow.includes(" · ") ? eyebrow.slice(eyebrow.indexOf(" · ") + 3) : null;
   const bible = work.slug === BIBLE;
   if (bible || GROUPED[work.slug]) {
     // A work in books sends its books, not a row for each page (the Bible has 1,402, the Rig Veda 1,027).
@@ -72,6 +74,7 @@ export default async function WorkPagePage({ params }: Props) {
           next={near(pages[at + 1])}
           current={page.key}
           title={title}
+          label={label}
         />
       </>
     );
@@ -80,7 +83,7 @@ export default async function WorkPagePage({ params }: Props) {
   return (
     <>
       <WorkView work={work} page={page} pages={pages} passages={passages} />
-      <WorkNav work={nav} pages={rows} current={page.key} title={title} />
+      <WorkNav work={nav} pages={rows} current={page.key} title={title} label={label} />
     </>
   );
 }

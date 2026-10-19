@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DHAMMAPADA, dhammapadaPage2, dhammapadaPages } from "./library-fixtures";
+import { readTextPlace } from "@/library/text-places";
 import { WorkNav } from "./WorkNav";
 import { WorkView } from "./WorkView";
 
@@ -11,7 +12,7 @@ function page() {
   return render(
     <>
       <WorkView work={DHAMMAPADA} page={pages[1]} pages={pages} passages={dhammapadaPage2()} />
-      <WorkNav work={{ slug: "dhammapada", title: "The Dhammapada", short: "Dhammapada", summary: DHAMMAPADA.summary }} pages={pages.map((p) => ({ key: p.key, number: String(p.division), title: p.title as string, count: `${p.count} verses` }))} current="2" title="On Earnestness" />
+      <WorkNav work={{ slug: "dhammapada", title: "The Dhammapada", short: "Dhammapada", summary: DHAMMAPADA.summary }} pages={pages.map((p) => ({ key: p.key, number: String(p.division), title: p.title as string, count: `${p.count} verses` }))} current="2" title="On Earnestness" label="Chapter 2" />
     </>,
   );
 }
@@ -27,6 +28,12 @@ afterEach(() => {
 });
 
 describe("WorkNav", () => {
+  it("keeps this page as the reader's place in the work, for Continue on the page of the work", () => {
+    window.localStorage.clear();
+    page();
+    expect(readTextPlace("dhammapada")).toMatchObject({ key: "2", title: "On Earnestness", label: "Chapter 2" });
+  });
+
   it("marks a passage on a press and opens its parallels; a second press closes them", async () => {
     page();
     const passage = document.getElementById("Dhp_21") as HTMLElement;

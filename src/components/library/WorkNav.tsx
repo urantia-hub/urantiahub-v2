@@ -6,6 +6,7 @@ import { Icon } from "@/components/icons";
 import type { BookRow } from "@/library/bible";
 import { BooksSheet } from "./BooksSheet";
 import { NUMBERED } from "@/library/books";
+import { saveTextPlace } from "@/library/text-places";
 import { ChaptersSheet, type ChapterRow } from "./ChaptersSheet";
 
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
@@ -17,6 +18,9 @@ type Props = {
   pages: ChapterRow[];
   current: string;
   title: string;
+  /** The line above the title ("Chapter 2"), kept with the place. A work of one page passes `place={false}`: it keeps none. */
+  label?: string | null;
+  place?: boolean;
   books?: { rows: BookRow[]; label: string; unit: string; current: { book: string; chapter: number } };
   previous?: Near;
   next?: Near;
@@ -31,7 +35,7 @@ function mark(id: string | null) {
 const passageOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>(".paper.work p.para") : null);
 
 // The controls of a work page: the dock with the previous and next page, the chapters, and the parallels.
-export function WorkNav({ work, pages, current, title, books, ...near }: Props) {
+export function WorkNav({ work, pages, current, title, label = null, place = true, books, ...near }: Props) {
   const [picked, setPicked] = useState<{ id: string; ref: string } | null>(null);
   const [chapters, setChapters] = useState(false);
   const at = pages.findIndex((p) => p.key === current);
@@ -39,6 +43,11 @@ export function WorkNav({ work, pages, current, title, books, ...near }: Props) 
   const next = books ? near.next : pages[at + 1];
 
   useEffect(() => mark(picked?.id ?? null), [picked]);
+
+  // This page is the reader's place in the work: the page of the work offers to continue here.
+  useEffect(() => {
+    if (place) saveTextPlace(work.slug, { key: current, title, label });
+  }, [place, work.slug, current, title, label]);
 
   // A passage named by the address ("In the Library" from a paper) is marked, brought into view, and opened.
   useEffect(() => {

@@ -154,3 +154,24 @@ test("a work of one page shows its text on the page of the work, and its one pag
   await expect(page.getByRole("link", { name: "Start reading" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "This edition" })).toBeVisible();
 });
+
+test("the page of a work offers to continue at the page that the reader read last, and the list does not move", async ({ page }) => {
+  await page.goto("/texts/dhammapada/2");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("On Earnestness");
+  await page.addInitScript(() => {
+    document.addEventListener("DOMContentLoaded", () => {
+      (window as unknown as { ruleTop: number }).ruleTop = (document.querySelector(".work-rule") as HTMLElement).getBoundingClientRect().top;
+    });
+  });
+  await page.goto("/texts/dhammapada");
+  const card = page.getByRole("link", { name: /Continue/ });
+  await expect(card).toHaveAttribute("href", "/texts/dhammapada/2");
+  await expect(card).toContainText("On Earnestness");
+  await expect(page.getByRole("link", { name: "Start reading" })).toBeHidden();
+  await expect(page.locator('.work-toc a[data-page="2"]')).toHaveAttribute("data-here", "");
+  const before = await page.evaluate(() => (window as unknown as { ruleTop: number }).ruleTop);
+  const after = await page.locator(".work-rule").evaluate((el) => el.getBoundingClientRect().top);
+  expect(Math.abs(after - before)).toBeLessThan(1);
+  await page.getByRole("link", { name: "or start at the beginning" }).click();
+  await page.waitForURL("/texts/dhammapada/1");
+});

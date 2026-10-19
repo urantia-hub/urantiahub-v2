@@ -53,7 +53,7 @@ export default async function WorkHomePage({ params }: Props) {
         head={<WorkHead work={work} facts={facts} source={source} start={null} />}
         after={<WorkExtras work={work} pairs={pairs} source={source} />}
       />
-      <WorkNav work={nav} pages={[{ key: page.key, ...chapterRow(work, page, pages), count: unitCount(page.count, work.unitLabel) }]} current={page.key} title={work.title} />
+      <WorkNav work={nav} pages={[{ key: page.key, ...chapterRow(work, page, pages), count: unitCount(page.count, work.unitLabel) }]} current={page.key} title={work.title} place={false} />
     </>
   );
 }
