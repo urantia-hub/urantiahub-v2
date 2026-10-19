@@ -32,8 +32,10 @@ describe("BooksSheet", () => {
     expect(chapters).toHaveLength(21);
     expect(within(sheet).getByRole("link", { name: "3" })).toHaveAttribute("aria-current", "page");
     expect(within(sheet).getByRole("link", { name: "4" })).toHaveAttribute("href", "/texts/bible/john-4");
+    expect(within(sheet).getByRole("button", { name: "All books" })).toHaveFocus();
     await act(async () => fireEvent.click(within(sheet).getByRole("button", { name: "All books" })));
     expect(within(sheet).getByRole("button", { name: "Genesis 50 chapters" })).toBeInTheDocument();
+    expect(within(sheet).getByRole("button", { name: "John 21 chapters" })).toHaveFocus();
   });
 
   it("marks no chapter in another book, and Escape closes", async () => {

@@ -77,15 +77,20 @@ describe("the parallels of a Bible verse", () => {
     expect(answer.outside[0]).toMatchObject({ ref: "Helaman 8:14-15", percent: 55, library: { slug: "book-of-mormon", ref: "Helaman 8:14-15" } });
   });
 
-  it("takes a verse of a book with brackets in its name", async () => {
+  it("takes a verse of a book with brackets in its name, and asks the API by the book code", async () => {
+    const papers = vi.fn(async () => papersOf("bible_John-3.16"));
+    const otherWorks = vi.fn(async () => others());
     const res = await handlePassageParallels("bible", "Daniel (Greek) 3:5", {
       library: async () => library,
       pages: async () => [{ key: "daniel-greek-3", division: 46, subdivision: 3, title: null, firstRef: "Daniel (Greek) 3:1", lastRef: "Daniel (Greek) 3:1", count: 0, readRef: "DanGr 3", part: "Deuterocanon", book: { code: "DanGr", name: "Daniel (Greek)", title: "Daniel (Greek)" } }],
       page: async () => [{ ref: "Daniel (Greek) 3:5", number: "5", text: "x", url: null }],
-      papers: async () => papersOf("bible_John-3.16"),
-      others: async () => others(),
+      papers,
+      others: otherWorks,
     });
     expect(res.status).toBe(200);
+    // The API refuses "Daniel (Greek) 3:5", "Esther (Greek) 1:1", and "Psalm 151 1:3"; it takes the book code.
+    expect(papers).toHaveBeenCalledWith("bible", "DanGr 3:5");
+    expect(otherWorks).toHaveBeenCalledWith("bible", "DanGr 3:5");
   });
 });
 

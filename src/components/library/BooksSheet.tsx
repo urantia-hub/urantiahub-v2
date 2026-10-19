@@ -17,6 +17,8 @@ export function BooksSheet({ work, books, current, onClose }: Props) {
   const box = scroll.ref;
   const { leaving, leave } = useLeave(onClose);
   const [open, setOpen] = useState<BookRow | null>(null);
+  // The book that the reader opened last; null before the first.
+  const [last, setLast] = useState<string | null>(null);
   const parts = books.map((b) => b.part).filter((p, i, all) => all.indexOf(p) === i);
 
   useEffect(() => {
@@ -30,13 +32,16 @@ export function BooksSheet({ work, books, current, onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey, true);
   }, [box, leave]);
 
-  // The list starts at the current book; a book's chapters start at the top.
+  // The list starts at the book that the reader saw last, with the focus on it; a book's chapters start at
+  // the top, with the focus on "All books". The pressed button is gone, so the focus must move.
   useEffect(() => {
     const sheet = box.current;
     if (!sheet) return;
-    const at = open ? null : sheet.querySelector<HTMLElement>("[aria-current]");
+    const at = open ? null : sheet.querySelector<HTMLElement>(`[data-book="${last ?? current.book}"]`);
     sheet.scrollTo?.({ top: at ? at.offsetTop - sheet.clientHeight / 2 : 0 });
-  }, [box, open]);
+    if (open) sheet.querySelector<HTMLElement>(".book-back")?.focus({ preventScroll: true });
+    else if (last) at?.focus({ preventScroll: true });
+  }, [box, open, last, current.book]);
 
   return createPortal(
     <>
@@ -75,7 +80,15 @@ export function BooksSheet({ work, books, current, onClose }: Props) {
                     .filter((b) => b.part === part)
                     .map((b) => (
                       <li key={b.code}>
-                        <button type="button" aria-current={b.code === current.book ? "true" : undefined} onClick={() => setOpen(b)}>
+                        <button
+                          type="button"
+                          data-book={b.code}
+                          aria-current={b.code === current.book ? "true" : undefined}
+                          onClick={() => {
+                            setLast(b.code);
+                            setOpen(b);
+                          }}
+                        >
                           <span className="t">{b.name}</span>{" "}
                           <small>
                             {b.chapters} {b.chapters === 1 ? "chapter" : "chapters"}
