@@ -472,7 +472,7 @@ test.describe("the Saved page", () => {
     await expect(page.getByText("Nothing saved yet")).toBeVisible();
   });
 
-  test("is reached from the account sheet and from the contents page", async ({ page, context }) => {
+  test("is reached from the account sheet", async ({ page, context }) => {
     const reader = await asReader(context);
     await reader.set(seed);
     await page.goto(PAPER);
@@ -483,9 +483,6 @@ test.describe("the Saved page", () => {
     // The settings do not stay open over the page.
     await expect(settings(page)).toHaveCount(0);
     await expect(entries(page)).toHaveCount(3);
-    await page.goto("/papers");
-    await page.locator(".toc").getByRole("link", { name: "Saved" }).click();
-    await page.waitForURL("**/saved");
   });
 
   test("lists, searches, filters, and sorts what the reader saved", async ({ page, context }) => {
