@@ -107,9 +107,6 @@ export function SignInInvite() {
     const marks = document.documentElement.dataset;
     if (out) marks.guest = "";
     else if (account.status === "in") delete marks.guest;
-    // The same for the link to Saved, which a signed-in reader gets.
-    if (account.status === "in") marks.member = "";
-    else if (out) delete marks.member;
   }, [out, account.status]);
   // "off" here is the page before the account started: the server, and the first render in the browser.
   if (!out && !(SIGN_IN_ON && account.status === "off")) return null;
@@ -121,19 +118,5 @@ export function SignInInvite() {
       </p>
       <SignInLink />
     </div>
-  );
-}
-
-// On the contents page: the way to what a signed-in reader saved. It is in the server's HTML, and CSS
-// shows it only while the page carries the mark of a signed-in reader, so it moves nothing when it shows.
-export function SavedLink() {
-  if (!SIGN_IN_ON) return null;
-  return (
-    <p className="saved-way">
-      <Link href="/saved">
-        <Icon name="save" />
-        Saved
-      </Link>
-    </p>
   );
 }
