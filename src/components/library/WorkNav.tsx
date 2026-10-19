@@ -1,0 +1,100 @@
+"use client";
+
+import Link from "next/link";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Icon } from "@/components/icons";
+import { ChaptersSheet, type ChapterRow } from "./ChaptersSheet";
+
+const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
+
+type Props = { work: { slug: string; title: string; short: string; summary: string }; pages: ChapterRow[]; current: string; title: string };
+
+// The passages are server HTML. A press on one marks it (`data-picked`, as on a paper page) and opens its parallels.
+function mark(id: string | null) {
+  document.querySelectorAll("[data-picked]").forEach((el) => el.removeAttribute("data-picked"));
+  if (id) document.getElementById(id)?.setAttribute("data-picked", "");
+}
+
+const passageOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>(".paper.work p.para") : null);
+
+// The controls of a work page: the dock with the previous and next page, the chapters, and the parallels.
+export function WorkNav({ work, pages, current, title }: Props) {
+  const [picked, setPicked] = useState<{ id: string; ref: string } | null>(null);
+  const [chapters, setChapters] = useState(false);
+  const at = pages.findIndex((p) => p.key === current);
+  const previous = pages[at - 1];
+  const next = pages[at + 1];
+
+  useEffect(() => mark(picked?.id ?? null), [picked]);
+
+  // A passage named by the address ("In the Library" from a paper) is marked, brought into view, and opened.
+  useEffect(() => {
+    const fromAddress = () => {
+      let id = "";
+      try {
+        id = decodeURIComponent(window.location.hash.slice(1));
+      } catch {
+        return;
+      }
+      const el = id ? document.getElementById(id) : null;
+      if (!el?.matches(".paper.work p.para")) return;
+      el.scrollIntoView({ block: "center" });
+      setPicked({ id, ref: el.dataset.ref ?? id });
+    };
+    fromAddress();
+    window.addEventListener("hashchange", fromAddress);
+    return () => window.removeEventListener("hashchange", fromAddress);
+  }, []);
+
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      // The list icon of the header opens the chapters of this work, not the list of all papers.
+      if (event.target instanceof Element && event.target.closest(".site-header .contents-link")) {
+        event.preventDefault();
+        setChapters(true);
+        return;
+      }
+      const passage = passageOf(event.target);
+      if (!passage) return;
+      event.preventDefault();
+      setPicked((was) => (was?.id === passage.id ? null : { id: passage.id, ref: passage.dataset.ref ?? passage.id }));
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  return (
+    <>
+      <div className="dock" data-testid="reading-bar" data-job="reading">
+        <div className="pill">
+          <div className="row read">
+            {previous ? (
+              <Link className="arrow" href={`/library/${work.slug}/${previous.key}`} aria-label={`Previous: ${previous.title}`}>
+                <Icon name="paperBefore" />
+              </Link>
+            ) : (
+              <span className="arrow" />
+            )}
+            <button type="button" className="where" aria-haspopup="dialog" aria-label={`${work.short} ${title}. Open the chapters`} onClick={() => setChapters(true)}>
+              <small>{work.short}</small>
+              <span>{title}</span>
+            </button>
+            {next ? (
+              <Link className="arrow" href={`/library/${work.slug}/${next.key}`} aria-label={`Next: ${next.title}`}>
+                <Icon name="paperAfter" />
+              </Link>
+            ) : (
+              <span className="arrow" />
+            )}
+          </div>
+        </div>
+      </div>
+      {chapters && <ChaptersSheet work={work} pages={pages} current={current} onClose={() => setChapters(false)} />}
+      {picked && (
+        <Suspense fallback={null}>
+          <ParallelsSheet reference={picked.ref} paperId="" work={work.slug} onClose={() => setPicked(null)} />
+        </Suspense>
+      )}
+    </>
+  );
+}

@@ -2,6 +2,7 @@ import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
 import { queryKey } from "@/search/query";
+import { fetchLibrary, fetchPassageOthers, fetchPassagePapers, fetchWorkPage, fetchWorkPages, type LibraryWork, PageNotFound, type RawPassageOthers, type RawPassagePapers, type WorkPage, type WorkPassage } from "./library";
 import { fetchParallels, fetchWorks, type RawParallels, type RawWork } from "./parallels";
 import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
@@ -63,6 +64,68 @@ export async function getWorks(): Promise<RawWork[]> {
   return fetchWorks(process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev");
 }
 
+// The Library: the works, the pages of a work, and the passages of a page. Each is kept for weeks in the
+// shared store. The checks for a missing work or page are outside the cached calls, as for the terms.
+const apiBase = () => process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev";
+
+export async function getLibrary(): Promise<LibraryWork[]> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("library");
+  return fetchLibrary(apiBase());
+}
+
+async function libraryWork(slug: string): Promise<LibraryWork> {
+  const work = (await getLibrary()).find((w) => w.slug === slug);
+  if (!work) throw new PageNotFound(`Work ${slug}`);
+  return work;
+}
+
+async function cachedWorkPages(slug: string): Promise<WorkPage[]> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("library");
+  return fetchWorkPages(apiBase(), slug);
+}
+
+export async function getWorkPages(slug: string): Promise<WorkPage[]> {
+  await libraryWork(slug);
+  return cachedWorkPages(slug);
+}
+
+async function cachedWorkPage(slug: string, key: string): Promise<WorkPassage[]> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("library");
+  const work = await libraryWork(slug);
+  const page = (await cachedWorkPages(slug)).find((p) => p.key === key) as WorkPage;
+  return fetchWorkPage(apiBase(), work, page);
+}
+
+export async function getWorkPage(slug: string, key: string): Promise<WorkPassage[]> {
+  const pages = await getWorkPages(slug);
+  if (!pages.some((p) => p.key === key)) throw new PageNotFound(`Page ${key} of ${slug}`);
+  return cachedWorkPage(slug, key);
+}
+
+// The parallels of one passage. The route checks first that the passage is one of its page. A failure is not
+// kept, so a source that comes back is used at the next request.
+export async function getPassagePapers(slug: string, ref: string): Promise<RawPassagePapers> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("parallels");
+  return fetchPassagePapers(apiBase(), slug, ref);
+}
+
+export async function getPassageOthers(slug: string, ref: string): Promise<RawPassageOthers> {
+  "use cache: remote";
+  cacheLife("weeks");
+  cacheTag("parallels");
+  return fetchPassageOthers(apiBase(), slug, ref);
+}
+
+export type { LibraryWork, WorkPage, WorkPassage } from "./library";
+export { PageNotFound } from "./library";
 export { ContentError, excerptPassage, ParagraphNotFound } from "./fetchers";
 export type { PaperDoc, Paragraph, ParagraphAudio, Passage, SearchHit, SearchPage, Section } from "./fetchers";
 

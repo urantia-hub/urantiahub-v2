@@ -30,7 +30,7 @@ describe("robots", () => {
 describe("sitemap", () => {
   it("lists the seven fixed pages and the 197 papers", async () => {
     const { sitemap } = await load("on");
-    const urls = sitemap().map((entry) => entry.url);
+    const urls = (await sitemap()).map((entry) => entry.url);
     expect(urls).toHaveLength(204);
     expect(urls).toContain("https://next.urantiahub.com/");
     expect(urls).toContain("https://next.urantiahub.com/papers");

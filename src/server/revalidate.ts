@@ -3,7 +3,7 @@ import { z } from "zod";
 import { paperPath } from "@/content/paper-index";
 import { absoluteUrl } from "@/site";
 
-const TAG = /^(?:paper:(?:\d|[1-9]\d|1[0-8]\d|19[0-6])|passages|parallels|search)$/;
+const TAG = /^(?:paper:(?:\d|[1-9]\d|1[0-8]\d|19[0-6])|passages|parallels|search|library)$/;
 const Body = z.object({ tags: z.array(z.string().regex(TAG)).min(1).max(200) });
 
 type Deps = {
@@ -19,8 +19,9 @@ function sameSecret(given: string, expected: string): boolean {
 }
 
 // The parallels and the search results are data, not indexed pages, so a search engine hears nothing.
+// The Library is not indexed while it is unlinked. When it is, a search engine finds it through the sitemap.
 function urlsForTag(tag: string): string[] {
-  if (tag === "parallels" || tag === "search") return [];
+  if (tag === "parallels" || tag === "search" || tag === "library") return [];
   return [tag === "passages" ? absoluteUrl("/") : absoluteUrl(paperPath(tag.slice("paper:".length)))];
 }
 

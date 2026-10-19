@@ -10,7 +10,8 @@ const LAST_PAPER = 196;
 // One passage as the reader sees it. `percent` is the score of the comparison, as the API gives it.
 // `href` is the page of the passage: a paragraph of this site, or the public page of another work.
 // `work` is the name of the work, for the filter of the study page.
-export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null };
+// `library` is the work in the Library and the reference there ("Quran 2.255-257"), when the Library has it.
+export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null; library?: { slug: string; ref: string } | null };
 // `text` is the paragraph itself, for the study page.
 // `weaker` holds the nearest passages of other works below the floor. The reader sees them only on request,
 // when no passage is near.
@@ -66,7 +67,7 @@ const NAMES: Record<string, string> = {
   "shu-king-legge-1879": "Shu King",
 };
 
-function outsideRef(reference: string, corpus: RawCorpus): string {
+export function outsideRef(reference: string, corpus: Pick<RawCorpus, "id" | "refPrefix">): string {
   const name = NAMES[corpus.id];
   return name && reference.startsWith(`${corpus.refPrefix} `) ? `${name}${reference.slice(corpus.refPrefix.length)}` : reference;
 }
@@ -76,7 +77,7 @@ const surname = (translator: string) => translator.replace(/\s*\(.*?\)/g, "").tr
 
 // The sites that hold the texts. An address of another site, or of another form, is not a link.
 const SITES = new Set(["ebible.org", "en.wikisource.org", "www.gutenberg.org"]);
-function outsideHref(url: string | null): string | null {
+export function outsideHref(url: string | null): string | null {
   if (!url) return null;
   try {
     // "https:ebible.org/x" has no "//": a browser reads it as a path of this site.
@@ -90,11 +91,14 @@ function outsideHref(url: string | null): string | null {
   }
 }
 
-const percent = (similarity: number) => Math.round(similarity * 100);
+// Down, so a passage under a floor never shows the floor's number (0.399 is 39, not 40). The small
+// addition keeps 0.57 at 57: in floating point 0.57 * 100 is 56.99999999999999.
+export const percent = (similarity: number) => Math.floor(similarity * 100 + 1e-9);
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
 // `paperId` is the paper of the paragraph. With none, no passage is nearby.
-export function shapeParallels(raw: RawParallels, text = "", paperId?: string): ParallelsAnswer {
+// `slugs` maps a corpus id to its work in the Library, for the link "In the Library".
+export function shapeParallels(raw: RawParallels, text = "", paperId?: string, slugs: ReadonlyMap<string, string> = new Map()): ParallelsAnswer {
   // `least` and `below` are the floors of a passage: its work's own one, or OUTSIDE_FLOOR.
   const from = (least: (floor: number) => number, below: (floor: number) => number): Parallel[] =>
     [
@@ -104,7 +108,7 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string): 
           const floor = WORK_FLOORS[s.corpus.id] ?? OUTSIDE_FLOOR;
           return s.similarity >= least(floor) && s.similarity < below(floor);
         })
-        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: workName(s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url) })),
+        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: workName(s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url), library: slugs.has(s.corpus.id) ? { slug: slugs.get(s.corpus.id) as string, ref: s.reference } : null })),
     ].sort(nearestFirst);
   const outside = from((floor) => floor, () => Number.POSITIVE_INFINITY);
   const weaker = from(() => WEAK_FLOOR, (floor) => floor).slice(0, WEAK_MOST);
@@ -116,7 +120,7 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string): 
   return { text, outside, weaker, papers: papers.filter((p) => !near(p)), nearby: papers.filter(near), works: [] };
 }
 
-const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
+export const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
 const OWN: Work[] = [
   { work: "The Urantia Papers", source: "", href: "/papers" },
   { work: "Bible", source: "World English Bible", href: "https://ebible.org/eng-web/" },
@@ -153,6 +157,8 @@ export async function handleParallels(
   }
   // The parallels change only when the API computes them again, so a shared cache can keep the answer for a day.
   // The list of the works is extra. With no list, the answer stands with the names that this code knows.
-  const works = loadWorks ? await loadWorks().then(shapeWorks, knownWorks) : knownWorks();
-  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1]))), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
+  const corpora = loadWorks ? await loadWorks().catch(() => null) : null;
+  const works = corpora ? shapeWorks(corpora) : knownWorks();
+  const slugs = new Map((corpora ?? []).flatMap((c) => (c.slug ? [[c.id, c.slug] as const] : [])));
+  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1])), slugs), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

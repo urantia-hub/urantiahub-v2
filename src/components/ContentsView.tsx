@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { PAPERS, PARTS, paperPath, partNumeral } from "@/content/paper-index";
+import { LIBRARY_LINKS } from "@/library/flags";
 import { PLACE_INIT_SCRIPT } from "@/reader/place-script";
 import { SavedLink, SignInInvite } from "./AccountRows";
+import { Icon } from "./icons";
 import { ContinueCard } from "./ContinueCard";
 import { PaperMark, ProgressLoader } from "./PaperMark";
 
 
-export function ContentsView() {
+// `libraryLinks` is a prop so a test can render both states of the flag.
+export function ContentsView({ libraryLinks = LIBRARY_LINKS }: { libraryLinks?: boolean }) {
   const parts = PARTS.filter((part) => part.id !== "0");
   return (
     <div className="toc">
@@ -23,6 +26,7 @@ export function ContentsView() {
             Part {partNumeral(part.id)}
           </a>
         ))}
+        {libraryLinks && <Link href="/library">Library</Link>}
       </nav>
 
       {/* The Foreword is a peer of the four parts, so it has the form of a part title. */}
@@ -52,6 +56,18 @@ export function ContentsView() {
           </ol>
         </section>
       ))}
+
+      {libraryLinks && (
+        <section className="part" id="library" aria-label="Beside the Papers">
+          <p className="eyebrow">Beside the Papers</p>
+          <h2>Library</h2>
+          <p className="spons">21 texts of the world&apos;s religions, each with the passages of the Papers that are near to it in meaning.</p>
+          <Link className="way" href="/library">
+            Open the Library
+            <Icon name="paperAfter" />
+          </Link>
+        </section>
+      )}
     </div>
   );
 }

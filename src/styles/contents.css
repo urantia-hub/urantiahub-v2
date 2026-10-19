@@ -243,3 +243,65 @@ html[data-place] .toc .continue-slot {
 .toc .part.fore a:hover {
   color: var(--accent);
 }
+
+/* The Library: each work is a title, its tradition and translator, and its one-line summary. */
+.works {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.works li {
+  break-inside: avoid;
+  margin: 0 0 20px;
+}
+.works a {
+  display: block;
+  text-decoration: none;
+}
+.works .t {
+  display: block;
+  font-size: 0.98em;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.works a:hover .t {
+  color: var(--accent);
+}
+.works .m {
+  display: block;
+  margin-top: 4px;
+  font: 400 12.5px/1.4 var(--font-ui);
+  color: var(--ref);
+}
+.works .s {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.8em;
+  line-height: 1.45;
+  color: var(--muted);
+}
+@media (min-width: 768px) {
+  .works {
+    columns: 2;
+    column-gap: 44px;
+  }
+}
+
+/* The way to the Library at the end of the contents. */
+.toc .way {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font: 500 13.5px/1 var(--font-ui);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--raised);
+}
+.toc .way svg {
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+}

@@ -214,3 +214,73 @@ describe("the parallels of a paragraph", () => {
     expect(track).toHaveBeenCalledWith("parallel_opened", { kind: "outside" });
   });
 });
+
+describe("the parallels of a passage of the Library", () => {
+  const PASSAGE = {
+    ...ANSWER,
+    text: "",
+    label: "Dhammapada 21-23",
+    source: "Muller, 1881",
+    href: "https://www.gutenberg.org/files/2017/2017-h/2017-h.htm#chap02",
+    nearby: [],
+    weakerPapers: [],
+    outside: [outside("Psalms 1:1-2", 52, { library: null }), outside("Koran 2.255-257", 50, { work: "Koran", source: "Pickthall, 1930", library: { slug: "quran", ref: "Quran 2.255-257" } })],
+  };
+  const openPassage = () => render(<ParallelsSheet reference="Dhp 21" paperId="" work="dhammapada" onClose={onClose} />);
+  const passageSheet = () => screen.getByRole("dialog", { name: /^Parallels for/ });
+
+  it("asks the address of the passage, opens on the Papers, names the chunk, and has no study page", async () => {
+    answers(PASSAGE);
+    openPassage();
+    expect(await within(passageSheet()).findByText("56:9.10", { selector: "b" })).toBeInTheDocument();
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/parallels/library/dhammapada/Dhp%2021");
+    const halves = within(passageSheet()).getAllByRole("button", { pressed: undefined }).filter((b) => b.hasAttribute("aria-pressed"));
+    expect(halves.map((b) => b.textContent)).toEqual(["In the Papers", "Other works"]);
+    expect(halves[0]).toHaveAttribute("aria-pressed", "true");
+    expect(within(passageSheet()).getByRole("heading", { name: "Parallels for Dhammapada 21-23" })).toBeInTheDocument();
+    expect(within(passageSheet()).queryByRole("link", { name: "Study these parallels" })).toBeNull();
+    expect(track).toHaveBeenCalledWith("parallels_opened", expect.objectContaining({ source: "passage" }));
+  });
+
+  // A passage of a work has one list of the Papers, with no "Elsewhere" and no "Nearby" (mock, state 5).
+  it("names the translation and the source of the passage, and has no heading of a paragraph", async () => {
+    answers(PASSAGE);
+    openPassage();
+    await within(passageSheet()).findByText("56:9.10", { selector: "b" });
+    expect(within(passageSheet()).queryByText("Elsewhere in the Papers")).toBeNull();
+    expect(within(passageSheet()).getByText("Muller, 1881")).toBeInTheDocument();
+    expect(within(passageSheet()).getByRole("link", { name: /Read at the source/ })).toHaveAttribute("href", PASSAGE.href);
+  });
+
+  it("names the translation with no link when the passage has no sure source address", async () => {
+    answers({ ...PASSAGE, source: "Legge, 1879", href: null });
+    openPassage();
+    await within(passageSheet()).findByText("56:9.10", { selector: "b" });
+    expect(within(passageSheet()).getByText("Legge, 1879")).toBeInTheDocument();
+    expect(within(passageSheet()).queryByRole("link", { name: /Read at the source/ })).toBeNull();
+  });
+
+  it("shows the Papers as a plain heading when no other work is near", async () => {
+    answers({ ...PASSAGE, outside: [], weaker: [] });
+    openPassage();
+    await within(passageSheet()).findByText("56:9.10", { selector: "b" });
+    expect(within(passageSheet()).queryByRole("button", { name: "Other works" })).toBeNull();
+    expect(within(passageSheet()).getByText("In the Papers", { selector: ".terms-group" })).toBeInTheDocument();
+  });
+
+  it("offers the Papers below the floor when none is at the floor", async () => {
+    answers({ ...PASSAGE, papers: [], weakerPapers: [{ ...ANSWER.papers[0], ref: "131:8.2", percent: 44 }] });
+    openPassage();
+    await userEvent.click(await within(passageSheet()).findByRole("button", { name: "See passages that are likely not related" }));
+    expect(within(passageSheet()).getByText("131:8.2", { selector: "b" })).toBeInTheDocument();
+  });
+
+  it("keeps the other works without a link to the Library while the Library is unlinked", async () => {
+    answers(PASSAGE);
+    openPassage();
+    await within(passageSheet()).findByText("56:9.10", { selector: "b" });
+    await userEvent.click(within(passageSheet()).getByRole("button", { name: "Other works" }));
+    expect(within(passageSheet()).getByText("Koran 2.255-257", { selector: "b" })).toBeInTheDocument();
+    expect(within(passageSheet()).queryByRole("link", { name: /In the Library/ })).toBeNull();
+  });
+});
