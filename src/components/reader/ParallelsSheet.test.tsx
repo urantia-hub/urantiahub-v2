@@ -220,6 +220,8 @@ describe("the parallels of a passage of the Library", () => {
     ...ANSWER,
     text: "",
     label: "Dhammapada 21-23",
+    source: "Muller, 1881",
+    href: "https://www.gutenberg.org/files/2017/2017-h/2017-h.htm#chap02",
     nearby: [],
     weakerPapers: [],
     outside: [outside("Psalms 1:1-2", 52, { library: null }), outside("Koran 2.255-257", 50, { work: "Koran", source: "Pickthall, 1930", library: { slug: "quran", ref: "Quran 2.255-257" } })],
@@ -238,6 +240,24 @@ describe("the parallels of a passage of the Library", () => {
     expect(within(passageSheet()).getByRole("heading", { name: "Parallels for Dhammapada 21-23" })).toBeInTheDocument();
     expect(within(passageSheet()).queryByRole("link", { name: "Study these parallels" })).toBeNull();
     expect(track).toHaveBeenCalledWith("parallels_opened", expect.objectContaining({ source: "passage" }));
+  });
+
+  // A passage of a work has one list of the Papers, with no "Elsewhere" and no "Nearby" (mock, state 5).
+  it("names the translation and the source of the passage, and has no heading of a paragraph", async () => {
+    answers(PASSAGE);
+    openPassage();
+    await within(passageSheet()).findByText("56:9.10", { selector: "b" });
+    expect(within(passageSheet()).queryByText("Elsewhere in the Papers")).toBeNull();
+    expect(within(passageSheet()).getByText("Muller, 1881")).toBeInTheDocument();
+    expect(within(passageSheet()).getByRole("link", { name: /Read at the source/ })).toHaveAttribute("href", PASSAGE.href);
+  });
+
+  it("names the translation with no link when the passage has no sure source address", async () => {
+    answers({ ...PASSAGE, source: "Legge, 1879", href: null });
+    openPassage();
+    await within(passageSheet()).findByText("56:9.10", { selector: "b" });
+    expect(within(passageSheet()).getByText("Legge, 1879")).toBeInTheDocument();
+    expect(within(passageSheet()).queryByRole("link", { name: /Read at the source/ })).toBeNull();
   });
 
   it("shows the Papers as a plain heading when no other work is near", async () => {

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DHAMMAPADA, dhammapadaPage2, dhammapadaPages } from "./library-fixtures";
 import { WorkNav } from "./WorkNav";
@@ -46,6 +46,17 @@ describe("WorkNav", () => {
     expect(links).toHaveLength(26);
     expect(within(sheet).getByRole("link", { name: /On Earnestness/ })).toHaveAttribute("aria-current", "page");
     expect(within(sheet).getByRole("link", { name: "All the works in the Library" })).toHaveAttribute("href", "/library");
+  });
+
+  // The chapters have the frame of the parallels: a sheet on a phone, a card in the margin from 1100 px (mock, state 7).
+  it("opens the chapters in the frame of the parallels, and Escape closes them", async () => {
+    page();
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: /Dhammapada On Earnestness/ })));
+    const sheet = screen.getByRole("dialog", { name: "Chapters" });
+    expect(sheet).toHaveClass("terms-sheet");
+    expect(within(sheet).getByRole("heading", { level: 2, name: "The Dhammapada" })).toHaveClass("terms-title");
+    await act(async () => fireEvent.keyDown(document, { key: "Escape" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Chapters" })).toBeNull());
   });
 
   it("marks the passage that the address names, and opens its parallels", async () => {

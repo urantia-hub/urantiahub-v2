@@ -13,13 +13,13 @@
   text-underline-offset: 2px;
 }
 
-/* The chapters of a work, in the small panel. The current page is in a stronger weight. */
-.panel.chapters .chapter-list {
+/* The chapters of a work, in the frame of the parallels. The current page is in a stronger weight. */
+.terms-sheet.chapters .chapter-list {
   list-style: none;
   margin: 4px 0 0;
   padding: 0;
 }
-.panel.chapters .chapter-list a {
+.terms-sheet.chapters .chapter-list a {
   display: flex;
   align-items: baseline;
   gap: 10px;
@@ -29,26 +29,26 @@
   text-decoration: none;
   font: 400 16.5px/1.3 var(--font-text);
 }
-.panel.chapters .chapter-list li:last-child a {
+.terms-sheet.chapters .chapter-list li:last-child a {
   border-bottom: 0;
 }
-.panel.chapters .chapter-list a[aria-current] {
+.terms-sheet.chapters .chapter-list a[aria-current] {
   font-weight: 500;
 }
-.panel.chapters .chapter-list .n {
+.terms-sheet.chapters .chapter-list .n {
   width: 2.4em;
   flex: none;
   font: 400 12.5px/1 var(--font-ui);
   color: var(--muted);
   text-align: right;
 }
-.panel.chapters .chapter-list small {
+.terms-sheet.chapters .chapter-list small {
   margin-left: auto;
   font: 400 12px/1 var(--font-ui);
   color: var(--muted);
   white-space: nowrap;
 }
-.panel.chapters .parallel-more {
+.terms-sheet.chapters .parallel-more {
   display: block;
   margin: 14px 0 4px;
   text-align: center;

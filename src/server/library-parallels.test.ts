@@ -14,7 +14,7 @@ const work = (slug: string) => library.find((w) => w.slug === slug) as LibraryWo
 
 function papersOf(name: string): RawPassagePapers {
   const d = JSON.parse(readFileSync(`e2e/fixtures/library/urantia-parallels_${name}.json`, "utf8")).data;
-  return { reference: d.reference, papers: d.urantiaParallels.map((u: { standardReferenceId: string; paperTitle: string; text: string; similarity: number }) => ({ reference: u.standardReferenceId, paperTitle: u.paperTitle, text: u.text, similarity: u.similarity })) };
+  return { reference: d.reference, url: d.url, papers: d.urantiaParallels.map((u: { standardReferenceId: string; paperTitle: string; text: string; similarity: number }) => ({ reference: u.standardReferenceId, paperTitle: u.paperTitle, text: u.text, similarity: u.similarity })) };
 }
 const OTHERS: RawPassageOthers = {
   label: "Dhp 21-23",
@@ -32,6 +32,14 @@ describe("the parallels of a passage of the Library", () => {
     expect(answer.papers.every((p) => p.percent >= 40)).toBe(true);
     expect(answer.nearby).toEqual([]);
     expect(answer.label).toBe("Dhammapada 21-23");
+  });
+
+  it("names the translation of the passage and its source address, only on a site that it knows", () => {
+    const answer = shapePassageParallels(papersOf("dhammapada_Dhp-21"), OTHERS, work("dhammapada"), library);
+    expect(answer.source).toBe("Muller, 1881");
+    expect(answer.href).toMatch(/^https:\/\/www\.gutenberg\.org\//);
+    const elsewhere = shapePassageParallels({ ...papersOf("dhammapada_Dhp-21"), url: "https://evil.example/x" }, null, work("dhammapada"), library);
+    expect(elsewhere.href).toBeNull();
   });
 
   it("holds a Rig Veda passage to the floor of the Rig Veda, and keeps the passages under it apart", () => {

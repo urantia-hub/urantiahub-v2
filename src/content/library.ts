@@ -131,7 +131,7 @@ export async function fetchWorkPage(baseUrl: string, work: LibraryWork, page: Wo
 }
 
 // The parallels of one passage: the paragraphs of the Papers, and the passages of the other works.
-export type RawPassagePapers = { reference: string; papers: { reference: string; paperTitle: string; text: string; similarity: number }[] };
+export type RawPassagePapers = { reference: string; url?: string | null; papers: { reference: string; paperTitle: string; text: string; similarity: number }[] };
 export type RawPassageOthers = {
   label: string;
   others: { workId: string; workTitle: string; reference: string; text: string; url: string | null; similarity: number }[];
@@ -140,6 +140,7 @@ export type RawPassageOthers = {
 const PapersSchema = z.object({
   data: z.object({
     reference: z.string().min(1),
+    url: z.string().nullish(),
     urantiaParallels: z.array(z.object({ standardReferenceId: z.string().min(1), paperTitle: z.string(), text: z.string().min(1), similarity: z.number().finite() })),
   }),
 });
@@ -164,6 +165,7 @@ export async function fetchPassagePapers(baseUrl: string, slug: string, ref: str
   const found = await getJson(baseUrl, passagePath(slug, ref, "urantia-parallels"), PapersSchema, `The Papers parallels of ${ref}`);
   return {
     reference: found.data.reference,
+    url: found.data.url ?? null,
     papers: found.data.urantiaParallels.map((u) => ({ reference: u.standardReferenceId, paperTitle: u.paperTitle, text: u.text, similarity: u.similarity })),
   };
 }

@@ -10,8 +10,9 @@ const WEAK_MOST = 5;
 const PAPER_REF = /^(\d{1,3}):\d{1,2}\.\d{1,3}$/;
 
 // `label` names the chunk that the parallels belong to ("Dhammapada 21-23"). `weakerPapers` is the list
-// below the floor for the half "In the Papers", as `weaker` is for "Other works".
-export type PassageAnswer = ParallelsAnswer & { label: string; weakerPapers: Parallel[] };
+// below the floor for the half "In the Papers", as `weaker` is for "Other works". `source` is the translation,
+// and `href` the passage at its source, on a site of the list.
+export type PassageAnswer = ParallelsAnswer & { label: string; weakerPapers: Parallel[]; source: string; href: string | null };
 
 const surname = (translator: string) => translator.replace(/\s*\(.*?\)/g, "").trim().split(/\s+/).pop() ?? translator;
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
@@ -53,6 +54,8 @@ export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageO
   return {
     text: "",
     label: shortRef(others?.label ?? raw.reference, work),
+    source: `${surname(work.translator)}, ${work.year}`,
+    href: outsideHref(raw.url ?? null),
     papers: pick(papers, false),
     weakerPapers: pick(papers, true).slice(0, WEAK_MOST),
     outside: pick(outsideAll, false),

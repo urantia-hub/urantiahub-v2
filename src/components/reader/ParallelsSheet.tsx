@@ -19,7 +19,7 @@ import { earnToolMark } from "@/streak/client";
 type Props = { reference: string; paperId: string; work?: string; onClose: () => void; onGo?: (reference: string) => void };
 type Half = "outside" | "papers";
 // The answer for a passage also names its chunk (`label`) and has a list below the floor for the Papers.
-type Answer = ParallelsAnswer & { label?: string; weakerPapers?: Parallel[] };
+type Answer = ParallelsAnswer & { label?: string; weakerPapers?: Parallel[]; source?: string; href?: string | null };
 type State = { for: string; status: "loading" } | { for: string; status: "failed" } | { for: string; status: "ready"; answer: Answer };
 
 const FIRST = 8;
@@ -109,7 +109,8 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
   const list = weak && near.length === 0 ? weaker : near;
   const shown = all ? list : list.slice(0, FIRST);
   // An answer that a cache kept from before has no `nearby`: then its list of the Papers stands as it was.
-  const split = state.status === "ready" && half === "papers" && state.answer.nearby !== undefined;
+  // A passage of a work has no paper, so its list of the Papers is one list.
+  const split = !work && state.status === "ready" && half === "papers" && state.answer.nearby !== undefined;
   const nearby = split ? state.answer.nearby : [];
 
   const item = (p: Parallel) => {
@@ -176,6 +177,18 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
       </button>
       <h2 className="terms-title">{title}</h2>
       <p className="parallel-lead">Passages that are near in meaning. The nearest is first.</p>
+      {work && state.status === "ready" && state.answer.source && (
+        <p className="parallel-source">
+          <span>{state.answer.source}</span>
+          {state.answer.href && (
+            <a href={state.answer.href} target="_blank" rel="noopener noreferrer">
+              Read at the source
+              <span className="sr-only"> (opens in a new tab)</span>
+              <Icon name="external" />
+            </a>
+          )}
+        </p>
+      )}
       {/* Two halves of one control, as the theme in the reader settings. */}
       {oneHalf ? (
         <p className="terms-group">In the Papers</p>
