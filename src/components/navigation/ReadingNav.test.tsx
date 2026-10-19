@@ -86,6 +86,12 @@ async function scrollTo(y: number) {
   });
 }
 
+async function frames(n: number) {
+  await act(async () => {
+    for (let i = 0; i < n; i++) await new Promise((resolve) => window.requestAnimationFrame(() => resolve(null)));
+  });
+}
+
 // The page moves in frames for 1.1 seconds. This ends a move that started: the next frame is its last.
 async function moved() {
   await act(async () => {
@@ -686,12 +692,16 @@ describe("follow", () => {
     renderNav();
     await userEvent.click(round());
     await sound("playing");
+    // The first move ends, so its frames do not mark the reader's scroll as the page's own.
+    await moved();
     vi.spyOn(Date, "now").mockReturnValue(Date.now() + 5000);
     visible("1:0.1", false);
     await scrollTo(1400);
     vi.mocked(window.scrollTo).mockClear();
     await sound("ended");
     await sound("playing");
+    // A move starts in the next frame, so the test waits for two.
+    await frames(2);
     expect(window.scrollTo).not.toHaveBeenCalled();
   });
 
