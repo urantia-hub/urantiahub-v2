@@ -21,6 +21,10 @@ export type LibraryWork = {
   refLevels: 1 | 2 | 3;
   divisionLabel: string;
   unitLabel: string;
+  /** The count of verses, paragraphs, or other units of the whole work. */
+  units: number | null;
+  /** The section of Paper 131 on the tradition of the work ("131:3"), when there is one. */
+  urantiaSection: string | null;
 };
 // A page of the Bible also has the reference that reads it, its part of the Bible, and its book code.
 export type WorkPage = {
@@ -36,6 +40,8 @@ export type WorkPage = {
   book?: { code: string; name: string; title: string };
 };
 export type WorkPassage = { ref: string; number: string; text: string; url: string | null };
+/** A passage of a work and a paragraph of the Papers that are nearest to each other, as the API compares them. */
+export type WorkPair = { ref: string; text: string; percent: number; paragraph: { ref: string; paperId: string; paperTitle: string; text: string } };
 
 /** A work or a page that the Library does not have. */
 export class PageNotFound extends Error {
@@ -47,7 +53,17 @@ export class PageNotFound extends Error {
 
 const WorksSchema = z.object({
   data: z.array(
-    z.object({ id: z.string().min(1), title: z.string().nullish(), tradition: z.string().min(1), kind: z.string(), summary: z.string().nullish(), translator: z.string().nullish(), year: z.number().nullish() }),
+    z.object({
+      id: z.string().min(1),
+      title: z.string().nullish(),
+      tradition: z.string().min(1),
+      kind: z.string(),
+      summary: z.string().nullish(),
+      translator: z.string().nullish(),
+      year: z.number().nullish(),
+      units: z.number().int().nullish(),
+      urantiaSection: z.string().regex(/^\d{1,3}:\d{1,2}$/).nullish(),
+    }),
   ),
 });
 const CorporaSchema = z.object({
@@ -81,6 +97,15 @@ const PagesSchema = z.object({
 });
 const BooksSchema = z.object({
   data: z.array(z.object({ bookCode: z.string().min(1), bookName: z.string().min(1), fullName: z.string(), bookOrder: z.number().int(), canon: z.string(), chapterCount: z.number().int().positive() })),
+});
+const PairsSchema = z.object({
+  data: z.array(
+    z.object({
+      paragraph: z.object({ standardReferenceId: z.string().min(1), paperId: z.string().min(1), paperTitle: z.string().min(1), text: z.string().min(1) }),
+      passage: z.object({ reference: z.string().min(1), text: z.string().min(1) }),
+      similarity: z.number(),
+    }),
+  ),
 });
 const ReadSchema = z.object({ data: z.array(z.object({ reference: z.string().min(1), text: z.string().min(1), url: z.string().nullish() })) });
 
@@ -128,6 +153,8 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
           refLevels: 2,
           divisionLabel: "book",
           unitLabel: "verse",
+          units: w.units ?? null,
+          urantiaSection: w.urantiaSection ?? null,
         },
       ];
     }
@@ -148,6 +175,8 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
         refLevels: c.refLevels,
         divisionLabel: c.divisionLabel,
         unitLabel: c.unitLabel,
+        units: w.units ?? null,
+        urantiaSection: w.urantiaSection ?? null,
       },
     ];
   });
@@ -226,4 +255,15 @@ export async function fetchPassageOthers(baseUrl: string, slug: string, ref: str
     label: found.data.chunk.label,
     others: found.data.parallels.map((p) => ({ workId: p.work.id, workTitle: p.work.title, reference: p.reference, text: p.text, url: p.url ?? null, similarity: p.similarity })),
   };
+}
+
+/** The three pairs of a work that are nearest to the Papers. */
+export async function fetchWorkPairs(baseUrl: string, slug: string): Promise<WorkPair[]> {
+  const found = await getJson(baseUrl, `/scriptures/insights/pairs?corpus=${encodeURIComponent(slug)}&limit=3`, PairsSchema, `The pairs of ${slug}`);
+  return found.data.map((d) => ({
+    ref: d.passage.reference,
+    text: d.passage.text,
+    percent: Math.floor(d.similarity * 100 + 1e-9),
+    paragraph: { ref: d.paragraph.standardReferenceId, paperId: d.paragraph.paperId, paperTitle: d.paragraph.paperTitle, text: d.paragraph.text },
+  }));
 }

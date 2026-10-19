@@ -21,7 +21,7 @@ describe("BooksSheet", () => {
     expect(within(sheet).getAllByRole("button", { name: /chapters?$/ })).toHaveLength(81);
     expect(within(sheet).getByRole("button", { name: "John 21 chapters" })).toHaveAttribute("aria-current", "true");
     expect(within(sheet).getByRole("button", { name: "Obadiah 1 chapter" })).toBeInTheDocument();
-    expect(within(sheet).getByRole("link", { name: "All world texts" })).toHaveAttribute("href", "/texts");
+    expect(within(sheet).getByRole("link", { name: "About this work" })).toHaveAttribute("href", "/texts/bible");
   });
 
   it("opens the chapters of a book as numbers, the current chapter marked, and goes back to all books", async () => {

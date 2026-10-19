@@ -16,7 +16,7 @@ describe("ChaptersSheet as a grid", () => {
     expect(two).toHaveTextContent(/^2$/);
     expect(two).toHaveAttribute("aria-current", "page");
     expect(within(sheet).getByRole("link", { name: "Surah 114" })).toHaveAttribute("href", "/texts/quran/114");
-    expect(within(sheet).getByRole("link", { name: "All world texts" })).toHaveAttribute("href", "/texts");
+    expect(within(sheet).getByRole("link", { name: "About this work" })).toHaveAttribute("href", "/texts/quran");
     await act(async () => fireEvent.keyDown(document, { key: "Escape" }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });

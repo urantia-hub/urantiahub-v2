@@ -45,7 +45,7 @@ describe("WorkNav", () => {
     const links = within(sheet).getAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("/texts/dhammapada/"));
     expect(links).toHaveLength(26);
     expect(within(sheet).getByRole("link", { name: /On Earnestness/ })).toHaveAttribute("aria-current", "page");
-    expect(within(sheet).getByRole("link", { name: "All world texts" })).toHaveAttribute("href", "/texts");
+    expect(within(sheet).getByRole("link", { name: "About this work" })).toHaveAttribute("href", "/texts/dhammapada");
   });
 
   // The chapters have the frame of the parallels: a sheet on a phone, a card in the margin from 1100 px (mock, state 7).

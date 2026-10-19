@@ -107,8 +107,8 @@ export function BooksSheet({ work, books, label, unit, current, onClose }: Props
                 </ul>
               </section>
             ))}
-            <Link className="parallel-more" href="/texts" onClick={onClose}>
-              All world texts
+            <Link className="parallel-more" href={`/texts/${work.slug}`} onClick={onClose}>
+              About this work
             </Link>
           </>
         )}

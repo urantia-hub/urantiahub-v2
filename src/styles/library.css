@@ -1,19 +1,29 @@
 /* A work page of the Library has the form of a paper page. These rules add only what a paper has not. */
 
-/* The way back to the list of the works, above the name of the work. */
-.work-back {
+/* The way up one step, in the header beside the mark: a page to its work, a work to World texts. */
+.header-start {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.hdr-back {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 22px;
+  min-width: 0;
+  padding: 4px 0 4px 14px;
+  border-left: 1px solid var(--rule);
   font: 400 13px/1 var(--font-ui);
   color: var(--muted);
   text-decoration: none;
+  white-space: nowrap;
 }
-.work-back:hover {
+.hdr-back:hover {
   color: var(--ink);
 }
-.work-back .icon {
+.hdr-back .icon {
+  flex: none;
   width: 14px;
   height: 14px;
 }
@@ -128,5 +138,288 @@
 @media (min-width: 1100px) {
   .terms-sheet.chapters .chapter-grid {
     grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* The page of a work (`/texts/{work}`; mock of 2026-10-19): the head, the contents, and what is near it. */
+.work-home {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 44px 20px 120px;
+}
+.paper.work .work-extras {
+  margin-top: 56px;
+  line-height: normal;
+}
+.work-head {
+  text-align: center;
+}
+.work-head .eyebrow {
+  margin-bottom: 16px;
+}
+.work-home .work-head h1 {
+  font: 500 34px/1.12 var(--font-text);
+  letter-spacing: -0.01em;
+  margin: 0 0 14px;
+}
+.work-summary {
+  max-width: 30em;
+  margin: 0 auto 12px;
+  font: italic 400 17px/1.5 var(--font-text);
+  color: var(--muted);
+}
+.work-head .work-meta {
+  margin: 0 0 26px;
+}
+.paper.work .work-head h1 {
+  margin-bottom: 14px;
+}
+.paper.work .work-head .work-meta {
+  margin-bottom: 2.6em;
+}
+.work-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 500 14px/1 var(--font-ui);
+  text-decoration: none;
+}
+.work-start .icon {
+  width: 15px;
+  height: 15px;
+}
+.work-rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 40px 0 34px;
+}
+.work-block + .work-block {
+  margin-top: 44px;
+}
+.work-block h2 {
+  font: 500 26px/1.2 var(--font-text);
+  margin: 0 0 6px;
+}
+.work-sub {
+  margin: 0 0 18px;
+  font: italic 400 15px/1.45 var(--font-text);
+  color: var(--muted);
+}
+.work-block h2 + :not(.work-sub) {
+  margin-top: 16px;
+}
+
+/* The contents: titles with their verses, a grid of numbers, or books that open into a grid. */
+.work-toc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-gap: 48px;
+}
+.work-toc li {
+  break-inside: avoid;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 0 8px;
+  padding: 6px 0;
+}
+.work-toc .n {
+  font: 400 13px/1.9 var(--font-ui);
+  color: var(--ref);
+  text-align: right;
+}
+.work-toc a {
+  font: 400 17px/1.45 var(--font-text);
+  color: var(--ink);
+  text-decoration: none;
+}
+.work-toc a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.work-toc small {
+  display: block;
+  font: 400 12px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+.work-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 8px;
+}
+.work-grid a {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--ink);
+  font: 400 15px/1 var(--font-text);
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+.work-grid a:hover {
+  border-color: var(--muted);
+}
+.work-part {
+  margin: 0 0 30px;
+}
+.work-part h3 {
+  margin: 0 0 12px;
+  font: 600 11.5px/1.3 var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.work-books {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 28px;
+}
+.work-book {
+  border-bottom: 1px solid var(--rule);
+}
+.work-book[open] {
+  grid-column: 1 / -1;
+}
+.work-book summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 0;
+  cursor: pointer;
+  list-style: none;
+  font: 400 16px/1.35 var(--font-text);
+}
+.work-book summary::-webkit-details-marker {
+  display: none;
+}
+.work-book summary span {
+  padding-left: 10px;
+  font: 400 12px/1 var(--font-ui);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.work-book .work-grid {
+  margin: 4px 0 16px;
+}
+
+/* The pairs nearest to the Papers: the passage of the work above, the paragraph of the Papers below. */
+.work-pairs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.work-pairs li {
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--raised);
+  padding: 16px 18px;
+}
+.work-pairs a {
+  display: block;
+  color: var(--ink);
+  text-decoration: none;
+}
+.work-pairs .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font: 500 12.5px/1.3 var(--font-ui);
+}
+.work-pairs .row span {
+  font-weight: 400;
+  color: var(--muted);
+  text-align: right;
+}
+.work-pairs .txt {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 6px 0 12px;
+  font: 400 15.5px/1.55 var(--font-text);
+}
+.work-pairs .to {
+  border-top: 1px dashed var(--rule);
+  padding-top: 10px;
+}
+.work-pairs .to .txt {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+.work-pairs a:hover .txt {
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+}
+.work-in-papers {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--raised);
+  color: var(--ink);
+  text-decoration: none;
+  font: 400 17px/1.35 var(--font-text);
+}
+.work-in-papers small {
+  display: block;
+  margin-bottom: 3px;
+  font: 400 12.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+.work-in-papers .icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+.work-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 18px;
+  margin: 0;
+  font: 400 14px/1.45 var(--font-ui);
+}
+.work-facts dt {
+  color: var(--muted);
+}
+.work-facts dd {
+  margin: 0;
+}
+.work-facts a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@media (min-width: 768px) {
+  .work-home {
+    padding-top: 56px;
+  }
+  .work-home .work-head h1 {
+    font-size: 46px;
+  }
+  .work-toc {
+    columns: 2;
+  }
+  .work-books {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .work-pairs {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }

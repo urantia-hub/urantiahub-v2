@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ContentError } from "./fetchers";
-import { fetchLibrary, fetchWorkPage, fetchWorkPages, type LibraryWork } from "./library";
+import { fetchLibrary, fetchWorkPage, fetchWorkPages, fetchWorkPairs, type LibraryWork } from "./library";
 
 const FIXTURES: Record<string, string> = {
   "/works": "works",
@@ -10,6 +10,7 @@ const FIXTURES: Record<string, string> = {
   "/bible/books": "bible_books",
   "/works/bible/John%203": "works_bible_John-3",
   "/scriptures/rig-veda": "scriptures_rig-veda",
+  "/scriptures/insights/pairs?corpus=dhammapada&limit=3": "pairs_dhammapada",
   "/works/dhammapada/Dhp%2021-32": "works_dhammapada_Dhp-21-32",
   "/works/rig-veda/RV%2010.129": "works_rig-veda_RV-10.129",
 };
@@ -47,6 +48,9 @@ describe("fetchLibrary", () => {
       unitLabel: "verse",
     });
     expect(works.find((w) => w.slug === "dhammapada")?.byline).toBe("F. Max Muller, 1881");
+    // The count of units and the section of Paper 131 on the tradition, when there is one.
+    expect(works.find((w) => w.slug === "dhammapada")).toMatchObject({ units: 414, urantiaSection: "131:3" });
+    expect(works[0]).toMatchObject({ units: 38034, urantiaSection: null });
     expect(works.find((w) => w.slug === "dhammapada")).toMatchObject({
       corpusId: "dhammapada-muller-1881",
       title: "The Dhammapada",
@@ -104,5 +108,24 @@ describe("the pages of a work", () => {
     const page = (await fetchWorkPages(BASE, "rig-veda")).find((p) => p.key === "10-129");
     const passages = await fetchWorkPage(BASE, rv, page as never);
     expect(passages.map((p) => p.number)).toEqual(["10.129.1", "10.129.2", "10.129.3", "10.129.4", "10.129.5", "10.129.6", "10.129.7"]);
+  });
+});
+
+describe("fetchWorkPairs", () => {
+  it("gives the passages of a work and the paragraphs of the Papers nearest to each other, as percents", async () => {
+    serve();
+    const pairs = await fetchWorkPairs(BASE, "dhammapada");
+    expect(asked).toEqual(["/scriptures/insights/pairs?corpus=dhammapada&limit=3"]);
+    expect(pairs).toHaveLength(3);
+    expect(pairs[0]).toMatchObject({ ref: "Dhp 21-23", percent: 63, paragraph: { ref: "131:3.7", paperId: "131", paperTitle: "The World’s Religions" } });
+    expect(pairs[0].text).toMatch(/^Earnestness is the path of immortality/);
+    expect(pairs[0].paragraph.text).toMatch(/^“A righteous soul/);
+  });
+
+  it("throws a content error when the API fails or answers an unknown shape", async () => {
+    serve({ "/scriptures/insights/pairs?corpus=dhammapada&limit=3": { data: [{ nothing: true }] } });
+    await expect(fetchWorkPairs(BASE, "dhammapada")).rejects.toBeInstanceOf(ContentError);
+    serve();
+    await expect(fetchWorkPairs(BASE, "quran")).rejects.toBeInstanceOf(ContentError);
   });
 });

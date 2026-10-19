@@ -15,7 +15,7 @@ export const libraryLead = (works: readonly { slug: string }[]) =>
     ? `The Bible and ${works.length - 1} other texts of the world's religions, each in the US public domain.`
     : `${works.length} texts of the world's religions, each in the US public domain.`;
 
-export function LibraryView({ works, firstKeys }: { works: LibraryWork[]; firstKeys: Record<string, string> }) {
+export function LibraryView({ works }: { works: LibraryWork[] }) {
   return (
     <div className="toc library">
       <h1>World texts</h1>
@@ -36,7 +36,7 @@ export function LibraryView({ works, firstKeys }: { works: LibraryWork[]; firstK
               .filter((w) => w.kind === g.kind)
               .map((w) => (
                 <li key={w.slug}>
-                  <Link href={`/texts/${w.slug}/${firstKeys[w.slug]}`}>
+                  <Link href={`/texts/${w.slug}`}>
                     <span className="t">{w.title}</span>
                     <span className="m">
                       {w.tradition} · {w.byline}

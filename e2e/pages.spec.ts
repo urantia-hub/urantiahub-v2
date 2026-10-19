@@ -308,6 +308,7 @@ for (const [path, title] of [
   ["/papers/paper-1-the-universal-father", "Paper 1: The Universal Father | UrantiaHub"],
   ["/search", "Search | UrantiaHub"],
   ["/parallels?ref=1:0.3", "Parallels | UrantiaHub"],
+  ["/texts/dhammapada", "The Dhammapada (F. Max Muller, 1881): all 26 chapters | UrantiaHub"],
 ] as const) {
   test(`a shared link to ${path} has a title, a description, and an image that loads`, async ({ page, request }) => {
     await page.goto(path);
