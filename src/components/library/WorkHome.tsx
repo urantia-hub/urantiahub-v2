@@ -3,7 +3,9 @@ import { Icon } from "@/components/icons";
 import type { LibraryWork, WorkPair } from "@/content/library";
 import { paperById, referenceHref } from "@/content/paper-index";
 import { sectionAt } from "@/content/section-index";
+import { WorkContinue } from "./WorkContinue";
 import type { WorkContents } from "@/library/contents";
+import { textPlaceScript } from "@/library/text-places";
 import { parseReference } from "@/lib/paper-url";
 
 const paragraphHref = (ref: string) => {
@@ -34,10 +36,15 @@ export function WorkHead({ work, facts, source, start }: Head) {
         )}
       </p>
       {start && (
-        <Link className="work-start" href={start}>
-          Start reading
-          <Icon name="arrow" />
-        </Link>
+        // Both ways are in the HTML: the script marks the page before its first paint, and CSS shows one.
+        <div className="work-way">
+          <script dangerouslySetInnerHTML={{ __html: textPlaceScript(work.slug) }} />
+          <WorkContinue slug={work.slug} start={start} />
+          <Link className="work-start" href={start}>
+            Start reading
+            <Icon name="arrow" />
+          </Link>
+        </div>
       )}
     </header>
   );
@@ -58,7 +65,9 @@ function Contents({ work, contents }: { work: LibraryWork; contents: Exclude<Wor
             <li key={r.key}>
               <span className="n">{r.number}</span>
               <span>
-                <Link href={href(r.key)}>{r.title}</Link>
+                <Link href={href(r.key)} data-page={r.key}>
+                  {r.title}
+                </Link>
                 <small>{r.line}</small>
               </span>
             </li>
@@ -69,7 +78,7 @@ function Contents({ work, contents }: { work: LibraryWork; contents: Exclude<Wor
         <ul className="work-grid">
           {contents.rows.map((r) => (
             <li key={r.key}>
-              <Link href={href(r.key)} aria-label={r.title}>
+              <Link href={href(r.key)} aria-label={r.title} data-page={r.key}>
                 {r.number}
               </Link>
             </li>
@@ -90,7 +99,7 @@ function Contents({ work, contents }: { work: LibraryWork; contents: Exclude<Wor
                   <ul className="work-grid">
                     {b.numbers.map((n) => (
                       <li key={n}>
-                        <Link href={href(`${b.base}${n}`)} aria-label={`${b.name} ${n}`}>
+                        <Link href={href(`${b.base}${n}`)} aria-label={`${b.name} ${n}`} data-page={`${b.base}${n}`}>
                           {n}
                         </Link>
                       </li>
