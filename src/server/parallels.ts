@@ -43,6 +43,14 @@ const WORK_NAMES: Record<string, string> = {
   "epictetus-3-22-oldfather-1928": "Epictetus",
   "japji-macauliffe-1909": "Japji",
   "shinto-oracles-aston-1905": "Shinto oracles",
+  "book-of-mormon-1830": "Book of Mormon",
+  "hesiod-evelyn-white-1914": "Hesiod",
+  "homeric-hymns-evelyn-white-1914": "Homeric Hymns",
+  "poetic-edda-bellows-1923": "Poetic Edda",
+  "aztec-hymns-brinton-1890": "Aztec hymns",
+  "prose-edda-brodeur-1916": "Prose Edda",
+  "kojiki-chamberlain-1882": "Kojiki",
+  "upanishads-muller-1879": "Upanishads",
 };
 const NAMES: Record<string, string> = {
   "bhagavad-gita-besant-1922": "Bhagavad Gita",
@@ -50,6 +58,12 @@ const NAMES: Record<string, string> = {
   "tao-te-ching-legge-1891": "Tao Te Ching",
   "dhammapada-muller-1881": "Dhammapada",
   "shinto-oracles-aston-1905": "Shinto oracle",
+  "rig-veda-griffith-1896": "Rig Veda",
+  "book-of-the-dead-renouf-1904": "Book of the Dead",
+  "homeric-hymns-evelyn-white-1914": "Homeric Hymn",
+  "aztec-hymns-brinton-1890": "Aztec hymn",
+  "chuang-tzu-giles-1889": "Chuang Tzu",
+  "shu-king-legge-1879": "Shu King",
 };
 
 function outsideRef(reference: string, corpus: RawCorpus): string {

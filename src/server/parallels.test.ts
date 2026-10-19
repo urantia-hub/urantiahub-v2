@@ -46,6 +46,43 @@ describe("the works that the Hub compares", () => {
     ]);
   });
 
+  // The texts of the API on 2026-10-18: its id, its prefix, and its title.
+  const LIVE = [
+    ["diogenes-laertius-6-hicks-1925", "DL", "Lives of Eminent Philosophers, Book 6: The Cynics"],
+    ["epictetus-3-22-oldfather-1928", "Epictetus", "Discourses 3.22: On the Calling of a Cynic"],
+    ["dhammapada-muller-1881", "Dhp", "The Dhammapada"],
+    ["bhagavad-gita-besant-1922", "BG", "The Bhagavad Gita"],
+    ["shinto-oracles-aston-1905", "Oracle", "Shinto Oracles"],
+    ["tao-te-ching-legge-1891", "TTC", "The Tao Te Ching"],
+    ["analects-legge-1861", "Analects", "The Analects of Confucius"],
+    ["koran-pickthall-1930", "Quran", "The Meaning of the Glorious Koran"],
+    ["japji-macauliffe-1909", "Japji", "The Japji"],
+    ["book-of-mormon-1830", "BoM", "The Book of Mormon"],
+    ["rig-veda-griffith-1896", "RV", "The Hymns of the Rigveda"],
+    ["book-of-the-dead-renouf-1904", "BD", "The Egyptian Book of the Dead"],
+    ["hesiod-evelyn-white-1914", "Hesiod", "Hesiod: Theogony and Works and Days"],
+    ["homeric-hymns-evelyn-white-1914", "HH", "The Homeric Hymns"],
+    ["poetic-edda-bellows-1923", "Edda", "The Poetic Edda"],
+    ["aztec-hymns-brinton-1890", "Aztec Hymn", "Rig Veda Americanus: Sacred Songs of the Ancient Mexicans"],
+    ["chuang-tzu-giles-1889", "Zhuangzi", "Chuang Tzu: Mystic, Moralist, and Social Reformer"],
+    ["prose-edda-brodeur-1916", "Prose Edda", "The Prose Edda"],
+    ["kojiki-chamberlain-1882", "Kojiki", "Kojiki: Records of Ancient Matters"],
+    ["upanishads-muller-1879", "Upanishad", "The Upanishads, Part 1"],
+    ["shu-king-legge-1879", "Shu", "The Shû King (Book of Documents)"],
+  ] as const;
+
+  it("gives each text of the API a short name, and the list of names holds it", () => {
+    const works = shapeWorks(LIVE.map(([id, , title]) => ({ id, title, translator: "A. B", year: 1900, sourceUrl: null })));
+    for (const [i, [, , title]] of LIVE.entries()) {
+      const name = works[i + 2].work;
+      expect(name.length).toBeLessThanOrEqual(20);
+      expect(name).not.toBe(title);
+      expect(WORKS).toContain(name);
+    }
+    // The Aztec hymns are not the Rig Veda.
+    expect(works.find((w) => w.work.includes("Aztec"))?.work).toBe("Aztec hymns");
+  });
+
   it("is in the answer, and the answer stands with the names only when the list did not load", async () => {
     const load = vi.fn().mockResolvedValue(RAW);
     const good = (await (await handleParallels("1:0.3", load, undefined, async () => CORPORA)).json()) as ParallelsAnswer;
@@ -98,8 +135,8 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
       ],
     });
     expect(WORK_FLOORS).toEqual({ "book-of-mormon-1830": 0.45, "rig-veda-griffith-1896": 0.45 });
-    expect(answer.outside.map((p) => p.ref)).toEqual(["Alma 13:18", "RV 10.82.3", "Quran 12.39"]);
-    expect(answer.weaker.map((p) => p.ref)).toEqual(["Ether 9:11", "RV 1.164.1"]);
+    expect(answer.outside.map((p) => p.ref)).toEqual(["Alma 13:18", "Rig Veda 10.82.3", "Quran 12.39"]);
+    expect(answer.weaker.map((p) => p.ref)).toEqual(["Ether 9:11", "Rig Veda 1.164.1"]);
   });
 
   it("names each work in a short form, with the translator and the year", () => {
@@ -116,6 +153,14 @@ describe("the parallels of a paragraph, as the reader sees them", () => {
     expect(one("TTC 44", corpus("tao-te-ching-legge-1891", "TTC", "James Legge", 1891))).toBe("Tao Te Ching 44");
     expect(one("Dhp 21", corpus("dhammapada-muller-1881", "Dhp", "F. Max Muller", 1881))).toBe("Dhammapada 21");
     expect(one("Oracle 5", corpus("shinto-oracles-aston-1905", "Oracle", "W. G. Aston", 1905))).toBe("Shinto oracle 5");
+    expect(one("RV 10.129.1", corpus("rig-veda-griffith-1896", "RV", "Ralph T. H. Griffith", 1896))).toBe("Rig Veda 10.129.1");
+    expect(one("BD 125.3", corpus("book-of-the-dead-renouf-1904", "BD", "Peter Le Page Renouf and Édouard Naville", 1904))).toBe("Book of the Dead 125.3");
+    expect(one("HH 2.59-73", corpus("homeric-hymns-evelyn-white-1914", "HH", "Hugh G. Evelyn-White", 1914))).toBe("Homeric Hymn 2.59-73");
+    expect(one("Aztec Hymn 19.3", corpus("aztec-hymns-brinton-1890", "Aztec Hymn", "Daniel G. Brinton", 1890))).toBe("Aztec hymn 19.3");
+    expect(one("Zhuangzi 4.16", corpus("chuang-tzu-giles-1889", "Zhuangzi", "Herbert A. Giles", 1889))).toBe("Chuang Tzu 4.16");
+    expect(one("Shu 5.14.2", corpus("shu-king-legge-1879", "Shu", "James Legge", 1879))).toBe("Shu King 5.14.2");
+    // A reference by a name of its part stays as it is.
+    expect(one("Theogony 404-452", corpus("hesiod-evelyn-white-1914", "Hesiod", "Hugh G. Evelyn-White", 1914))).toBe("Theogony 404-452");
     // A work that this code does not know keeps its own reference.
     expect(one("Avesta 3.1", corpus("avesta-x", "Avesta", "L. H. Mills", 1887))).toBe("Avesta 3.1");
   });
