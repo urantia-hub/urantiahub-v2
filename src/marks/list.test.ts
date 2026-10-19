@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { PARTS } from "@/content/paper-index";
 import { BOOK } from "@/content/section-index";
-import { earnedMarks, finishedPapers, mergeMarks } from "./earn";
+import { TEXT_WORKS } from "@/content/text-index";
+import { earnedMarks, finishedPapers, finishedWorks, mergeMarks } from "./earn";
 import { MARKS, TIERS } from "./list";
 
 const words = new Map<string, number>();
@@ -12,10 +13,21 @@ const time = (minutes: number) => (minutes < 90 ? "about 1 hour" : `about ${Math
 const rowsOf = (paperIds: string[], how: "read" | "heard" = "read") => BOOK.filter((entry) => paperIds.includes(entry.paperId)).map((entry) => ({ paperId: entry.paperId, sectionId: entry.id, how }));
 
 describe("the list of marks", () => {
-  it("has 30 marks in four tiers, each id once", () => {
-    expect(MARKS).toHaveLength(30);
-    expect(new Set(MARKS.map((mark) => mark.id)).size).toBe(30);
-    expect(TIERS.map((tier) => MARKS.filter((mark) => mark.tier === tier.tier).length)).toEqual([8, 5, 15, 2]);
+  it("has 35 marks in four tiers, each id once", () => {
+    expect(MARKS).toHaveLength(35);
+    expect(new Set(MARKS.map((mark) => mark.id)).size).toBe(35);
+    expect(TIERS.map((tier) => MARKS.filter((mark) => mark.tier === tier.tier).length)).toEqual([9, 7, 16, 3]);
+  });
+
+  it("gives each count of world texts the time of its fastest way, and the last one each work", () => {
+    const shortest = TEXT_WORKS.map((work) => work.words / 100).sort((a, b) => a - b);
+    const first = (n: number) => shortest.slice(0, n).reduce((a, b) => a + b, 0);
+    expect(MARKS.find((mark) => mark.id === "texts-5")?.effort).toBe(`from ${time(first(5))}`);
+    expect(MARKS.find((mark) => mark.id === "texts-10")?.effort).toBe(`from ${time(first(10))}`);
+    const all = MARKS.find((mark) => mark.id === "texts-all");
+    expect(all?.effort).toBe(`all ${TEXT_WORKS.length}, the Bible too · ${time(first(TEXT_WORKS.length))}`);
+    expect(all?.symbol).toBe(`w${TEXT_WORKS.length}`);
+    expect(TEXT_WORKS.some((work) => work.slug === "bible")).toBe(true);
   });
 
   it("gives each paper and part mark its time at 100 words a minute", () => {
@@ -55,6 +67,26 @@ describe("the earned marks", () => {
   it("earns the first listen and the streak marks", () => {
     expect(earnedMarks(rowsOf(["2"], "heard").slice(0, 1), 7)).toEqual(["first-section", "first-listen", "streak-7"]);
     expect(earnedMarks([], 30)).toEqual(["streak-7", "streak-30"]);
+  });
+
+  it("counts a world text only with each of its pages, and earns the world-text marks", () => {
+    const short = [...TEXT_WORKS].sort((a, b) => a.words - b.words);
+    const whole = (n: number) => Object.fromEntries(short.slice(0, n).map((work) => [work.slug, work.pages.map((page) => page.key)]));
+    const longest = short.at(-1)!;
+    const most = { [longest.slug]: longest.pages.slice(1).map((page) => page.key) };
+    expect(finishedWorks(most).size).toBe(0);
+    expect(earnedMarks([], 0, most)).toEqual(["first-text"]);
+    expect(earnedMarks([], 0, whole(1))).toEqual(["first-text", "texts-1"]);
+    expect(earnedMarks([], 0, whole(4))).not.toContain("texts-5");
+    expect(earnedMarks([], 0, whole(5))).toContain("texts-5");
+    expect(earnedMarks([], 0, whole(10))).toContain("texts-10");
+    expect(earnedMarks([], 0, whole(TEXT_WORKS.length - 1))).not.toContain("texts-all");
+    expect(earnedMarks([], 0, whole(TEXT_WORKS.length))).toContain("texts-all");
+  });
+
+  it("does not count a page or a work that the index does not have", () => {
+    expect(earnedMarks([], 0, { "no-such-work": ["1"] })).toEqual([]);
+    expect(earnedMarks([], 0, { dhammapada: ["999"] })).toEqual([]);
   });
 
   it("keeps the first time of a mark, and names the new ones", () => {

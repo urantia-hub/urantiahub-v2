@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { changeStreak, earnTool, parseStreak, readStreak, saveSections, type StreakGateway } from "./streak-data";
+import { changeStreak, earnTool, parseStreak, readStreak, saveSections, saveTextPage, type StreakGateway } from "./streak-data";
 
 // 10 AM in Chicago: the reading day is 2026-10-17.
 const NOW = new Date("2026-10-17T15:00:00Z");
@@ -155,5 +155,45 @@ describe("the marks", () => {
     const g = gateway(on({ marks: { search: "2026-10-01T00:00:00Z" } }));
     await changeStreak(g, "t", { goal: 2 }, NOW);
     expect(g.saved.at(-1)?.["hub.streak"]).toMatchObject({ marks: { search: "2026-10-01T00:00:00Z" } });
+  });
+});
+
+describe("a finished page of a world text", () => {
+  it("is kept in the reader's preferences, and earns its mark", async () => {
+    const g = gateway(on());
+    const answer = await saveTextPage(g, "t", { work: "dhammapada", page: "1" }, NOW);
+    expect(answer.saved).toBe(true);
+    expect(g.saved[0]).toEqual({ "hub.texts": { dhammapada: ["1"] } });
+    expect(answer.card.on && answer.card.fresh).toEqual(["first-text"]);
+  });
+
+  it("keeps each page once, beside the pages of the other works", async () => {
+    const g = gateway({ ...on(), "hub.texts": { quran: ["1"] } });
+    await saveTextPage(g, "t", { work: "dhammapada", page: "1" }, NOW);
+    expect(g.saved[0]).toEqual({ "hub.texts": { quran: ["1"], dhammapada: ["1"] } });
+    const writes = g.saved.length;
+    expect((await saveTextPage(g, "t", { work: "dhammapada", page: "1" }, NOW)).saved).toBe(true);
+    expect(g.saved.slice(writes).some((patch) => "hub.texts" in patch)).toBe(false);
+  });
+
+  it("refuses a work or a page that the index does not have, and a value that is broken", async () => {
+    for (const value of [{ work: "no-such-work", page: "1" }, { work: "dhammapada", page: "999" }, { work: "dhammapada" }, null, "x"]) {
+      const g = gateway(on());
+      expect((await saveTextPage(g, "t", value, NOW)).saved, JSON.stringify(value)).toBe(false);
+      expect(g.saved.some((patch) => "hub.texts" in patch)).toBe(false);
+    }
+  });
+
+  it("keeps nothing while the streak is off", async () => {
+    const g = gateway(on({ on: false }));
+    const answer = await saveTextPage(g, "t", { work: "dhammapada", page: "1" }, NOW);
+    expect(answer).toEqual({ saved: false, card: { on: false, asked: true } });
+    expect(g.saved).toEqual([]);
+  });
+
+  it("reads a stored value that is broken as no pages", async () => {
+    const g = gateway({ ...on(), "hub.texts": { dhammapada: "1", quran: [3, "1"] } });
+    await saveTextPage(g, "t", { work: "japji", page: "1" }, NOW);
+    expect(g.saved[0]).toEqual({ "hub.texts": { quran: ["1"], japji: ["1"] } });
   });
 });

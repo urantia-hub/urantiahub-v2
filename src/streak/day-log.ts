@@ -39,6 +39,9 @@ function note(field: "read" | "heard", reader: string, day: string, refs: readon
 export const noteRead = (reader: string, day: string, refs: readonly string[]) => note("read", reader, day, refs);
 export const noteHeard = (reader: string, day: string, refs: readonly string[]) => note("heard", reader, day, refs);
 
+// Enough of a part to call it finished: nine of ten of its paragraphs, or each one when it has one or two.
+export const enough = (got: number, total: number): boolean => total > 0 && got >= (total <= 2 ? total : Math.ceil(total * READ_SHARE));
+
 // The sections of a paper that this device finished today and did not answer before. A section needs
 // nine of ten of its paragraphs, or each one when it has one or two.
 export function finished(reader: string, day: string, sections: readonly { id: string; refs: readonly string[] }[]): Finished[] {
@@ -49,8 +52,7 @@ export function finished(reader: string, day: string, sections: readonly { id: s
   for (const section of sections) {
     if (section.refs.length === 0 || log.done.includes(section.refs[0])) continue;
     const got = section.refs.filter((ref) => read.has(ref) || heard.has(ref)).length;
-    const need = section.refs.length <= 2 ? section.refs.length : Math.ceil(section.refs.length * READ_SHARE);
-    if (got < need) continue;
+    if (!enough(got, section.refs.length)) continue;
     const byEar = section.refs.filter((ref) => heard.has(ref)).length;
     out.push({ sectionId: section.id, how: byEar * 2 > section.refs.length ? "heard" : "read" });
     // A section is known by its first paragraph, which names the paper and the section.

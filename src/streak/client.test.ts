@@ -6,6 +6,12 @@ vi.mock("@/analytics", () => ({ track: vi.fn() }));
 
 const onCard = { on: true, state: { current: 1 }, goal: 1, hour: 21, zone: Intl.DateTimeFormat().resolvedOptions().timeZone, book: { done: 1, total: 1626 }, next: {}, marks: {}, fresh: [] };
 
+function workPage(count: number): string[] {
+  const refs = Array.from({ length: count }, (_, i) => `Dhp_${i + 1}`);
+  document.body.innerHTML = `<article class="paper work" data-work="dhammapada">${refs.map((ref) => `<p class="para" id="${ref}">x</p>`).join("")}</article>`;
+  return refs;
+}
+
 function paper(refs: string[]) {
   document.body.innerHTML = `<article class="paper">${refs.map((ref) => `<p class="para" id="${ref}">x</p>`).join("")}</article>`;
 }
@@ -33,6 +39,7 @@ beforeEach(() => {
         return Response.json({ saved: true });
       }
       if (path === "/api/me/marks") return Response.json({ saved: true, fresh: [body.id] });
+      if (path === "/api/me/texts") return Response.json({ saved: true, card: { ...onCard, fresh: ["first-text"] } });
       return Response.json({ added: body.rows.length, card: world.card });
     }),
   );
@@ -144,5 +151,44 @@ describe("the marks in the browser", () => {
     expect(posts().map((call) => call.body)).toEqual([{ id: "search" }]);
     expect(again.streakView().moments).toEqual(["search"]);
     expect(Object.keys((again.streakView().card as { marks: object }).marks)).toEqual(["search"]);
+  });
+});
+
+describe("the pages of the world texts in the browser", () => {
+  it("sends a finished page one time, while the streak is on, and plays its mark", async () => {
+    world.card = onCard;
+    const client = await load();
+    await client.loadStreak();
+    const refs = workPage(10);
+    client.noteTextPassages("dhammapada", "2", refs.slice(0, 5));
+    await settle();
+    expect(posts()).toEqual([]);
+    client.noteTextPassages("dhammapada", "2", refs.slice(5, 9));
+    await settle();
+    await settle();
+    expect(posts().map((call) => [call.path, call.body])).toEqual([["/api/me/texts", { work: "dhammapada", page: "2" }]]);
+    expect(client.streakView().moments).toEqual(["first-text"]);
+    client.noteTextPassages("dhammapada", "2", refs.slice(9));
+    await settle();
+    expect(posts()).toHaveLength(1);
+  });
+
+  it("keeps nothing while the streak is off", async () => {
+    const client = await load();
+    await client.loadStreak();
+    client.noteTextPassages("dhammapada", "2", workPage(2));
+    await settle();
+    expect(posts()).toEqual([]);
+    expect(window.localStorage.getItem("hub:text-log")).toBeNull();
+  });
+
+  it("forgets the pages that were read on a sign-out", async () => {
+    world.card = onCard;
+    const client = await load();
+    await client.loadStreak();
+    client.noteTextPassages("dhammapada", "2", workPage(10).slice(0, 3));
+    expect(window.localStorage.getItem("hub:text-log")).not.toBeNull();
+    client.forgetStreak();
+    expect(window.localStorage.getItem("hub:text-log")).toBeNull();
   });
 });

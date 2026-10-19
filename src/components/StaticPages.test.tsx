@@ -7,7 +7,7 @@ import ReleasesPage from "@/app/releases/page";
 import ResourcesPage from "@/app/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -92,7 +92,8 @@ describe("Privacy, about the streak", () => {
     expect(page).toContain(STREAKS_UPDATED);
     for (const item of STREAK_ITEMS) expect(page).toContain(item);
     expect(page).toContain(STREAK_BROWSER_ITEM.name);
-    expect(page).toContain("your notes, the sections that you finished each day, your streak settings.");
+    expect(page).toContain(STREAK_TEXT_ITEM.name);
+    expect(page).toContain("your notes, the sections that you finished each day, the pages of the world texts that you finished, your streak settings.");
   });
 });
 

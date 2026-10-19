@@ -6,7 +6,7 @@ export const ACCOUNT_UPDATED = "October 12, 2026";
 // The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
 export const NOTICES_UPDATED = "October 12, 2026";
 // The date of the page while a reader can keep a streak. See `streaksOn` in the page.
-export const STREAKS_UPDATED = "October 17, 2026";
+export const STREAKS_UPDATED = "October 19, 2026";
 export const PRIVACY_EMAIL = "privacy@urantiahub.com";
 // The company that runs the site. Kelson gave this name on 2026-10-08.
 export const PRIVACY_OPERATOR = "Adams Technologies LLC";
@@ -116,6 +116,7 @@ export const NOTICE_RESEND: Vendor = {
 export const STREAK_ITEMS: readonly string[] = [
   "If you keep a streak: each section that you finished, the day, and if you read it or listened to it",
   "Your streak settings: on or off, the sections a day, your time zone, the day that you started, and your longest streak",
+  "If you keep a streak: the pages of the world texts that you finished, for the marks",
 ];
 
 // What the browser keeps for the streak of a signed-in reader. The day log never goes to the account.
@@ -124,5 +125,11 @@ export const STREAK_BROWSER_ITEM: BrowserItem = {
   why: "so the site can tell when you finish a section for the streak; the next day replaces them, a sign-out removes them, and only a finished section goes to your account",
 };
 
+// What the browser keeps of the pages of the world texts. Only a finished page goes to the account.
+export const STREAK_TEXT_ITEM: BrowserItem = {
+  name: "The passages that you read on a page of a world text, while you are signed in and keep a streak",
+  why: "so the site can tell when you finish the page for the marks; a finished page leaves them, a sign-out removes them, and only the finished page goes to your account",
+};
+
 // With the streak on, Supabase also holds the finished sections.
-export const STREAK_SUPABASE_RECEIVES = "the sections that you finished each day, your streak settings";
+export const STREAK_SUPABASE_RECEIVES = "the sections that you finished each day, the pages of the world texts that you finished, your streak settings";

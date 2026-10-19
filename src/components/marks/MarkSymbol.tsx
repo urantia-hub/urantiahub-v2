@@ -28,6 +28,21 @@ const GLYPHS: Record<string, React.ReactNode> = {
   ),
   share: <path d="M30 20v14M24 26l6-6 6 6M22 31v8h16v-8" />,
   book: <path d="M30 24c-4-3-8-3-11-2v16c3-1 7-1 11 2 4-3 8-3 11-2V22c-3-1-7-1-11 2zM30 24v16" />,
+  // The world texts: a scroll, and the scroll with a check for a whole work.
+  scroll: (
+    <>
+      <path d="M24 21h13a3 3 0 0 1 3 3v15" />
+      <path d="M20 24a3 3 0 0 1 6 0v15a3 3 0 0 0 3 3h11" />
+      <path d="M30 27h6M30 32h6" />
+    </>
+  ),
+  whole: (
+    <>
+      <path d="M24 21h13a3 3 0 0 1 3 3v15" />
+      <path d="M20 24a3 3 0 0 1 6 0v15a3 3 0 0 0 3 3h11" />
+      <path d="M29 31l3 3 5-6" />
+    </>
+  ),
 };
 
 function Glyph({ symbol, fill }: { symbol: string; fill: string }) {
@@ -39,6 +54,19 @@ function Glyph({ symbol, fill }: { symbol: string; fill: string }) {
     );
   const glyph = GLYPHS[symbol];
   if (glyph) return <>{glyph}</>;
+  // A count of world texts ("w5"): the number over a small rolled scroll, so it differs from "5 papers".
+  const texts = /^w(\d+)$/.exec(symbol);
+  if (texts)
+    return (
+      <>
+        <text x="30" y="33" className="mark-text" fill={fill} stroke="none" style={{ fontSize: texts[1].length > 1 ? 13 : 15 }}>
+          {texts[1]}
+        </text>
+        <path d="M23 40h14" />
+        <circle cx="21.5" cy="40" r="1.6" />
+        <circle cx="38.5" cy="40" r="1.6" />
+      </>
+    );
   const size = symbol.length > 3 ? 11 : symbol.length > 2 ? 13 : 15;
   return (
     <text x="30" y={symbol.length > 2 ? 35 : 36} className="mark-text" fill={fill} stroke="none" style={{ fontSize: size }}>
