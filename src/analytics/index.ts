@@ -11,6 +11,8 @@ export type AnalyticsEvents = {
   paragraph_shared: { ref: string; method: "sheet" | "copy"; part?: boolean };
   // A pair link: one paragraph of the Papers and one passage of a world text. `part`: a side has a choice.
   pair_shared: { work: string; method: "sheet" | "copy"; part: boolean };
+  // `from`: a row of a parallels sheet, or a link from somewhere else.
+  pair_opened: { from: "sheet" | "link"; work: string };
   // `place`: from "Continue listening at", the place where the voice stopped on an earlier visit.
   audio_started: { paper_id: string; from: "bar" | "paragraph" | "place" | "streak" };
   streak_asked: { answer: "yes" | "no"; goal: 1 | 2 | 3 };

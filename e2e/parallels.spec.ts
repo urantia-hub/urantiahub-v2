@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { still, stubAudio, tap } from "./audio";
+import { para, still, stubAudio, tap } from "./audio";
 
 const PAPER_1 = "/papers/paper-1-the-universal-father";
 const sheet = (page: Page, ref: string) => page.getByRole("dialog", { name: `Parallels for ${ref}` });
@@ -43,18 +43,17 @@ test("Parallels lists the near passages of other works, the nearest first, with 
   await expect(page.getByRole("heading", { name: "What the number means" })).toBeInViewport();
 });
 
-test("each passage of another work opens its page in a new tab, and a passage of the Papers opens its paragraph", async ({ page }) => {
+test("each near passage of another work opens its pair page, and a passage of the Papers opens its paragraph", async ({ page }) => {
   await page.goto(PAPER_1);
   await openParallels(page, "1:0.3");
   const list = sheet(page, "1:0.3");
   await expect(list.locator("li").first()).toBeVisible();
-  const links = await list.getByRole("link", { name: /^Open/ }).evaluateAll((all) => all.map((a) => [a.getAttribute("href")!, a.getAttribute("target"), a.getAttribute("rel")]));
+  // Each near passage of another work is in World texts, so each row is one link to its pair page.
+  const rows = list.locator(".parallel-list li");
+  const links = await list.locator(".parallel-list li a").evaluateAll((all) => all.map((a) => a.getAttribute("href")!));
   expect(links.length).toBeGreaterThan(3);
-  for (const [href, target, rel] of links) {
-    expect(href).toMatch(/^https:\/\/(ebible\.org|en\.wikisource\.org|www\.gutenberg\.org)\//);
-    expect(target).toBe("_blank");
-    expect(rel).toContain("noopener");
-  }
+  expect(links).toHaveLength(await rows.count());
+  for (const href of links) expect(href).toMatch(/^\/s\/1\.0\.3\/[a-z0-9-]+\/[a-z0-9.-]+\?from=paper$/);
   await list.getByRole("button", { name: "In the Papers" }).click();
   const first = list.locator("li").first();
   await expect(first.locator("b")).toHaveText("56:9.10");
@@ -306,3 +305,17 @@ test.describe("the study page", () => {
   });
 });
 
+
+test("a row of another work opens the pair page, and its back link returns to the paragraph", async ({ page }) => {
+  await page.goto(PAPER_1);
+  await openParallels(page, "1:0.3");
+  const row = sheet(page, "1:0.3").locator("li.parallel-paired").filter({ hasText: "Tobit 13:4" });
+  await expect(row.getByRole("link", { name: /Open/ })).toHaveCount(0);
+  // The link covers the row, so a press on the text opens the pair.
+  await row.click();
+  await page.waitForURL("/s/1.0.3/bible/tobit.13.4?from=paper");
+  await expect(page.locator(".pair-side")).toHaveCount(2);
+  await page.locator(".hdr-back").click();
+  await page.waitForURL(`${PAPER_1}#1:0.3`);
+  await expect(para(page, "1:0.3")).toHaveAttribute("data-picked", "");
+});

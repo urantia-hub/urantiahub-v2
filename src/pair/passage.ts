@@ -15,10 +15,11 @@ function onePrefix(work: LibraryWork, pages: readonly WorkPage[]): boolean {
   return work.refPrefix !== "" && pages.length > 0 && pages.every((p) => p.firstRef.startsWith(`${work.refPrefix} `));
 }
 
-/** The passage as a part of a link. */
-export function passageForLink(ref: string, work: LibraryWork, pages: readonly WorkPage[]): string {
+/** The passage as a part of a link. A work names each passage with its prefix, or none with it (each page
+ * list of the API is one or the other), so the reference alone says which form it takes. */
+export function passageForLink(ref: string, work: Pick<LibraryWork, "refPrefix">): string {
   const numbers = unitNumber(ref).replace(/:/g, ".");
-  return onePrefix(work, pages) ? numbers : `${bookSlug(nameOf(ref))}.${numbers}`;
+  return work.refPrefix !== "" && ref.startsWith(`${work.refPrefix} `) ? numbers : `${bookSlug(nameOf(ref))}.${numbers}`;
 }
 
 /** The reference of the passage in a link, with the names and the colon that the work uses. Null for a form
@@ -39,7 +40,7 @@ export function passageFromLink(part: string, work: LibraryWork, pages: readonly
   // A work that writes "3:7" has a colon after its first number.
   const colon = pages.some((p) => unitNumber(p.firstRef).includes(":"));
   const ref = `${name} ${colon ? numbers.replace(".", ":") : numbers}`;
-  return passageForLink(ref, work, pages) === part ? ref : null;
+  return passageForLink(ref, work) === part ? ref : null;
 }
 
 // The numbers before the last one ("7." of "7.22-24"), and the first and the last of the last one.
@@ -54,6 +55,9 @@ export function passageText(ref: string, passages: readonly WorkPassage[]): { re
   const of = (found: readonly WorkPassage[], named: string) => ({ ref: named, text: found.map((p) => p.text).join(" "), ids: found.map((p) => refId(p.ref)) });
   const exact = passages.find((p) => p.ref === ref);
   if (exact) return of([exact], exact.ref);
+  // A whole chapter ("TTC 45") is each of its passages ("TTC 45.1", "TTC 45.2").
+  const chapter = passages.filter((p) => p.ref.startsWith(`${ref}.`) || p.ref.startsWith(`${ref}:`));
+  if (chapter.length > 0) return of(chapter, ref);
   const want = spanOf(ref);
   if (!want) return null;
   const spans = passages.map((p) => ({ p, s: spanOf(p.ref) })).filter((x) => x.s?.head === want.head);

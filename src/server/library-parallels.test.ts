@@ -135,3 +135,13 @@ describe("handlePassageParallels", () => {
     expect((await handlePassageParallels("dhammapada", "Dhp 21", deps({ papers: async () => Promise.reject(new Error("down")) }))).status).toBe(502);
   });
 });
+
+describe("the pair of a passage and a paragraph", () => {
+  it("names the verse that the reader marked, not the chunk, and only at the floor", () => {
+    const answer = shapePassageParallels(papersOf("dhammapada_Dhp-21"), OTHERS, work("dhammapada"), library, "Dhp 22");
+    expect(answer.papers.length).toBeGreaterThan(0);
+    for (const p of answer.papers) expect(p.pairPath).toBe(`/s/${p.ref.replace(":", ".")}/dhammapada/22`);
+    expect(answer.weakerPapers.every((p) => p.pairPath === undefined)).toBe(true);
+    expect(answer.outside.every((p) => p.pairPath === undefined)).toBe(true);
+  });
+});

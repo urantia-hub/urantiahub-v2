@@ -197,3 +197,15 @@ test("World texts links to the page that says how the texts are chosen and compa
   await expect(page.locator(".how-suggest").getByRole("link", { name: "hi@urantiahub.com" })).toHaveAttribute("href", "mailto:hi@urantiahub.com");
   await expect(page.getByRole("link", { name: "Matthew Block" })).toHaveAttribute("href", "https://urantiabooksources.com/");
 });
+
+test("a row of the Papers in a world text sheet opens the pair of the marked verse", async ({ page }) => {
+  await page.goto("/texts/dhammapada/2");
+  await page.locator('p.para[data-ref="Dhp 21"] .text').click();
+  const sheet = page.getByRole("dialog", { name: "Parallels for Dhammapada 21" });
+  await sheet.locator("li.parallel-paired").filter({ hasText: "131:3.7" }).getByRole("link").click();
+  await page.waitForURL("/s/131.3.7/dhammapada/21?from=text");
+  await expect(page.locator(".pair-side").nth(1)).toContainText("Dhp 21");
+  await expect(page.locator(".hdr-back")).toHaveText("Dhp 21");
+  await page.locator(".hdr-back").click();
+  await page.waitForURL("/texts/dhammapada/2#Dhp_21");
+});

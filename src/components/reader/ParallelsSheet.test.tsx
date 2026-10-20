@@ -215,6 +215,43 @@ describe("the parallels of a paragraph", () => {
   });
 });
 
+describe("a parallel that has a pair page", () => {
+  const PAIRED: ParallelsAnswer = { ...ANSWER, outside: [outside("Bhagavad Gita 7.22-24", 46, { library: { slug: "bhagavad-gita", ref: "BG 7.22-24" }, pairPath: "/s/1.0.3/bhagavad-gita/7.22-24" }), outside("Tobit 13:4", 42)] };
+
+  it("is one link to the pair page, with no Read here and no Open", async () => {
+    answers(PAIRED);
+    open();
+    const row = (await within(sheet()).findByText("Bhagavad Gita 7.22-24", { selector: "b" })).closest("li") as HTMLElement;
+    expect(within(row).getByRole("link", { name: /Bhagavad Gita 7\.22-24/ })).toHaveAttribute("href", "/s/1.0.3/bhagavad-gita/7.22-24?from=paper");
+    expect(within(row).getAllByRole("link")).toHaveLength(1);
+    // A row with no pair page keeps its link to the source.
+    const other = within(sheet()).getByText("Tobit 13:4", { selector: "b" }).closest("li") as HTMLElement;
+    expect(within(other).getByRole("link", { name: /Open/ })).toHaveAttribute("href", "https://ebible.org/eng-web/Tobit 13:4");
+  });
+
+  it("keeps the score and Read more as buttons outside the link", async () => {
+    answers({ ...PAIRED, outside: [{ ...PAIRED.outside[0], text: LONG }] });
+    open();
+    const row = (await within(sheet()).findByText("Bhagavad Gita 7.22-24", { selector: "b" })).closest("li") as HTMLElement;
+    for (const button of within(row).getAllByRole("button")) expect(button.closest("a")).toBeNull();
+    expect(within(row).getByRole("button", { name: "Read more" })).toBeInTheDocument();
+  });
+
+  it("keeps the links of the Papers in the sheet of a paragraph", async () => {
+    answers(PAIRED);
+    open();
+    await userEvent.click(await within(sheet()).findByRole("button", { name: "In the Papers" }));
+    expect(await within(sheet()).findByRole("link", { name: /^Open/ })).toHaveAttribute("href", "/papers/paper-56-universal-unity#56:9.10");
+  });
+
+  it("opens the pair from the sheet of a passage with from=text", async () => {
+    answers({ ...ANSWER, text: "", label: "Dhp 21-23", source: "Muller, 1881", href: null, nearby: [], weakerPapers: [], papers: [{ ...ANSWER.papers[0], pairPath: "/s/56.9.10/dhammapada/21" }] });
+    render(<ParallelsSheet reference="Dhp 21" paperId="" work="dhammapada" onClose={onClose} />);
+    const row = (await screen.findByText("56:9.10", { selector: "b" })).closest("li") as HTMLElement;
+    expect(within(row).getByRole("link")).toHaveAttribute("href", "/s/56.9.10/dhammapada/21?from=text");
+  });
+});
+
 describe("the parallels of a passage of the Library", () => {
   const PASSAGE = {
     ...ANSWER,

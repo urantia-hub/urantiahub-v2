@@ -251,3 +251,17 @@ describe("handleParallels", () => {
     expect((await handleParallels("1:0.8", load)).status).toBe(502);
   });
 });
+
+describe("the pair of a paragraph and a passage", () => {
+  const slugs = new Map([["bhagavad-gita-besant-1922", "bhagavad-gita"], ["koran-pickthall-1930", "quran"]]);
+  it("is set for a near passage of a work in World texts, and for a verse of the Bible", () => {
+    const { outside } = shapeParallels(RAW, "", "1", slugs, "1:0.3");
+    expect(outside.find((p) => p.library?.slug === "bhagavad-gita")?.pairPath).toBe("/s/1.0.3/bhagavad-gita/7.22-24");
+    expect(outside.find((p) => p.ref === "Tobit 13:4")?.pairPath).toBe("/s/1.0.3/bible/tobit.13.4");
+  });
+  it("is not set below the floor, nor for a passage with no page in World texts", () => {
+    const { weaker, outside } = shapeParallels(RAW, "", "1", new Map([["bhagavad-gita-besant-1922", "bhagavad-gita"]]), "1:0.3");
+    expect(weaker.every((p) => p.pairPath === undefined)).toBe(true);
+    expect(outside.find((p) => p.ref.startsWith("Quran") || p.ref.startsWith("Koran"))?.pairPath).toBeUndefined();
+  });
+});
