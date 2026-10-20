@@ -156,6 +156,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - Each page has a title, a description, and a share image of 1200 by 630. A paper has its own image; each other page has the image of the site (`src/app/opengraph-image.tsx`). Both come from `shareImage` in `src/seo/share-image.tsx`.
 - A page that sets `openGraph` loses the image of the layout, so `pageMetadata` names `SHARE_IMAGE` again. A page with an `opengraph-image` file beside it passes `ownImage`.
 - A browser test in `e2e/pages.spec.ts` reads the tags of each page and loads its image.
+- World texts has an image of its own (`textsImage`: the title over the short name of each work, the scriptures first), and so does each page of a work (its eyebrow above its title, from `pageLabels`), since 2026-10-19. Before that both showed the image of the Papers. A long title is smaller (`titleSize`). The pages about the site (About, Resources, Releases, Privacy, Terms) keep the image of the site.
 
 ## Addresses of the old Hub (2026-10-10, the day of the cutover to www)
 

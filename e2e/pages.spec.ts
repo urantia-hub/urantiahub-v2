@@ -309,6 +309,9 @@ for (const [path, title] of [
   ["/search", "Search | UrantiaHub"],
   ["/parallels?ref=1:0.3", "Parallels | UrantiaHub"],
   ["/texts/dhammapada", "The Dhammapada (F. Max Muller, 1881): all 26 chapters | UrantiaHub"],
+  ["/texts", "World texts | UrantiaHub"],
+  ["/texts/dhammapada/2", "On Earnestness · The Dhammapada | UrantiaHub"],
+  ["/texts/bible/john-3", "John 3 · The Bible (World English Bible) | UrantiaHub"],
 ] as const) {
   test(`a shared link to ${path} has a title, a description, and an image that loads`, async ({ page, request }) => {
     await page.goto(path);
@@ -323,6 +326,8 @@ for (const [path, title] of [
     const answer = await request.get(new URL(image).pathname + new URL(image).search);
     expect(answer.status()).toBe(200);
     expect(answer.headers()["content-type"]).toBe("image/png");
+    // World texts and each of their pages have an image of their own, not the image of the Papers.
+    if (path.startsWith("/texts")) expect(new URL(image).pathname).toBe(`${path}/opengraph-image`);
   });
 }
 
