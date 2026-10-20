@@ -49,6 +49,9 @@ export async function getParallels(ref: string): Promise<RawParallels> {
   return cachedParallels(ref);
 }
 
+// The parallels of a paragraph that the code names, not a reader, so the check for a missing paragraph is not needed.
+export const getNamedParallels = (ref: string): Promise<RawParallels> => cachedParallels(ref);
+
 async function cachedParallels(ref: string): Promise<RawParallels> {
   "use cache: remote";
   cacheLife("weeks");

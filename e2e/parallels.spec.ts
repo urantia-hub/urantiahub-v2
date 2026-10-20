@@ -32,10 +32,15 @@ test("Parallels lists the near passages of other works, the nearest first, with 
   await expect(list.locator(".score-tip").first()).toBeHidden();
   await number.click();
   await expect(list.locator(".score-tip").first()).toBeVisible();
-  await expect(list.locator(".score-tip").first()).toHaveText("How near in meaning this passage is to the paragraph. A computer measures it.");
+  await expect(list.locator(".score-tip").first()).toContainText("How near in meaning this passage is to the paragraph. A computer measures it.");
   await number.click();
   // The paragraph stays marked while the list is open.
   await expect(page.locator('[id="1:0.3"]')).toHaveAttribute("data-picked", "");
+  // The tip links to the page that explains the number.
+  await number.click();
+  await list.locator(".score-tip").first().getByRole("link", { name: "What this number means" }).click();
+  await page.waitForURL("/texts/how-it-works#number");
+  await expect(page.getByRole("heading", { name: "What the number means" })).toBeInViewport();
 });
 
 test("each passage of another work opens its page in a new tab, and a passage of the Papers opens its paragraph", async ({ page }) => {

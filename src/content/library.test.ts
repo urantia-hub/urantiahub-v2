@@ -51,6 +51,9 @@ describe("fetchLibrary", () => {
     // The count of units and the section of Paper 131 on the tradition, when there is one.
     expect(works.find((w) => w.slug === "dhammapada")).toMatchObject({ units: 414, urantiaSection: "131:3" });
     expect(works[0]).toMatchObject({ units: 38034, urantiaSection: null });
+    // The page of the source copy. The API lists none for the Bible, so the Hub names eBible.org.
+    expect(works[0].sourceUrl).toBe("https://ebible.org/find/details.php?id=eng-web");
+    expect(works.find((w) => w.slug === "dhammapada")?.sourceUrl).toMatch(/^https:\/\/www\.gutenberg\.org\//);
     expect(works.find((w) => w.slug === "dhammapada")).toMatchObject({
       corpusId: "dhammapada-muller-1881",
       title: "The Dhammapada",
