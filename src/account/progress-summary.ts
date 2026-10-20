@@ -53,9 +53,14 @@ export function summarize(counts: Record<string, number>, placePaper: string | n
     untouched: PAPERS.length - finished - open.length,
     parts: PARTS.map((part) => {
       const of = sum(part.papers);
-      const numeral = partNumeral(part.id);
-      return { id: part.id, name: numeral ? `Part ${numeral}` : part.title, title: numeral ? part.title : null, percent: percent(of.read, of.total) };
+      return { ...partLabel(part), percent: percent(of.read, of.total) };
     }),
     next,
   };
+}
+
+// The name of a part as the progress shows it: "Part I" with its title, or the Foreword by its title.
+export function partLabel(part: { id: string; title: string }): { id: string; name: string; title: string | null } {
+  const numeral = partNumeral(part.id);
+  return { id: part.id, name: numeral ? `Part ${numeral}` : part.title, title: numeral ? part.title : null };
 }

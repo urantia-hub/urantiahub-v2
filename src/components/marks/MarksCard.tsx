@@ -3,7 +3,9 @@
 import { useId, useState, useSyncExternalStore } from "react";
 import { MARKS, markById, TIERS } from "@/marks/list";
 import type { NextMark } from "@/marks/next";
-import { serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
+import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
+import { MarksShell } from "@/components/you/YouShell";
+import { serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 import { MarkSymbol } from "./MarkSymbol";
 
 const SHOWN = 8;
@@ -12,7 +14,9 @@ const SHOWN = 8;
 // tiers in place. `place` puts the card below the streak on a phone and in the right column on a computer.
 export function MarksCard({ place }: { place: "stack" | "side" }) {
   const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
-  if (!view.card?.on) return null;
+  const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
+  if (!view.card) return streaksOn() && account.status === "in" && !view.failed ? <MarksShell place={place} /> : null;
+  if (!view.card.on) return null;
   return <MarksView marks={view.card.marks} next={view.card.nextMarks ?? []} place={place} />;
 }
 

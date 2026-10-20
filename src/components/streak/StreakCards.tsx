@@ -6,6 +6,7 @@ import { accountState, serverAccountState, subscribeToAccount } from "@/account/
 import type { StreakCard } from "@/account/streak-data";
 import { Icon } from "@/components/icons";
 import { MarksCard } from "@/components/marks/MarksCard";
+import { StreakShell } from "@/components/you/YouShell";
 import { changeStreakSettings, loadStreak, openStreakQuestion, serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 
 const LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -23,7 +24,9 @@ export function StreakCards() {
   const key = account.status === "in" ? (account.user?.key ?? null) : null;
   // The card loads when the page knows the reader.
   useEffect(() => void loadStreak(), [key]);
-  if (!streaksOn() || !view.card) return null;
+  if (!streaksOn() || account.status !== "in") return null;
+  // The card keeps its room while it loads; a card that failed takes none.
+  if (!view.card) return view.failed ? null : <StreakShell />;
   if (!view.card.on)
     return (
       <div className="you-card streak-off">

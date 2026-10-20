@@ -13,8 +13,15 @@ import { SignInLink } from "@/components/SignInLink";
 import { MarksCard } from "@/components/marks/MarksCard";
 import { StreakCards } from "@/components/streak/StreakCards";
 import { sortEntries } from "@/saved/list";
+import { IN_COOKIE } from "@/account/cookies";
+import { MarksShell, ProgressShell, SavedShell, StreakShell, WhoShell } from "./YouShell";
 
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
+const SIGN_IN_ON = process.env.NEXT_PUBLIC_SIGN_IN === "on";
+const STREAKS_ON = process.env.NEXT_PUBLIC_STREAKS === "on";
+// Runs before the first paint: the page from the server holds both the invitation and the shell, and the
+// sign-in mark decides which one shows.
+const YOU_INIT_SCRIPT = `try{if(/(^|; )${IN_COOKIE}=1/.test(document.cookie))document.documentElement.dataset.youIn=""}catch(e){}`;
 const NEWEST = 3;
 const hourLabel = (hour: number) => `${hour % 12 || 12}:00 ${hour < 12 ? "AM" : "PM"}`;
 
@@ -57,9 +64,17 @@ export function YouView() {
   const saved = useReaderData<SavedEntry[]>("/api/me/saved", key, readSaved);
   const notices = useReaderData<Notices>(NOTICES_ON ? "/api/me/notices" : null, key, readNotices);
 
+  const accountLink = (
+    <a href={ACCOUNT_PAGE} target="_blank" rel="noopener">
+      Account
+      <span className="sr-only"> (your UrantiaHub account, opens in a new tab)</span>
+      <Icon name="external" />
+    </a>
+  );
+
   if (account.status !== "in") {
-    return (
-      <div className="saved-page you-page">
+    const guest = (
+      <div className="saved-page you-page you-guest">
         <h1>Your page</h1>
         <div className="saved-empty">
           <b>Your progress and what you saved</b>
@@ -68,26 +83,52 @@ export function YouView() {
         </div>
       </div>
     );
+    // Before the page knows the reader ("off" on the server and at the first render), both wait in the page.
+    if (account.status === "out" || !SIGN_IN_ON) return guest;
+    return (
+      <div className="you-first">
+        <script dangerouslySetInnerHTML={{ __html: YOU_INIT_SCRIPT }} />
+        {guest}
+        <div className="saved-page you-page you-shell-page">
+          <WhoShell account={accountLink} />
+          <div className="you-cols">
+            <section>
+              <h2>Progress</h2>
+              {STREAKS_ON && <StreakShell />}
+              <ProgressShell />
+            </section>
+            <div>
+              {STREAKS_ON && <MarksShell place="side" />}
+              <section>
+                <h2>Saved</h2>
+                <SavedShell />
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  const name = account.user?.name || account.user?.email || "Your account";
+  const user = account.user;
+  const name = user?.name || user?.email || "";
   const newest = Array.isArray(saved) ? sortEntries(saved, "newest").slice(0, NEWEST) : [];
   return (
     <div className="saved-page you-page">
-      <header className="you-who">
-        <span className="you-face" aria-hidden="true">
-          {name.trim().charAt(0).toUpperCase()}
-        </span>
-        <div>
-          <h1>{name}</h1>
-          {account.user?.name && account.user.email && <p>{account.user.email}</p>}
-        </div>
-        <a href={ACCOUNT_PAGE} target="_blank" rel="noopener">
-          Account
-          <span className="sr-only"> (your UrantiaHub account, opens in a new tab)</span>
-          <Icon name="external" />
-        </a>
-      </header>
+      {user ? (
+        <header className="you-who">
+          <span className="you-face" aria-hidden="true">
+            {name.trim().charAt(0).toUpperCase()}
+          </span>
+          <div>
+            <h1>{name || "Your account"}</h1>
+            {user.name && user.email && <p>{user.email}</p>}
+          </div>
+          {accountLink}
+        </header>
+      ) : (
+        <WhoShell account={accountLink} />
+      )}
 
       <div className="you-cols">
         <section aria-labelledby="you-progress">
@@ -103,7 +144,7 @@ export function YouView() {
               Saved
               {Array.isArray(saved) && saved.length > 0 && <Link href="/saved">See all {saved.length}</Link>}
             </h2>
-            {saved === null && <p className="progress-wait" role="status" aria-label="Loading what you saved" />}
+            {saved === null && <SavedShell />}
             {saved === "failed" && (
               <p className="saved-empty">
                 What you saved did not load. <Link href="/saved">Open Saved</Link>
