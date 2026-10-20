@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { LibraryWork, WorkPage, WorkPassage } from "@/content/library";
 import { biblePages, type BibleBook } from "@/library/bible";
+import { pageOfRef } from "@/library/refs";
 import { passageForLink, passageFromLink, passageText } from "./passage";
 
 const FIXTURES = join(process.cwd(), "e2e/fixtures/library");
@@ -96,5 +97,24 @@ describe("the text of a passage in a link", () => {
   it("is nothing for a passage that the page does not have", () => {
     expect(passageText("Dhp 99", dhp)).toBeNull();
     expect(passageText("BG 8.22", bg)).toBeNull();
+  });
+});
+
+describe("a reference to a whole chapter", () => {
+  // The parallels name a chapter of the Tao Te Ching ("TTC 1"); World texts names its lines ("TTC 1.1").
+  const passages: WorkPassage[] = JSON.parse(readFileSync("e2e/fixtures/library/works_tao-te-ching_TTC-1.json", "utf8")).data.map((p: { reference: string; text: string }) => ({ ref: p.reference, number: "", text: p.text, url: null }));
+  it("is a link that goes back to the chapter", () => {
+    const { work: w, pages } = work("tao-te-ching");
+    expect(passageFromLink(passageForLink("TTC 1", w), w, pages)).toBe("TTC 1");
+  });
+  it("is on the page of the chapter", () => {
+    const { work: w, pages } = work("tao-te-ching");
+    expect(pageOfRef(w.refLevels, pages, "TTC 1")?.firstRef).toBe("TTC 1.1");
+  });
+  it("has the text of each passage of the chapter", () => {
+    const found = passageText("TTC 1", passages);
+    expect(found?.ref).toBe("TTC 1");
+    expect(found?.ids).toHaveLength(passages.length);
+    expect(found?.text).toBe(passages.map((p) => p.text).join(" "));
   });
 });

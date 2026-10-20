@@ -75,5 +75,6 @@ export function pageOfRef<P extends PageRefs>(levels: number, pages: P[], ref: s
     const at = span(ref) as [number, number];
     return named.find((p) => (span(p.firstRef)?.[0] ?? Infinity) <= at[0] && at[0] <= (span(p.lastRef)?.[1] ?? -1)) ?? null;
   }
-  return named[0] ?? null;
+  // A reference with one number fewer than its passages names a whole division ("TTC 45" for "TTC 45.1").
+  return named[0] ?? pages.find((p) => base(p.firstRef) === ref) ?? null;
 }

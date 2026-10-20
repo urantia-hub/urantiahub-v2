@@ -55,6 +55,9 @@ export function passageText(ref: string, passages: readonly WorkPassage[]): { re
   const of = (found: readonly WorkPassage[], named: string) => ({ ref: named, text: found.map((p) => p.text).join(" "), ids: found.map((p) => refId(p.ref)) });
   const exact = passages.find((p) => p.ref === ref);
   if (exact) return of([exact], exact.ref);
+  // A whole chapter ("TTC 45") is each of its passages ("TTC 45.1", "TTC 45.2").
+  const chapter = passages.filter((p) => p.ref.startsWith(`${ref}.`) || p.ref.startsWith(`${ref}:`));
+  if (chapter.length > 0) return of(chapter, ref);
   const want = spanOf(ref);
   if (!want) return null;
   const spans = passages.map((p) => ({ p, s: spanOf(p.ref) })).filter((x) => x.s?.head === want.head);
