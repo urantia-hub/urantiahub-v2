@@ -132,3 +132,39 @@ test("with no JavaScript the page of a link shows the words and a link to the pa
   await expect(page.getByRole("link", { name: "Read it in the paper" })).toHaveAttribute("href", `${PAPER_1}?s=1#1:0.3`);
   await context.close();
 });
+
+// 0:0.4 has a sentence of more than 200 characters, so its parts are clauses.
+const FOREWORD = "/papers/foreword";
+const CLAUSE = /^it is only a definitive guide designed to assist those who shall read the accompanying papers .* for this purpose\.$/;
+
+test("a long sentence shows as its clauses, and the link names the clause", async ({ page }) => {
+  await page.goto(FOREWORD);
+  await tap(page, "0:0.4");
+  await page.getByRole("button", { name: "Share" }).click();
+  const box = sheet(page, "0:0.4");
+  await box.getByRole("button", { name: CLAUSE }).click();
+  await expect(page.getByTestId("share-url")).toHaveText("localhost:3100/s/0.0.4/p3");
+  await expect(box.getByText("1 of 3 parts")).toBeVisible();
+  await expect(box.locator(".share-og q")).toHaveText(/^…it is only a definitive guide .* for this purpose\.$/);
+});
+
+test("the page of a clause link gives a chat app the clause, and the paper marks only the clause", async ({ page, request }) => {
+  const html = await (await request.get("/s/0.0.4/p3")).text();
+  expect(html).toContain('<meta property="og:url" content="http://localhost:3100/s/0.0.4/p3"/>');
+  expect(html).toMatch(/it is only a definitive guide designed to assist/);
+  expect(html).not.toMatch(/content="[^"]*This Foreword is not, therefore/);
+  await page.goto("/s/0.0.4/p3");
+  await page.waitForURL(`${FOREWORD}?s=p3#0:0.4`);
+  await expect.poll(() => page.evaluate(() => CSS.highlights.has("shared"))).toBe(true);
+  expect(await page.evaluate(() => [...CSS.highlights.get("shared")!].map(String))).toEqual([expect.stringMatching(CLAUSE)]);
+});
+
+test("a clause link in a second form goes to its one address", async ({ request }) => {
+  const go = async (path: string) => {
+    const answer = await request.get(path, { maxRedirects: 0 });
+    return [answer.status(), (answer.headers().location ?? "").split(", ")[0]];
+  };
+  // Clauses 2 and 3 are the whole second sentence, so "p2-3" is a second form. As for "2.1", it goes to the paragraph.
+  expect(await go("/s/0.0.4/p2-3")).toEqual([307, "/s/0.0.4"]);
+  expect(await go("/s/0.0.4/p9")).toEqual([307, "/s/0.0.4"]);
+});

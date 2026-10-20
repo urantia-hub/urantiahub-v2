@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { parsePick, sentenceRanges, sharedFromAddress } from "@/reader/share-link";
+import { units } from "@/image/compose";
+import { parseUnitCode, sharedFromAddress, unitRanges } from "@/reader/share-link";
 import { rangeOf } from "@/reader/text-range";
 
 // A reader who arrives by a link to some sentences of a paragraph: the page stops with the first of them
@@ -13,9 +14,9 @@ export function SharedMark() {
     const para = shared ? document.getElementById(shared.ref) : null;
     const text = para?.querySelector(":scope > .text");
     if (!shared || !para || !text) return;
-    const ranges = sentenceRanges(text.textContent ?? "");
-    const chosen = parsePick(shared.code, ranges.length);
-    if (!chosen) return;
+    const ranges = unitRanges(text.textContent ?? "");
+    const chosen = parseUnitCode(shared.code, units(text.textContent ?? ""));
+    if (!chosen || ranges.length === 0) return;
     const marks = [...chosen].sort((a, b) => a - b).map((i) => rangeOf(text, ranges[i]));
 
     const frame = window.requestAnimationFrame(() => {

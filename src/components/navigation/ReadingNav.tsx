@@ -99,7 +99,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   const [panel, setPanel] = useState<"more" | "ask" | "notes" | "image" | "share" | "assistant" | null>(null);
   // A question about the whole paper, from the button below its title. It needs no marked paragraph.
   const [paperAsk, setPaperAsk] = useState(false);
-  // The sentences that the image maker starts with, when it opens from the share sheet.
+  // The units that the image maker starts with, when it opens from the share sheet.
   const [imageStart, setImageStart] = useState<ReadonlySet<number> | undefined>(undefined);
   const [askHref, setAskHref] = useState("");
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
@@ -964,7 +964,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             build={(question) => {
               const sectionId = picked.split(":")[1]?.split(".")[0] ?? "0";
               const section = sectionId === "0" ? null : (sections.find((one) => one.id === sectionId) ?? null);
-              return paragraphPrompt({ question, paper, section, before: paragraphsBefore(picked), ref: picked, text: paragraphText(picked), link: `${window.location.origin}${sharePath(picked, new Set(), 1)}` });
+              return paragraphPrompt({ question, paper, section, before: paragraphsBefore(picked), ref: picked, text: paragraphText(picked), link: `${window.location.origin}${sharePath(picked, new Set(), [])}` });
             }}
             onClose={closePanel}
           />

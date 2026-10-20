@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { track } from "@/analytics";
-import { chosenText, sentences } from "@/image/compose";
+import { units, unitsText } from "@/image/compose";
 import { draw, type Fonts, fitsWell, LOOKS, measureWith } from "@/image/draw";
 import { Sheet } from "./Sheet";
 import { earnToolMark } from "@/streak/client";
 
-// `start` is the sentences that the reader chose in the share sheet. With none, the image takes as many
-// sentences from the start as fit.
+// `start` is the units that the reader chose in the share sheet: sentences, or clauses of a long one. With
+// none, the image takes as many units from the start as fit.
 type Props = { reference: string; paperId: string; text: string; start?: ReadonlySet<number>; onClose: () => void };
 
 // The faces of the site, by the names that the browser knows them.
@@ -21,7 +21,9 @@ function siteFonts(): Fonts {
 // An image of one paragraph to share: the reader chooses the sentences and a look.
 // The preview is the image itself, so what the reader sees is what the reader shares.
 export default function ImageSheet({ reference, paperId, text, start, onClose }: Props) {
-  const all = useMemo(() => sentences(text), [text]);
+  const all = useMemo(() => units(text), [text]);
+  // A text with a clause names its parts, as the share sheet does.
+  const one = all.some((u) => !u.first || !u.last) ? "part" : "sentence";
   const canvas = useRef<HTMLCanvasElement>(null);
   const [fonts, setFonts] = useState<Fonts | null>(null);
   const [look, setLook] = useState<(typeof LOOKS)[number]>(LOOKS[0]);
@@ -44,7 +46,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
         let count = all.length;
         if (context) {
           const measure = measureWith(context, found);
-          while (count > 1 && !fitsWell(chosenText(all, new Set(Array.from({ length: count }, (_, i) => i))), measure)) count -= 1;
+          while (count > 1 && !fitsWell(unitsText(all, new Set(Array.from({ length: count }, (_, i) => i))), measure)) count -= 1;
         }
         setChosen(start && start.size > 0 ? start : new Set(Array.from({ length: count }, (_, i) => i)));
         setFonts(found);
@@ -62,7 +64,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [all, paperId]);
 
-  const words = chosenText(all, chosen);
+  const words = unitsText(all, chosen);
   useEffect(() => {
     if (!fonts || !canvas.current) return;
     setOk(draw(canvas.current, fonts, look, reference, words));
@@ -131,10 +133,10 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
       <div className="image-preview">
         <canvas ref={canvas} role="img" aria-label={words ? `Image with the text: ${words}` : "Image with no text"} />
       </div>
-      {fonts !== null && words === "" && <p className="image-note">Choose a sentence.</p>}
+      {fonts !== null && words === "" && <p className="image-note">Choose a {one}.</p>}
       {fonts !== null && words !== "" && !ok && (
         <p className="image-note" role="status">
-          This is too much text for one image. Take a sentence off.
+          This is too much text for one image. Take a {one} off.
         </p>
       )}
 
@@ -148,11 +150,11 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
 
       {all.length > 1 && (
         <>
-          <p className="image-help">Tap a sentence to put it on the image, or to take it off.</p>
+          <p className="image-help">Tap a {one} to put it on the image, or to take it off.</p>
           <p className="image-sentences">
-            {all.map((sentence, i) => (
+            {all.map((unit, i) => (
               <button type="button" key={i} aria-pressed={chosen.has(i)} onClick={() => toggle(i)}>
-                {sentence}{" "}
+                {unit.text}{" "}
               </button>
             ))}
           </p>
