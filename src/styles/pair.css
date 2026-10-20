@@ -1,0 +1,25 @@
+/* The pair page: two passages, one of the Papers and one of a world text. */
+.pair-page { max-width: 40rem; margin: 0 auto; padding: 36px 22px 70px; }
+.pair-quote { display: block; color: inherit; text-decoration: none; border-radius: 4px; transition: background-color 0.2s, box-shadow 0.2s; }
+.pair-quote:hover { background: var(--mark); box-shadow: 0 0 0 14px var(--mark); }
+.pair-quote .eyebrow { display: block; margin-bottom: 14px; }
+.pair-kind { display: block; margin: -8px 0 14px; font: 400 13px/1.3 var(--font-ui); color: var(--muted); }
+.pair-kind.blank { display: none; }
+.pair-quote blockquote { margin: 0; font-size: 1.22em; line-height: 1.55; }
+.pair-quote blockquote.clamp { display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden; }
+.pair-more { border: 0; background: none; padding: 0; margin-top: 8px; font: 500 13px/1 var(--font-ui); color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.pair-src { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; font: 400 13px/1.45 var(--font-ui); color: var(--ref); text-decoration: none; }
+.pair-go { font: 500 13.5px/1 var(--font-ui); color: var(--accent); }
+.pair-and { display: flex; align-items: center; gap: 14px; margin: 34px 0; color: var(--muted); font-style: italic; font-size: 0.95em; }
+.pair-and::before, .pair-and::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+.pair-acts { display: flex; justify-content: center; margin: 44px 0 0; }
+
+@media (min-width: 768px) {
+  /* The content sits in the middle of the first screen, below the header. */
+  .pair-page { max-width: 64rem; min-height: calc(100svh - 64px); display: flex; flex-direction: column; justify-content: center; padding: 40px 40px 80px; }
+  .pair-cols { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0 44px; align-items: start; }
+  .pair-kind.blank { display: block; visibility: hidden; }
+  .pair-and { flex-direction: column; margin: 0; align-self: stretch; min-height: 220px; }
+  .pair-and::before, .pair-and::after { width: 1px; height: auto; flex: 1; }
+  .pair-quote blockquote { font-size: 1.28em; }
+}

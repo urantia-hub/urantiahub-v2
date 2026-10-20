@@ -2,7 +2,7 @@ import "server-only";
 import { getParagraphText, ParagraphNotFound } from "@/content";
 import { paperById, paperPath } from "@/content/paper-index";
 import { units } from "@/image/compose";
-import { parseUnitCode, refForLink, refFromLink, unitCode, unitWords } from "@/reader/share-link";
+import { isCode, parseUnitCode, refForLink, refFromLink, unitCode, unitWords } from "@/reader/share-link";
 
 export type Shared = {
   ref: string;
@@ -20,7 +20,8 @@ export async function sharedPassage(refPart: string, pickPart?: string): Promise
   // The form with a colon arrives with its escape.
   const ref = refFromLink(refPart.replace(/%3A/i, ":"));
   const paper = ref ? paperById(ref.split(":")[0]) : undefined;
-  if (!ref || !paper) return null;
+  // A part that is not a code is no link of one paragraph: a pair has three parts or more.
+  if (!ref || !paper || (pickPart !== undefined && !isCode(pickPart))) return null;
   let text: string;
   try {
     text = await getParagraphText(paper.id, ref);

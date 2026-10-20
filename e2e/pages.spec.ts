@@ -313,6 +313,7 @@ for (const [path, title] of [
   ["/texts/dhammapada/2", "On Earnestness · The Dhammapada | UrantiaHub"],
   ["/texts/bible/john-3", "John 3 · The Bible (World English Bible) | UrantiaHub"],
   ["/texts/how-it-works", "How World texts work | UrantiaHub"],
+  ["/s/1.0.3/dhammapada/21", "1:0.3 and Dhp 21 | UrantiaHub"],
 ] as const) {
   test(`a shared link to ${path} has a title, a description, and an image that loads`, async ({ page, request }) => {
     await page.goto(path);
@@ -328,9 +329,18 @@ for (const [path, title] of [
     expect(answer.status()).toBe(200);
     expect(answer.headers()["content-type"]).toBe("image/png");
     // World texts and each of their pages have an image of their own, not the image of the Papers.
-    if (path.startsWith("/texts")) expect(new URL(image).pathname).toBe(`${path}/opengraph-image`);
+    if (path.startsWith("/texts") || path.startsWith("/s/")) expect(new URL(image).pathname).toBe(`${path}/opengraph-image`);
   });
 }
+
+test("a pair page is its own address for a chat app, and stays out of each search engine", async ({ page }) => {
+  await page.goto("/s/1.0.3/dhammapada/21");
+  const content = (selector: string) => page.locator(selector).first().getAttribute("content");
+  expect(await content('meta[property="og:url"]')).toBe("http://localhost:3100/s/1.0.3/dhammapada/21");
+  expect(await content('meta[name="robots"]')).toBe("noindex, follow");
+  expect(await content('meta[property="og:image:height"]')).toBe("630");
+  expect(await content('meta[name="description"]')).toMatch(/^“.+” and “.+”$/);
+});
 
 // The addresses of the Hub before this one. A link in an old email, a bookmark of a browser, and a
 // result of a search engine must each go to a page.
