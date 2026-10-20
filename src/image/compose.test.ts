@@ -1,5 +1,7 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { chosenText, fit, sentences, wrap } from "./compose";
+import { chosenText, fit, sentences, units, unitsText, wrap } from "./compose";
 
 const TEXT = "The enlightened worlds all recognize the Father. The will creatures have embarked upon the journey; it is long. “Be you perfect, even as I am perfect.” In love the messengers carry it.";
 // A measure that needs no canvas: each character is half of the type size wide.
@@ -56,5 +58,68 @@ describe("the lines of the image", () => {
     const small = fit("aaaa bbbb cccc dddd eeee ffff", { width: 200, height: 130, sizes: [60, 40, 20], lineHeight: 1.5 }, measure);
     expect(small?.size).toBe(20);
     expect(fit("word ".repeat(400).trim(), { width: 200, height: 130, sizes: [60, 40, 20], lineHeight: 1.5 }, measure)).toBeNull();
+  });
+});
+
+// Recorded API text (works.read, Shu King, Legge 1879): one sentence of about 620 characters.
+const SHU = "The duke said, 'Prince Shih, I have heard that aforetime, when Thang the Successful had received the appointment (to the throne), he had with him Î Yin, making (his virtue) like that of great Heaven; that Thâi Kiâ had (the same Î Yin), the Pâo-hăng; that Thâi-wû had Î Kih and Khăn Hû, through whom (his virtue) was made to affect God, and Wû Hsien who regulated the royal House; that Zû-yî had Wû Hsien's son; and that Wû-ting had Kan Phan. (These ministers) carried out (their principles), and displayed (their merit), preserving and regulating the dynasty of Yin, so that, while its ceremonies lasted, (those sovereigns), when deceased, were assessors to Heaven, and its duration extended over many years.";
+// Recorded API text (paragraphs, 63:0.1).
+const TWINS = "URANTIA was registered as an inhabited world when the first two human beings — the twins — were eleven years old, and before they had become the parents of the first-born of the second generation of actual human beings. And the archangel message from Salvington, on this occasion of formal planetary recognition, closed with these words:";
+const FIXTURES = join(process.cwd(), "e2e/fixtures");
+const recorded = readdirSync(FIXTURES)
+  .filter((name) => name.startsWith("paragraphs_"))
+  .map((name) => (JSON.parse(readFileSync(join(FIXTURES, name), "utf8")) as { data: { text: string } }).data.text);
+
+describe("the units of a text", () => {
+  it("keep a sentence of 200 characters or less whole", () => {
+    const first = units(TWINS)[0];
+    expect(first).toEqual({ text: sentences(TWINS)[0], sentence: 0, first: true, last: true });
+    // The second sentence ends with a colon, but it is short: one unit.
+    expect(units(TWINS)).toHaveLength(2);
+  });
+
+  it("cut a long sentence after each ; and : that a space follows", () => {
+    const of = units(SHU).filter((u) => u.sentence === 0);
+    expect(of.length).toBeGreaterThan(1);
+    of.slice(0, -1).forEach((u) => expect(u.text).toMatch(/[;:]$/));
+    expect(of[0].first).toBe(true);
+    expect(of.at(-1)?.last).toBe(true);
+  });
+
+  it("join a clause under 40 characters to the one before it", () => {
+    const of = units(SHU).filter((u) => u.sentence === 0);
+    expect(of.some((u) => u.text === "that Zû-yî had Wû Hsien's son;")).toBe(false);
+    expect(of.at(-1)?.text).toBe("that Thâi-wû had Î Kih and Khăn Hû, through whom (his virtue) was made to affect God, and Wû Hsien who regulated the royal House; that Zû-yî had Wû Hsien's son; and that Wû-ting had Kan Phan.");
+  });
+
+  it("lose no character of a recorded paragraph", () => {
+    for (const text of [...recorded, SHU, TWINS]) expect(units(text).map((u) => u.text).join(" ")).toBe(sentences(text).join(" "));
+  });
+
+  it("number their sentences as sentences() does", () => {
+    for (const text of [...recorded, SHU]) expect(units(text).at(-1)?.sentence).toBe(sentences(text).length - 1);
+  });
+});
+
+describe("the words of chosen units", () => {
+  it("mark a cut inside a sentence at each end, without its ; or :", () => {
+    const all = units(SHU);
+    expect(unitsText(all, new Set([1]))).toBe("…that Thâi Kiâ had (the same Î Yin), the Pâo-hăng…");
+  });
+
+  it("are the words of chosenText for whole sentences", () => {
+    for (const text of [...recorded, SHU]) {
+      const all = units(text);
+      const second = new Set(all.flatMap((u, i) => (u.sentence === 1 ? [i] : [])));
+      const firstAndThird = new Set(all.flatMap((u, i) => (u.sentence === 0 || u.sentence === 2 ? [i] : [])));
+      expect(unitsText(all, second)).toBe(chosenText(sentences(text), new Set([1])));
+      expect(unitsText(all, firstAndThird)).toBe(chosenText(sentences(text), new Set([0, 2])));
+    }
+  });
+
+  it("mark a gap between two clauses of one sentence", () => {
+    const all = units(SHU);
+    const last = all.findIndex((u) => u.sentence === 0 && u.last);
+    expect(unitsText(all, new Set([0, last]))).toBe(`${all[0].text.replace(/;$/, "")} … ${all[last].text}`);
   });
 });
