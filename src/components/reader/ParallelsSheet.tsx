@@ -118,6 +118,28 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
     const long = p.text.length > LONG;
     const open = whole.has(key);
     const opened = () => track("parallel_opened", { kind: half, ...from });
+    const more = long && (
+      <button type="button" aria-expanded={open} onClick={() => setWhole((was) => new Set(open ? [...was].filter((k) => k !== key) : [...was, key]))}>
+        {open ? "Show less" : "Read more"}
+      </button>
+    );
+    // A near passage of a work in World texts opens the page of the two passages. The whole row is its link:
+    // the link covers the row, and the score and "Read more" stay buttons above it.
+    if (p.pairPath)
+      return (
+        <li key={key} className="parallel-paired">
+          <div className="parallel-where">
+            <Link className="parallel-pair" href={`${p.pairPath}?from=${work ? "text" : "paper"}`} prefetch={false} onClick={opened}>
+              <b>{p.ref}</b>
+              <span className="sr-only">, beside this passage</span>
+            </Link>
+            <small>{p.source}</small>
+            <Score percent={p.percent} />
+          </div>
+          <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
+          {more && <div className="parallel-acts">{more}</div>}
+        </li>
+      );
     return (
       <li key={key}>
         <div className="parallel-where">
@@ -127,11 +149,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
         </div>
         <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
         <div className="parallel-acts">
-          {long && (
-            <button type="button" aria-expanded={open} onClick={() => setWhole((was) => new Set(open ? [...was].filter((k) => k !== key) : [...was, key]))}>
-              {open ? "Show less" : "Read more"}
-            </button>
-          )}
+          {more}
           {LIBRARY_LINKS && half === "outside" && p.library && (
             <Link className="parallel-open" href={`/texts/${p.library.slug}/at/${encodeURIComponent(p.library.ref)}`} prefetch={false} onClick={opened}>
               Read here

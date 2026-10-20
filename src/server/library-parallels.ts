@@ -1,6 +1,9 @@
 import type { LibraryWork, RawPassageOthers, RawPassagePapers, WorkPage, WorkPassage } from "@/content/library";
 import { paperById, paperPath } from "@/content/paper-index";
 import { pageOfRef } from "@/library/refs";
+import { pairPath } from "@/pair/link";
+import { passageForLink } from "@/pair/passage";
+import { refForLink } from "@/reader/share-link";
 import { OUTSIDE_FLOOR, type Parallel, type ParallelsAnswer, outsideHref, outsideRef, percent, WEAK_FLOOR, WORK_FLOORS, workName } from "./parallels";
 
 // A passage of another work below this score is not near in meaning to a passage of a work. Set on 2026-10-18
@@ -19,8 +22,9 @@ const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 // "Dhp 21-23" is "Dhammapada 21-23", as on a paper page.
 const shortRef = (reference: string, work: LibraryWork | undefined) => (work ? outsideRef(reference, { id: work.corpusId, refPrefix: work.refPrefix }) : reference);
 
-/** The two halves of the parallels of a passage, each with its floor and its list below the floor. */
-export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageOthers | null, work: LibraryWork, library: LibraryWork[]): PassageAnswer {
+/** The two halves of the parallels of a passage, each with its floor and its list below the floor. `marked` is the
+ * passage that the reader marked: a near paragraph opens the pair page of that paragraph and it, not of the chunk. */
+export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageOthers | null, work: LibraryWork, library: LibraryWork[], marked?: string): PassageAnswer {
   const papersFloor = WORK_FLOORS[work.corpusId] ?? OUTSIDE_FLOOR;
   const papers = raw.papers
     .flatMap((p) => {
@@ -56,7 +60,7 @@ export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageO
     label: shortRef(others?.label ?? raw.reference, work),
     source: work.year === null ? work.translator : `${surname(work.translator)}, ${work.year}`,
     href: outsideHref(raw.url ?? null),
-    papers: pick(papers, false),
+    papers: pick(papers, false).map((p) => (marked ? { ...p, pairPath: pairPath({ ref: refForLink(p.ref), refCode: "", work: work.slug, passage: passageForLink(marked, work), passageCode: "" }) } : p)),
     weakerPapers: pick(papers, true).slice(0, WEAK_MOST),
     outside: pick(outsideAll, false),
     weaker: pick(outsideAll, true).slice(0, WEAK_MOST),
@@ -105,6 +109,6 @@ export async function handlePassageParallels(slug: string, ref: string, deps: De
   }
   // The other works are a second source. When it fails or is not there yet, the half is empty.
   const others = await deps.others(slug, asked).catch(() => null);
-  const answer = shapePassageParallels(raw, others, work as LibraryWork, await deps.library());
+  const answer = shapePassageParallels(raw, others, work as LibraryWork, await deps.library(), ref);
   return Response.json(answer, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

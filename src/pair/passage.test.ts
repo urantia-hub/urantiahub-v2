@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { LibraryWork, WorkPage, WorkPassage } from "@/content/library";
@@ -28,7 +28,7 @@ function work(slug: string): { work: LibraryWork; pages: WorkPage[] } {
 
 const roundTrip = (slug: string, ref: string) => {
   const { work: w, pages } = work(slug);
-  const part = passageForLink(ref, w, pages);
+  const part = passageForLink(ref, w);
   return [part, passageFromLink(part, w, pages)];
 };
 
@@ -59,6 +59,20 @@ describe("the passage of a work in a link", () => {
     for (const bad of ["10.10.3x", "RV-10.10.3", "rv.10.10.3", "", "10..3", "10.10.3-", "10:10.3"]) expect(passageFromLink(bad, rv.work, rv.pages)).toBeNull();
     const bom = work("book-of-mormon");
     for (const bad of ["1-Nephi.3.7", "3-nephi-x.3.7", "nephi.3.7", "1-nephi", "1-nephi.3:7"]) expect(passageFromLink(bad, bom.work, bom.pages)).toBeNull();
+  });
+});
+
+describe("the link form from the prefix of the work alone", () => {
+  it("is the form of the page list for the first and the last passage of each recorded page", () => {
+    const slugs = readdirSync(FIXTURES).flatMap((n) => (n.startsWith("scriptures_") ? [n.slice(11, -5)] : []));
+    for (const slug of [...slugs, "bible"]) {
+      const { work: w, pages } = work(slug);
+      for (const p of pages)
+        for (const ref of [p.firstRef, p.lastRef]) {
+          const part = passageForLink(ref, w);
+          expect(passageFromLink(part, w, pages), `${slug} ${ref}`).toBe(ref);
+        }
+    }
   });
 });
 

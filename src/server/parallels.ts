@@ -2,7 +2,10 @@ import { ParagraphNotFound } from "@/content/fetchers";
 import { paperById, paperPath } from "@/content/paper-index";
 import type { RawCorpus, RawParallels, RawWork } from "@/content/parallels";
 import { BIBLE } from "@/library/bible";
+import { pairPath } from "@/pair/link";
+import { passageForLink } from "@/pair/passage";
 import { WORKS } from "@/parallels-works";
+import { refForLink } from "@/reader/share-link";
 
 // The exact form of a paragraph reference. Anything else is refused before any work.
 const REFERENCE = /^(\d{1,3}):(\d{1,2})\.(\d{1,3})$/;
@@ -12,7 +15,8 @@ const LAST_PAPER = 196;
 // `href` is the page of the passage: a paragraph of this site, or the public page of another work.
 // `work` is the name of the work, for the filter of the study page.
 // `library` is the work in the Library and the reference there ("Quran 2.255-257"), when the Library has it.
-export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null; library?: { slug: string; ref: string } | null };
+// `pairPath` is the pair page of this passage and the passage of the sheet, for a near passage of a work in World texts.
+export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null; library?: { slug: string; ref: string } | null; pairPath?: string };
 // `text` is the paragraph itself, for the study page.
 // `weaker` holds the nearest passages of other works below the floor. The reader sees them only on request,
 // when no passage is near.
@@ -98,8 +102,8 @@ export const percent = (similarity: number) => Math.floor(similarity * 100 + 1e-
 const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
 // `paperId` is the paper of the paragraph. With none, no passage is nearby.
-// `slugs` maps a corpus id to its work in the Library, for the link "Read here".
-export function shapeParallels(raw: RawParallels, text = "", paperId?: string, slugs: ReadonlyMap<string, string> = new Map()): ParallelsAnswer {
+// `slugs` maps a corpus id to its work in the Library, for the link "Read here". `ref` is the paragraph, for the pair page.
+export function shapeParallels(raw: RawParallels, text = "", paperId?: string, slugs: ReadonlyMap<string, string> = new Map(), ref?: string): ParallelsAnswer {
   // `least` and `below` are the floors of a passage: its work's own one, or OUTSIDE_FLOOR.
   const from = (least: (floor: number) => number, below: (floor: number) => number): Parallel[] =>
     [
@@ -111,7 +115,10 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string, s
         })
         .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: workName(s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url), library: slugs.has(s.corpus.id) ? { slug: slugs.get(s.corpus.id) as string, ref: s.reference } : null })),
     ].sort(nearestFirst);
-  const outside = from((floor) => floor, () => Number.POSITIVE_INFINITY);
+  // A near passage of a work in World texts opens the pair page. The rows below the floor keep their links.
+  const prefixes = new Map<string, string>([[BIBLE, ""], ...raw.scripture.flatMap((s) => (slugs.has(s.corpus.id) ? [[slugs.get(s.corpus.id) as string, s.corpus.refPrefix] as const] : []))]);
+  const withPair = (p: Parallel): Parallel => (ref && p.library ? { ...p, pairPath: pairPath({ ref: refForLink(ref), refCode: "", work: p.library.slug, passage: passageForLink(p.library.ref, { refPrefix: prefixes.get(p.library.slug) ?? "" }), passageCode: "" }) } : p);
+  const outside = from((floor) => floor, () => Number.POSITIVE_INFINITY).map(withPair);
   const weaker = from(() => WEAK_FLOOR, (floor) => floor).slice(0, WEAK_MOST);
   const papers: Parallel[] = raw.papers
     .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
@@ -161,5 +168,5 @@ export async function handleParallels(
   const corpora = loadWorks ? await loadWorks().catch(() => null) : null;
   const works = corpora ? shapeWorks(corpora) : knownWorks();
   const slugs = new Map((corpora ?? []).flatMap((c) => (c.slug ? [[c.id, c.slug] as const] : [])));
-  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1])), slugs), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
+  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1])), slugs, ref), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

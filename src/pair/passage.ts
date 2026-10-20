@@ -15,10 +15,11 @@ function onePrefix(work: LibraryWork, pages: readonly WorkPage[]): boolean {
   return work.refPrefix !== "" && pages.length > 0 && pages.every((p) => p.firstRef.startsWith(`${work.refPrefix} `));
 }
 
-/** The passage as a part of a link. */
-export function passageForLink(ref: string, work: LibraryWork, pages: readonly WorkPage[]): string {
+/** The passage as a part of a link. A work names each passage with its prefix, or none with it (each page
+ * list of the API is one or the other), so the reference alone says which form it takes. */
+export function passageForLink(ref: string, work: Pick<LibraryWork, "refPrefix">): string {
   const numbers = unitNumber(ref).replace(/:/g, ".");
-  return onePrefix(work, pages) ? numbers : `${bookSlug(nameOf(ref))}.${numbers}`;
+  return work.refPrefix !== "" && ref.startsWith(`${work.refPrefix} `) ? numbers : `${bookSlug(nameOf(ref))}.${numbers}`;
 }
 
 /** The reference of the passage in a link, with the names and the colon that the work uses. Null for a form
@@ -39,7 +40,7 @@ export function passageFromLink(part: string, work: LibraryWork, pages: readonly
   // A work that writes "3:7" has a colon after its first number.
   const colon = pages.some((p) => unitNumber(p.firstRef).includes(":"));
   const ref = `${name} ${colon ? numbers.replace(".", ":") : numbers}`;
-  return passageForLink(ref, work, pages) === part ? ref : null;
+  return passageForLink(ref, work) === part ? ref : null;
 }
 
 // The numbers before the last one ("7." of "7.22-24"), and the first and the last of the last one.

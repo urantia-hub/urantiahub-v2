@@ -72,7 +72,7 @@ export async function pairOf(parts: readonly string[], deps: PairDeps = DEPS): P
   const a = side(text, split.refCode);
   const b = side(found.text, split.passageCode);
   const refPart = refForLink(ref);
-  const passagePart = passageForLink(found.ref, work, pages);
+  const passagePart = passageForLink(found.ref, work);
   const path = pairPath({ ref: refPart, refCode: a.code, work: work.slug, passage: passagePart, passageCode: b.code });
   if (path !== `/s/${parts.join("/")}`) return { go: path };
   const query = (code: string) => (code ? `?s=${code}` : "");
