@@ -8,6 +8,7 @@ import { BooksSheet } from "./BooksSheet";
 import { NUMBERED } from "@/library/books";
 import { saveTextPlace } from "@/library/text-places";
 import { ChaptersSheet, type ChapterRow } from "./ChaptersSheet";
+import { sharedPassageFromAddress } from "@/reader/share-link";
 
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
 
@@ -60,6 +61,8 @@ export function WorkNav({ work, pages, current, title, label = null, place = tru
       }
       const el = id ? document.getElementById(id) : null;
       if (!el?.matches(".paper.work p.para")) return;
+      // A pair link to some units: `SharedMark` brings them into view with a soft mark, and the passage has no mark.
+      if (sharedPassageFromAddress(window.location.search, window.location.hash)) return;
       el.scrollIntoView({ block: "center" });
       setPicked({ id, ref: el.dataset.ref ?? id });
     };

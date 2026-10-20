@@ -4,19 +4,17 @@ import { ImageResponse } from "next/og";
 import { BOOKMARK_PATH, BRAND_INK, BRAND_PAPER } from "@/brand/BookmarkMark";
 import { SHORT_NAMES } from "@/library/header-back";
 import { pairOf, type PairSide } from "@/pair/pair";
-import { cutWords } from "@/reader/share-link";
+import { cardQuote, pairSize } from "@/pair/view";
 import { SHARE_SIZE, shareImage } from "./share-image";
 
 const readFont = () => readFile(join(process.cwd(), "node_modules/@fontsource/literata/files/literata-latin-500-normal.woff"));
 
-/** ONE type size for both quotes, from the longer one, so the two sides look equal. */
-export const pairSize = (longest: number) => (longest < 90 ? 44 : longest <= 170 ? 36 : 30);
 
 const Side = ({ side, name, size }: { side: PairSide; name: string; size: number }) => (
   <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
     <div style={{ fontSize: 20, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8b8375" }}>{name}</div>
     <div style={{ fontSize: 22, color: "#8b8375", marginTop: 8, height: 30 }}>{side.kind ?? ""}</div>
-    <div style={{ fontSize: size, lineHeight: 1.38, marginTop: 18 }}>{`“${cutWords(side.words, 210).replace(/^“/, "")}”`}</div>
+    <div style={{ fontSize: size, lineHeight: 1.38, marginTop: 18 }}>{`“${cardQuote(side.words).replace(/^“/, "")}”`}</div>
     <div style={{ fontSize: 26, color: "#756d5f", marginTop: "auto", paddingTop: 20 }}>{side.shortRef}</div>
   </div>
 );
@@ -27,7 +25,7 @@ export async function pairPicture(parts: readonly string[]): Promise<ImageRespon
   const pair = await pairOf(parts);
   if (!pair || "go" in pair) return shareImage("Two passages", "The Urantia Papers");
   const font = await readFont();
-  const size = pairSize(Math.max(cutWords(pair.a.words, 210).length, cutWords(pair.b.words, 210).length));
+  const size = pairSize(Math.max(cardQuote(pair.a.words).length, cardQuote(pair.b.words).length));
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "#fbf8f2", color: "#26221c", fontFamily: "Literata", padding: "56px 72px 44px" }}>

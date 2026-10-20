@@ -12,8 +12,10 @@ import { pairPath, splitPairPath } from "./link";
 import { passageForLink, passageFromLink, passageText } from "./passage";
 
 // One side of a pair: the work, the text as units with the reader's choice, and the place that opens it.
-export type PairSide = { eyebrow: string; kind: string | null; units: Unit[]; chosen: ReadonlySet<number>; words: string; source: string; shortRef: string; target: string };
-export type Pair = { path: string; work: string; a: PairSide; b: PairSide };
+// `target` is `base`, then `?s=` with the choice, then `hash`.
+export type PairSide = { eyebrow: string; kind: string | null; units: Unit[]; chosen: ReadonlySet<number>; words: string; source: string; shortRef: string; target: string; base: string; hash: string };
+// `refPart` and `passagePart` are the paragraph and the passage as the address writes them.
+export type Pair = { path: string; work: string; refPart: string; passagePart: string; a: PairSide; b: PairSide };
 
 export type PairDeps = {
   paragraphText: (paperId: string, ref: string) => Promise<string>;
@@ -69,13 +71,18 @@ export async function pairOf(parts: readonly string[], deps: PairDeps = DEPS): P
 
   const a = side(text, split.refCode);
   const b = side(found.text, split.passageCode);
-  const path = pairPath({ ref: refForLink(ref), refCode: a.code, work: work.slug, passage: passageForLink(found.ref, work, pages), passageCode: b.code });
+  const refPart = refForLink(ref);
+  const passagePart = passageForLink(found.ref, work, pages);
+  const path = pairPath({ ref: refPart, refCode: a.code, work: work.slug, passage: passagePart, passageCode: b.code });
   if (path !== `/s/${parts.join("/")}`) return { go: path };
   const query = (code: string) => (code ? `?s=${code}` : "");
+  const bBase = `/texts/${work.slug}/at/${encodeURIComponent(found.ref)}`;
   return {
     path,
     work: work.slug,
-    a: { eyebrow: "The Urantia Papers", kind: null, units: a.all, chosen: a.chosen, words: a.words, source: `${ref} · ${paper.title}`, shortRef: ref, target: `${paperPath(paper.id)}${query(a.code)}#${ref}` },
+    refPart,
+    passagePart,
+    a: { eyebrow: "The Urantia Papers", kind: null, units: a.all, chosen: a.chosen, words: a.words, source: `${ref} · ${paper.title}`, shortRef: ref, target: `${paperPath(paper.id)}${query(a.code)}#${ref}`, base: paperPath(paper.id), hash: `#${ref}` },
     b: {
       eyebrow: work.title,
       kind: `${work.tradition} ${work.kind}`,
@@ -84,7 +91,9 @@ export async function pairOf(parts: readonly string[], deps: PairDeps = DEPS): P
       words: b.words,
       source: `${found.ref} · ${work.slug === BIBLE ? "World English Bible" : [surname(work.translator), work.year].filter((x) => x !== null).join(", ")}`,
       shortRef: found.ref,
-      target: `/texts/${work.slug}/at/${encodeURIComponent(found.ref)}${query(b.code)}`,
+      target: `${bBase}${query(b.code)}`,
+      base: bBase,
+      hash: "",
     },
   };
 }

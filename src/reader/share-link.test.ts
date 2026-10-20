@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { chosenText, sentences, units } from "@/image/compose";
-import { cutWords, parsePick, parseUnitCode, pickCode, refForLink, refFromLink, sentenceRanges, sharePath, sharedWords, sharedFromAddress, unitCode, unitRanges, unitWords } from "./share-link";
+import { cutWords, parsePick, parseUnitCode, pickCode, refForLink, refFromLink, sentenceRanges, sharePath, sharedWords, sharedFromAddress, sharedPassageFromAddress, unitCode, unitRanges, unitWords } from "./share-link";
 
 const set = (...n: number[]) => new Set(n);
 
@@ -64,6 +64,21 @@ describe("where each sentence is in the text of the page", () => {
   it("finds each sentence, with any white space between words", () => {
     const text = "One is\n here.  Two is here. Three.";
     expect(sentenceRanges(text).map(([a, b]) => text.slice(a, b))).toEqual(["One is\n here.", "Two is here.", "Three."]);
+  });
+});
+
+describe("a world text address that a pair link opened", () => {
+  it("gives the first passage, the choice, and the count of passages", () => {
+    expect(sharedPassageFromAddress("?s=p2&n=3", "#BG_7.22")).toEqual({ id: "BG_7.22", code: "p2", count: 3 });
+    expect(sharedPassageFromAddress("?s=1", "#Sk%C3%A1ldskaparm%C3%A1l_8.2")).toEqual({ id: "Skáldskaparmál_8.2", code: "1", count: 1 });
+  });
+  it("is nothing with no choice, no passage, or a wrong form", () => {
+    expect(sharedPassageFromAddress("", "#Dhp_21")).toBeNull();
+    expect(sharedPassageFromAddress("?s=1", "")).toBeNull();
+    expect(sharedPassageFromAddress("?s=x", "#Dhp_21")).toBeNull();
+    expect(sharedPassageFromAddress("?s=1&n=0", "#Dhp_21")).toBeNull();
+    expect(sharedPassageFromAddress("?s=1&n=99", "#Dhp_21")).toBeNull();
+    expect(sharedPassageFromAddress("?s=1", "#%E0")).toBeNull();
   });
 });
 

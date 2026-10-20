@@ -130,3 +130,21 @@ export function sharedFromAddress(search: string, hash: string): { ref: string; 
   const ref = refFromLink(id);
   return ref && ref === id ? { ref, code } : null;
 }
+
+// The most passages that a range of a pair link can join.
+const MOST_PASSAGES = 50;
+
+/** The passage of a world text page that a pair link opened: its id, the chosen units, and the count of passages
+ * of a range that the units run across. */
+export function sharedPassageFromAddress(search: string, hash: string): { id: string; code: string; count: number } | null {
+  const params = new URLSearchParams(search);
+  const code = params.get("s");
+  const count = Number(params.get("n") ?? "1");
+  if (!code || !isCode(code) || !Number.isInteger(count) || count < 1 || count > MOST_PASSAGES) return null;
+  try {
+    const id = decodeURIComponent(hash.slice(1));
+    return id ? { id, code, count } : null;
+  } catch {
+    return null;
+  }
+}

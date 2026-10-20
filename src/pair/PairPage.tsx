@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { SHORT_NAMES } from "@/library/header-back";
 import { cutWords } from "@/reader/share-link";
 import { pageMetadata } from "@/seo/metadata";
-import { pairOf } from "./pair";
-import { PairQuote } from "./PairQuotes";
+import { pairOf, type PairSide } from "./pair";
+import { PairView } from "./PairView";
+import type { ViewPair, ViewSide } from "./view";
 
 // Two passages side by side: one of the Papers and one of a world text. Each opens its passage, marked.
 // Unlike a link to one paragraph, this page does not send a person on: the page is the point.
@@ -11,14 +13,12 @@ export async function PairPage({ parts }: { parts: readonly string[] }) {
   const pair = await pairOf(parts);
   if (!pair) notFound();
   if ("go" in pair) redirect(pair.go);
-  const { a, b } = pair;
+  const side = ({ eyebrow, kind, units, source, shortRef, base, hash }: PairSide, card: string): ViewSide => ({ eyebrow, card, kind, units, source, shortRef, base, hash });
+  // The card and the picture name a world text by its short name, so its eyebrow stays on one line.
+  const view: ViewPair = { work: pair.work, refPart: pair.refPart, passagePart: pair.passagePart, a: side(pair.a, pair.a.eyebrow), b: side(pair.b, SHORT_NAMES[pair.work] ?? pair.b.eyebrow) };
   return (
     <main className="pair-page">
-      <div className="pair-cols">
-        <PairQuote href={a.target} eyebrow={a.eyebrow} kind={null} words={a.words} source={a.source} go="Read in the paper" />
-        <div className="pair-and">and</div>
-        <PairQuote href={b.target} eyebrow={b.eyebrow} kind={b.kind} words={b.words} source={b.source} go="Read in World texts" />
-      </div>
+      <PairView pair={view} start={{ a: [...pair.a.chosen], b: [...pair.b.chosen] }} />
     </main>
   );
 }

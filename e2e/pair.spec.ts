@@ -67,3 +67,43 @@ test("the sides are one column on a phone and two columns from 768 px", async ({
     }
   }
 });
+
+test("Share opens the sheet, and a press changes the card, the page, and the address", async ({ page }) => {
+  await page.goto(PAIR);
+  await page.getByRole("button", { name: "Share" }).click();
+  const sheet = page.getByRole("dialog", { name: "Share these two passages" });
+  await expect(sheet.getByText("Whole passage", { exact: true })).toHaveCount(2);
+  await sheet.getByRole("button", { name: /^Those who are in earnest do not die/ }).click();
+  await expect(page.getByTestId("share-url")).toHaveText("localhost:3100/s/1.0.3/dhammapada/21/2");
+  await expect(sheet.locator(".pair-og-side q").nth(1)).toHaveText("“Those who are in earnest do not die, those who are thoughtless are as if dead already.”");
+  await expect(page.locator(".pair-side blockquote").nth(1)).toHaveText("“Those who are in earnest do not die, those who are thoughtless are as if dead already.”");
+  await expect.poll(() => new URL(page.url()).pathname).toBe("/s/1.0.3/dhammapada/21/2");
+  await expect(sheet.getByText("1 of 2")).toBeVisible();
+});
+
+test("Copy link puts the pair address in the clipboard", async ({ page, context }, info) => {
+  test.skip(info.project.name !== "desktop", "a phone offers the share sheet of the device");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/s/1.0.3/dhammapada/21/1");
+  await page.getByRole("button", { name: "Share" }).click();
+  await page.getByRole("button", { name: "Copy link" }).click();
+  await expect(page.getByText("Link copied")).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("http://localhost:3100/s/1.0.3/dhammapada/21/1");
+});
+
+test("a link with a world text code opens the passage with the soft mark on those units", async ({ page }) => {
+  await page.goto("/s/1.0.3/dhammapada/21/2");
+  await page.locator(".pair-side").nth(1).locator(".pair-quote").click();
+  await page.waitForURL("/texts/dhammapada/2?s=2#Dhp_21");
+  await expect.poll(() => page.evaluate(() => CSS.highlights.has("shared"))).toBe(true);
+  expect(await page.evaluate(() => [...CSS.highlights.get("shared")!].map(String))).toEqual(["Those who are in earnest do not die, those who are thoughtless are as if dead already."]);
+  await expect(page.locator("#Dhp_21")).not.toHaveAttribute("data-picked", "");
+});
+
+test("a range marks its units across its passages", async ({ page }) => {
+  // Dhp 21-23 joined: sentence 3 is all of Dhp 22.
+  await page.goto("/texts/dhammapada/at/Dhp%2021-23?s=3");
+  await page.waitForURL("/texts/dhammapada/2?s=3&n=3#Dhp_21");
+  await expect.poll(() => page.evaluate(() => CSS.highlights.has("shared"))).toBe(true);
+  expect(await page.evaluate(() => [...CSS.highlights.get("shared")!].map(String))).toEqual([expect.stringMatching(/^Those who are advanced in earnestness.*\(the elect\)\.$/)]);
+});
