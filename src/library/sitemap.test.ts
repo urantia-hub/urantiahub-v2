@@ -13,7 +13,7 @@ describe("the Library in the sitemap", () => {
   });
 
   it("lists World texts, the page of each work, and the first page of each work of more than one page", async () => {
-    expect(await libraryPaths(true, async () => ({ works, firstKeys }))).toEqual(["/texts", "/texts/dhammapada", "/texts/dhammapada/1", "/texts/rig-veda", "/texts/rig-veda/1-1", "/texts/japji"]);
+    expect(await libraryPaths(true, async () => ({ works, firstKeys }))).toEqual(["/texts", "/texts/how-it-works", "/texts/dhammapada", "/texts/dhammapada/1", "/texts/rig-veda", "/texts/rig-veda/1-1", "/texts/japji"]);
   });
 
   it("lists nothing of the Library when its list does not load, so the sitemap stands", async () => {

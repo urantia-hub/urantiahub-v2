@@ -507,3 +507,103 @@ html[data-text-place] .work-way .work-start {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* World texts links to the page on how the texts are chosen and compared. */
+.library .how-link {
+  display: table;
+  margin: -6px auto 18px;
+  color: var(--accent);
+  font: 400 14px/1.4 var(--font-ui);
+  text-decoration: none;
+}
+.library .how-link:hover {
+  text-decoration: underline;
+}
+
+/* The page on how World texts work (mock `texts-how-it-works.html`). */
+.prose.how h2 {
+  font-size: 1.35em;
+  font-style: normal;
+}
+.how .lead {
+  color: var(--ref);
+  font-size: 1.1em;
+}
+.how-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0 0 30px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--rule);
+  font: 400 13.5px/1.4 var(--font-ui);
+}
+.prose .how-jump a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.how-example {
+  margin: 6px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--raised);
+}
+.how-example > small {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--ref);
+  font: 400 12.5px/1.3 var(--font-ui);
+}
+.how-example p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+/* The scale of scores, in the ink of the page: green belongs to progress. */
+.how-scale {
+  margin: 10px 0 22px;
+  color: var(--ref);
+  font: 400 12.5px/1.3 var(--font-ui);
+}
+.how-scale .track {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--rule) 0 var(--floor), color-mix(in srgb, var(--ref) 45%, var(--rule)) var(--floor) var(--sure), var(--ref) var(--sure) 100%);
+}
+.how-scale .ticks {
+  position: relative;
+  height: 34px;
+  margin-top: 4px;
+}
+.how-scale .ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  text-align: center;
+}
+.how-scale .ticks b {
+  display: block;
+  color: var(--ink);
+  font-weight: 600;
+}
+.how-scale .band {
+  display: grid;
+  grid-template-columns: var(--floor) calc(var(--sure) - var(--floor)) 1fr;
+}
+.how-scale .band div:last-child {
+  padding-left: 4px;
+}
+.prose .how-sources tbody th {
+  width: 48%;
+  font: 400 15px/1.4 var(--font-text);
+  white-space: normal;
+}
+.prose .how-sources .by {
+  color: var(--ref);
+}
+.how-suggest {
+  margin-top: 40px;
+  padding-top: 6px;
+  border-top: 1px solid var(--rule);
+}

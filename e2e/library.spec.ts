@@ -175,3 +175,25 @@ test("the page of a work offers to continue at the page that the reader read las
   await page.getByRole("link", { name: "or start at the beginning" }).click();
   await page.waitForURL("/texts/dhammapada/1");
 });
+
+test("World texts links to the page that says how the texts are chosen and compared", async ({ page }) => {
+  await page.goto("/texts");
+  await page.getByRole("link", { name: "How these texts are chosen and compared" }).click();
+  await page.waitForURL("/texts/how-it-works");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("How World texts work");
+  await expect(page.locator(".hdr-back")).toHaveText("World texts");
+  // The example is a real parallel from the API, with its score.
+  await expect(page.locator(".how-example .parallel-score")).toHaveText(/^\d{2}%$/);
+  await expect(page.locator(".how-example")).toContainText("A parallel of 131:3.2");
+  // The floors come from the code.
+  await expect(page.getByText("A passage of another work below 40 does not show.", { exact: false })).toBeVisible();
+  await expect(page.getByText(/The Book of Mormon and the Rig Veda start at 45\./)).toBeVisible();
+  // Each work is a row, with its translation and a link to its source.
+  const rows = page.locator(".how-sources tbody tr");
+  await expect(rows).toHaveCount(22);
+  await expect(rows.first()).toContainText("World English Bible");
+  await expect(rows.first().getByRole("link", { name: "eBible.org" })).toHaveAttribute("href", /^https:\/\/ebible\.org\//);
+  await expect(rows.filter({ hasText: "The Dhammapada" }).getByRole("link", { name: "Project Gutenberg" })).toHaveAttribute("href", /^https:\/\/www\.gutenberg\.org\//);
+  await expect(page.locator(".how-suggest").getByRole("link", { name: "hi@urantiahub.com" })).toHaveAttribute("href", "mailto:hi@urantiahub.com");
+  await expect(page.getByRole("link", { name: "Matthew Block" })).toHaveAttribute("href", "https://urantiabooksources.com/");
+});

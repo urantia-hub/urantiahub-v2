@@ -312,6 +312,7 @@ for (const [path, title] of [
   ["/texts", "World texts | UrantiaHub"],
   ["/texts/dhammapada/2", "On Earnestness · The Dhammapada | UrantiaHub"],
   ["/texts/bible/john-3", "John 3 · The Bible (World English Bible) | UrantiaHub"],
+  ["/texts/how-it-works", "How World texts work | UrantiaHub"],
 ] as const) {
   test(`a shared link to ${path} has a title, a description, and an image that loads`, async ({ page, request }) => {
     await page.goto(path);

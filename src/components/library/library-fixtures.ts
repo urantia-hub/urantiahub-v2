@@ -21,6 +21,7 @@ export const DHAMMAPADA: LibraryWork = {
   unitLabel: "verse",
   units: 414,
   urantiaSection: "131:3",
+  sourceUrl: "https://www.gutenberg.org/ebooks/2017",
 };
 
 export function dhammapadaPages(): WorkPage[] {

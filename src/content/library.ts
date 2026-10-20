@@ -25,6 +25,8 @@ export type LibraryWork = {
   units: number | null;
   /** The section of Paper 131 on the tradition of the work ("131:3"), when there is one. */
   urantiaSection: string | null;
+  /** The page of the copy that the text comes from. */
+  sourceUrl: string | null;
 };
 // A page of the Bible also has the reference that reads it, its part of the Bible, and its book code.
 export type WorkPage = {
@@ -78,6 +80,7 @@ const CorporaSchema = z.object({
       refLevels: z.union([z.literal(1), z.literal(2), z.literal(3)]),
       divisionLabel: z.string(),
       unitLabel: z.string(),
+      sourceUrl: z.string().nullish(),
     }),
   ),
 });
@@ -128,6 +131,9 @@ const byline = (translator: string, year: number | null) => {
   return year === null ? name : `${name}, ${year}`;
 };
 
+// The API lists no source for the Bible: it is the World English Bible of eBible.org.
+const BIBLE_SOURCE = "https://ebible.org/find/details.php?id=eng-web";
+
 /** The works of the Library, in the order of `GET /works`: the Bible first. */
 export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
   const [works, corpora] = await Promise.all([
@@ -155,6 +161,7 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
           unitLabel: "verse",
           units: w.units ?? null,
           urantiaSection: w.urantiaSection ?? null,
+          sourceUrl: BIBLE_SOURCE,
         },
       ];
     }
@@ -177,6 +184,7 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
         unitLabel: c.unitLabel,
         units: w.units ?? null,
         urantiaSection: w.urantiaSection ?? null,
+        sourceUrl: c.sourceUrl ?? null,
       },
     ];
   });

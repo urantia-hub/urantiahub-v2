@@ -20,6 +20,9 @@ export function LibraryView({ works }: { works: LibraryWork[] }) {
     <div className="toc library">
       <h1>World texts</h1>
       <p className="lead">{libraryLead(works)}</p>
+      <Link className="how-link" href="/texts/how-it-works">
+        How these texts are chosen and compared
+      </Link>
       <nav className="jump" aria-label="Groups">
         {GROUPS.map((g) => (
           <a key={g.id} href={`#${g.id}`}>
