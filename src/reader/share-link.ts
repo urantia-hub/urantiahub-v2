@@ -1,4 +1,4 @@
-import { chosenText, sentences } from "@/image/compose";
+import { chosenText, sentences, type Unit, units, unitsText } from "@/image/compose";
 
 // A shared link names a paragraph and, if the reader chose some, its sentences: /s/2.5.10/1.3-4.
 // It holds digits, dots, and hyphens only. A chat app ends a link at a colon or a comma, and reads an
@@ -7,7 +7,8 @@ import { chosenText, sentences } from "@/image/compose";
 
 const LAST_PAPER = 196;
 const REF = /^(\d{1,3})[.:](\d{1,2})\.(\d{1,3})$/;
-const CODE = /^\d{1,3}(?:-\d{1,3})?(?:\.\d{1,3}(?:-\d{1,3})?)*$/;
+// A code of whole sentences ("1.3-4"), or of units when the choice holds a clause ("p4-5").
+const CODE = /^p?\d{1,3}(?:-\d{1,3})?(?:\.\d{1,3}(?:-\d{1,3})?)*$/;
 
 /** "2:5.10" as a part of a link: "2.5.10". */
 export function refForLink(ref: string): string {
@@ -46,8 +47,28 @@ export function parsePick(code: string, total: number): ReadonlySet<number> | nu
   return pickCode(chosen, total) === code ? chosen : null;
 }
 
-export function sharePath(ref: string, chosen: ReadonlySet<number>, total: number): string {
-  const code = pickCode(chosen, total);
+/** The chosen units as a part of a link: the sentence code when they are whole sentences, else "p" and the units. */
+export function unitCode(chosen: ReadonlySet<number>, all: readonly Unit[]): string {
+  if (chosen.size === 0 || chosen.size >= all.length) return "";
+  const picked = [...chosen].filter((i) => i >= 0 && i < all.length);
+  const whole = picked.every((i) => all.every((u, j) => u.sentence !== all[i].sentence || chosen.has(j)));
+  if (whole) return pickCode(new Set(picked.map((i) => all[i].sentence)), (all.at(-1)?.sentence ?? -1) + 1);
+  return `p${pickCode(chosen, all.length)}`;
+}
+
+/** The units that a code names. Null for a code that this site does not write for this text. */
+export function parseUnitCode(code: string, all: readonly Unit[]): ReadonlySet<number> | null {
+  if (!code.startsWith("p")) {
+    const chosen = parsePick(code, (all.at(-1)?.sentence ?? -1) + 1);
+    return chosen && new Set(all.flatMap((u, i) => (chosen.has(u.sentence) ? [i] : [])));
+  }
+  const chosen = parsePick(code.slice(1), all.length);
+  // One choice has one link: a choice of whole sentences has its sentence code.
+  return chosen && unitCode(chosen, all) === code ? chosen : null;
+}
+
+export function sharePath(ref: string, chosen: ReadonlySet<number>, all: readonly Unit[]): string {
+  const code = unitCode(chosen, all);
   return `/s/${refForLink(ref)}${code ? `/${code}` : ""}`;
 }
 
@@ -55,6 +76,12 @@ export function sharePath(ref: string, chosen: ReadonlySet<number>, total: numbe
 export function sharedWords(text: string, chosen: ReadonlySet<number>): string {
   const all = sentences(text);
   return chosen.size === 0 || chosen.size >= all.length ? all.join(" ") : chosenText(all, chosen);
+}
+
+/** The words that a link shows: the whole text, or the chosen units with "…" for each cut. */
+export function unitWords(text: string, chosen: ReadonlySet<number>): string {
+  const all = units(text);
+  return chosen.size === 0 || chosen.size >= all.length ? all.map((u) => u.text).join(" ") : unitsText(all, chosen);
 }
 
 /** A text cut at a word, with a mark that more follows. */
@@ -66,9 +93,18 @@ export function cutWords(text: string, max: number): string {
 
 /** The start and the end of each sentence in a text as the page holds it, with any white space. */
 export function sentenceRanges(text: string): [number, number][] {
+  return rangesOf(sentences(text), text);
+}
+
+/** The start and the end of each unit in a text as the page holds it. */
+export function unitRanges(text: string): [number, number][] {
+  return rangesOf(units(text).map((u) => u.text), text);
+}
+
+function rangesOf(parts: readonly string[], text: string): [number, number][] {
   const ranges: [number, number][] = [];
   let from = 0;
-  for (const sentence of sentences(text)) {
+  for (const sentence of parts) {
     const words = sentence.split(" ").map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
     const found = new RegExp(words.join("\\s+")).exec(text.slice(from));
     if (!found) return [];
