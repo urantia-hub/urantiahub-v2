@@ -68,6 +68,10 @@ describe("a pair", () => {
     expect(await pairOf(["63.0.1", "rig-veda", "10.10.3", "p7"], deps())).toEqual({ go: "/s/63.0.1/rig-veda/10.10.3" });
   });
 
+  it("goes to the address without a part of the wrong form where a code goes", async () => {
+    expect(await pairOf(["63.0.1", "rig-veda", "10.10.3", "abc"], deps())).toEqual({ go: "/s/63.0.1/rig-veda/10.10.3" });
+  });
+
   it("goes to the one form of the same pair", async () => {
     expect(await pairOf(["063.0.01", "rig-veda", "10.10.3"], deps())).toEqual({ go: "/s/63.0.1/rig-veda/10.10.3" });
   });

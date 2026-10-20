@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { chosenText, sentences, units } from "@/image/compose";
-import { cutWords, parsePick, parseUnitCode, pickCode, refForLink, refFromLink, sentenceRanges, sharePath, sharedWords, sharedFromAddress, sharedPassageFromAddress, unitCode, unitRanges, unitWords } from "./share-link";
+import { cutWords, isCode, parsePick, parseUnitCode, pickCode, refForLink, refFromLink, sentenceRanges, sharePath, sharedWords, sharedFromAddress, sharedPassageFromAddress, unitCode, unitRanges, unitWords } from "./share-link";
 
 const set = (...n: number[]) => new Set(n);
 
@@ -148,5 +148,16 @@ describe("where each unit is in the text of the page", () => {
   it("covers each unit, with more white space between words", () => {
     const page = SHU.replace("Heaven; that Thâi", "Heaven;\n   that Thâi");
     expect(unitRanges(page).map(([a, b]) => page.slice(a, b).replace(/\s+/g, " "))).toEqual(units(SHU).map((u) => u.text));
+  });
+});
+
+describe("a long code", () => {
+  // A passage of a pair can join up to 50 passages: a choice of every other unit of it is a long code.
+  it("is a code that a link takes, for every other unit of 400", () => {
+    const all = units(Array.from({ length: 400 }, (_, i) => `Sentence number ${i + 1} is here.`).join(" "));
+    const code = unitCode(new Set(all.map((_, i) => i).filter((i) => i % 2 === 0)), all);
+    expect(code.length).toBeGreaterThan(60);
+    expect(isCode(code)).toBe(true);
+    expect(parseUnitCode(code, all)?.size).toBe(200);
   });
 });

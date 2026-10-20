@@ -107,3 +107,10 @@ test("a range marks its units across its passages", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => CSS.highlights.has("shared"))).toBe(true);
   expect(await page.evaluate(() => [...CSS.highlights.get("shared")!].map(String))).toEqual([expect.stringMatching(/^Those who are advanced in earnestness.*\(the elect\)\.$/)]);
 });
+
+test("after a pair link, a later passage address on the page still marks its passage", async ({ page }) => {
+  await page.goto("/texts/dhammapada/2?s=2#Dhp_21");
+  await expect.poll(() => page.evaluate(() => CSS.highlights.has("shared"))).toBe(true);
+  await page.evaluate(() => (window.location.hash = "#Dhp_22"));
+  await expect(page.locator("#Dhp_22")).toHaveAttribute("data-picked", "");
+});

@@ -52,7 +52,13 @@ export function WorkNav({ work, pages, current, title, label = null, place = tru
 
   // A passage named by the address ("In the Library" from a paper) is marked, brought into view, and opened.
   useEffect(() => {
+    let first = true;
     const fromAddress = () => {
+      // A pair link to some units, on the load only: `SharedMark` brings them into view with a soft mark, and the
+      // passage has no mark. A later "#" on this page is a plain passage address.
+      const units = first && sharedPassageFromAddress(window.location.search, window.location.hash) !== null;
+      first = false;
+      if (units) return;
       let id = "";
       try {
         id = decodeURIComponent(window.location.hash.slice(1));
@@ -61,8 +67,6 @@ export function WorkNav({ work, pages, current, title, label = null, place = tru
       }
       const el = id ? document.getElementById(id) : null;
       if (!el?.matches(".paper.work p.para")) return;
-      // A pair link to some units: `SharedMark` brings them into view with a soft mark, and the passage has no mark.
-      if (sharedPassageFromAddress(window.location.search, window.location.hash)) return;
       el.scrollIntoView({ block: "center" });
       setPicked({ id, ref: el.dataset.ref ?? id });
     };

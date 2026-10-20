@@ -10,8 +10,12 @@ const REF = /^(\d{1,3})[.:](\d{1,2})\.(\d{1,3})$/;
 // A code of whole sentences ("1.3-4"), or of units when the choice holds a clause ("p4-5").
 const CODE = /^p?\d{1,3}(?:-\d{1,3})?(?:\.\d{1,3}(?:-\d{1,3})?)*$/;
 
+// A choice of every other unit of the longest passage of a pair (50 passages joined) is a long code. Each
+// code that `unitCode` writes fits; this limit only stops a part of no use.
+const CODE_MOST = 1200;
+
 /** True for the form of a code of chosen sentences or units. */
-export const isCode = (part: string) => part.length <= 60 && CODE.test(part);
+export const isCode = (part: string) => part.length <= CODE_MOST && CODE.test(part);
 
 /** "2:5.10" as a part of a link: "2.5.10". */
 export function refForLink(ref: string): string {
@@ -39,7 +43,7 @@ export function pickCode(chosen: ReadonlySet<number>, total: number): string {
 
 /** The sentences that a code names. Null for a code that this site does not write for this paragraph. */
 export function parsePick(code: string, total: number): ReadonlySet<number> | null {
-  if (code.length > 60 || !CODE.test(code)) return null;
+  if (!isCode(code)) return null;
   const chosen = new Set<number>();
   for (const run of code.split(".")) {
     const [a, b = a] = run.split("-").map(Number);

@@ -1,7 +1,8 @@
 import { isCode } from "@/reader/share-link";
 
 // A pair link: /s/{paragraph}[/{code}]/{work}/{passage}[/{code}]. Each code is optional, so the address has
-// 3 to 5 parts after /s/. A work slug starts with a letter and is never a code.
+// 3 to 5 parts after /s/. A work slug starts with a letter and is never a code. A part of another form in the
+// place of a code counts as no code, so the page goes to the address without it.
 export type PairParts = { ref: string; refCode: string; work: string; passage: string; passageCode: string };
 
 const WORK = /^[a-z][a-z0-9-]*$/;
@@ -10,11 +11,13 @@ const WORK = /^[a-z][a-z0-9-]*$/;
 export function splitPairPath(parts: readonly string[]): PairParts | null {
   if (parts.length < 3 || parts.length > 5) return null;
   const [ref, ...rest] = parts;
-  const refCode = isCode(rest[0]) ? (rest.shift() as string) : "";
-  const [work, passage, passageCode = "", ...more] = rest;
-  if (more.length > 0 || !work || !passage || !WORK.test(work) || isCode(work)) return null;
-  if (passageCode !== "" && !isCode(passageCode)) return null;
-  return { ref, refCode, work, passage, passageCode };
+  // The paragraph has a code when five parts come, or when four come and the second is no work.
+  const codeFirst = rest.length === 4 || (rest.length === 3 && (isCode(rest[0]) || !WORK.test(rest[0])));
+  const first = codeFirst ? (rest.shift() as string) : "";
+  const [work, passage, last = ""] = rest;
+  if (!WORK.test(work) || isCode(work)) return null;
+  const code = (part: string) => (isCode(part) ? part : "");
+  return { ref, refCode: code(first), work, passage, passageCode: code(last) };
 }
 
 export function pairPath(p: PairParts): string {

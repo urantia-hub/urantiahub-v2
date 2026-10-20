@@ -29,6 +29,13 @@ describe("the address of a pair", () => {
     expect(splitPairPath(["63.0.1", "1", "rig-veda", "10.10.3", "1", "x"])).toBeNull();
     expect(splitPairPath(["63.0.1", "Rig-Veda", "10.10.3"])).toBeNull();
     expect(splitPairPath(["63.0.1", "1", "2", "10.10.3"])).toBeNull();
-    expect(splitPairPath(["63.0.1", "rig-veda", "10.10.3", "x"])).toBeNull();
+  });
+});
+
+describe("a part of the wrong form where a code goes", () => {
+  it("is no code, so the page goes to the address without it", () => {
+    expect(splitPairPath(["1.0.3", "dhammapada", "21", "abc"])).toEqual({ ref: "1.0.3", refCode: "", work: "dhammapada", passage: "21", passageCode: "" });
+    expect(splitPairPath(["1.0.3", "1..2", "dhammapada", "21", "x"])).toEqual({ ref: "1.0.3", refCode: "", work: "dhammapada", passage: "21", passageCode: "" });
+    expect(splitPairPath(["1.0.3", "9999", "dhammapada", "21"])).toEqual({ ref: "1.0.3", refCode: "", work: "dhammapada", passage: "21", passageCode: "" });
   });
 });
