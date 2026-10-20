@@ -1,3 +1,3 @@
 import { handleLibraryAt } from "@/library/at";
 
-export const GET = (_request: Request, { params }: { params: Promise<{ work: string; ref: string }> }) => params.then(handleLibraryAt);
+export const GET = (request: Request, { params }: { params: Promise<{ work: string; ref: string }> }) => params.then((p) => handleLibraryAt({ ...p, search: new URL(request.url).search }));

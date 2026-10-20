@@ -9,6 +9,8 @@ export type AnalyticsEvents = {
   paragraph_picked: { paper_id: string };
   // `part`: the link is for some sentences of the paragraph, not for all of it.
   paragraph_shared: { ref: string; method: "sheet" | "copy"; part?: boolean };
+  // A pair link: one paragraph of the Papers and one passage of a world text. `part`: a side has a choice.
+  pair_shared: { work: string; method: "sheet" | "copy"; part: boolean };
   // `place`: from "Continue listening at", the place where the voice stopped on an earlier visit.
   audio_started: { paper_id: string; from: "bar" | "paragraph" | "place" | "streak" };
   streak_asked: { answer: "yes" | "no"; goal: 1 | 2 | 3 };

@@ -74,7 +74,7 @@ export function outsideRef(reference: string, corpus: Pick<RawCorpus, "id" | "re
 }
 
 // "Annie Besant (4th edition)" is "Besant".
-const surname = (translator: string) => translator.replace(/\s*\(.*?\)/g, "").trim().split(/\s+/).pop() ?? translator;
+export const surname = (translator: string) => translator.replace(/\s*\(.*?\)/g, "").trim().split(/\s+/).pop() ?? translator;
 
 // The sites that hold the texts. An address of another site, or of another form, is not a link.
 const SITES = new Set(["ebible.org", "en.wikisource.org", "www.gutenberg.org"]);

@@ -37,6 +37,13 @@ describe("the address of one passage in the Library", () => {
     expect(decodeURIComponent(location.split("#")[1])).toBe("Skáldskaparmál_8.2");
   });
 
+  it("keeps the chosen units of a pair link, with the count of passages of a range", async () => {
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 21-23", search: "?s=p2" })).headers.get("location")).toBe("/texts/dhammapada/2?s=p2&n=3#Dhp_21");
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26", search: "?s=1" })).headers.get("location")).toBe("/texts/dhammapada/2?s=1#Dhp_26-27");
+    // A code of another form is dropped.
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 25", search: "?s=x<y" })).headers.get("location")).toBe("/texts/dhammapada/2#Dhp_25");
+  });
+
   it("goes to the page of the work for a work of one page: its text is there", async () => {
     expect((await handleLibraryAt({ work: "japji", ref: "Japji 5" })).headers.get("location")).toBe("/texts/japji#Japji_5");
     expect((await handleLibraryAt({ work: "japji", ref: "Japji 99" })).headers.get("location")).toBe("/texts/japji");

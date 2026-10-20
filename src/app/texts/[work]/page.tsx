@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WorkExtras, WorkHead, WorkHome } from "@/components/library/WorkHome";
 import { TextMarks } from "@/components/library/TextMarks";
 import { WorkNav } from "@/components/library/WorkNav";
+import { SharedMark } from "@/components/reader/SharedMark";
 import { WorkView } from "@/components/library/WorkView";
 import { getLibrary, getWorkPage, getWorkPages, getWorkPairs } from "@/content";
 import { workContents, workFacts } from "@/library/contents";
@@ -55,6 +56,7 @@ export default async function WorkHomePage({ params }: Props) {
         after={<WorkExtras work={work} pairs={pairs} source={source} />}
       />
       <TextMarks work={work.slug} page={page.key} />
+      <SharedMark work />
       <WorkNav work={nav} pages={[{ key: page.key, ...chapterRow(work, page, pages), count: unitCount(page.count, work.unitLabel) }]} current={page.key} title={work.title} place={false} />
     </>
   );
