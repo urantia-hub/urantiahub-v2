@@ -1,8 +1,8 @@
 import "server-only";
 import { getParagraphText, ParagraphNotFound } from "@/content";
 import { paperById, paperPath } from "@/content/paper-index";
-import { sentences } from "@/image/compose";
-import { parsePick, pickCode, refForLink, refFromLink, sharedWords } from "@/reader/share-link";
+import { units } from "@/image/compose";
+import { parseUnitCode, refForLink, refFromLink, unitCode, unitWords } from "@/reader/share-link";
 
 export type Shared = {
   ref: string;
@@ -29,11 +29,12 @@ export async function sharedPassage(refPart: string, pickPart?: string): Promise
     throw error;
   }
   const whole = `/s/${refForLink(ref)}`;
-  const chosen = pickPart === undefined ? new Set<number>() : parsePick(pickPart, sentences(text).length);
+  const all = units(text);
+  const chosen = pickPart === undefined ? new Set<number>() : parseUnitCode(pickPart, all);
   // A choice that this paragraph does not have: the link is for the whole paragraph.
   if (!chosen) return { go: whole };
-  const code = pickCode(chosen, sentences(text).length);
+  const code = unitCode(chosen, all);
   const path = code ? `${whole}/${code}` : whole;
   if (refForLink(ref) !== refPart) return { go: path };
-  return { ref, paperTitle: paper.title, words: sharedWords(text, chosen), path, target: `${paperPath(paper.id)}${code ? `?s=${code}` : ""}#${ref}` };
+  return { ref, paperTitle: paper.title, words: unitWords(text, chosen), path, target: `${paperPath(paper.id)}${code ? `?s=${code}` : ""}#${ref}` };
 }

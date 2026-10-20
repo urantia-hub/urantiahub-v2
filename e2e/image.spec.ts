@@ -110,3 +110,19 @@ test("the buttons of the maker stay in their place while its content scrolls, an
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => getComputedStyle(document.body, "::after").opacity)).toBe("0");
 });
+
+test("the image maker offers the clauses of a long sentence", async ({ page }) => {
+  // 0:0.4 has a sentence of more than 200 characters: it shows as two clauses.
+  await page.goto("/papers/foreword");
+  await openImage(page, "0:0.4");
+  const m = maker(page, "0:0.4");
+  await expect(m.locator(".image-sentences button")).toHaveCount(3);
+  await expect(m.locator(".image-sentences button").nth(1)).toHaveText(/^This Foreword is not, therefore, a finished statement within itself;\s*$/);
+  // Only the last clause: the image marks the cut before it.
+  for (const [i, on] of [[0, false], [1, false], [2, true]] as const) {
+    const button = m.locator(".image-sentences button").nth(i);
+    if ((await button.getAttribute("aria-pressed")) !== String(on)) await button.click();
+    await expect(button).toHaveAttribute("aria-pressed", String(on));
+  }
+  await expect(m.getByRole("img")).toHaveAccessibleName(/^Image with the text: …it is only a definitive guide/);
+});

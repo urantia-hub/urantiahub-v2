@@ -67,6 +67,15 @@ describe("the share sheet", () => {
     expect(onImage).toHaveBeenCalledWith(new Set([1]));
   });
 
+  it("shows a long sentence as its clauses, and marks a cut inside it", async () => {
+    // Recorded API text (works.read, Shu King, Legge 1879).
+    open("The duke said, 'Prince Shih, I have heard that aforetime, when Thang the Successful had received the appointment (to the throne), he had with him Î Yin, making (his virtue) like that of great Heaven; that Thâi Kiâ had (the same Î Yin), the Pâo-hăng; that Thâi-wû had Î Kih and Khăn Hû, through whom (his virtue) was made to affect God, and Wû Hsien who regulated the royal House; that Zû-yî had Wû Hsien's son; and that Wû-ting had Kan Phan. Heaven thus determinately maintained its favouring appointment, and Shang was replenished with men.");
+    await userEvent.click(screen.getByRole("button", { name: "that Thâi Kiâ had (the same Î Yin), the Pâo-hăng;" }));
+    expect(url()).toBe("localhost:3000/s/2.5.10/p2");
+    expect(screen.getByText("1 of 4 parts")).toBeInTheDocument();
+    expect(screen.getByText("“…that Thâi Kiâ had (the same Î Yin), the Pâo-hăng…”")).toBeInTheDocument();
+  });
+
   it("has no sentences to press for a paragraph of one sentence", () => {
     open("One is here.");
     expect(screen.queryByRole("button", { name: "One is here." })).toBeNull();

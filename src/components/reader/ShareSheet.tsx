@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import { track } from "@/analytics";
 import { BOOKMARK_PATH } from "@/brand/BookmarkMark";
 import { Icon } from "@/components/icons";
-import { sentences } from "@/image/compose";
+import { units } from "@/image/compose";
 import { hasShareSheet, shareParagraph } from "@/reader/share";
-import { cutWords, sharePath, sharedWords } from "@/reader/share-link";
+import { cutWords, sharePath, unitWords } from "@/reader/share-link";
 import { Sheet } from "./Sheet";
 import { earnToolMark } from "@/streak/client";
 
@@ -23,15 +23,17 @@ type Props = {
 // A link to one paragraph, or to the sentences of it that the reader chose. The card below the sentences
 // is what a chat app shows for the link, and it changes with the choice.
 export default function ShareSheet({ reference, paperTitle, text, onClose, onCopied, onImage }: Props) {
-  const all = useMemo(() => sentences(text), [text]);
+  const all = useMemo(() => units(text), [text]);
+  // A text with a clause names its parts; a text of whole sentences names sentences, as before.
+  const word = all.some((u) => !u.first || !u.last) ? "parts" : "sentences";
   const [chosen, setChosen] = useState<ReadonlySet<number>>(new Set());
   const [note, setNote] = useState<string | null>(null);
   const [withSheet] = useState(hasShareSheet);
 
   const whole = chosen.size === 0 || chosen.size >= all.length;
-  const words = sharedWords(text, chosen);
+  const words = unitWords(text, chosen);
   const shown = cutWords(words, 300);
-  const path = sharePath(reference, chosen, all.length);
+  const path = sharePath(reference, chosen, all);
   const title = `${reference} · ${paperTitle}`;
   const host = window.location.host.replace(/^www\./, "");
 
@@ -84,15 +86,15 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
           <div>
             <div className="share-pickwrap">
               <p className="share-pick" data-all={chosen.size === 0 ? "" : undefined}>
-                {all.map((sentence, i) => (
+                {all.map((unit, i) => (
                   <button type="button" key={i} aria-pressed={chosen.has(i)} onClick={() => toggle(i)}>
-                    {sentence}{" "}
+                    {unit.text}{" "}
                   </button>
                 ))}
               </p>
             </div>
             <div className="share-count">
-              <span role="status">{whole ? "The whole paragraph" : `${chosen.size} of ${all.length} sentences`}</span>
+              <span role="status">{whole ? "The whole paragraph" : `${chosen.size} of ${all.length} ${word}`}</span>
               {chosen.size > 0 && (
                 <button type="button" onClick={() => setChosen(new Set())}>
                   Whole paragraph
