@@ -37,7 +37,7 @@ describe("the chosen sentences in a link", () => {
     expect(parsePick("1.3-4", 5)).toEqual(set(0, 2, 3));
   });
   it("refuses a sentence that the paragraph does not have, and each second form of one choice", () => {
-    for (const bad of ["6", "0", "3.1", "1-2.3", "1.2", "4-3", "1-5", "1,3", "", "1.", "x", "1.3-4.", "01"]) expect(parsePick(bad, 5)).toBeNull();
+    for (const bad of ["6", "0", "3.1", "1-2.3", "1.2", "4-3", "1-5", "1,3", "", "1.", "x", "1.3-4.", "01", "p3", "p1-2"]) expect(parsePick(bad, 5)).toBeNull();
   });
   it("makes the path", () => {
     const five = units("One. Two. Three. Four. Five.");

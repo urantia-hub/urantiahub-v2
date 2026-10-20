@@ -25,7 +25,8 @@ type Props = {
 export default function ShareSheet({ reference, paperTitle, text, onClose, onCopied, onImage }: Props) {
   const all = useMemo(() => units(text), [text]);
   // A text with a clause names its parts; a text of whole sentences names sentences, as before.
-  const word = all.some((u) => !u.first || !u.last) ? "parts" : "sentences";
+  const clauses = all.some((u) => !u.first || !u.last);
+  const word = clauses ? "parts" : "sentences";
   const [chosen, setChosen] = useState<ReadonlySet<number>>(new Set());
   const [note, setNote] = useState<string | null>(null);
   const [withSheet] = useState(hasShareSheet);
@@ -80,7 +81,7 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
   return (
     <Sheet label={`Share ${reference}`} onClose={onClose} className="share" close foot={foot}>
       <h2>Share {reference}</h2>
-      <p className="share-sub">{all.length > 1 ? "Press each sentence that you want. With none chosen, the link is for the whole paragraph." : "The link opens this paragraph in its paper."}</p>
+      <p className="share-sub">{all.length > 1 ? `Press each ${clauses ? "part" : "sentence"} that you want. With none chosen, the link is for the whole paragraph.` : "The link opens this paragraph in its paper."}</p>
       <div className="share-cols">
         {all.length > 1 && (
           <div>

@@ -117,6 +117,7 @@ test("the image maker offers the clauses of a long sentence", async ({ page }) =
   await openImage(page, "0:0.4");
   const m = maker(page, "0:0.4");
   await expect(m.locator(".image-sentences button")).toHaveCount(3);
+  await expect(m.getByText("Tap a part to put it on the image, or to take it off.")).toBeVisible();
   await expect(m.locator(".image-sentences button").nth(1)).toHaveText(/^This Foreword is not, therefore, a finished statement within itself;\s*$/);
   // Only the last clause: the image marks the cut before it.
   for (const [i, on] of [[0, false], [1, false], [2, true]] as const) {

@@ -73,6 +73,7 @@ describe("the share sheet", () => {
     await userEvent.click(screen.getByRole("button", { name: "that Thâi Kiâ had (the same Î Yin), the Pâo-hăng;" }));
     expect(url()).toBe("localhost:3000/s/2.5.10/p2");
     expect(screen.getByText("1 of 4 parts")).toBeInTheDocument();
+    expect(screen.getByText(/^Press each part that you want\./)).toBeInTheDocument();
     expect(screen.getByText("“…that Thâi Kiâ had (the same Î Yin), the Pâo-hăng…”")).toBeInTheDocument();
   });
 

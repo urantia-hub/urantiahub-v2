@@ -22,6 +22,8 @@ function siteFonts(): Fonts {
 // The preview is the image itself, so what the reader sees is what the reader shares.
 export default function ImageSheet({ reference, paperId, text, start, onClose }: Props) {
   const all = useMemo(() => units(text), [text]);
+  // A text with a clause names its parts, as the share sheet does.
+  const one = all.some((u) => !u.first || !u.last) ? "part" : "sentence";
   const canvas = useRef<HTMLCanvasElement>(null);
   const [fonts, setFonts] = useState<Fonts | null>(null);
   const [look, setLook] = useState<(typeof LOOKS)[number]>(LOOKS[0]);
@@ -131,10 +133,10 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
       <div className="image-preview">
         <canvas ref={canvas} role="img" aria-label={words ? `Image with the text: ${words}` : "Image with no text"} />
       </div>
-      {fonts !== null && words === "" && <p className="image-note">Choose a sentence.</p>}
+      {fonts !== null && words === "" && <p className="image-note">Choose a {one}.</p>}
       {fonts !== null && words !== "" && !ok && (
         <p className="image-note" role="status">
-          This is too much text for one image. Take a sentence off.
+          This is too much text for one image. Take a {one} off.
         </p>
       )}
 
@@ -148,7 +150,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
 
       {all.length > 1 && (
         <>
-          <p className="image-help">Tap a sentence to put it on the image, or to take it off.</p>
+          <p className="image-help">Tap a {one} to put it on the image, or to take it off.</p>
           <p className="image-sentences">
             {all.map((unit, i) => (
               <button type="button" key={i} aria-pressed={chosen.has(i)} onClick={() => toggle(i)}>
