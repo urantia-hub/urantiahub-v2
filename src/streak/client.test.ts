@@ -125,6 +125,20 @@ describe("the streak in the browser", () => {
   });
 });
 
+describe("a card that does not load", () => {
+  it("says that it failed, and a later load clears it", async () => {
+    world.card = onCard;
+    const client = await load();
+    const real = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 500 })));
+    await client.loadStreak();
+    expect(client.streakView()).toMatchObject({ card: null, failed: true });
+    vi.stubGlobal("fetch", real);
+    await client.loadStreak();
+    expect(client.streakView()).toMatchObject({ card: { on: true }, failed: false });
+  });
+});
+
 describe("the marks in the browser", () => {
   it("queues the new marks of an answer, the lower tier first", async () => {
     world.card = { ...onCard, fresh: ["papers-1", "first-section"] };

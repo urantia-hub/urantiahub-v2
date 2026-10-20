@@ -778,3 +778,56 @@
     text-align: center;
   }
 }
+
+/* The shell of /you: grey bars in the place of a reader's data, in the line of the text they stand for. */
+.bone {
+  display: inline-block;
+  max-width: 100%;
+  height: 0.75em;
+  vertical-align: -0.05em;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--rule) 30%, var(--bg) 50%, var(--rule) 70%) 0 0 / 300% 100%;
+  animation: bone-wait 1.6s linear infinite;
+}
+.bone-block {
+  display: block;
+  flex: none;
+  border-radius: 8px;
+}
+.marks-got .bone-block {
+  margin: 0 auto 4px;
+}
+.streak-next .bone-block {
+  border-radius: 999px;
+}
+.you-saved .bone + .bone {
+  margin-top: 0.55em;
+}
+.bone-face {
+  background: var(--rule);
+}
+.you-shell .streak-week li {
+  pointer-events: none;
+}
+@keyframes bone-wait {
+  to {
+    background-position: -300% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bone {
+    animation: none;
+  }
+}
+/* Before the page knows the reader, the sign-in mark picks the invitation or the shell. */
+html[data-you-in] .you-first .you-guest,
+html:not([data-you-in]) .you-first .you-shell-page {
+  display: none;
+}
+/* The toggle of the marks card is a button with an icon; its stand-in keeps the same height. */
+.you-shell .marks-all-toggle {
+  height: 27px;
+}
+.you-shell .streak-stop {
+  height: 21px;
+}

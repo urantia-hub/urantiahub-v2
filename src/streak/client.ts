@@ -12,12 +12,13 @@ import { readingDay, type Goal } from "./rules";
 export const streaksOn = (): boolean => process.env.NEXT_PUBLIC_STREAKS === "on";
 
 type Row = { day: string; paperId: string; sectionId: string; how: "read" | "heard" };
-// `moments`: the ids of new marks that wait to play, in the order to play them.
-export type StreakView = { card: StreakCard | null; asking: boolean; moments: string[] };
+// `moments`: the ids of new marks that wait to play, in the order to play them. `failed`: the card did
+// not load, so a page shows no shell for it.
+export type StreakView = { card: StreakCard | null; asking: boolean; moments: string[]; failed: boolean };
 
 const PENDING_KEY = "hub:streak-first";
 const WAITING_MAX = 50;
-const NONE: StreakView = { card: null, asking: false, moments: [] };
+const NONE: StreakView = { card: null, asking: false, moments: [], failed: false };
 
 let view: StreakView = NONE;
 // The reader that the card, the queue, and the waiting first section belong to.
@@ -87,11 +88,12 @@ export function loadStreak(): Promise<void> {
     try {
       const card = (await ask("GET", "/api/me/streak")) as StreakCard | null;
       if (!card) return;
-      show({ ...view, card, moments: queueMoments(card.on ? card.fresh : []) });
+      show({ ...view, card, failed: false, moments: queueMoments(card.on ? card.fresh : []) });
       restorePending();
       if (card.on && card.zone !== browserZone()) void ask("PUT", "/api/me/streak", { zone: browserZone() }).catch(() => {});
     } catch {
       loading = null;
+      show({ ...view, failed: true });
     }
   })();
   return loading;

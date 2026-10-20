@@ -6,6 +6,7 @@ import { accountState, serverAccountState, subscribeToAccount } from "@/account/
 import { summarize, type Summary } from "@/account/progress-summary";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
+import { ProgressShell } from "@/components/you/YouShell";
 import { paperPath, referenceHref } from "@/content/paper-index";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
 
@@ -40,7 +41,7 @@ export function ProgressView() {
   if (account.status !== "in") return null;
   return (
     <div className="progress-page">
-      {data.status === "loading" && <p className="progress-wait" role="status" aria-label="Loading your progress" />}
+      {data.status === "loading" && <ProgressShell />}
       {data.status === "failed" && (
         <p className="saved-empty" role="alert">
           Your progress did not load.{" "}
