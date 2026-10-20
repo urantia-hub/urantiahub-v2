@@ -10,6 +10,9 @@ const REF = /^(\d{1,3})[.:](\d{1,2})\.(\d{1,3})$/;
 // A code of whole sentences ("1.3-4"), or of units when the choice holds a clause ("p4-5").
 const CODE = /^p?\d{1,3}(?:-\d{1,3})?(?:\.\d{1,3}(?:-\d{1,3})?)*$/;
 
+/** True for the form of a code of chosen sentences or units. */
+export const isCode = (part: string) => part.length <= 60 && CODE.test(part);
+
 /** "2:5.10" as a part of a link: "2.5.10". */
 export function refForLink(ref: string): string {
   return ref.replace(":", ".");
