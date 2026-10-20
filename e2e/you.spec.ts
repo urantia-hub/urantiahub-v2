@@ -56,14 +56,17 @@ test.describe("the shell of /you", () => {
     // The parts of the book are known before the data.
     await expect(page.getByText("Part IV").first()).toBeVisible();
     const lead = () => page.locator(".progress-lead").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
-    const leadBefore = await lead();
+    // The title of the next section can wrap to a second line: that height depends on the data.
+    const next = () => page.locator(".streak-next").first().evaluate((el) => el.getBoundingClientRect().height);
+    const leadBefore = (await lead()) - (await next());
     const before = isMobile ? null : await top(page, "Saved");
     await data();
     await expect(page.locator(".streak-big")).toBeVisible();
     await expect(page.locator(".you-shell")).toHaveCount(0);
     // The streak card (and on a phone the marks card) above the progress has its room from the start.
-    expect(Math.abs((await lead()) - leadBefore)).toBeLessThan(4);
+    expect(Math.abs((await lead()) - (await next()) - leadBefore)).toBeLessThan(4);
     // On a computer, the marks card above Saved has its room from the start.
+    // The marks card is in the right column there, so the title of the streak card does not move it.
     if (before !== null) expect(Math.abs((await top(page, "Saved")) - before)).toBeLessThan(4);
   });
 

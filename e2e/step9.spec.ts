@@ -69,6 +69,8 @@ test("a signed-in reader finds the progress on the reader's page: the share, the
   await page.getByRole("button", { name: "Account and settings" }).click();
   await settings(page).getByRole("link", { name: /Ana Reader/ }).click();
   await expect(page).toHaveURL(/\/you$/);
+  // The shell uses the classes of the cards, so the rows are read after it went.
+  await expect(page.locator(".you-shell")).toHaveCount(0);
   // What the reader saved, the newest first, with the way to all of it.
   await expect(page.locator(".you-saved")).toContainText("1:0.3");
   await expect(page.locator(".you-saved")).toContainText("Text of 1:0.3.");
