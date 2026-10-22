@@ -35,6 +35,8 @@ function collectForms(entries: readonly GlossaryEntry[]): Form[] {
     const lower = text.toLowerCase();
     if (text === "" || onlyDigits(text) || taken.has(lower)) continue;
     if (entry.type === "concept" && PLAIN_WORDS.has(lower)) continue;
+    // An idea in its everyday sense ("man", "gold") tells a reader nothing that a dictionary does not.
+    if (entry.sense === "ordinary") continue;
     taken.set(lower, { text, lower, entry });
   }
   // Then the other names. An idea has none here: the glossary gives "Sons" for the idea "children".

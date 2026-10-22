@@ -2,7 +2,7 @@
 // The API gives 100 entries for each request. The requests run one at a time: the API fails under a burst.
 import { writeFileSync } from "node:fs";
 
-type Raw = { id: string; name: string; type: string; aliases: string[] | null; description: string | null; seeAlso: string[] | null; citationCount: number };
+type Raw = { id: string; name: string; type: string; aliases: string[] | null; description: string | null; seeAlso: string[] | null; citationCount: number; sense: "special" | "ordinary" | null };
 
 const base = process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev";
 const KINDS = new Set(["being", "place", "order", "race", "religion", "concept"]);
@@ -15,7 +15,7 @@ for (let page = 0; page < pages; page++) {
   pages = body.meta.totalPages;
   for (const e of body.data) {
     if (!KINDS.has(e.type)) throw new Error(`Entry ${e.id} has the unknown type ${e.type}`);
-    entries.push({ id: e.id, name: e.name, type: e.type, aliases: e.aliases ?? [], description: e.description ?? "", seeAlso: e.seeAlso ?? [], citations: e.citationCount });
+    entries.push({ id: e.id, name: e.name, type: e.type, aliases: e.aliases ?? [], description: e.description ?? "", seeAlso: e.seeAlso ?? [], citations: e.citationCount, ...(e.sense ? { sense: e.sense } : {}) });
   }
   if (page === pages - 1 && entries.length !== body.meta.total) throw new Error(`Expected ${body.meta.total} entries, got ${entries.length}`);
   await new Promise((resolve) => setTimeout(resolve, 200));
