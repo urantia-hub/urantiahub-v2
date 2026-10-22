@@ -28,6 +28,14 @@ describe("createMatcher", () => {
     entry("church", "concept"),
   ]);
 
+  it("skips an idea in its everyday sense", () => {
+    const ideas = createMatcher([
+      { ...entry("gold", "concept"), sense: "ordinary" },
+      { ...entry("truth", "concept"), sense: "special" },
+    ]);
+    expect(names(ideas("The gold of truth."))).toEqual(["truth"]);
+  });
+
   it("finds each term in the order of the text", () => {
     expect(names(match("To Paradise go the mortals who know the Universal Father."))).toEqual(["Paradise", "mortals", "Universal Father"]);
   });

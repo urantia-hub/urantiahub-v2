@@ -9,6 +9,8 @@ export type GlossaryEntry = {
   description: string;
   seeAlso: string[];
   citations: number;
+  // For a lowercase idea: "special" is a term of the Papers, "ordinary" is a word in its everyday sense.
+  sense?: "special" | "ordinary";
 };
 
 // The glossary of urantia.dev, written by `bun run sync:glossary`. The text of each entry is theirs.
