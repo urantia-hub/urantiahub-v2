@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ASSISTANTS, CONTEXT_ROOM, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, assistantHref, canPrefill, contextWithin, paperPrompt, paragraphPrompt } from "./assistant";
+import { ASSISTANTS, CONTEXT_ROOM, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, assistantHref, canPrefill, contextWithin, paperPrompt, paragraphPrompt, questionsFor } from "./assistant";
 
 const BASE = {
   question: "Explain this paragraph in plain words.",
@@ -147,5 +147,50 @@ describe("the ready questions", () => {
   // The Hub's own copy makes no claim about the text.
   it("makes no statement: each one is a request or a question", () => {
     for (const q of [...PARAGRAPH_QUESTIONS, ...PAPER_QUESTIONS]) expect(q).toMatch(/[.?]$/);
+  });
+});
+
+describe("the assistant in Spanish", () => {
+  const ES = {
+    ...BASE,
+    question: "Explica este párrafo con palabras sencillas.",
+    paper: { id: "1", title: "El Padre Universal" },
+    section: { id: "1", title: "El nombre del Padre" },
+    before: [{ ref: "1:1.1", text: "Primeras palabras." }],
+    text: "Terceras palabras.",
+    link: "https://www.urantiahub.com/es/s/1.1.3",
+    lang: "es" as const,
+  };
+
+  it("has the five questions of the mock for a paragraph, and five for a paper", () => {
+    expect(questionsFor("paragraph", "es")).toEqual([
+      "Explica este párrafo con palabras sencillas.",
+      "¿Qué significan los términos poco comunes de aquí?",
+      "¿En qué otras partes hablan los Documentos de esto?",
+      "¿Cómo hablan otras tradiciones de esta idea?",
+      "Haz un esquema visual de estas ideas, en la forma que te parezca mejor.",
+    ]);
+    expect(questionsFor("paper", "es")).toHaveLength(5);
+    expect(questionsFor("paragraph", "en")).toBe(PARAGRAPH_QUESTIONS);
+    expect(questionsFor("paper", "en")).toBe(PAPER_QUESTIONS);
+  });
+
+  it("writes the whole question in Spanish, with the Spanish paragraph and the Spanish link", () => {
+    const prompt = paragraphPrompt(ES);
+    expect(prompt.startsWith("Explica este párrafo con palabras sencillas.\n\n")).toBe(true);
+    const places = ['Los Documentos de Urantia, Documento 1, "El Padre Universal", sección 1, "El nombre del Padre"', "1:1.1 Primeras palabras.", "Pregunto por este párrafo:\n1:1.3 Terceras palabras.", "En UrantiaHub: https://www.urantiahub.com/es/s/1.1.3"].map((part) => prompt.indexOf(part));
+    expect(places.every((at) => at > 0)).toBe(true);
+    expect([...places].sort((a, b) => a - b)).toEqual(places);
+    expect(prompt).not.toMatch(/I ask|Before it|On UrantiaHub|For more/);
+  });
+
+  it("points the assistant at the Spanish text of the API", () => {
+    expect(paragraphPrompt(ES)).toContain("https://api.urantia.dev/paragraphs/1:1.3?include=entities,urantiaParallels,bibleParallels,scriptureParallels&lang=es");
+    expect(paperPrompt({ question: "Dame la versión breve de este documento.", paper: ES.paper, link: "https://www.urantiahub.com/es/documentos/x", lang: "es" })).toContain("https://api.urantia.dev/papers/1?lang=es");
+  });
+
+  it("names the opening of a paper and the Foreword in Spanish", () => {
+    expect(paragraphPrompt({ ...ES, section: null, ref: "1:0.1" })).toContain('Documento 1, "El Padre Universal", la apertura del documento.');
+    expect(paperPrompt({ question: "q", paper: { id: "0", title: "Prólogo" }, link: "l", lang: "es" })).toContain('Los Documentos de Urantia, "Prólogo".');
   });
 });

@@ -30,14 +30,14 @@ export type RawParallels = {
   papers: { reference: string; paperId: string; paperTitle: string; text: string; similarity: number }[];
 };
 
-export type ParallelsClient = { paragraphs: { get(ref: string, options: { include: string }): Promise<unknown> } };
+export type ParallelsClient = { paragraphs: { get(ref: string, options: { include: string; lang?: "es" }): Promise<unknown> } };
 
 const INCLUDE = "bibleParallels,urantiaParallels,scriptureParallels";
 
-export async function fetchParallels(client: ParallelsClient, ref: string): Promise<RawParallels> {
+export async function fetchParallels(client: ParallelsClient, ref: string, lang: "en" | "es" = "en"): Promise<RawParallels> {
   let raw: unknown;
   try {
-    raw = await client.paragraphs.get(ref, { include: INCLUDE });
+    raw = await client.paragraphs.get(ref, lang === "es" ? { include: INCLUDE, lang: "es" } : { include: INCLUDE });
   } catch (cause) {
     // The package reports a failed request as an Error whose message starts with the status.
     if (cause instanceof Error && /^404\b/.test(cause.message)) throw new ParagraphNotFound(ref);

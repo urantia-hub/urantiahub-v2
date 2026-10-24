@@ -121,3 +121,80 @@ test("a browser in English gets no offer", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father");
   await expect(page.getByRole("link", { name: /Leer en español/ })).toBeHidden();
 });
+
+test.describe("the tools of a Spanish paragraph", () => {
+  const pick = async (page: import("@playwright/test").Page, ref: string) => {
+    // With no hash: a hash marks the paragraph already, and a tap would take the mark off.
+    await page.goto(ES_PAPER_1);
+    await page.locator(`[id="${ref}"] .text`).click({ position: { x: 40, y: 12 } });
+  };
+
+  test("Más lists the six tools of the mock, with Ver en inglés last", async ({ page }) => {
+    await pick(page, "1:0.1");
+    await page.getByRole("button", { name: "Más" }).click();
+    await expect(page.locator(".panel .panel-line")).toHaveText(["Crear una imagen", "Términos de este párrafo", "Paralelos", "Preguntar a un asistente", "Copiar el texto", "Ver en inglés"]);
+  });
+
+  test("Ver en inglés shows the original inside the paragraph, and Ocultar takes it away", async ({ page }) => {
+    await pick(page, "1:0.1");
+    await page.getByRole("button", { name: "Más" }).click();
+    await page.getByRole("button", { name: "Ver en inglés" }).click();
+    const original = page.locator('[id="1:0.1"] .orig');
+    await expect(original).toContainText("Original en inglés");
+    await expect(original).toContainText("THE Universal Father is the God of all creation");
+    await expect(original).toHaveAttribute("lang", "en");
+    await expect(page.locator('[id="1:0.1"] .text')).not.toContainText("THE Universal Father");
+    // A press on the English text does not take the mark off the paragraph.
+    await original.locator(".orig-text").click();
+    await expect(page.locator('[id="1:0.1"]')).toHaveAttribute("data-picked", "");
+    await original.getByRole("button", { name: "Ocultar" }).click();
+    await expect(page.locator(".orig")).toHaveCount(0);
+  });
+
+  test("Paralelos marks the other works as English and opens the Spanish papers", async ({ page }) => {
+    await pick(page, "1:0.3");
+    await page.getByRole("button", { name: "Más" }).click();
+    await page.getByRole("button", { name: "Paralelos" }).click();
+    const sheet = page.getByRole("dialog", { name: "Paralelos de 1:0.3" });
+    await expect(sheet.getByText("Pasajes cercanos en sentido. El más cercano va primero.")).toBeVisible();
+    await expect(sheet.locator(".parallel-list li").first().locator(".parallel-lang")).toHaveText("en inglés");
+    await sheet.getByRole("button", { name: "En los Documentos" }).click();
+    await expect(sheet.locator(".parallel-lang")).toHaveCount(0);
+    await expect(sheet.locator(".parallel-list").first()).toContainText("Y Dios el Padre es la fuente personal");
+    await expect(sheet.getByRole("link", { name: /^Abrir 56:9\.10/ })).toHaveAttribute("href", /^\/es\/documentos\/documento-56-[a-z0-9-]+#56:9\.10$/);
+    await expect(sheet.getByRole("link", { name: "Estudiar estos paralelos" })).toHaveCount(0);
+  });
+
+  test("Preguntar a un asistente asks in Spanish, with the Spanish paragraph and link", async ({ page }) => {
+    await pick(page, "1:0.1");
+    await page.getByRole("button", { name: "Más" }).click();
+    await page.getByRole("button", { name: "Preguntar a un asistente" }).click();
+    const sheet = page.getByRole("dialog", { name: "Preguntar a un asistente" });
+    await expect(sheet.getByRole("button", { name: "Explica este párrafo con palabras sencillas." })).toHaveAttribute("aria-pressed", "true");
+    await sheet.getByRole("button", { name: "Ver lo que recibe el asistente" }).click();
+    const sent = sheet.getByTestId("ask-sent");
+    await expect(sent).toContainText("Pregunto por este párrafo:\n1:0.1 EL Padre Universal es el Dios de toda la creación");
+    await expect(sent).toContainText("/es/s/1.0.1");
+    await expect(sent).toContainText("&lang=es");
+  });
+
+  test("a share link made on a Spanish page is a Spanish link, whatever the browser keeps", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("hub:lang", "en"));
+    await pick(page, "1:0.1");
+    await page.getByRole("button", { name: "Compartir" }).click();
+    await expect(page.getByTestId("share-url")).toHaveText(/\/es\/s\/1\.0\.1$/);
+    await expect(page.getByRole("dialog", { name: "Compartir 1:0.1" }).getByText("Los Documentos de Urantia")).toBeVisible();
+  });
+
+  test("the page of a Spanish link has a Spanish card and opens the Spanish paragraph", async ({ page, request }) => {
+    const html = await (await request.get("/es/s/1.0.1")).text();
+    expect(html).toContain('<html lang="es"');
+    expect(html).toMatch(/<meta property="og:url" content="http:\/\/localhost:3100\/es\/s\/1\.0\.1"/);
+    expect(html).toContain("EL Padre Universal es el Dios de toda la creación");
+    const image = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+    expect(image).toBeTruthy();
+    expect((await request.get(new URL(image as string).pathname)).status()).toBe(200);
+    await page.goto("/es/s/1.0.1");
+    await expect(page).toHaveURL(/\/es\/documentos\/documento-1-el-padre-universal#1:0\.1$/);
+  });
+});

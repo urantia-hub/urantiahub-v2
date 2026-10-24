@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { track } from "@/analytics";
 import { units, unitsText } from "@/image/compose";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { draw, type Fonts, fitsWell, LOOKS, measureWith } from "@/image/draw";
 import { Sheet } from "./Sheet";
 import { earnToolMark } from "@/streak/client";
 
 // `start` is the units that the reader chose in the share sheet: sentences, or clauses of a long one. With
 // none, the image takes as many units from the start as fit.
-type Props = { reference: string; paperId: string; text: string; start?: ReadonlySet<number>; onClose: () => void };
+type Props = { reference: string; paperId: string; text: string; start?: ReadonlySet<number>; onClose: () => void; lang?: Lang };
 
 // The faces of the site, by the names that the browser knows them.
 function siteFonts(): Fonts {
@@ -20,10 +22,11 @@ function siteFonts(): Fonts {
 
 // An image of one paragraph to share: the reader chooses the sentences and a look.
 // The preview is the image itself, so what the reader sees is what the reader shares.
-export default function ImageSheet({ reference, paperId, text, start, onClose }: Props) {
+export default function ImageSheet({ reference, paperId, text, start, onClose, lang = "en" }: Props) {
+  const t = messages(lang);
   const all = useMemo(() => units(text), [text]);
   // A text with a clause names its parts, as the share sheet does.
-  const one = all.some((u) => !u.first || !u.last) ? "part" : "sentence";
+  const clauses = all.some((u) => !u.first || !u.last);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [fonts, setFonts] = useState<Fonts | null>(null);
   const [look, setLook] = useState<(typeof LOOKS)[number]>(LOOKS[0]);
@@ -67,8 +70,8 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
   const words = unitsText(all, chosen);
   useEffect(() => {
     if (!fonts || !canvas.current) return;
-    setOk(draw(canvas.current, fonts, look, reference, words));
-  }, [fonts, look, reference, words]);
+    setOk(draw(canvas.current, fonts, look, reference, words, lang));
+  }, [fonts, look, reference, words, lang]);
 
   const toggle = (i: number) =>
     setChosen((was) => {
@@ -85,7 +88,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
 
   async function save() {
     const made = await file();
-    if (!made) return setNote("The image did not save. Try again.");
+    if (!made) return setNote(t.imageSaveFailed);
     const link = document.createElement("a");
     link.href = URL.createObjectURL(made);
     link.download = made.name;
@@ -93,19 +96,19 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
     window.setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
     track("image_made", { paper_id: paperId, look: look.id, method: "save" });
     void earnToolMark("image");
-    setNote("Image saved");
+    setNote(t.imageSaved);
   }
 
   async function share() {
     const made = await file();
-    if (!made) return setNote("The image did not share. Try again.");
+    if (!made) return setNote(t.imageShareFailed);
     try {
       await navigator.share({ files: [made] });
       track("image_made", { paper_id: paperId, look: look.id, method: "share" });
       void earnToolMark("image");
     } catch (error) {
       // The reader closed the share sheet. That is a choice, not a fault.
-      if ((error as { name?: string } | null)?.name !== "AbortError") setNote("The image did not share. Save it, then share it from your photos.");
+      if ((error as { name?: string } | null)?.name !== "AbortError") setNote(t.imageShareSave);
     }
   }
 
@@ -114,11 +117,11 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
     <>
       {canShare && (
         <button type="button" className="panel-button dark" disabled={!ready} onClick={() => void share()}>
-          Share
+          {t.imageShare}
         </button>
       )}
       <button type="button" className={`panel-button${canShare ? "" : " dark"}`} disabled={!ready} onClick={() => void save()}>
-        Save the image
+        {t.imageSave}
       </button>
       {note && (
         <span className="image-said" role="status">
@@ -128,21 +131,21 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
     </>
   );
   return (
-    <Sheet label={`Image of ${reference}`} onClose={onClose} className="image" foot={foot}>
-      <h2>Image of {reference}</h2>
+    <Sheet label={t.imageTitle(reference)} onClose={onClose} className="image" foot={foot}>
+      <h2>{t.imageTitle(reference)}</h2>
       <div className="image-preview">
-        <canvas ref={canvas} role="img" aria-label={words ? `Image with the text: ${words}` : "Image with no text"} />
+        <canvas ref={canvas} role="img" aria-label={words ? t.imageWith(words) : t.imageEmpty} />
       </div>
-      {fonts !== null && words === "" && <p className="image-note">Choose a {one}.</p>}
+      {fonts !== null && words === "" && <p className="image-note">{t.imageChoose(clauses)}</p>}
       {fonts !== null && words !== "" && !ok && (
         <p className="image-note" role="status">
-          This is too much text for one image. Take a {one} off.
+          {t.imageTooMuch(clauses)}
         </p>
       )}
 
-      <div className="image-looks" role="group" aria-label="Look">
+      <div className="image-looks" role="group" aria-label={t.imageLook}>
         {LOOKS.map((option) => (
-          <button type="button" key={option.id} aria-pressed={look.id === option.id} aria-label={option.name} title={option.name} style={{ background: option.bg, color: option.ink }} onClick={() => setLook(option)}>
+          <button type="button" key={option.id} aria-pressed={look.id === option.id} aria-label={t.imageLookName(option.id)} title={t.imageLookName(option.id)} style={{ background: option.bg, color: option.ink }} onClick={() => setLook(option)}>
             Aa
           </button>
         ))}
@@ -150,7 +153,7 @@ export default function ImageSheet({ reference, paperId, text, start, onClose }:
 
       {all.length > 1 && (
         <>
-          <p className="image-help">Tap a {one} to put it on the image, or to take it off.</p>
+          <p className="image-help">{t.imageHelp(clauses)}</p>
           <p className="image-sentences">
             {all.map((unit, i) => (
               <button type="button" key={i} aria-pressed={chosen.has(i)} onClick={() => toggle(i)}>

@@ -4,6 +4,7 @@ import type { RawCorpus, RawParallels, RawWork } from "@/content/parallels";
 import { BIBLE } from "@/library/bible";
 import { pairPath } from "@/pair/link";
 import { passageForLink } from "@/pair/passage";
+import type { Lang } from "@/i18n/lang";
 import { WORKS } from "@/parallels-works";
 import { refForLink } from "@/reader/share-link";
 
@@ -16,7 +17,8 @@ const LAST_PAPER = 196;
 // `work` is the name of the work, for the filter of the study page.
 // `library` is the work in the Library and the reference there ("Quran 2.255-257"), when the Library has it.
 // `pairPath` is the pair page of this passage and the passage of the sheet, for a near passage of a work in World texts.
-export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null; library?: { slug: string; ref: string } | null; pairPath?: string };
+// `english` marks a passage in English on a Spanish page: the Bible and the other works have no translation.
+export type Parallel = { ref: string; work: string; source: string; text: string; percent: number; href: string | null; library?: { slug: string; ref: string } | null; pairPath?: string; english?: true };
 // `text` is the paragraph itself, for the study page.
 // `weaker` holds the nearest passages of other works below the floor. The reader sees them only on request,
 // when no passage is near.
@@ -103,26 +105,28 @@ const nearestFirst = (a: Parallel, b: Parallel) => b.percent - a.percent;
 
 // `paperId` is the paper of the paragraph. With none, no passage is nearby.
 // `slugs` maps a corpus id to its work in the Library, for the link "Read here". `ref` is the paragraph, for the pair page.
-export function shapeParallels(raw: RawParallels, text = "", paperId?: string, slugs: ReadonlyMap<string, string> = new Map(), ref?: string): ParallelsAnswer {
+// In Spanish the pair page (English only) is not offered.
+export function shapeParallels(raw: RawParallels, text = "", paperId?: string, slugs: ReadonlyMap<string, string> = new Map(), ref?: string, lang: Lang = "en"): ParallelsAnswer {
+  const english = lang === "es" ? ({ english: true } as const) : {};
   // `least` and `below` are the floors of a passage: its work's own one, or OUTSIDE_FLOOR.
   const from = (least: (floor: number) => number, below: (floor: number) => number): Parallel[] =>
     [
-      ...raw.bible.filter((b) => b.similarity >= least(OUTSIDE_FLOOR) && b.similarity < below(OUTSIDE_FLOOR)).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url), library: { slug: BIBLE, ref: b.reference } })),
+      ...raw.bible.filter((b) => b.similarity >= least(OUTSIDE_FLOOR) && b.similarity < below(OUTSIDE_FLOOR)).map((b) => ({ ref: b.reference, work: "Bible", source: "World English Bible", text: b.text, percent: percent(b.similarity), href: outsideHref(b.url), library: { slug: BIBLE, ref: b.reference }, ...english })),
       ...raw.scripture
         .filter((s) => {
           const floor = WORK_FLOORS[s.corpus.id] ?? OUTSIDE_FLOOR;
           return s.similarity >= least(floor) && s.similarity < below(floor);
         })
-        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: workName(s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url), library: slugs.has(s.corpus.id) ? { slug: slugs.get(s.corpus.id) as string, ref: s.reference } : null })),
+        .map((s) => ({ ref: outsideRef(s.reference, s.corpus), work: workName(s.corpus), source: `${surname(s.corpus.translator)}, ${s.corpus.year}`, text: s.text, percent: percent(s.similarity), href: outsideHref(s.url), library: slugs.has(s.corpus.id) ? { slug: slugs.get(s.corpus.id) as string, ref: s.reference } : null, ...english })),
     ].sort(nearestFirst);
   // A near passage of a work in World texts opens the pair page. The rows below the floor keep their links.
   const prefixes = new Map<string, string>([[BIBLE, ""], ...raw.scripture.flatMap((s) => (slugs.has(s.corpus.id) ? [[slugs.get(s.corpus.id) as string, s.corpus.refPrefix] as const] : []))]);
-  const withPair = (p: Parallel): Parallel => (ref && p.library ? { ...p, pairPath: pairPath({ ref: refForLink(ref), refCode: "", work: p.library.slug, passage: passageForLink(p.library.ref, { refPrefix: prefixes.get(p.library.slug) ?? "" }), passageCode: "" }) } : p);
+  const withPair = (p: Parallel): Parallel => (ref && p.library && lang === "en" ? { ...p, pairPath: pairPath({ ref: refForLink(ref), refCode: "", work: p.library.slug, passage: passageForLink(p.library.ref, { refPrefix: prefixes.get(p.library.slug) ?? "" }), passageCode: "" }) } : p);
   const outside = from((floor) => floor, () => Number.POSITIVE_INFINITY).map(withPair);
   const weaker = from(() => WEAK_FLOOR, (floor) => floor).slice(0, WEAK_MOST);
   const papers: Parallel[] = raw.papers
-    .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
-    .map((p) => ({ ref: p.reference, work: "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId)}#${p.reference}` }))
+    .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId, lang) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
+    .map((p) => ({ ref: p.reference, work: lang === "es" ? "Los Documentos de Urantia" : "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId, lang)}#${p.reference}` }))
     .sort(nearestFirst);
   const near = (p: Parallel) => paperId !== undefined && Math.abs(Number(p.ref.split(":")[0]) - Number(paperId)) <= NEARBY_PAPERS;
   return { text, outside, weaker, papers: papers.filter((p) => !near(p)), nearby: papers.filter(near), works: [] };
@@ -146,9 +150,10 @@ const refuse = (status: number, error: string) => Response.json({ error }, { sta
 // The passages that are near in meaning to one paragraph, for the Parallels sheet of the reader.
 export async function handleParallels(
   ref: string,
-  load: (ref: string) => Promise<RawParallels>,
-  loadText?: (paperId: string, ref: string) => Promise<string>,
+  load: (ref: string, lang: Lang) => Promise<RawParallels>,
+  loadText?: (paperId: string, ref: string, lang: Lang) => Promise<string>,
   loadWorks?: () => Promise<readonly RawWork[]>,
+  lang: Lang = "en",
 ): Promise<Response> {
   const parsed = REFERENCE.exec(ref);
   if (!parsed || Number(parsed[1]) > LAST_PAPER) return refuse(400, "This is not a paragraph reference.");
@@ -158,8 +163,8 @@ export async function handleParallels(
   let raw: RawParallels;
   let text = "";
   try {
-    raw = await load(ref);
-    if (loadText) text = await loadText(String(Number(parsed[1])), ref);
+    raw = await load(ref, lang);
+    if (loadText) text = await loadText(String(Number(parsed[1])), ref, lang);
   } catch (error) {
     return error instanceof ParagraphNotFound ? refuse(404, "The paper has no such paragraph.") : refuse(502, "The parallels did not load.");
   }
@@ -168,5 +173,5 @@ export async function handleParallels(
   const corpora = loadWorks ? await loadWorks().catch(() => null) : null;
   const works = corpora ? shapeWorks(corpora) : knownWorks();
   const slugs = new Map((corpora ?? []).flatMap((c) => (c.slug ? [[c.id, c.slug] as const] : [])));
-  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1])), slugs, ref), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
+  return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1])), slugs, ref, lang), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

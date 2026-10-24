@@ -626,3 +626,16 @@
 .parallel-pair::after { content: ""; position: absolute; inset: 0; border-radius: 10px; }
 .parallel-pair:hover b, .parallel-pair:focus-visible b { color: var(--accent); }
 .parallel-paired .parallel-score, .parallel-paired .parallel-acts { position: relative; z-index: 1; }
+
+/* A passage in English on a Spanish page: the Bible and the other works have no translation. */
+.parallel-lang {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--mark);
+  color: var(--ref);
+  font: 500 10.5px/1.4 var(--font-ui);
+  letter-spacing: 0.02em;
+  vertical-align: 1px;
+}

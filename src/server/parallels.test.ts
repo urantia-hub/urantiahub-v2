@@ -265,3 +265,39 @@ describe("the pair of a paragraph and a passage", () => {
     expect(outside.find((p) => p.ref.startsWith("Quran") || p.ref.startsWith("Koran"))?.pairPath).toBeUndefined();
   });
 });
+
+describe("the parallels in Spanish", () => {
+  const RAW_ES: RawParallels = {
+    ...RAW,
+    papers: [{ reference: "56:9.10", paperId: "56", paperTitle: "La unidad universal", text: "Y Dios Padre es la fuente personal.", similarity: 0.73 }],
+  };
+  const slugs = new Map([["bhagavad-gita-besant-1922", "bhagavad-gita"]]);
+
+  it("links a passage of the Papers to the Spanish paper, with its Spanish words", () => {
+    const answer = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3", "es");
+    expect(answer.papers).toEqual([expect.objectContaining({ ref: "56:9.10", work: "Los Documentos de Urantia", source: "La unidad universal", text: "Y Dios Padre es la fuente personal." })]);
+    expect(answer.papers[0].href).toMatch(/^\/es\/documentos\/documento-56-[a-z0-9-]+#56:9\.10$/);
+  });
+
+  it("marks each passage of the Bible and of another work as English, and gives it no pair page", () => {
+    const answer = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3", "es");
+    expect(answer.outside.length).toBeGreaterThan(0);
+    for (const row of [...answer.outside, ...answer.weaker]) {
+      expect(row.english).toBe(true);
+      expect(row.pairPath).toBeUndefined();
+    }
+    // English keeps its rows as they were.
+    const en = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3");
+    expect(en.outside.every((row) => row.english === undefined)).toBe(true);
+    expect(en.outside.find((row) => row.library)?.pairPath).toBeDefined();
+  });
+
+  it("reads the Spanish parallels and the Spanish text", async () => {
+    const load = vi.fn(async () => RAW_ES);
+    const loadText = vi.fn(async () => "EL Padre Universal.");
+    const res = await handleParallels("1:0.3", load, loadText, undefined, "es");
+    expect(load).toHaveBeenCalledWith("1:0.3", "es");
+    expect(loadText).toHaveBeenCalledWith("1", "1:0.3", "es");
+    expect(((await res.json()) as ParallelsAnswer).text).toBe("EL Padre Universal.");
+  });
+});

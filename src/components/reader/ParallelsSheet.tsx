@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { Score } from "@/components/parallels/Score";
 import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
@@ -16,7 +18,8 @@ import { earnToolMark } from "@/streak/client";
 // with another "#" sends no event that they hear.
 // With `work`, the reference is a passage of that work in the Library: its parallels come from another
 // address, and "In the Papers" comes first.
-type Props = { reference: string; paperId: string; work?: string; onClose: () => void; onGo?: (reference: string) => void };
+// `lang` is the language of the paragraph. A passage of a work in World texts is in English.
+type Props = { reference: string; paperId: string; work?: string; onClose: () => void; onGo?: (reference: string) => void; lang?: Lang };
 type Half = "outside" | "papers";
 // The answer for a passage also names its chunk (`label`) and has a list below the floor for the Papers.
 type Answer = ParallelsAnswer & { label?: string; weakerPapers?: Parallel[]; source?: string; href?: string | null };
@@ -25,18 +28,17 @@ type State = { for: string; status: "loading" } | { for: string; status: "failed
 const FIRST = 8;
 const LONG = 170;
 const range = (n: number) => (n === 0 ? "0" : n <= 5 ? "1-5" : "6+");
-const HALVES: [Half, string][] = [["outside", "Other works"], ["papers", "In the Papers"]];
-const PASSAGE_HALVES: [Half, string][] = [["papers", "In the Papers"], ["outside", "Other works"]];
 
 // The passages that are near in meaning to one paragraph, in two halves: the other works, and the Papers.
 // It has the place of the terms: a sheet on a phone, a card in the right margin on a wide screen.
-export default function ParallelsSheet({ reference, paperId, work, onClose, onGo }: Props) {
+export default function ParallelsSheet({ reference, paperId, work, onClose, onGo, lang = "en" }: Props) {
+  const t = messages(lang);
   const [state, setState] = useState<State>({ for: reference, status: "loading" });
   const [half, setHalf] = useState<Half>(work ? "papers" : "outside");
-  const halves = work ? PASSAGE_HALVES : HALVES;
+  const halves: [Half, string][] = work ? [["papers", t.parPapers], ["outside", t.parOther]] : [["outside", t.parOther], ["papers", t.parPapers]];
   // Each event of a passage says so; the events of a paragraph stay as they were.
   const from = work ? { source: "passage" } : {};
-  const endpoint = work ? `/api/parallels/texts/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}`;
+  const endpoint = work ? `/api/parallels/texts/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}${lang === "es" ? "?lang=es" : ""}`;
   const [all, setAll] = useState(false);
   // The reader asked for the passages below the floor.
   const [weak, setWeak] = useState(false);
@@ -105,7 +107,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
   const weaker = state.status === "ready" && near.length === 0 ? below(state.answer) : [];
   // A passage with no other work near, even below the floor, has one half: it shows as a plain heading.
   const oneHalf = work !== undefined && state.status === "ready" && state.answer.outside.length === 0 && (state.answer.weaker ?? []).length === 0;
-  const title = `Parallels for ${(state.status === "ready" && state.answer.label) || reference}`;
+  const title = t.parTitle((state.status === "ready" && state.answer.label) || reference);
   const list = weak && near.length === 0 ? weaker : near;
   const shown = all ? list : list.slice(0, FIRST);
   // An answer that a cache kept from before has no `nearby`: then its list of the Papers stands as it was.
@@ -120,7 +122,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
     const opened = () => track("parallel_opened", { kind: half, ...from });
     const more = long && (
       <button type="button" aria-expanded={open} onClick={() => setWhole((was) => new Set(open ? [...was].filter((k) => k !== key) : [...was, key]))}>
-        {open ? "Show less" : "Read more"}
+        {open ? t.parShowLess : t.parReadMore}
       </button>
     );
     // A near passage of a work in World texts opens the page of the two passages. The whole row is its link:
@@ -134,7 +136,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
               <span className="sr-only">, beside this passage</span>
             </Link>
             <small>{p.source}</small>
-            <Score percent={p.percent} />
+            <Score percent={p.percent} lang={lang} />
           </div>
           <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
           {more && <div className="parallel-acts">{more}</div>}
@@ -144,15 +146,20 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
       <li key={key}>
         <div className="parallel-where">
           <b>{p.ref}</b>
-          <small>{p.source}</small>
-          <Score percent={p.percent} />
+          <small>
+            {p.source}
+            {p.english && <span className="parallel-lang">{t.parEnglish}</span>}
+          </small>
+          <Score percent={p.percent} lang={lang} />
         </div>
-        <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
+        <p className={long && !open ? "clamp" : undefined} lang={p.english ? "en" : undefined}>
+          {p.text}
+        </p>
         <div className="parallel-acts">
           {more}
           {LIBRARY_LINKS && half === "outside" && p.library && (
             <Link className="parallel-open" href={`/texts/${p.library.slug}/at/${encodeURIComponent(p.library.ref)}`} prefetch={false} onClick={opened}>
-              Read here
+              {t.parReadHere}
               <span className="sr-only"> {p.ref}</span>
               <Icon name="paperAfter" />
             </Link>
@@ -169,14 +176,17 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
                   onGo?.(p.ref);
                 }}
               >
-                Open
+                {t.parOpen}
                 <span className="sr-only"> {p.ref}</span>
                 <Icon name="paperAfter" />
               </Link>
             ) : (
               <a className="parallel-open" href={p.href} target="_blank" rel="noopener noreferrer" onClick={opened}>
-                Open
-                <span className="sr-only"> {p.ref} (opens in a new tab)</span>
+                {t.parOpen}
+                <span className="sr-only">
+                  {" "}
+                  {p.ref} {t.parNewTab}
+                </span>
                 <Icon name="external" />
               </a>
             ))}
@@ -190,11 +200,11 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
     {/* On a phone the sheet covers the text: the text behind it is darker, and a tap there closes the sheet. */}
     <div className="terms-scrim" data-leaving={leaving ? "" : undefined} onClick={leave} />
     <div className="terms-sheet parallels" role="dialog" aria-label={title} tabIndex={-1} data-leaving={leaving ? "" : undefined} {...scroll}>
-      <button type="button" className="terms-close" aria-label="Close the parallels" onClick={leave}>
+      <button type="button" className="terms-close" aria-label={t.parClose} onClick={leave}>
         <Icon name="close" />
       </button>
       <h2 className="terms-title">{title}</h2>
-      <p className="parallel-lead">Passages that are near in meaning. The nearest is first.</p>
+      <p className="parallel-lead">{t.parLead}</p>
       {work && state.status === "ready" && state.answer.source && (
         <p className="parallel-source">
           <span>{state.answer.source}</span>
@@ -209,9 +219,9 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
       )}
       {/* Two halves of one control, as the theme in the reader settings. */}
       {oneHalf ? (
-        <p className="terms-group">In the Papers</p>
+        <p className="terms-group">{t.parPapers}</p>
       ) : (
-        <div className="segment parallel-halves" role="group" aria-label="Works">
+        <div className="segment parallel-halves" role="group" aria-label={t.parWorks}>
           {halves.map(([value, label]) => (
             <button type="button" key={value} aria-pressed={half === value} onClick={() => choose(value)}>
               {label}
@@ -221,7 +231,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
       )}
 
       {state.status === "loading" && (
-        <div className="waiting" role="status" aria-label="Loading the parallels">
+        <div className="waiting" role="status" aria-label={t.parLoading}>
           <span />
           <span />
           <span />
@@ -229,16 +239,16 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
       )}
       {state.status === "failed" && (
         <p className="terms-empty" role="alert">
-          The parallels did not load.{" "}
+          {t.parFailed}{" "}
           <button type="button" onClick={() => { setState({ for: reference, status: "loading" }); setAttempt((n) => n + 1); }}>
-            Try again
+            {t.tryAgain}
           </button>
         </p>
       )}
-      {split && <p className="terms-group">Elsewhere in the Papers</p>}
+      {split && <p className="terms-group">{t.parElsewhere}</p>}
       {state.status === "ready" && near.length === 0 && (
         <p className="terms-empty">
-          {half === "outside" ? "No near passage was found in other works." : nearby.length > 0 ? "No near passage was found in other parts of the Papers." : "No near passage was found in the Papers."}
+          {half === "outside" ? t.parNoneOther : nearby.length > 0 ? t.parNoneElsewhere : t.parNonePapers}
         </p>
       )}
       {weaker.length > 0 && !weak && (
@@ -250,13 +260,13 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
             track("parallels_weaker_shown", { paper_id: paperId, ...from });
           }}
         >
-          See passages that are likely not related
+          {t.parWeaker}
         </button>
       )}
       {shown.length > 0 && <ul className="parallel-list">{shown.map(item)}</ul>}
       {list.length > shown.length && (
         <button type="button" className="parallel-more" onClick={() => setAll(true)}>
-          Show {list.length - shown.length} more
+          {t.parShowMore(list.length - shown.length)}
         </button>
       )}
       {nearby.length > 0 && !close && (
@@ -268,17 +278,17 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
             track("parallels_nearby_shown", { paper_id: paperId });
           }}
         >
-          Show {nearby.length} nearby {nearby.length === 1 ? "passage" : "passages"}
+          {t.parShowNearby(nearby.length)}
         </button>
       )}
       {nearby.length > 0 && close && (
         <>
-          <p className="terms-group">Nearby</p>
-          <p className="parallel-near-note">{paperId === "0" ? "In the Foreword and the papers after it." : `In Paper ${paperId} and the papers beside it.`}</p>
+          <p className="terms-group">{t.parNearby}</p>
+          <p className="parallel-near-note">{t.parNearbyNote(paperId)}</p>
           <ul className="parallel-list">{nearby.map(item)}</ul>
         </>
       )}
-      {state.status === "ready" && !work && (
+      {state.status === "ready" && !work && lang === "en" && (
         <Link className="parallel-study" href={`/parallels?ref=${encodeURIComponent(reference)}`} prefetch={false}>
           Study these parallels
           <Icon name="paperAfter" />

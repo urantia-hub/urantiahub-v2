@@ -1,4 +1,5 @@
 import { chosenText, sentences, type Unit, units, unitsText } from "@/image/compose";
+import type { Lang } from "@/i18n/lang";
 
 // A shared link names a paragraph and, if the reader chose some, its sentences: /s/2.5.10/1.3-4.
 // It holds digits, dots, and hyphens only. A chat app ends a link at a colon or a comma, and reads an
@@ -74,9 +75,10 @@ export function parseUnitCode(code: string, all: readonly Unit[]): ReadonlySet<n
   return chosen && unitCode(chosen, all) === code ? chosen : null;
 }
 
-export function sharePath(ref: string, chosen: ReadonlySet<number>, all: readonly Unit[]): string {
+// A link made on a Spanish page opens the Spanish paragraph, whatever language the browser keeps.
+export function sharePath(ref: string, chosen: ReadonlySet<number>, all: readonly Unit[], lang: Lang = "en"): string {
   const code = unitCode(chosen, all);
-  return `/s/${refForLink(ref)}${code ? `/${code}` : ""}`;
+  return `${lang === "es" ? "/es" : ""}/s/${refForLink(ref)}${code ? `/${code}` : ""}`;
 }
 
 /** The words that a link shows: the whole paragraph, or the chosen sentences with "…" for each gap. */
