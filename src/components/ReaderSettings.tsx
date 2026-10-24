@@ -7,6 +7,7 @@ import { AccountRows } from "@/components/AccountRows";
 import { ContinueRow } from "@/components/ContinueRow";
 import { Icon } from "@/components/icons";
 import { OfflineRow } from "@/components/OfflineRow";
+import { spanishOn } from "@/i18n/lang";
 import { applyTextSize, currentTextSize, DEFAULT_STEP, SCALES, subscribeToTextSize } from "@/lib/text-size";
 import { applyTheme, currentTheme, subscribeToTheme, type Theme } from "@/lib/theme";
 
@@ -117,7 +118,8 @@ export function ReaderSettings() {
                     </button>
                   </div>
                 </div>
-                <OfflineRow />
+                {/* With Spanish on, "Read offline" is in the language sheet, one switch for each language. */}
+                {!spanishOn() && <OfflineRow />}
               </div>
               <AccountRows part="out" />
             </div>

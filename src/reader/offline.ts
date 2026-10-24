@@ -1,12 +1,16 @@
 import { assetsOfPage, assetsOfStyle, inTurns, pagesToKeep } from "./offline-plan";
 
 // "Read offline": the text of each paper, the contents, and the home page, on this device. It is a choice
-// of the device, with or without an account. This page puts the pages in a cache, and the service worker
-// (public/sw.js) answers from it when the network does not. The names here match the names there.
+// of the device for each language, with or without an account. This page puts the pages in one cache, and
+// the service worker (public/sw.js) answers from it when the network does not. The names match the names there.
+type Lang = "en" | "es";
+const LANGS: Lang[] = ["en", "es"];
 export const OFFLINE_KEY = "offline";
+const KEYS: Record<Lang, string> = { en: OFFLINE_KEY, es: "offline-es" };
 const CACHE = "offline-v1";
-// A note in the cache: which build the copy is of, and if it is whole.
-const NOTE = "/__offline/note";
+// A note in the cache for each language: which build the copy is of, if it is whole, and the files it uses.
+const NOTES: Record<Lang, string> = { en: "/__offline/note", es: "/__offline/note-es" };
+type Note = { build: string; whole: boolean; files?: string[] };
 const BUILD = process.env.NEXT_PUBLIC_BUILD || "dev";
 
 export type OfflineState = {
@@ -19,17 +23,17 @@ export type OfflineState = {
 };
 
 const START: OfflineState = { mode: "off", have: 0, total: 197, can: false };
-let state = START;
-let running = false;
+let states: Record<Lang, OfflineState> = { en: START, es: START };
+const running: Record<Lang, boolean> = { en: false, es: false };
 let started = false;
 const listeners = new Set<() => void>();
 
-function set(next: Partial<OfflineState>) {
-  state = { ...state, ...next };
+function set(lang: Lang, next: Partial<OfflineState>) {
+  states = { ...states, [lang]: { ...states[lang], ...next } };
   listeners.forEach((listener) => listener());
 }
 
-export const offlineState = () => state;
+export const offlineState = (lang: Lang = "en") => states[lang];
 export const serverOfflineState = () => START;
 export function subscribeToOffline(listener: () => void) {
   listeners.add(listener);
@@ -38,26 +42,26 @@ export function subscribeToOffline(listener: () => void) {
 
 const supported = () => typeof window !== "undefined" && "serviceWorker" in navigator && "caches" in window;
 
-function chosen(): boolean {
+function chosen(lang: Lang): boolean {
   try {
-    return window.localStorage.getItem(OFFLINE_KEY) === "on";
+    return window.localStorage.getItem(KEYS[lang]) === "on";
   } catch {
     return false;
   }
 }
 
-function choose(on: boolean) {
+function choose(lang: Lang, on: boolean) {
   try {
-    if (on) window.localStorage.setItem(OFFLINE_KEY, "on");
-    else window.localStorage.removeItem(OFFLINE_KEY);
+    if (on) window.localStorage.setItem(KEYS[lang], "on");
+    else window.localStorage.removeItem(KEYS[lang]);
   } catch {
     // The browser keeps nothing. The download still runs for this visit.
   }
 }
 
-async function paperPaths(): Promise<string[]> {
-  const { PAPERS, paperPath } = await import("@/content/paper-index");
-  return PAPERS.map((paper) => paperPath(paper.id));
+async function paperPaths(lang: Lang): Promise<string[]> {
+  const { PAPERS_BY_LANG, paperPath } = await import("@/content/paper-index");
+  return PAPERS_BY_LANG[lang].map((paper) => paperPath(paper.id, lang));
 }
 
 // The worker looks at the cache again: it answers from it from now on, or no more.
@@ -67,16 +71,17 @@ async function tellWorker() {
   for (const worker of [registration?.installing, registration?.waiting, registration?.active]) worker?.postMessage({ type: "offline" });
 }
 
-async function readNote(cache: Cache): Promise<{ build: string; whole: boolean } | null> {
+async function readNote(cache: Cache, lang: Lang): Promise<Note | null> {
   try {
-    const note = await cache.match(NOTE);
-    return note ? ((await note.json()) as { build: string; whole: boolean }) : null;
+    const note = await cache.match(NOTES[lang]);
+    return note ? ((await note.json()) as Note) : null;
   } catch {
     return null;
   }
 }
 
-const writeNote = (cache: Cache, whole: boolean) => cache.put(NOTE, new Response(JSON.stringify({ build: BUILD, whole }), { headers: { "content-type": "application/json" } }));
+const writeNote = (cache: Cache, lang: Lang, whole: boolean, files: string[] = []) =>
+  cache.put(NOTES[lang], new Response(JSON.stringify({ build: BUILD, whole, files }), { headers: { "content-type": "application/json" } }));
 
 // The parts of the reader that load at their first use. They load now, so the worker keeps them.
 const laterParts = () =>
@@ -89,13 +94,13 @@ async function take(path: string): Promise<Response> {
   return response;
 }
 
-async function download() {
-  if (running) return;
-  running = true;
+async function download(lang: Lang) {
+  if (running[lang]) return;
+  running[lang] = true;
   try {
     const cache = await caches.open(CACHE);
-    const papers = await paperPaths();
-    const note = await readNote(cache);
+    const papers = await paperPaths(lang);
+    const note = await readNote(cache, lang);
     const fresh = note?.build === BUILD;
     const before = new Set((await cache.keys()).map((request) => new URL(request.url).pathname));
     // A whole copy of an older build is replaced page by page. Until the end it still answers, and the
@@ -103,8 +108,8 @@ async function download() {
     const renewing = !fresh && note?.whole === true;
     const kept = new Set(fresh ? before : []);
     const count = () => papers.filter((path) => kept.has(path)).length;
-    set({ mode: renewing ? "on" : "loading", total: papers.length, have: renewing ? papers.length : count() });
-    if (!renewing) await writeNote(cache, false);
+    set(lang, { mode: renewing ? "on" : "loading", total: papers.length, have: renewing ? papers.length : count() });
+    if (!renewing) await writeNote(cache, lang, false);
     await tellWorker();
 
     const files = new Set<string>();
@@ -115,7 +120,7 @@ async function download() {
         for (const file of assetsOfPage(await response.clone().text())) files.add(file);
         await cache.put(path, response);
         kept.add(path);
-        if (!renewing) set({ have: count() });
+        if (!renewing) set(lang, { have: count() });
       });
     // The files that the pages name, and each file that a style sheet names. A file of the copy stays.
     const keepFiles = async () => {
@@ -133,8 +138,11 @@ async function download() {
       return true;
     };
     // The files come before the papers. So a download that stops in the middle leaves pages that work.
-    const [home, contents, ...rest] = pagesToKeep(papers);
-    let ok = await keepPages([home, contents, rest[0]]);
+    const pages = pagesToKeep(lang, papers);
+    const lead = lang === "es" ? 2 : 3;
+    const contents = pages[lead - 2];
+    const rest = pages.slice(lead);
+    let ok = await keepPages(pages.slice(0, lead));
     if (ok && files.size === 0) for (const file of assetsOfPage(await (await take(contents)).text())) files.add(file);
     if (ok) {
       await laterParts();
@@ -146,37 +154,47 @@ async function download() {
     }
     if (ok) ok = (await keepPages(rest)) && (await keepFiles());
     if (!ok) return;
-    // The files of an older build go. Each page now names the files of this one.
-    if (!fresh) for (const path of before) if (path.startsWith("/_next/static/") && !files.has(path)) await cache.delete(path);
-    await writeNote(cache, true);
-    set({ mode: "on", have: papers.length });
+    // The files of an older build go. Each page now names the files of this one. A file that the copy of
+    // the other language names stays.
+    if (!fresh) {
+      const other = await readNote(cache, lang === "en" ? "es" : "en");
+      const theirs = new Set(other?.files ?? []);
+      for (const path of before) if (path.startsWith("/_next/static/") && !files.has(path) && !theirs.has(path)) await cache.delete(path);
+    }
+    await writeNote(cache, lang, true, [...files]);
+    set(lang, { mode: "on", have: papers.length });
   } catch {
     // No connection, or no room. The count stays, and the download goes on at the next chance.
   } finally {
-    running = false;
+    running[lang] = false;
   }
 }
 
-/** The reader turned "Read offline" on. */
-export async function startOffline() {
+/** The reader turned "Read offline" on for one language. */
+export async function startOffline(lang: Lang = "en") {
   if (!supported()) return;
-  choose(true);
-  set({ mode: "loading" });
+  choose(lang, true);
+  set(lang, { mode: "loading" });
   try {
     await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
   } catch {
     // The download still runs. The worker starts at a later visit.
   }
-  await download();
+  await download(lang);
 }
 
-/** The reader turned it off: the pages leave this device. */
-export async function removeOffline() {
-  choose(false);
-  set({ mode: "off", have: 0 });
+/** The reader turned it off for one language: its pages leave this device. The last one takes the cache. */
+export async function removeOffline(lang: Lang = "en") {
+  choose(lang, false);
+  set(lang, { mode: "off", have: 0 });
   try {
-    await caches.delete(CACHE);
+    if (LANGS.some((other) => other !== lang && chosen(other))) {
+      const cache = await caches.open(CACHE);
+      for (const path of [...pagesToKeep(lang, await paperPaths(lang)), NOTES[lang]]) await cache.delete(path);
+    } else {
+      await caches.delete(CACHE);
+    }
     await tellWorker();
   } catch {
     // The browser removes the cache with the data of the site.
@@ -188,29 +206,31 @@ export async function initOffline() {
   if (started) return;
   started = true;
   if (!supported()) return;
-  set({ can: true });
-  if (!chosen()) return;
-  try {
-    const cache = await caches.open(CACHE);
-    const papers = await paperPaths();
-    const have = new Set((await cache.keys()).map((request) => new URL(request.url).pathname));
-    const note = await readNote(cache);
-    const count = papers.filter((path) => have.has(path)).length;
-    const whole = note?.whole === true && count === papers.length;
-    set({ mode: whole ? "on" : "loading", have: count, total: papers.length });
-    void tellWorker();
-    // A site that changed gets a new copy, with no press.
-    const go = () => void (navigator.onLine && (state.mode === "loading" || note?.build !== BUILD) && download());
-    window.addEventListener("online", go);
-    if (!whole || note?.build !== BUILD) go();
-  } catch {
-    set({ mode: "off" });
+  for (const lang of LANGS) set(lang, { can: true });
+  for (const lang of LANGS.filter(chosen)) {
+    try {
+      const cache = await caches.open(CACHE);
+      const papers = await paperPaths(lang);
+      const have = new Set((await cache.keys()).map((request) => new URL(request.url).pathname));
+      const note = await readNote(cache, lang);
+      const count = papers.filter((path) => have.has(path)).length;
+      const whole = note?.whole === true && count === papers.length;
+      set(lang, { mode: whole ? "on" : "loading", have: count, total: papers.length });
+      void tellWorker();
+      // A site that changed gets a new copy, with no press.
+      const go = () => void (navigator.onLine && (states[lang].mode === "loading" || note?.build !== BUILD) && download(lang));
+      window.addEventListener("online", go);
+      if (!whole || note?.build !== BUILD) go();
+    } catch {
+      set(lang, { mode: "off" });
+    }
   }
 }
 
 export function resetOfflineForTest() {
-  state = START;
-  running = false;
+  states = { en: START, es: START };
+  running.en = false;
+  running.es = false;
   started = false;
   listeners.clear();
 }

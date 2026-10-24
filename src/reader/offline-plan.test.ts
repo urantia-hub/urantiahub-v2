@@ -17,7 +17,11 @@ describe("the files of a style sheet", () => {
 
 describe("the pages to keep", () => {
   it("starts with the home page and the contents", () => {
-    expect(pagesToKeep(["/papers/foreword"])).toEqual(["/", "/papers", "/papers/foreword"]);
+    expect(pagesToKeep("en", ["/papers/foreword"])).toEqual(["/", "/papers", "/papers/foreword"]);
+  });
+  // /es/documentos is a redirect to /es, and a redirect is not kept.
+  it("keeps the Spanish contents and each Spanish paper", () => {
+    expect(pagesToKeep("es", ["/es/documentos/prologo"])).toEqual(["/es", "/es/documentos/prologo"]);
   });
 });
 

@@ -39,25 +39,30 @@
 /* A sheet comes up from the bottom of a phone, and goes back there. The time of the way out is LEAVE_MS. */
 .panel,
 .terms-sheet,
-.settings-panel {
+.settings-panel,
+.lang-sheet {
   animation: sheet-in 0.34s var(--ease-out);
 }
 .panel[data-leaving],
-.terms-sheet[data-leaving] {
+.terms-sheet[data-leaving],
+.lang-sheet[data-leaving] {
   animation: sheet-out 0.18s ease-in forwards;
   pointer-events: none;
 }
 .panel-scrim[data-leaving],
-.terms-scrim[data-leaving] {
+.terms-scrim[data-leaving],
+.lang-scrim[data-leaving] {
   pointer-events: none;
 }
 /* A card on a wide screen comes up a little and gets clear. */
 @media (min-width: 768px) {
   .panel,
-  .settings-panel {
+  .settings-panel,
+  .lang-sheet {
     animation: rise-in 0.2s var(--ease-out);
   }
-  .panel[data-leaving] {
+  .panel[data-leaving],
+  .lang-sheet[data-leaving] {
     animation: sink-out 0.18s ease-in forwards;
   }
 }
@@ -69,7 +74,8 @@
     animation: sink-out 0.18s ease-in forwards;
   }
 }
-.settings-scrim {
+.settings-scrim,
+.lang-scrim {
   animation: fade-in 0.25s ease;
 }
 

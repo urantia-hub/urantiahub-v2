@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { PaperDoc } from "@/content/fetchers";
-import { PAPERS_BY_LANG, paperPath, partNumeral } from "@/content/paper-index";
-import type { Lang } from "@/i18n/lang";
+import { PAPERS_BY_LANG, paperById, paperPath, partNumeral } from "@/content/paper-index";
+import { type Lang, spanishOn } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { hasOwnNumber } from "@/components/navigation/nav-state";
 import { AskPaperButton } from "./AskPaperButton";
 import { MissingReferenceNotice } from "./MissingReferenceNotice";
+import { OFFER_SCRIPT, SpanishOffer } from "./SpanishOffer";
 
 export function paperEyebrow(paper: { id: string; partId: string }, lang: Lang = "en"): string | null {
   return paper.id === "0" ? null : messages(lang).paperEyebrow(partNumeral(paper.partId), Number(paper.id));
@@ -24,6 +25,12 @@ export function PaperView({ paper, lang = "en" }: { paper: PaperDoc; lang?: Lang
       <header className="paper-head">
         {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1 id="paper-top">{paper.title}</h1>
+        {lang === "en" && spanishOn() && (
+          <>
+            <script dangerouslySetInnerHTML={{ __html: OFFER_SCRIPT }} />
+            <SpanishOffer href={paperPath(paper.id, "es")} title={paperById(paper.id, "es")?.title ?? ""} />
+          </>
+        )}
         {/* The assistant in Spanish comes with the rest of the Spanish tools. */}
         {lang === "en" && <AskPaperButton />}
       </header>
