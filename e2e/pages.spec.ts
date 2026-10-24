@@ -329,7 +329,7 @@ for (const [path, title] of [
     expect(answer.status()).toBe(200);
     expect(answer.headers()["content-type"]).toBe("image/png");
     // World texts and each of their pages have an image of their own, not the image of the Papers.
-    if (path.startsWith("/texts") || path.startsWith("/s/")) expect(new URL(image).pathname).toBe(`${path}/opengraph-image`);
+    if (path.startsWith("/texts") || path.startsWith("/s/")) expect(new URL(image).pathname).toMatch(new RegExp(`^${path}/opengraph-image(-\\w+)?$`));
   });
 }
 

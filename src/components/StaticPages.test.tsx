@@ -1,10 +1,10 @@
 import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import AboutPage from "@/app/about/page";
-import NotFound from "@/app/not-found";
-import PrivacyPage from "@/app/privacy/page";
-import ReleasesPage from "@/app/releases/page";
-import ResourcesPage from "@/app/resources/page";
+import AboutPage from "@/app/(en)/about/page";
+import NotFound from "@/app/(en)/not-found";
+import PrivacyPage from "@/app/(en)/privacy/page";
+import ReleasesPage from "@/app/(en)/releases/page";
+import ResourcesPage from "@/app/(en)/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
 import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";

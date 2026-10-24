@@ -65,8 +65,12 @@ test("the previous and next links move between papers", async ({ page }) => {
   await expect(page).toHaveURL(PAPER_1);
 });
 
-test("a paper page has a share image", async ({ request }) => {
-  const response = await request.get(`${PAPER_1}/opengraph-image`);
+// A route group gives the image address a fixed suffix, so the test reads the address from the page.
+test("a paper page has a share image", async ({ page, request }) => {
+  await page.goto(PAPER_1);
+  const image = (await page.locator('meta[property="og:image"]').first().getAttribute("content"))!;
+  expect(new URL(image).pathname).toMatch(new RegExp(`^${PAPER_1}/opengraph-image`));
+  const response = await request.get(new URL(image).pathname + new URL(image).search);
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("image/png");
 });
