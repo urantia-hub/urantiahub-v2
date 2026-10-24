@@ -202,3 +202,27 @@ describe("the page of one paragraph", () => {
     expect(screen.getByText("You have no notes on this paragraph.")).toBeInTheDocument();
   });
 });
+
+describe("the Spanish Saved page", () => {
+  it("asks for the Spanish list, and speaks Spanish", async () => {
+    document.cookie = "hub_in=1; path=/";
+    resetAccountForTest(true);
+    const es = ENTRIES.map((e) => ({ ...e, paperTitle: e.paperId === "1" ? "El Padre Universal" : "La naturaleza de Dios", text: `Texto de ${e.ref}` }));
+    const fetch = vi.fn(async (url: string) =>
+      url === "/api/auth/session" ? Response.json({ user: { name: "Ana", email: null, key: "k1" } }) : url === "/api/me/saved?lang=es" ? Response.json({ entries: es, cut: false }) : Response.json({ ok: true }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    await act(async () => {
+      await startAccount();
+    });
+    await act(async () => {
+      render(<SavedView lang="es" />);
+    });
+    expect(screen.getByRole("heading", { level: 1, name: "Guardados" })).toBeInTheDocument();
+    expect(within(entryOf("1:0.3")).getByRole("link", { name: /Texto de 1:0.3/ })).toHaveAttribute("href", "/es/documentos/documento-1-el-padre-universal#1:0.3");
+    expect(within(entryOf("1:0.3")).getByRole("button", { name: /^Quitar/ })).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Mostrar" })).getAllByRole("button").map((b) => b.textContent)).toEqual(["Todo", "Párrafos", "Notas"]);
+    await userEvent.click(screen.getByRole("button", { name: /Orden/ }));
+    expect(screen.getByRole("heading", { level: 2, name: "Documento 1 · El Padre Universal" })).toBeInTheDocument();
+  });
+});

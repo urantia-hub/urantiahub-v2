@@ -4,11 +4,14 @@ import { useSyncExternalStore } from "react";
 import { track } from "@/analytics";
 import { failureWords } from "@/account/limited";
 import { addNote, changeNote, deleteNote, loadSaved, type NoteResult, noSaved, savedState, subscribeToSaved } from "@/account/saved";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { savedHref } from "@/i18n/paths";
 import { NoteThread } from "./NoteThread";
 import { Sheet } from "./Sheet";
 import { earnToolMark } from "@/streak/client";
 
-type Props = { reference: string; paperId: string; onClose: () => void };
+type Props = { reference: string; paperId: string; onClose: () => void; lang?: Lang };
 
 // Counts a change that the account took.
 const counted =
@@ -23,25 +26,26 @@ const counted =
 const IN_SHEET = 3;
 
 // The reader's notes on one paragraph of the open paper.
-export default function NoteSheet({ reference, paperId, onClose }: Props) {
+export default function NoteSheet({ reference, paperId, onClose, lang = "en" }: Props) {
+  const t = messages(lang);
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
   const notes = saved.notes.filter((note) => note.ref === reference);
 
   return (
-    <Sheet label={`Your notes on ${reference}`} onClose={onClose} className="notes">
-      <h2>Your notes on {reference}</h2>
-      <p>Only you see them.</p>
+    <Sheet label={t.notesOn(reference)} onClose={onClose} className="notes">
+      <h2>{t.notesOn(reference)}</h2>
+      <p>{t.notesOnly}</p>
       {saved.status === "loading" && (
-        <div className="waiting" role="status" aria-label="Loading your notes">
+        <div className="waiting" role="status" aria-label={t.notesLoading}>
           <span />
           <span />
         </div>
       )}
       {saved.status === "failed" && (
         <p className="note-problem" role="alert">
-          {failureWords("Your notes did not load.")}{" "}
+          {failureWords(t.notesFailed, lang)}{" "}
           <button type="button" onClick={() => void loadSaved(paperId)}>
-            Try again
+            {t.tryAgain}
           </button>
         </p>
       )}
@@ -56,8 +60,9 @@ export default function NoteSheet({ reference, paperId, onClose }: Props) {
         change={counted(changeNote, () => track("note_saved", { paper_id: paperId, kind: "change" }))}
         remove={counted(deleteNote, () => track("note_deleted", { paper_id: paperId }))}
         last={IN_SHEET}
-        allHref={`/saved?ref=${encodeURIComponent(reference)}`}
+        allHref={savedHref(lang, reference)}
         focusField={saved.status === "ready" && notes.length === 0}
+        lang={lang}
       />
     </Sheet>
   );

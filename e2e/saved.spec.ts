@@ -590,3 +590,16 @@ test.describe("More", () => {
     await expect(page.getByRole("dialog", { name: "Terms in 1:0.3" })).toBeVisible();
   });
 });
+
+// The account keeps references only. The Spanish list shows the Spanish text of a paragraph saved on an English page.
+test("a paragraph saved on an English page shows in the Spanish list with its Spanish text", async ({ page, context }) => {
+  const reader = await asReader(context);
+  await reader.set({ saved: [at("1:0.3")] });
+  await page.goto(PAPER);
+  await signIn(page);
+  await page.goto("/es/guardados");
+  await expect(page.getByRole("heading", { level: 1, name: "Guardados" })).toBeVisible();
+  const entry = page.locator(".saved-entry").filter({ hasText: "1:0.3" });
+  await expect(entry).toContainText("Todos los mundos iluminados reconocen y adoran al Padre Universal");
+  await expect(entry.getByRole("link")).toHaveAttribute("href", "/es/documentos/documento-1-el-padre-universal#1:0.3");
+});

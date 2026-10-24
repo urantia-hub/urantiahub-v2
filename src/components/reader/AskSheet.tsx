@@ -72,7 +72,7 @@ export default function AskSheet({ about, label, paperId, questions, build, onCl
   );
 
   return (
-    <Sheet label={t.askTitle} onClose={onClose} className="share ask" close foot={foot}>
+    <Sheet label={t.askTitle} onClose={onClose} className="share ask" close closeLabel={t.close} foot={foot}>
       <h2>{t.askTitle}</h2>
       <p className="ask-sub">{label} {t.askSub}</p>
       <p className="share-label">{t.askQuestion}</p>

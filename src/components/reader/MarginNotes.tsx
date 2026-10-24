@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { SavedNote } from "@/account/saved-data";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { savedHref } from "@/i18n/paths";
 import { age } from "@/reader/age";
 import { placeCards } from "@/reader/margin-layout";
 
@@ -11,7 +14,8 @@ import { placeCards } from "@/reader/margin-layout";
 const IN_PLACE = 3;
 const LONG = 110;
 
-function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
+function Card({ reference, notes, lang }: { reference: string; notes: SavedNote[]; lang: Lang }) {
+  const t = messages(lang);
   const [all, setAll] = useState(false);
   const [whole, setWhole] = useState<ReadonlySet<string>>(new Set());
   const others = notes.length - 1;
@@ -26,20 +30,20 @@ function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
   };
   useLayoutEffect(look);
   return (
-    <aside className="margin-card" data-for={reference} data-more={more ? "" : undefined} aria-label={`Your notes on ${reference}`} ref={box} onScroll={look}>
+    <aside className="margin-card" data-for={reference} data-more={more ? "" : undefined} aria-label={t.notesOn(reference)} ref={box} onScroll={look}>
       {shown.map((note) => {
         const long = note.text.length > LONG || note.text.includes("\n");
         const open = whole.has(note.id);
         return (
           <div className="margin-note" key={note.id}>
-            <small>{age(note.at)}</small>
+            <small>{age(note.at, undefined, lang)}</small>
             {/* A press on a note opens "Your notes", where the reader edits it. The controls of the paper do that. */}
-            <button type="button" className={`margin-text${long && !open ? " clamp" : ""}`} data-notes-for={reference} aria-label={`Open your notes on ${reference}`}>
+            <button type="button" className={`margin-text${long && !open ? " clamp" : ""}`} data-notes-for={reference} aria-label={t.openNotesOn(reference)}>
               {note.text}
             </button>
             {long && (
               <button type="button" className="margin-link" aria-expanded={open} onClick={() => setWhole((was) => new Set(open ? [...was].filter((id) => id !== note.id) : [...was, note.id]))}>
-                {open ? "Show less" : "Read more"}
+                {open ? t.parShowLess : t.parReadMore}
               </button>
             )}
           </div>
@@ -47,12 +51,12 @@ function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
       })}
       {others > 0 && notes.length <= IN_PLACE && (
         <button type="button" className="margin-more" aria-expanded={all} onClick={() => setAll((was) => !was)}>
-          {all ? "Show fewer" : `${others} more ${others === 1 ? "note" : "notes"}`}
+          {all ? t.showFewer : t.moreNotes(others)}
         </button>
       )}
       {notes.length > IN_PLACE && (
-        <Link className="margin-more" href={`/saved?ref=${encodeURIComponent(reference)}`} prefetch={false}>
-          See all {notes.length} notes
+        <Link className="margin-more" href={savedHref(lang, reference)} prefetch={false}>
+          {t.seeAllNotes(notes.length)}
         </Link>
       )}
     </aside>
@@ -61,7 +65,7 @@ function Card({ reference, notes }: { reference: string; notes: SavedNote[] }) {
 
 // On a wide screen: the reader's notes in the right margin, each card at the top of its paragraph.
 // The cards are outside the flow of the text, so they move no line of it. CSS hides them on a narrow screen.
-export default function MarginNotes({ notes }: { notes: readonly SavedNote[] }) {
+export default function MarginNotes({ notes, lang = "en" }: { notes: readonly SavedNote[]; lang?: Lang }) {
   const layer = useRef<HTMLDivElement>(null);
   const paper = typeof document === "undefined" ? null : document.querySelector<HTMLElement>(".paper");
   const threads = new Map<string, SavedNote[]>();
@@ -101,7 +105,7 @@ export default function MarginNotes({ notes }: { notes: readonly SavedNote[] }) 
   return createPortal(
     <div className="margin-notes" ref={layer}>
       {[...threads].map(([reference, thread]) => (
-        <Card key={reference} reference={reference} notes={thread} />
+        <Card key={reference} reference={reference} notes={thread} lang={lang} />
       ))}
     </div>,
     paper,

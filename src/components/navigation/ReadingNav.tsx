@@ -1041,19 +1041,19 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       {panel === "notes" && picked && (
         <Suspense fallback={null}>
           {/* Another reader, or another paragraph: a new sheet, with an empty field. */}
-          <NoteSheet key={`${readerKey}:${picked}`} reference={picked} paperId={paper.id} onClose={closePanel} />
+          <NoteSheet key={`${readerKey}:${picked}`} reference={picked} paperId={paper.id} onClose={closePanel} lang={lang} />
         </Suspense>
       )}
       {panel === "ask" && picked && (
-        <Sheet label="Sign in to save this" onClose={closePanel}>
-          <h2>Sign in to save this</h2>
-          <p>Your saved paragraphs and notes stay with your account.</p>
+        <Sheet label={t.signInToSave} onClose={closePanel}>
+          <h2>{t.signInToSave}</h2>
+          <p>{t.signInToSaveLine}</p>
           <div className="panel-actions">
             <a className="panel-button dark" href={askHref}>
-              Sign in
+              {t.signIn}
             </a>
             <button type="button" className="panel-button" onClick={closePanel}>
-              Not now
+              {t.notNow}
             </button>
           </div>
         </Sheet>

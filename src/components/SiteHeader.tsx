@@ -35,7 +35,7 @@ export function SiteHeader({ lang = "en" }: { lang?: Lang }) {
         <Link className="icon-link contents-link" href={contentsHref(lang)} aria-label={t.allPapers} title={t.allPapers}>
           <Icon name="list" />
         </Link>
-        <ReaderSettings />
+        <ReaderSettings lang={lang} />
         {/* Only a paper and the contents show it. See chrome.css. */}
         {spanishOn() && <LanguagePill lang={lang} />}
       </nav>
