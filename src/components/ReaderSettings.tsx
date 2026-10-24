@@ -49,7 +49,7 @@ export function ReaderSettings({ lang = "en" }: { lang?: Lang }) {
   }, [open]);
 
   return (
-    <div className="reader-settings" ref={wrap} data-open={open ? "" : undefined}>
+    <div className="reader-settings" data-slot="account" ref={wrap} data-open={open ? "" : undefined}>
       <button
         type="button"
         className="settings-button"

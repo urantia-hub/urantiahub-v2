@@ -121,18 +121,18 @@ test.describe("the top bar of a paper", () => {
     expect((await brand.boundingBox())!.width).toBeLessThan(40);
     await brand.click();
     await page.waitForURL((url) => url.pathname === "/");
-    // Each other page keeps the name.
+    // The home page shows the name (Kelson, 2026-10-24).
     expect((await page.locator(".site-header .brand").boundingBox())!.width).toBeGreaterThan(80);
   });
 });
 
-// Kelson, 2026-10-09: the contents page has the header of a paper. The mark only, search, and settings.
+// Kelson, 2026-10-24: one header on every page. The mark only, and no page links.
 test.describe("the header of the contents page", () => {
   test("shows the mark, search, and settings, and no name or page links", async ({ page }) => {
     await page.goto("/papers");
     const header = page.getByRole("banner");
-    await expect(header.getByRole("link", { name: "Papers" })).toBeHidden();
-    await expect(header.getByRole("link", { name: "About" })).toBeHidden();
+    await expect(header.getByRole("link", { name: "Papers", exact: true })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: "About" })).toHaveCount(0);
     await expect(header.getByRole("button", { name: /theme/ })).toBeHidden();
     await expect(header.getByRole("link", { name: "Search" })).toBeVisible();
     expect((await page.locator(".site-header .brand").boundingBox())!.width).toBeLessThan(40);
@@ -160,8 +160,8 @@ test.describe("the header of the contents page", () => {
     await page.goto("/");
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "UrantiaHub" })).toBeVisible();
-    await expect(header.getByRole("link", { name: "About" })).toBeHidden();
-    await expect(header.getByRole("link", { name: "Papers" })).toBeHidden();
+    await expect(header.getByRole("link", { name: "About" })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: "Papers", exact: true })).toHaveCount(0);
     await expect(page.getByRole("main").getByRole("link", { name: "What are the Urantia Papers?" })).toBeVisible();
     await expect(header.getByRole("button", { name: /theme/ })).toHaveCount(0);
     await expect(header.getByRole("button", { name: "Account and settings" })).toBeVisible();

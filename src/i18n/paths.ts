@@ -7,8 +7,12 @@ export function paperHref(lang: Lang, id: number): string {
   return paperPath(String(id), lang);
 }
 
+export function homeHref(lang: Lang): string {
+  return lang === "es" ? "/es" : "/";
+}
+
 export function contentsHref(lang: Lang): string {
-  return lang === "es" ? "/es" : "/papers";
+  return lang === "es" ? "/es/documentos" : "/papers";
 }
 
 export function searchHref(lang: Lang, q?: string): string {
@@ -26,7 +30,7 @@ export function shareHref(lang: Lang, ref: string): string {
   return `${lang === "es" ? "/es" : ""}/s/${refForLink(ref)}`;
 }
 
-// The same page in the other language, or the contents page of that language when the page has no twin.
+// The same page in the other language, or the home page of that language when the page has no twin.
 export function counterpart(pathname: string, to: Lang): string {
   const cut = pathname.search(/[?#]/);
   const path = cut === -1 ? pathname : pathname.slice(0, cut);
@@ -39,8 +43,12 @@ export function counterpart(pathname: string, to: Lang): string {
     const id = idFromSlug(paper[1]);
     if (id !== null) return `${paperHref(to, Number(id))}${tail}`;
   }
-  const share = from === "es" ? /^\/es(\/s\/.+)$/.exec(path) : /^(\/s\/.+)$/.exec(path);
+  // A share page and its pick only: a pair page has more segments, and Spanish has none.
+  const share = from === "es" ? /^\/es(\/s\/[^/]+(?:\/[^/]+)?)$/.exec(path) : /^(\/s\/[^/]+(?:\/[^/]+)?)$/.exec(path);
   if (share) return `${to === "es" ? "/es" : ""}${share[1]}${tail}`;
   if (path === (from === "es" ? "/es/buscar" : "/search")) return `${searchHref(to)}${tail}`;
-  return contentsHref(to);
+  if (path === savedHref(from)) return `${savedHref(to)}${tail}`;
+  if (path === homeHref(from)) return homeHref(to);
+  if (path === contentsHref(from)) return contentsHref(to);
+  return homeHref(to);
 }

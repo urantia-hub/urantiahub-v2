@@ -13,9 +13,8 @@ const refs = (page: Page, name: string) => group(page, name).locator(".result fo
 test("a paper page header has icons only, and the search icon opens the search screen", async ({ page }) => {
   await page.goto(PAPER_1);
   const header = page.getByRole("banner");
-  await expect(header.getByRole("link", { name: "Papers", exact: true })).toBeHidden();
-  await expect(header.getByRole("link", { name: "About" })).toBeHidden();
-  // The icon to the list of all papers has the place of the "Papers" link.
+  await expect(header.getByRole("link", { name: "Papers", exact: true })).toHaveCount(0);
+  await expect(header.getByRole("link", { name: "About" })).toHaveCount(0);
   await expect(header.getByRole("link", { name: "All papers" })).toBeVisible();
   await header.getByRole("link", { name: "Search" }).click();
   await expect(page).toHaveURL("/search");
@@ -37,11 +36,12 @@ test("the search page links to the list of all papers, with and without a search
   await expect(page.getByRole("heading", { level: 1, name: "Papers" })).toBeVisible();
 });
 
-test("other pages keep their links and gain the search icon", async ({ page }) => {
+test("other pages have the same icons and no page links", async ({ page }) => {
   await page.goto("/about");
   const header = page.getByRole("banner");
-  await expect(header.getByRole("link", { name: "About" })).toBeVisible();
+  await expect(header.getByRole("link", { name: "About" })).toHaveCount(0);
   await expect(header.getByRole("link", { name: "Search" })).toBeVisible();
+  await expect(header.getByRole("link", { name: "All papers" })).toBeVisible();
 });
 
 test("a new visitor sees five starter questions, one from each group, and one tap runs the search", async ({ page }) => {
@@ -280,24 +280,6 @@ test("the site header returns after a visit to the search screen", async ({ page
   await expect(page).toHaveURL(/paper-1-/);
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(page.getByRole("banner").getByRole("link", { name: "Search" })).toBeVisible();
-});
-
-test("the header links return after a visit to a paper", async ({ page }) => {
-  await page.goto("/papers");
-  await page.locator(".toc .papers a").first().click();
-  await expect(page).toHaveURL(/paper-1-/);
-  await expect(page.getByRole("banner").getByRole("link", { name: "About" })).toBeHidden();
-  // The contents page and the paper are kept alive, hidden. Neither one must hide the links of this page.
-  await page.getByRole("contentinfo").getByRole("link", { name: "About" }).click();
-  await expect(page).toHaveURL("/about");
-  await expect(page.getByRole("banner").getByRole("link", { name: "Papers" })).toBeVisible();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeVisible();
-  // And back: the contents page has icons only again.
-  await page.goBack();
-  await page.goBack();
-  await expect(page).toHaveURL("/papers");
-  await expect(page.getByRole("banner").getByRole("link", { name: "About" })).toBeHidden();
-  await expect(page.getByRole("banner").getByRole("button", { name: "Account and settings" })).toBeVisible();
 });
 
 test("on a desktop, the text of the search field starts on the left edge of the results column", async ({ page }, testInfo) => {

@@ -17,7 +17,7 @@ test("a Spanish search shows Spanish matches with marks, and the meaning search 
   await expect(matches.locator(".result-text").first()).toHaveAttribute("href", "/es/documentos/prologo#0:5.9");
   await expect(page.getByRole("region", { name: "Relacionados" }).locator(".result").first()).toContainText("110:4.2");
   await expect(matches.getByRole("link", { name: "Las 50 coincidencias" })).toHaveAttribute("href", "/es/buscar?q=ajustador%20del%20pensamiento&all=exact");
-  await expect(page.getByRole("link", { name: "Ver todos los documentos" })).toHaveAttribute("href", "/es");
+  await expect(page.getByRole("link", { name: "Ver todos los documentos" })).toHaveAttribute("href", "/es/documentos");
 });
 
 test("a reference goes to the Spanish paper, from the box and from the address", async ({ page }) => {

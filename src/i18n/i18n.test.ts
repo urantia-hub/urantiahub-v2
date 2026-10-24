@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiLang, spanishOn } from "./lang";
 import { messages } from "./messages";
-import { contentsHref, counterpart, paperHref, searchHref, shareHref } from "./paths";
+import { contentsHref, counterpart, homeHref, paperHref, searchHref, shareHref } from "./paths";
 
 describe("counterpart", () => {
   it("maps an English paper to its Spanish twin", () => {
@@ -15,9 +15,24 @@ describe("counterpart", () => {
       "/es/documentos/documento-1-el-padre-universal#1:0.1",
     );
   });
-  it("sends a page with no twin to the contents page of the other language", () => {
-    expect(counterpart("/privacy", "es")).toBe("/es");
+  it("maps the home page, the contents page, and Saved to their twins", () => {
+    expect(counterpart("/", "es")).toBe("/es");
+    expect(counterpart("/es", "en")).toBe("/");
+    expect(counterpart("/papers", "es")).toBe("/es/documentos");
     expect(counterpart("/es/documentos", "en")).toBe("/papers");
+    expect(counterpart("/saved?ref=1:0.3", "es")).toBe("/es/guardados?ref=1:0.3");
+    expect(counterpart("/es/guardados", "en")).toBe("/saved");
+  });
+  it("sends a page with no twin to the home page of the other language, with no query or hash", () => {
+    expect(counterpart("/privacy", "es")).toBe("/es");
+    expect(counterpart("/texts/quran/1?s=1#v2", "es")).toBe("/es");
+    expect(counterpart("/es/nada", "en")).toBe("/");
+  });
+  // Spanish has no pair page.
+  it("sends a pair page to the home page, and keeps a share page and its pick", () => {
+    expect(counterpart("/s/1.0.3/dhammapada/21?from=paper", "es")).toBe("/es");
+    expect(counterpart("/s/1.0.3?x=1", "es")).toBe("/es/s/1.0.3?x=1");
+    expect(counterpart("/es/s/1.0.3/2", "en")).toBe("/s/1.0.3/2");
   });
   it("keeps the words of a search", () => {
     expect(counterpart("/es/buscar?q=fe", "en")).toBe("/search?q=fe");
@@ -37,7 +52,9 @@ describe("paths", () => {
     expect(paperHref("en", 1)).toBe("/papers/paper-1-the-universal-father");
     expect(paperHref("es", 0)).toBe("/es/documentos/prologo");
     expect(contentsHref("en")).toBe("/papers");
-    expect(contentsHref("es")).toBe("/es");
+    expect(contentsHref("es")).toBe("/es/documentos");
+    expect(homeHref("en")).toBe("/");
+    expect(homeHref("es")).toBe("/es");
     expect(searchHref("es", "alma")).toBe("/es/buscar?q=alma");
     expect(searchHref("en")).toBe("/search");
     expect(shareHref("es", "1:0.1")).toBe("/es/s/1.0.1");

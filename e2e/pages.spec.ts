@@ -68,7 +68,7 @@ test("About and Privacy render", async ({ page }) => {
 test("an unknown address answers 404 with a way back", async ({ page }) => {
   const response = await page.goto("/no-such-page");
   expect(response?.status()).toBe(404);
-  await expect(page.getByRole("link", { name: "All papers" })).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "All papers" })).toBeVisible();
   expect((await page.goto("/papers/paper-197-nothing"))?.status()).toBe(404);
 });
 
@@ -289,8 +289,8 @@ test.describe("the way back to the reader's place", () => {
     await page.getByRole("button", { name: "Account and settings" }).click();
     const row = page.getByRole("dialog", { name: "Account and settings" }).getByRole("link", { name: /Continue/ });
     await expect(row).toContainText("Paper 2 · 1. The Infinity of God");
-    // The contents page is the list itself: it has no icon to it.
-    await expect(page.getByRole("link", { name: "All papers", exact: true })).toBeHidden();
+    // The contents page is the list itself: its icon keeps its place and shows the current page.
+    await expect(page.locator(".site-header").getByRole("link", { name: "All papers" })).toHaveAttribute("aria-current", "page");
     await row.click();
     await page.waitForURL((url) => url.pathname === "/papers/paper-2-the-nature-of-god");
     await page.locator(".site-header").getByRole("link", { name: "All papers" }).click();

@@ -12,7 +12,7 @@ export function PairBack({ href, label }: { href: string; label: string }) {
   return createPortal(
     <a className="hdr-back" href={href}>
       <Icon name="back" />
-      {label}
+      <span>{label}</span>
     </a>,
     start,
   );

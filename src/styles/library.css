@@ -22,6 +22,10 @@
 .hdr-back:hover {
   color: var(--ink);
 }
+.hdr-back span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .hdr-back .icon {
   flex: none;
   width: 14px;
