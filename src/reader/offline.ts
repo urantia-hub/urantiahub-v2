@@ -139,7 +139,7 @@ async function download(lang: Lang) {
     };
     // The files come before the papers. So a download that stops in the middle leaves pages that work.
     const pages = pagesToKeep(lang, papers);
-    const lead = lang === "es" ? 2 : 3;
+    const lead = 3;
     const contents = pages[lead - 2];
     const rest = pages.slice(lead);
     let ok = await keepPages(pages.slice(0, lead));
