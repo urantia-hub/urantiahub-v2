@@ -154,24 +154,25 @@ export type { PaperDoc, Paragraph, ParagraphAudio, Passage, SearchHit, SearchPag
 // The store is the remote one, which all server instances share: the API has a rate limit for the whole site,
 // and each new text costs it two requests. A failed search throws, and a thrown call is not kept.
 // The key is the lower-case form, so "Soul" and "soul" are one search.
-export async function searchExact(q: string, page = 0, limit = 8): Promise<SearchPage> {
-  return cachedExact(queryKey(q), page, limit);
+// The cache key holds `lang`: one text is two searches, one in each language.
+export async function searchExact(q: string, page = 0, limit = 8, lang: Lang = "en"): Promise<SearchPage> {
+  return cachedExact(queryKey(q), page, limit, lang);
 }
 
-export async function searchRelated(q: string): Promise<SearchPage> {
-  return cachedRelated(queryKey(q));
+export async function searchRelated(q: string, lang: Lang = "en"): Promise<SearchPage> {
+  return cachedRelated(queryKey(q), lang);
 }
 
-async function cachedExact(key: string, page: number, limit: number): Promise<SearchPage> {
+async function cachedExact(key: string, page: number, limit: number, lang: Lang): Promise<SearchPage> {
   "use cache: remote";
   cacheLife("days");
   cacheTag("search");
-  return fetchExact(client, key, page, limit);
+  return fetchExact(client, key, page, limit, lang);
 }
 
-async function cachedRelated(key: string): Promise<SearchPage> {
+async function cachedRelated(key: string, lang: Lang): Promise<SearchPage> {
   "use cache: remote";
   cacheLife("days");
   cacheTag("search");
-  return fetchRelated(client, key, 10);
+  return fetchRelated(client, key, 10, lang);
 }

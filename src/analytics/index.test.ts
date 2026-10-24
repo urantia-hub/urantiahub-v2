@@ -177,6 +177,13 @@ describe("analytics", () => {
     expect(posthog.capture).not.toHaveBeenCalled();
   });
 
+  it("cuts the typed text of a Spanish search too", async () => {
+    const { scrubSearchText } = await import("./index");
+    const out = scrubSearchText({ properties: { $current_url: "https://www.urantiahub.com/es/buscar?q=%C2%BFqu%C3%A9%20es%20el%20alma%3F", $referrer: "https%3A%2F%2Fwww.urantiahub.com%2Fes%2Fbuscar%3Fq%3Dalma" } });
+    expect(out.properties.$current_url).toBe("https://www.urantiahub.com/es/buscar");
+    expect(out.properties.$referrer).toBe("https%3A%2F%2Fwww.urantiahub.com%2Fes%2Fbuscar");
+  });
+
   // Found by the commit scan: PostHog records each address, and a search address holds the typed text.
   it("cuts the typed text of a search from each address before an event leaves the browser", async () => {
     const { scrubSearchText } = await import("./index");

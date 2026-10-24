@@ -54,7 +54,7 @@ const slug = (q: string) => q.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 // A search is a POST with the text in the body. A text with no record gives an empty result.
 // The text "fail related" makes the semantic search fail, for the test of one failed group.
 function search(kind: "search" | "semantic", body: string) {
-  let params: { q?: unknown; page?: unknown; limit?: unknown };
+  let params: { q?: unknown; page?: unknown; limit?: unknown; lang?: unknown };
   try {
     params = JSON.parse(body);
   } catch {
@@ -64,7 +64,8 @@ function search(kind: "search" | "semantic", body: string) {
   // The live API refuses a text with no letter and no number.
   if (!/[A-Za-z0-9]/.test(q)) return json(400, JSON.stringify({ title: "q has no word" }));
   if (kind === "semantic" && q === "fail related") return json(500, JSON.stringify({ title: "recorded failure" }));
-  const file = join(dir, `${kind}_${slug(q)}.json`);
+  // A search with lang=es reads the Spanish record.
+  const file = join(dir, `${kind}_${slug(q)}${params.lang === "es" ? ".es" : ""}.json`);
   const limit = Number(params.limit) || 20;
   const page = Number(params.page) || 0;
   if (!existsSync(file)) return json(200, JSON.stringify({ data: [], meta: { page, limit, total: 0, totalPages: 0 } }));

@@ -67,6 +67,12 @@ describe("proxy", () => {
     expect(run("/search?q=2").headers.get("location")).toBe("https://next.urantiahub.com/papers/paper-2-the-nature-of-god");
     expect(run("/search?q=Foreword").headers.get("location")).toBe("https://next.urantiahub.com/papers/foreword");
   });
+  it("sends a Spanish search for a reference to the Spanish paper", () => {
+    const res = run("/es/buscar?q=1%3A0.1");
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("https://next.urantiahub.com/es/documentos/documento-1-el-padre-universal#1:0.1");
+    expect(run("/es/buscar?q=ajustador").headers.get("x-middleware-next")).toBe("1");
+  });
   it("lets other searches, and the empty search screen, through", () => {
     for (const path of ["/search", "/search?q=thought+adjuster", "/search?q=197", "/search?q=99%3A1.1&q=x"]) {
       const res = run(path);

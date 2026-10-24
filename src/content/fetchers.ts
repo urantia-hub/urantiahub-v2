@@ -223,8 +223,8 @@ export type SearchPage = { hits: SearchHit[]; total: number; didYouMean?: string
 
 export type SearchClient = {
   search: {
-    fullText(params: { q: string; page: number; limit: number }): Promise<unknown>;
-    semantic(params: { q: string; limit: number }): Promise<unknown>;
+    fullText(params: { q: string; page: number; limit: number; lang?: "es" }): Promise<unknown>;
+    semantic(params: { q: string; limit: number; lang?: "es" }): Promise<unknown>;
   };
 };
 
@@ -246,12 +246,12 @@ function toSearchPage(raw: unknown, what: string): SearchPage {
 
 // Paragraphs that match the words: the API's default mode puts a reference, the exact phrase, and all the
 // words first, then close matches.
-export async function fetchExact(client: SearchClient, q: string, page: number, limit: number): Promise<SearchPage> {
+export async function fetchExact(client: SearchClient, q: string, page: number, limit: number, lang: "en" | "es" = "en"): Promise<SearchPage> {
   // The API answers 400 for a text with no letter and no number. That is "no result", not a failure.
   if (!hasWord(q)) return { hits: [], total: 0 };
   let raw: unknown;
   try {
-    raw = await client.search.fullText({ q, page, limit });
+    raw = await client.search.fullText(lang === "es" ? { q, page, limit, lang } : { q, page, limit });
   } catch (cause) {
     throw new ContentError("Exact search: the content API request failed", cause);
   }
@@ -259,11 +259,11 @@ export async function fetchExact(client: SearchClient, q: string, page: number, 
 }
 
 // Paragraphs that are near the text in meaning.
-export async function fetchRelated(client: SearchClient, q: string, limit: number): Promise<SearchPage> {
+export async function fetchRelated(client: SearchClient, q: string, limit: number, lang: "en" | "es" = "en"): Promise<SearchPage> {
   if (!hasWord(q)) return { hits: [], total: 0 };
   let raw: unknown;
   try {
-    raw = await client.search.semantic({ q, limit });
+    raw = await client.search.semantic(lang === "es" ? { q, limit, lang } : { q, limit });
   } catch (cause) {
     throw new ContentError("Related search: the content API request failed", cause);
   }

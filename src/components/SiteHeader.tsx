@@ -2,7 +2,8 @@ import Link from "next/link";
 import { BookmarkMark } from "@/brand/BookmarkMark";
 import type { Lang } from "@/i18n/lang";
 import { spanishOn } from "@/i18n/lang";
-import { contentsHref } from "@/i18n/paths";
+import { messages } from "@/i18n/messages";
+import { contentsHref, searchHref } from "@/i18n/paths";
 import { site } from "@/site";
 import { Icon } from "./icons";
 import { LanguagePill } from "./LanguagePill";
@@ -11,6 +12,7 @@ import { ReaderSettings } from "./ReaderSettings";
 import { SearchShortcut } from "./search/SearchShortcut";
 
 export function SiteHeader({ lang = "en" }: { lang?: Lang }) {
+  const t = messages(lang);
   return (
     <header className="site-header">
       <div className="header-start">
@@ -23,7 +25,7 @@ export function SiteHeader({ lang = "en" }: { lang?: Lang }) {
       <nav aria-label="Site">
         <Link href="/papers">Papers</Link>
         <Link href="/about">About</Link>
-        <Link className="icon-link" href="/search" aria-label="Search" title="Search ( / )">
+        <Link className="icon-link search-link" href={searchHref(lang)} aria-label={t.searchTitle} title={`${t.searchTitle} ( / )`}>
           <Icon name="search" />
         </Link>
         <SearchShortcut />

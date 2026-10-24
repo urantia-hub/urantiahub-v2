@@ -52,3 +52,16 @@ describe("a full title of five words or more", () => {
     expect(directHits("ministering spirits of the central universe")[0]).toMatchObject({ detail: "Paper 26" });
   });
 });
+
+describe("directHits in Spanish", () => {
+  it("sends a reference to the Spanish paper, in Spanish words", () => {
+    expect(directHits("1:0.1", "es")).toEqual([{ kind: "reference", href: "/es/documentos/documento-1-el-padre-universal#1:0.1", title: "Ir a 1:0.1", detail: "Documento 1 · El Padre Universal" }]);
+    expect(directHits("1", "es")[0]).toMatchObject({ title: "Ir al Documento 1" });
+    expect(directHits("0", "es")[0]).toMatchObject({ title: "Ir al Prólogo", detail: "Los Documentos de Urantia" });
+  });
+
+  it("finds a paper by its Spanish title, with or without accents", () => {
+    expect(directHits("padre universal", "es")[0]).toMatchObject({ kind: "paper", href: "/es/documentos/documento-1-el-padre-universal", title: "El Padre Universal", detail: "Documento 1" });
+    expect(directHits("prologo", "es")[0]).toMatchObject({ kind: "paper", title: "Prólogo" });
+  });
+});

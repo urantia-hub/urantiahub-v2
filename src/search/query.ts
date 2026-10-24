@@ -1,5 +1,8 @@
 export const MAX_QUERY = 200;
 
+// The meaning search in Spanish ("Relacionados"). On since API task A4 passed its bar (2026-10-23).
+export const SPANISH_RELATED = true;
+
 // One form for each query: no control characters, no half characters, single spaces, and a length limit.
 // The limit counts whole characters, so a cut never leaves half of one, and the address can always be built.
 export function normalizeQuery(raw: string | string[] | undefined): string {
@@ -19,15 +22,19 @@ export function queryKey(q: string): string {
   return normalizeQuery(q).toLowerCase();
 }
 
-// The API refuses a text with no letter and no number. Such a text has no result.
+// The API refuses a text with no letter and no number. Such a text has no result. A letter is a Latin one,
+// with or without an accent ("ñ", "é"); the API reads no other script.
 export function hasWord(q: string): boolean {
-  return /[A-Za-z0-9]/.test(q);
+  return /[\p{Script=Latin}0-9]/u.test(q);
 }
 
 const QUESTION_WORD = /^(what|why|how|who|whom|when|where|which|is|are|was|were|does|do|did|can|could|will|should)\b/i;
 
+// `\b` reads "é" as no letter, so the Spanish words end where no letter follows.
+const QUESTION_WORD_ES = /^¿?\s*(qué|quién|quiénes|cómo|dónde|adónde|cuándo|por qué|cuál|cuáles)(?!\p{L})/iu;
+
 export function startsLikeQuestion(q: string): boolean {
-  return /\?\s*$/.test(q) || QUESTION_WORD.test(q);
+  return /\?\s*$/.test(q) || QUESTION_WORD.test(q) || QUESTION_WORD_ES.test(q);
 }
 
 // A question shows the related passages first: the exact words of a question are a weak guide.

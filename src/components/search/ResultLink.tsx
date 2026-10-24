@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { track } from "@/analytics";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import type { Part } from "@/search/snippet";
 
 type Props = {
@@ -16,6 +18,7 @@ type Props = {
   paper: string;
   group: "exact" | "related";
   position: number;
+  lang?: Lang;
 };
 
 const Text = ({ parts }: { parts: Part[] }) => (
@@ -23,7 +26,8 @@ const Text = ({ parts }: { parts: Part[] }) => (
 );
 
 // One result: a snippet, the reference, and the paper. The text opens the paper at that paragraph.
-export function ResultLink({ href, parts, whole, close, reference, paper, group, position }: Props) {
+export function ResultLink({ href, parts, whole, close, reference, paper, group, position, lang = "en" }: Props) {
+  const t = messages(lang);
   const [open, setOpen] = useState(false);
   return (
     <div className="result">
@@ -33,7 +37,7 @@ export function ResultLink({ href, parts, whole, close, reference, paper, group,
       <footer>
         {reference}
         <span>{paper}</span>
-        {close && <i className="close">close match</i>}
+        {close && <i className="close">{t.searchClose}</i>}
         {whole && (
           <button
             type="button"
@@ -44,7 +48,7 @@ export function ResultLink({ href, parts, whole, close, reference, paper, group,
               setOpen(!open);
             }}
           >
-            {open ? "Show less" : "Read more"}
+            {open ? t.parShowLess : t.parReadMore}
           </button>
         )}
       </footer>

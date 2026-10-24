@@ -7,7 +7,7 @@ const pressed = vi.fn((event: Event) => event.preventDefault());
 // The header's search link. The shortcut presses it.
 const SearchLink = () => (
   <header className="site-header">
-    <a href="/search" onClick={(event) => pressed(event.nativeEvent)}>
+    <a className="search-link" href="/search" onClick={(event) => pressed(event.nativeEvent)}>
       Search
     </a>
   </header>

@@ -11,8 +11,8 @@ export function SearchShortcut() {
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable]") || document.querySelector("dialog[open]")) return;
       event.preventDefault();
-      if (window.location.pathname === "/search") document.querySelector<HTMLInputElement>('input[name="q"]')?.focus();
-      else document.querySelector<HTMLAnchorElement>('.site-header a[href="/search"]')?.click();
+      if (window.location.pathname === "/search" || window.location.pathname === "/es/buscar") document.querySelector<HTMLInputElement>('input[name="q"]')?.focus();
+      else document.querySelector<HTMLAnchorElement>(".site-header a.search-link")?.click();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
