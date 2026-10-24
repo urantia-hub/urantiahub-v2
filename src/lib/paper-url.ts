@@ -1,21 +1,24 @@
 const LAST_PAPER = 196;
 
 // Builds the same slugs as the live Hub, so no paper URL changes at cutover.
-export function slugify(id: string, title: string): string {
-  if (id === "0") return "foreword";
+// A Spanish slug is "prologo" or "documento-<id>-<title>", with the accents taken off.
+export function slugify(id: string, title: string, lang: "en" | "es" = "en"): string {
+  if (id === "0") return lang === "es" ? "prologo" : "foreword";
   const kebab = title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[’']/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return `paper-${id}-${kebab}`;
+  return `${lang === "es" ? "documento" : "paper"}-${id}-${kebab}`;
 }
 
 // The id alone decides the paper. The title part of a slug is not checked here.
 export function idFromSlug(slug: string): string | null {
   const lower = slug.toLowerCase();
-  if (lower === "foreword") return "0";
-  const match = /^(?:paper-)?(\d{1,3})(?:-.*)?$/.exec(lower);
+  if (lower === "foreword" || lower === "prologo") return "0";
+  const match = /^(?:paper-|documento-)?(\d{1,3})(?:-.*)?$/.exec(lower);
   if (!match) return null;
   const n = Number(match[1]);
   return n <= LAST_PAPER ? String(n) : null;

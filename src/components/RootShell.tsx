@@ -1,17 +1,16 @@
-import type { Metadata, Viewport } from "next";
 import { Inter, Literata } from "next/font/google";
 import { AccountSync } from "@/components/AccountSync";
-import { NoticeQuestion } from "@/components/notices/NoticeQuestion";
-import { StreakQuestion } from "@/components/streak/StreakQuestion";
 import { MarkMoment } from "@/components/marks/MarkMoment";
+import { NoticeQuestion } from "@/components/notices/NoticeQuestion";
+import { OfflineStrip } from "@/components/OfflineStrip";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { OfflineStrip } from "@/components/OfflineStrip";
+import { StreakQuestion } from "@/components/streak/StreakQuestion";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { TEXT_SIZE_INIT_SCRIPT } from "@/lib/text-size";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
-import { SHARE_IMAGE } from "@/seo/metadata";
-import { site } from "@/site";
-import "./globals.css";
+import "@/app/globals.css";
 
 // The optical-size axis gives large headings finer shapes.
 // Only the upright text face is on the path to the first paint, so only it is preloaded.
@@ -28,29 +27,14 @@ const literataItalic = Literata({
 });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap", preload: false });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(site.origin),
-  title: { default: "The Urantia Papers | UrantiaHub", template: "%s | UrantiaHub" },
-  // For a page that sets none of its own: search, the saved page, and the study page.
-  description: "Read the Urantia Papers: the full text of the foreword and all 196 papers, free and with no account.",
-  openGraph: { siteName: site.name, type: "website", locale: "en_US", images: [SHARE_IMAGE] },
-  twitter: { card: "summary_large_image", images: [SHARE_IMAGE] },
-  robots: site.indexable ? undefined : { index: false, follow: false },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#fbf8f2",
-  // The keyboard of Android shrinks the page, so a sheet at the bottom with a field sits above it.
-  interactiveWidget: "resizes-content",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// The <html> and <body> of both root layouts. A move between the two languages is a full page load.
+export function RootShell({ lang, children }: { lang: Lang; children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${literata.variable} ${literataItalic.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang={lang} className={`${literata.variable} ${literataItalic.variable} ${inter.variable}`} suppressHydrationWarning>
       <body>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT + TEXT_SIZE_INIT_SCRIPT }} />
         <a className="skip" href="#main">
-          Skip to the text
+          {messages(lang).skip}
         </a>
         <SiteHeader />
         <OfflineStrip />

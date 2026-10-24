@@ -53,6 +53,31 @@ describe("pageMetadata", () => {
   });
 });
 
+describe("pageMetadata in two languages", () => {
+  it("names the locale of the page", async () => {
+    const { pageMetadata } = await load("");
+    expect(pageMetadata({ title: "x", description: "x", path: "/papers" }).openGraph).toMatchObject({ locale: "en_US" });
+    expect(pageMetadata({ title: "x", description: "x", path: "/es", lang: "es" }).openGraph).toMatchObject({ locale: "es_LA" });
+  });
+  it("links the twin of a page only while Spanish is on", async () => {
+    const { pageMetadata } = await load("");
+    const input = { title: "x", description: "x", path: "/papers/foreword", twin: "/es/documentos/prologo" };
+    expect(pageMetadata(input).alternates?.languages).toBeUndefined();
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    expect(pageMetadata(input).alternates?.languages).toEqual({
+      en: "https://next.urantiahub.com/papers/foreword",
+      es: "https://next.urantiahub.com/es/documentos/prologo",
+      "x-default": "https://next.urantiahub.com/papers/foreword",
+    });
+    const es = pageMetadata({ ...input, path: "/es/documentos/prologo", twin: "/papers/foreword", lang: "es" });
+    expect(es.alternates?.languages).toEqual({
+      en: "https://next.urantiahub.com/papers/foreword",
+      es: "https://next.urantiahub.com/es/documentos/prologo",
+      "x-default": "https://next.urantiahub.com/papers/foreword",
+    });
+  });
+});
+
 describe("paperJsonLd", () => {
   it("describes the paper as an article with a breadcrumb", async () => {
     const { paperJsonLd } = await load("");
@@ -68,5 +93,17 @@ describe("paperJsonLd", () => {
     });
     expect(crumbs["@type"]).toBe("BreadcrumbList");
     expect(JSON.stringify(crumbs)).toContain("https://next.urantiahub.com/papers");
+  });
+});
+
+describe("paperJsonLd in Spanish", () => {
+  it("names the language and the Spanish address", async () => {
+    const { paperJsonLd } = await load("");
+    const [article] = paperJsonLd(
+      { id: "0", title: "Prólogo", partId: "0", slug: "prologo", sections: 12, paragraphs: 172 },
+      "x",
+      "es",
+    ) as Record<string, unknown>[];
+    expect(article).toMatchObject({ inLanguage: "es", url: "https://next.urantiahub.com/es/documentos/prologo" });
   });
 });
