@@ -44,7 +44,34 @@ test("the pager and the navigator speak Spanish", async ({ page }) => {
 test("the Spanish contents page lists the papers", async ({ page }) => {
   await page.goto("/es");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await expect(page.getByRole("link", { name: "1. El Padre Universal" })).toHaveAttribute("href", ES_PAPER_1);
+  await expect(page.getByRole("heading", { level: 1, name: "Documentos" })).toBeVisible();
+  await expect(page.getByText("Un prólogo y 196 documentos, en cuatro partes.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "1 El Padre Universal" })).toHaveAttribute("href", ES_PAPER_1);
+  await expect(page.getByText("Parte I · Documentos 1–31")).toBeVisible();
+  await expect(page.getByRole("contentinfo")).toContainText("UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia.");
+});
+
+// The place keeps the English title. A Spanish page names the section in Spanish, from its number.
+test("Continuar names the place in Spanish and opens the Spanish paper", async ({ page }) => {
+  await page.goto("/es");
+  await page.evaluate(() =>
+    window.localStorage.setItem("hub:last-read", JSON.stringify({ paperId: "1", sectionId: "1", label: "1. The Father’s Name", at: Date.now() })),
+  );
+  await page.reload();
+  const card = page.getByRole("link", { name: /Continuar/ });
+  await expect(card).toContainText("Documento 1 · 1. El nombre del Padre");
+  await card.click();
+  await expect(page).toHaveURL(`${ES_PAPER_1}#1:1`);
+});
+
+test("a Spanish address with no page answers 404 in Spanish", async ({ page }) => {
+  for (const path of ["/es/nada", "/es/documentos/documento-197-nada"]) {
+    const response = await page.goto(path);
+    expect(response?.status(), path).toBe(404);
+    await expect(page.locator("html")).toHaveAttribute("lang", "es");
+    await expect(page.getByRole("heading", { level: 1, name: "Página no encontrada" })).toBeVisible();
+    await expect(page.getByRole("main").getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es");
+  }
 });
 
 // Review Focus 1: a "* * *" has no Spanish row, so the page shows it as the API gives it.

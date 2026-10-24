@@ -31,6 +31,11 @@ export function nextAfter(paperId: string, sectionId: string): SectionEntry {
 // The order of a section in the book, for a comparison of two places.
 export const orderOf = (paperId: string, sectionId: string): number => place.get(`${paperId}:${sectionId}`) ?? -1;
 
+// The English title of each section of a paper, by its number. A Spanish page keeps the place in English.
+export function titlesOf(paperId: string): Record<string, string | null> {
+  return Object.fromEntries((papers[paperId] ?? []).map(([id, title]) => [id, title]));
+}
+
 // Minutes at a study pace of 100 words a minute.
 export const minutesOf = (words: number): number => Math.max(1, Math.ceil(words / 100));
 

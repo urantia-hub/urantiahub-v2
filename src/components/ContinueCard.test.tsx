@@ -33,3 +33,21 @@ describe("ContinueCard", () => {
     expect(link).toHaveTextContent("Foreword");
   });
 });
+
+describe("ContinueCard in each language", () => {
+  it("reads the Spanish title of the section on a Spanish page", async () => {
+    saveLastRead({ paperId: "1", sectionId: "1", label: "1. The Father’s Name" });
+    render(<ContinueCard lang="es" />);
+    const link = screen.getByRole("link", { name: /Continuar/ });
+    expect(link).toHaveAttribute("href", "/es/documentos/documento-1-el-padre-universal#1:1");
+    expect(link).toHaveTextContent("El Padre Universal");
+    expect(await screen.findByText("Documento 1 · 1. El nombre del Padre")).toBeInTheDocument();
+    expect(link).not.toHaveTextContent("Father");
+  });
+
+  it("reads the English title of the same place on an English page", () => {
+    saveLastRead({ paperId: "1", sectionId: "1", label: "1. The Father’s Name" });
+    render(<ContinueCard />);
+    expect(screen.getByRole("link", { name: /Continue/ })).toHaveTextContent("Paper 1 · 1. The Father’s Name");
+  });
+});

@@ -39,7 +39,7 @@ export function RootShell({ lang, children }: { lang: Lang; children: React.Reac
         <SiteHeader lang={lang} />
         <OfflineStrip lang={lang} />
         <main id="main">{children}</main>
-        <SiteFooter />
+        <SiteFooter lang={lang} />
         <AccountSync />
         <NoticeQuestion />
         <StreakQuestion />
