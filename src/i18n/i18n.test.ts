@@ -28,6 +28,12 @@ describe("counterpart", () => {
     expect(counterpart("/texts/quran/1?s=1#v2", "es")).toBe("/es");
     expect(counterpart("/es/nada", "en")).toBe("/");
   });
+  // Spanish has no pair page.
+  it("sends a pair page to the home page, and keeps a share page and its pick", () => {
+    expect(counterpart("/s/1.0.3/dhammapada/21?from=paper", "es")).toBe("/es");
+    expect(counterpart("/s/1.0.3?x=1", "es")).toBe("/es/s/1.0.3?x=1");
+    expect(counterpart("/es/s/1.0.3/2", "en")).toBe("/s/1.0.3/2");
+  });
   it("keeps the words of a search", () => {
     expect(counterpart("/es/buscar?q=fe", "en")).toBe("/search?q=fe");
     expect(counterpart("/search?q=faith", "es")).toBe("/es/buscar?q=faith");

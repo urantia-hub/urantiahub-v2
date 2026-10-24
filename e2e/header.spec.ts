@@ -113,4 +113,26 @@ test("the pair page has the header with its way back", async ({ page }) => {
   await page.goto(PAIR);
   await expect(page.locator(".site-header .header-start .hdr-back")).toBeVisible();
   await expect(page.locator(".site-header nav [data-slot]")).toHaveCount(4);
+  // Spanish has no pair page: the pill goes to the Spanish home.
+  await page.getByRole("button", { name: "Language: English" }).click();
+  await page.getByRole("dialog", { name: "Language" }).getByRole("radio", { name: /^Español/ }).click();
+  await expect(page).toHaveURL(/\/es(\/documentos)?$/);
+  await expect(page.getByText("Página no encontrada")).toHaveCount(0);
+});
+
+test.describe("on a phone of 390 px", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  test("the longest way back is cut with an ellipsis, and no item overlaps", async ({ page, context }) => {
+    await asReader(context);
+    await signIn(page);
+    await page.goto(LONGEST_BACK);
+    await still(page);
+    const label = page.locator(".site-header .hdr-back span");
+    expect(await label.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+    const boxes = await page.locator(".site-header :is(.brand, .hdr-back, nav [data-slot])").evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect()).map(({ left, right }) => ({ left, right })),
+    );
+    for (const box of boxes) expect(box.right).toBeLessThanOrEqual(390);
+    for (let i = 1; i < boxes.length; i++) expect(boxes[i].left).toBeGreaterThanOrEqual(boxes[i - 1].right);
+  });
 });

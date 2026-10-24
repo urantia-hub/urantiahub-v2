@@ -43,7 +43,8 @@ export function counterpart(pathname: string, to: Lang): string {
     const id = idFromSlug(paper[1]);
     if (id !== null) return `${paperHref(to, Number(id))}${tail}`;
   }
-  const share = from === "es" ? /^\/es(\/s\/.+)$/.exec(path) : /^(\/s\/.+)$/.exec(path);
+  // A share page and its pick only: a pair page has more segments, and Spanish has none.
+  const share = from === "es" ? /^\/es(\/s\/[^/]+(?:\/[^/]+)?)$/.exec(path) : /^(\/s\/[^/]+(?:\/[^/]+)?)$/.exec(path);
   if (share) return `${to === "es" ? "/es" : ""}${share[1]}${tail}`;
   if (path === (from === "es" ? "/es/buscar" : "/search")) return `${searchHref(to)}${tail}`;
   if (path === savedHref(from)) return `${savedHref(to)}${tail}`;
