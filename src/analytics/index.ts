@@ -98,12 +98,12 @@ type Cut = (text: string) => string;
 // page, whose address can name one paragraph: /saved?ref=1:0.3. And for the Emails page, whose address
 // holds the proof that turns an email off for one reader: /emails?off=...
 const cutSearchText: Cut = (text) =>
-  text.replace(/\/(search|buscar|saved|parallels|emails)\?[^#\s]*/g, "/$1").replace(/%2F(search|buscar|saved|parallels|emails)%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2F$1");
+  text.replace(/\/(search|buscar|saved|guardados|parallels|emails)\?[^#\s]*/g, "/$1").replace(/%2F(search|buscar|saved|guardados|parallels|emails)%3F(?:[^&#\s%]|%(?!26|23))*/gi, "%2F$1");
 
 // The address of a paper can name a paragraph after "#". A count of a saved thing holds the paper only.
 // The same for the parallels of a paragraph: their events promise no reference.
 const SAVED_EVENTS = new Set(["bookmark_added", "bookmark_removed", "note_saved", "note_deleted", "parallels_opened", "parallels_tab", "parallels_weaker_shown", "parallels_nearby_shown", "parallel_opened", "image_opened", "image_made", "assistant_asked"]);
-const cutParagraph: Cut = (text) => cutSearchText(text).replace(/(\/papers\/[^#\s?]*(?:\?[^#\s]*)?)#[^\s]*/g, "$1");
+const cutParagraph: Cut = (text) => cutSearchText(text).replace(/(\/(?:papers|es\/documentos)\/[^#\s?]*(?:\?[^#\s]*)?)#[^\s]*/g, "$1");
 
 function scrubValue(value: unknown, cut: Cut): unknown {
   if (typeof value === "string") return cut(value);

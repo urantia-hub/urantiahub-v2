@@ -243,6 +243,17 @@ describe("analytics", () => {
     expect(scrubSearchText({ event: "$pageview", properties: { $current_url: address } }).properties.$current_url).toBe(address);
   });
 
+  // The Spanish pages name a paragraph in the same places: /es/guardados?ref= and /es/documentos/...#ref.
+  it("cuts the paragraph from the Spanish saved page and the Spanish paper", async () => {
+    const { scrubSearchText } = await import("./index");
+    const saved = scrubSearchText({ event: "$pageview", properties: { $current_url: "https://www.urantiahub.com/es/guardados?ref=1%3A0.3", $referrer: "https%3A%2F%2Fwww.urantiahub.com%2Fes%2Fguardados%3Fref%3D1%3A0.3" } });
+    expect(saved.properties.$current_url).toBe("https://www.urantiahub.com/es/guardados");
+    expect(JSON.stringify(saved)).not.toContain("0.3");
+    const address = "https://www.urantiahub.com/es/documentos/documento-1-el-padre-universal#1:0.3";
+    const out = scrubSearchText({ event: "bookmark_added", properties: { $current_url: address, paper_id: "1" } });
+    expect(out.properties.$current_url).toBe("https://www.urantiahub.com/es/documentos/documento-1-el-padre-universal");
+  });
+
   it("gives PostHog that rule at the start", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     const { initAnalytics } = await import("./index");
