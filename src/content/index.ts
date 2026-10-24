@@ -18,11 +18,11 @@ export async function getPaper(id: string, lang: Lang = "en"): Promise<PaperDoc>
   return fetchPaper(client, id, lang);
 }
 
-export async function getPassage(ref: string): Promise<Passage> {
+export async function getPassage(ref: string, lang: Lang = "en"): Promise<Passage> {
   "use cache";
   cacheLife("weeks");
   cacheTag("passages");
-  return fetchPassage(client, ref);
+  return fetchPassage(client, ref, lang);
 }
 
 // The text of each paragraph of one paper, from the shared cache. The terms address needs one paragraph for

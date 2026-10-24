@@ -30,3 +30,29 @@ export const HOME_PASSAGES: readonly HomePassage[] = [
     clause: true,
   },
 ];
+
+// The same passages in Spanish, cut from the Spanish paragraph to the same meaning. Kelson approves each one.
+export const HOME_PASSAGES_ES: readonly HomePassage[] = [
+  {
+    ref: "99:1.1",
+    text: "Los inventos mecánicos y la difusión del conocimiento están modificando la civilización; ciertos ajustes económicos y cambios sociales son imperativos si se quiere evitar un desastre cultural.",
+  },
+  {
+    ref: "99:1.1",
+    text: "La raza humana debe reconciliarse con una sucesión de cambios, ajustes y reajustes. La humanidad está en marcha hacia un destino planetario nuevo y no revelado.",
+  },
+  {
+    ref: "92:7.14",
+    text: "El hombre moderno se enfrenta a la tarea de hacer más reajustes de los valores humanos en una sola generación que los que se han hecho en dos mil años.",
+  },
+  {
+    ref: "12:7.9",
+    text: "El amor del Padre individualiza de manera absoluta a cada personalidad como un hijo único del Padre Universal, un hijo sin duplicado en la infinitud, una criatura volitiva irreemplazable en toda la eternidad.",
+  },
+  { ref: "15:14.9" },
+  {
+    ref: "111:7.1",
+    text: "La incertidumbre con seguridad es la esencia de la aventura del Paraíso",
+    clause: true,
+  },
+];

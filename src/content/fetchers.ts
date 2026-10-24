@@ -113,7 +113,7 @@ export type Passage = { ref: string; paperId: string; paperTitle: string; text: 
 // The part of the SDK client that the gateway uses. Results are unknown until validated.
 export type ContentClient = {
   papers: { get(id: string, options?: { lang: "es" }): Promise<unknown> };
-  paragraphs: { get(ref: string): Promise<unknown> };
+  paragraphs: { get(ref: string, options?: { lang: "es" }): Promise<unknown> };
 };
 
 export async function fetchPaper(client: ContentClient, id: string, lang: "en" | "es" = "en"): Promise<PaperDoc> {
@@ -150,8 +150,8 @@ export async function fetchPaper(client: ContentClient, id: string, lang: "en" |
 
 const SENTENCE_END = /[.?!][”"’']?$/;
 const AFTER_SENTENCE = /[.?!][”"’']?\s+$/;
-// What follows a clause in the source: a semicolon, or a space and a dash.
-const CLAUSE_BREAK = /^(?:;|\s[—–])/;
+// What follows a clause in the source: a semicolon, or a dash (the Spanish text has no space before it).
+const CLAUSE_BREAK = /^(?:;|\s?[—–])/;
 
 export type Excerpt = { text?: string; clause?: boolean };
 
@@ -182,10 +182,10 @@ export function excerptPassage(passage: Passage, { text, clause = false }: Excer
   );
 }
 
-export async function fetchPassage(client: ContentClient, ref: string): Promise<Passage> {
+export async function fetchPassage(client: ContentClient, ref: string, lang: "en" | "es" = "en"): Promise<Passage> {
   let raw: unknown;
   try {
-    raw = await client.paragraphs.get(ref);
+    raw = lang === "es" ? await client.paragraphs.get(ref, { lang: "es" }) : await client.paragraphs.get(ref);
   } catch (cause) {
     throw new ContentError(`Passage ${ref}: the content API request failed`, cause);
   }
