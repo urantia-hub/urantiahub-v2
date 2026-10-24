@@ -76,9 +76,9 @@ export async function textsImage(kicker: string, names: readonly string[]): Prom
   );
 }
 
-// The image of a shared paragraph: the words, the mark with "The Urantia Papers", and the reference.
+// The image of a shared paragraph: the words, the mark with the name of the Papers, and the reference.
 // The type is smaller for more words, and a long text is cut at a word.
-export async function sharedImage(words: string, ref: string): Promise<ImageResponse> {
+export async function sharedImage(words: string, ref: string, lang: "en" | "es" = "en"): Promise<ImageResponse> {
   const font = await readFont();
   const text = cutWords(words, 300);
   const size = text.length < 90 ? 66 : text.length <= 190 ? 50 : 41;
@@ -88,7 +88,7 @@ export async function sharedImage(words: string, ref: string): Promise<ImageResp
         <div style={{ fontSize: size, lineHeight: 1.4 }}>{text}</div>
         <div style={{ display: "flex", alignItems: "center", fontSize: 30, color: "#8b8375", marginTop: 44 }}>
           <SiteMark size={40} />
-          The Urantia Papers
+          {lang === "es" ? "Los Documentos de Urantia" : "The Urantia Papers"}
           <div style={{ marginLeft: "auto", color: "#756d5f" }}>{ref}</div>
         </div>
       </div>

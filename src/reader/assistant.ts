@@ -1,3 +1,5 @@
+import type { Lang } from "@/i18n/lang";
+
 // "Ask an assistant": the reader's own assistant gets a question about a paragraph or a paper. The Hub
 // calls no model and pays for none. It writes the question and opens the assistant with it.
 
@@ -32,6 +34,28 @@ export const PAPER_QUESTIONS: readonly string[] = [
   "Make a visual of the ideas of this paper, in the form that you think is best.",
 ];
 
+// Spanish copy: the paragraph questions are the five of the mock (2026-10-23), the paper questions are in
+// the same voice.
+const PARAGRAPH_QUESTIONS_ES: readonly string[] = [
+  "Explica este párrafo con palabras sencillas.",
+  "¿Qué significan los términos poco comunes de aquí?",
+  "¿En qué otras partes hablan los Documentos de esto?",
+  "¿Cómo hablan otras tradiciones de esta idea?",
+  "Haz un esquema visual de estas ideas, en la forma que te parezca mejor.",
+];
+const PAPER_QUESTIONS_ES: readonly string[] = [
+  "Dame la versión breve de este documento.",
+  "Guíame por este documento, sección por sección.",
+  "¿Qué ideas de aquí son difíciles, y qué significan?",
+  "Dame cinco preguntas para un grupo de estudio.",
+  "Haz un esquema visual de las ideas de este documento, en la forma que te parezca mejor.",
+];
+
+export function questionsFor(about: "paragraph" | "paper", lang: Lang): readonly string[] {
+  if (about === "paragraph") return lang === "es" ? PARAGRAPH_QUESTIONS_ES : PARAGRAPH_QUESTIONS;
+  return lang === "es" ? PAPER_QUESTIONS_ES : PAPER_QUESTIONS;
+}
+
 export type Before = { ref: string; text: string };
 type Paper = { id: string; title: string };
 
@@ -53,29 +77,59 @@ export function contextWithin(before: readonly Before[], room: number = CONTEXT_
 }
 
 const API = "https://api.urantia.dev";
-const paperLine = (paper: Paper) => (paper.id === "0" ? `"${paper.title}"` : `Paper ${paper.id}, "${paper.title}"`);
 
-// Where the assistant finds more than the question holds, in one sentence. The connector first; one
-// public reading address for an assistant with none, and the list of all of them. Never one of an account.
-const more = (what: string, address: string, example: string) =>
-  `For more, use the Urantia Papers connector if you have it. If not, ${what} at ${address} (all addresses: ${API}/openapi.json). Cite paragraphs by reference, such as ${example}.`;
+// The fixed words of a question, in each language.
+const WORDS = {
+  en: {
+    papers: "The Urantia Papers",
+    paper: (id: string) => `Paper ${id}`,
+    section: "section",
+    opening: "the opening of the paper",
+    before: "Before it, for context:",
+    asking: "I ask about this paragraph:",
+    onHub: "On UrantiaHub:",
+    more: (what: string, address: string, example: string) =>
+      `For more, use the Urantia Papers connector if you have it. If not, ${what} at ${address} (all addresses: ${API}/openapi.json). Cite paragraphs by reference, such as ${example}.`,
+    paragraphPublic: "the paragraph with its terms and its parallels is public",
+    paperPublic: "the whole paper is public",
+  },
+  es: {
+    papers: "Los Documentos de Urantia",
+    paper: (id: string) => `Documento ${id}`,
+    section: "sección",
+    opening: "la apertura del documento",
+    before: "Antes, como contexto:",
+    asking: "Pregunto por este párrafo:",
+    onHub: "En UrantiaHub:",
+    more: (what: string, address: string, example: string) =>
+      `Para más, usa el conector de los Documentos de Urantia si lo tienes. Si no, ${what} en ${address} (todas las direcciones: ${API}/openapi.json). Cita los párrafos por su referencia, como ${example}.`,
+    paragraphPublic: "el párrafo con sus términos y sus paralelos es público",
+    paperPublic: "el documento entero es público",
+  },
+} as const;
 
-type ParagraphAsk = { question: string; paper: Paper; section: { id: string; title: string | null } | null; before: readonly Before[]; ref: string; text: string; link: string };
+const paperLine = (paper: Paper, lang: Lang) => (paper.id === "0" ? `"${paper.title}"` : `${WORDS[lang].paper(paper.id)}, "${paper.title}"`);
+// The API gives the Spanish text with `lang=es`.
+const langQuery = (lang: Lang, joiner: "?" | "&") => (lang === "es" ? `${joiner}lang=es` : "");
+
+type ParagraphAsk = { question: string; paper: Paper; section: { id: string; title: string | null } | null; before: readonly Before[]; ref: string; text: string; link: string; lang?: Lang };
 
 // Short on purpose (Kelson, 2026-10-12): the question, where the paragraph is, the nearest paragraphs
 // before it, the paragraph, and one sentence on where more is.
-export function paragraphPrompt({ question, paper, section, before, ref, text, link }: ParagraphAsk): string {
+export function paragraphPrompt({ question, paper, section, before, ref, text, link, lang = "en" }: ParagraphAsk): string {
+  const w = WORDS[lang];
   const { kept } = contextWithin(before);
-  const place = section ? `section ${section.id}${section.title ? `, "${section.title}"` : ""}` : "the opening of the paper";
-  const parts = [question, `The Urantia Papers, ${paperLine(paper)}, ${place}.`];
-  if (kept.length > 0) parts.push(`Before it, for context:\n${kept.map((one) => `${one.ref} ${one.text}`).join("\n\n")}`);
-  parts.push(`I ask about this paragraph:\n${ref} ${text}`, `On UrantiaHub: ${link}`);
-  parts.push(more("the paragraph with its terms and its parallels is public", `${API}/paragraphs/${ref}?include=entities,urantiaParallels,bibleParallels,scriptureParallels`, ref));
+  const place = section ? `${w.section} ${section.id}${section.title ? `, "${section.title}"` : ""}` : w.opening;
+  const parts = [question, `${w.papers}, ${paperLine(paper, lang)}, ${place}.`];
+  if (kept.length > 0) parts.push(`${w.before}\n${kept.map((one) => `${one.ref} ${one.text}`).join("\n\n")}`);
+  parts.push(`${w.asking}\n${ref} ${text}`, `${w.onHub} ${link}`);
+  parts.push(w.more(w.paragraphPublic, `${API}/paragraphs/${ref}?include=entities,urantiaParallels,bibleParallels,scriptureParallels${langQuery(lang, "&")}`, ref));
   return parts.join("\n\n");
 }
 
-export function paperPrompt({ question, paper, link }: { question: string; paper: Paper; link: string }): string {
-  return [question, `The Urantia Papers, ${paperLine(paper)}.\nOn UrantiaHub: ${link}`, more("the whole paper is public", `${API}/papers/${paper.id}`, `${paper.id}:0.1`)].join("\n\n");
+export function paperPrompt({ question, paper, link, lang = "en" }: { question: string; paper: Paper; link: string; lang?: Lang }): string {
+  const w = WORDS[lang];
+  return [question, `${w.papers}, ${paperLine(paper, lang)}.\n${w.onHub} ${link}`, w.more(w.paperPublic, `${API}/papers/${paper.id}${langQuery(lang, "?")}`, `${paper.id}:0.1`)].join("\n\n");
 }
 
 // True when the question can go in the address. If not, the reader pastes it.

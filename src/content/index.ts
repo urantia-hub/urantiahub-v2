@@ -46,19 +46,19 @@ export async function getParagraphText(paperId: string, ref: string, lang: Lang 
 // The passages that are near in meaning to one paragraph. The API computes them ahead of time, so the
 // answer is kept for weeks in the store that all server instances share. The check for a missing
 // paragraph is outside the cached call, as for the terms.
-export async function getParallels(ref: string): Promise<RawParallels> {
-  await getParagraphText(ref.split(":")[0], ref);
-  return cachedParallels(ref);
+export async function getParallels(ref: string, lang: Lang = "en"): Promise<RawParallels> {
+  await getParagraphText(ref.split(":")[0], ref, lang);
+  return cachedParallels(ref, lang);
 }
 
 // The parallels of a paragraph that the code names, not a reader, so the check for a missing paragraph is not needed.
 export const getNamedParallels = (ref: string): Promise<RawParallels> => cachedParallels(ref);
 
-async function cachedParallels(ref: string): Promise<RawParallels> {
+async function cachedParallels(ref: string, lang: Lang = "en"): Promise<RawParallels> {
   "use cache: remote";
   cacheLife("weeks");
   cacheTag("parallels");
-  return fetchParallels(client, ref);
+  return fetchParallels(client, ref, lang);
 }
 
 // Each text that the API compares with the Papers. The list changes only when the API gets a new text.

@@ -15,7 +15,7 @@ import { Sheet } from "@/components/reader/Sheet";
 import { TermsSheet } from "@/components/reader/TermsSheet";
 import { isSounding, nextPick, pillJob, roundIntent, type DockInput } from "@/reader/dock-state";
 import { saveLastRead } from "@/reader/last-read";
-import { ASK_PAPER_EVENT, PAPER_QUESTIONS, PARAGRAPH_QUESTIONS, paperPrompt, paragraphPrompt, type Before } from "@/reader/assistant";
+import { ASK_PAPER_EVENT, paperPrompt, paragraphPrompt, questionsFor, type Before } from "@/reader/assistant";
 import { sharedFromAddress, sharePath } from "@/reader/share-link";
 import { clearSentence, markSentence, sentenceBox, sentenceMove } from "@/reader/voice-mark";
 import { clearVoicePlace, readVoicePlace, saveVoicePlace, subscribeToVoicePlace } from "@/reader/voice-place";
@@ -24,6 +24,7 @@ import { noteParagraphs } from "@/streak/client";
 import { Navigator } from "./Navigator";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
+import { EnglishOriginal } from "@/components/reader/EnglishOriginal";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
 // Only a signed-in reader opens the notes, so their code loads at the first use.
@@ -110,6 +111,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const saved = useSyncExternalStore(subscribeToSaved, savedState, noSaved);
   const [termsOpen, setTermsOpen] = useState(false);
+  // The paragraph that shows its English original (Spanish pages only).
+  const [origFor, setOrigFor] = useState<string | null>(null);
   const [parallelsOpen, setParallelsOpen] = useState(false);
   const termsOpenRef = useRef(false);
   const panelRef = useRef(false);
@@ -410,6 +413,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
         setPanel("notes");
         return;
       }
+      // A press inside the English original does not mark its paragraph.
+      if (target.closest(".orig")) return;
       // The reference is a real link for a reader with no JavaScript. Here it acts as a tap.
       if (target.closest("a.ref")) event.preventDefault();
       else if (target.closest("a")) return;
@@ -911,7 +916,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       )}
 
       {panel === "more" && picked && (
-        <Sheet label="More" onClose={closePanel}>
+        <Sheet label={t.more} onClose={closePanel}>
           {/* The action that a reader uses most is at the end, near the thumb. */}
           <button
             type="button"
@@ -922,7 +927,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             }}
           >
             <Icon name="image" />
-            Make an image
+            {t.makeImage}
           </button>
           <button
             type="button"
@@ -946,16 +951,29 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             }}
           >
             <Icon name="parallels" />
-            Parallels
+            {t.parallelsRow}
           </button>
           <button type="button" className="panel-line" onClick={() => setPanel("assistant")}>
             <Icon name="ask" />
-            Ask an assistant
+            {t.askRow}
           </button>
           <button type="button" className="panel-line" onClick={onCopyText}>
             <Icon name="copy" />
-            Copy the text
+            {t.copyRow}
           </button>
+          {lang === "es" && (
+            <button
+              type="button"
+              className="panel-line"
+              onClick={() => {
+                setOrigFor(picked);
+                setPanel(null);
+              }}
+            >
+              <Icon name="globe" />
+              {t.seeEnglish}
+            </button>
+          )}
         </Sheet>
       )}
       {panel === "assistant" && picked && (
@@ -963,13 +981,14 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           <AskSheet
             key={picked}
             about="paragraph"
-            label={`About paragraph ${picked}.`}
+            label={t.askAboutParagraph(picked)}
             paperId={paper.id}
-            questions={PARAGRAPH_QUESTIONS}
+            questions={questionsFor("paragraph", lang)}
+            lang={lang}
             build={(question) => {
               const sectionId = picked.split(":")[1]?.split(".")[0] ?? "0";
               const section = sectionId === "0" ? null : (sections.find((one) => one.id === sectionId) ?? null);
-              return paragraphPrompt({ question, paper, section, before: paragraphsBefore(picked), ref: picked, text: paragraphText(picked), link: `${window.location.origin}${sharePath(picked, new Set(), [])}` });
+              return paragraphPrompt({ question, paper, section, before: paragraphsBefore(picked), ref: picked, text: paragraphText(picked), link: `${window.location.origin}${sharePath(picked, new Set(), [], lang)}`, lang });
             }}
             onClose={closePanel}
           />
@@ -979,10 +998,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
         <Suspense fallback={null}>
           <AskSheet
             about="paper"
-            label={`About ${paper.id === "0" ? `the ${paper.title}` : `Paper ${paper.id}, ${paper.title}`}.`}
+            label={t.askAboutPaper(paper.id, paper.title)}
             paperId={paper.id}
-            questions={PAPER_QUESTIONS}
-            build={(question) => paperPrompt({ question, paper, link: `${window.location.origin}${window.location.pathname}` })}
+            questions={questionsFor("paper", lang)}
+            lang={lang}
+            build={(question) => paperPrompt({ question, paper, link: `${window.location.origin}${window.location.pathname}`, lang })}
             onClose={() => {
               setPaperAsk(false);
               window.requestAnimationFrame(() => document.querySelector<HTMLElement>(".ask-paper")?.focus({ preventScroll: true }));
@@ -992,7 +1012,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       )}
       {panel === "image" && picked && (
         <Suspense fallback={null}>
-          <ImageSheet key={picked} reference={picked} paperId={paper.id} text={paragraphText(picked)} start={imageStart} onClose={closePanel} />
+          <ImageSheet key={picked} reference={picked} paperId={paper.id} text={paragraphText(picked)} start={imageStart} onClose={closePanel} lang={lang} />
         </Suspense>
       )}
       {panel === "share" && picked && (
@@ -1003,6 +1023,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             paperTitle={paper.title}
             text={paragraphText(picked)}
             onClose={closePanel}
+            lang={lang}
             onCopied={() => {
               closePanel();
               say(t.linkCopied);
@@ -1034,6 +1055,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           </div>
         </Sheet>
       )}
+      {origFor && <EnglishOriginal key={origFor} reference={origFor} onHide={() => setOrigFor(null)} />}
       {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} lang={lang} onClose={closeTerms} />}
       {parallelsOpen && picked && (
         <Suspense fallback={null}>
@@ -1041,6 +1063,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             reference={picked}
             paperId={paper.id}
             onClose={closeTerms}
+            lang={lang}
             // A passage of this paper: the list goes, and the mark moves to the paragraph that opens.
             onGo={(reference) => {
               if (!document.getElementById(reference)) return;

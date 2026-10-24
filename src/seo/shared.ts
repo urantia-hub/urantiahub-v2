@@ -1,6 +1,7 @@
 import "server-only";
 import { getParagraphText, ParagraphNotFound } from "@/content";
 import { paperById, paperPath } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
 import { units } from "@/image/compose";
 import { isCode, parseUnitCode, refForLink, refFromLink, unitCode, unitWords } from "@/reader/share-link";
 
@@ -16,20 +17,20 @@ export type Shared = {
 
 // What a shared link names. `go` is the one right address of a link in another form, and null is a link
 // to a paragraph that the Papers do not have.
-export async function sharedPassage(refPart: string, pickPart?: string): Promise<Shared | { go: string } | null> {
+export async function sharedPassage(refPart: string, pickPart?: string, lang: Lang = "en"): Promise<Shared | { go: string } | null> {
   // The form with a colon arrives with its escape.
   const ref = refFromLink(refPart.replace(/%3A/i, ":"));
-  const paper = ref ? paperById(ref.split(":")[0]) : undefined;
+  const paper = ref ? paperById(ref.split(":")[0], lang) : undefined;
   // A part that is not a code is no link of one paragraph: a pair has three parts or more.
   if (!ref || !paper || (pickPart !== undefined && !isCode(pickPart))) return null;
   let text: string;
   try {
-    text = await getParagraphText(paper.id, ref);
+    text = await getParagraphText(paper.id, ref, lang);
   } catch (error) {
     if (error instanceof ParagraphNotFound) return null;
     throw error;
   }
-  const whole = `/s/${refForLink(ref)}`;
+  const whole = `${lang === "es" ? "/es" : ""}/s/${refForLink(ref)}`;
   const all = units(text);
   const chosen = pickPart === undefined ? new Set<number>() : parseUnitCode(pickPart, all);
   // A choice that this paragraph does not have: the link is for the whole paragraph.
@@ -37,5 +38,5 @@ export async function sharedPassage(refPart: string, pickPart?: string): Promise
   const code = unitCode(chosen, all);
   const path = code ? `${whole}/${code}` : whole;
   if (refForLink(ref) !== refPart) return { go: path };
-  return { ref, paperTitle: paper.title, words: unitWords(text, chosen), path, target: `${paperPath(paper.id)}${code ? `?s=${code}` : ""}#${ref}` };
+  return { ref, paperTitle: paper.title, words: unitWords(text, chosen), path, target: `${paperPath(paper.id, lang)}${code ? `?s=${code}` : ""}#${ref}` };
 }

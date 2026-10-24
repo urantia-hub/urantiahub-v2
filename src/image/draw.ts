@@ -1,4 +1,5 @@
 import { BOOKMARK_PATH } from "@/brand/BookmarkMark";
+import type { Lang } from "@/i18n/lang";
 import { fit, type Measure } from "./compose";
 
 // The image of one paragraph: 4 by 5, the form of a post in a feed.
@@ -38,7 +39,12 @@ export const fits = (text: string, measure: Measure): boolean => fit(text, ROOM,
 export const fitsWell = (text: string, measure: Measure): boolean => fit(text, EASY, measure) !== null;
 
 /** Draws the image. False when the text does not fit: the canvas then shows the frame with no text. */
-export function draw(canvas: HTMLCanvasElement, fonts: Fonts, look: Look, reference: string, text: string): boolean {
+// The source line at the top of the image, in the language of the page.
+export function sourceLine(reference: string, lang: Lang): string {
+  return `${lang === "es" ? "Los Documentos de Urantia" : "The Urantia Papers"} · ${reference}`.toUpperCase();
+}
+
+export function draw(canvas: HTMLCanvasElement, fonts: Fonts, look: Look, reference: string, text: string, lang: Lang = "en"): boolean {
   const context = canvas.getContext("2d");
   if (!context) return false;
   canvas.width = WIDTH;
@@ -52,7 +58,7 @@ export function draw(canvas: HTMLCanvasElement, fonts: Fonts, look: Look, refere
   context.globalAlpha = 0.62;
   context.font = `600 25px ${fonts.ui}`;
   if ("letterSpacing" in context) context.letterSpacing = "4px";
-  context.fillText(`THE URANTIA PAPERS · ${reference}`.toUpperCase(), SIDE, 150);
+  context.fillText(sourceLine(reference, lang), SIDE, 150);
   if ("letterSpacing" in context) context.letterSpacing = "0px";
   context.globalAlpha = 1;
 

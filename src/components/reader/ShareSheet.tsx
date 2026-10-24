@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { track } from "@/analytics";
 import { BOOKMARK_PATH } from "@/brand/BookmarkMark";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { units } from "@/image/compose";
 import { hasShareSheet, shareParagraph } from "@/reader/share";
 import { cutWords, sharePath, unitWords } from "@/reader/share-link";
@@ -18,15 +20,16 @@ type Props = {
   // The link is in the clipboard. The controls of the paper say so.
   onCopied: () => void;
   onImage: (chosen: ReadonlySet<number>) => void;
+  lang?: Lang;
 };
 
 // A link to one paragraph, or to the sentences of it that the reader chose. The card below the sentences
 // is what a chat app shows for the link, and it changes with the choice.
-export default function ShareSheet({ reference, paperTitle, text, onClose, onCopied, onImage }: Props) {
+export default function ShareSheet({ reference, paperTitle, text, onClose, onCopied, onImage, lang = "en" }: Props) {
+  const t = messages(lang);
   const all = useMemo(() => units(text), [text]);
   // A text with a clause names its parts; a text of whole sentences names sentences, as before.
   const clauses = all.some((u) => !u.first || !u.last);
-  const word = clauses ? "parts" : "sentences";
   const [chosen, setChosen] = useState<ReadonlySet<number>>(new Set());
   const [note, setNote] = useState<string | null>(null);
   const [withSheet] = useState(hasShareSheet);
@@ -34,7 +37,7 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
   const whole = chosen.size === 0 || chosen.size >= all.length;
   const words = unitWords(text, chosen);
   const shown = cutWords(words, 300);
-  const path = sharePath(reference, chosen, all);
+  const path = sharePath(reference, chosen, all, lang);
   const title = `${reference} · ${paperTitle}`;
   const host = window.location.host.replace(/^www\./, "");
 
@@ -50,7 +53,7 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
     const method = await shareParagraph({ title, url: `${window.location.origin}${path}` }, navigator, sheet);
     if (method === "none") {
       // The reader closed the share sheet of the device, or the browser refused the clipboard.
-      if (!sheet) setNote("The link did not copy. Select the address above, then copy it.");
+      if (!sheet) setNote(t.shareFailed);
       return;
     }
     track("paragraph_shared", { ref: reference, method, part: !whole });
@@ -64,24 +67,24 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
       <div className="share-acts">
         <button type="button" className={`panel-button${withSheet ? "" : " dark"}`} onClick={() => void send(false)}>
           <Icon name="copy" />
-          Copy link
+          {t.shareCopy}
         </button>
         {withSheet && (
           <button type="button" className="panel-button dark" onClick={() => void send(true)}>
             <Icon name="share" />
-            Share link
+            {t.shareSend}
           </button>
         )}
       </div>
       <button type="button" className="share-third" onClick={() => onImage(whole ? new Set() : chosen)}>
-        Make an image of these words
+        {t.shareImage}
       </button>
     </>
   );
   return (
-    <Sheet label={`Share ${reference}`} onClose={onClose} className="share" close foot={foot}>
-      <h2>Share {reference}</h2>
-      <p className="share-sub">{all.length > 1 ? `Press each ${clauses ? "part" : "sentence"} that you want. With none chosen, the link is for the whole paragraph.` : "The link opens this paragraph in its paper."}</p>
+    <Sheet label={t.shareTitle(reference)} onClose={onClose} className="share" close foot={foot}>
+      <h2>{t.shareTitle(reference)}</h2>
+      <p className="share-sub">{all.length > 1 ? t.sharePick(clauses) : t.shareOne}</p>
       <div className="share-cols">
         {all.length > 1 && (
           <div>
@@ -95,17 +98,17 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
               </p>
             </div>
             <div className="share-count">
-              <span role="status">{whole ? "The whole paragraph" : `${chosen.size} of ${all.length} ${word}`}</span>
+              <span role="status">{whole ? t.shareWhole : t.shareCount(chosen.size, all.length, clauses)}</span>
               {chosen.size > 0 && (
                 <button type="button" onClick={() => setChosen(new Set())}>
-                  Whole paragraph
+                  {t.shareWholeButton}
                 </button>
               )}
             </div>
           </div>
         )}
         <div>
-          <p className="share-label">How the link looks</p>
+          <p className="share-label">{t.shareLooks}</p>
           <div className="share-card">
             {/* The picture of the link is light in each theme: it is one file for each chat app. */}
             <div className="share-og" data-size={shown.length < 90 ? "s" : shown.length <= 190 ? "m" : "l"}>
@@ -115,7 +118,7 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
                   <rect width="64" height="64" rx="13" />
                   <path d={BOOKMARK_PATH} />
                 </svg>
-                The Urantia Papers<span>{reference}</span>
+                {t.thePapers}<span>{reference}</span>
               </div>
             </div>
             <div className="share-meta">

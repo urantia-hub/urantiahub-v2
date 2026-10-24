@@ -161,3 +161,10 @@ describe("a long code", () => {
     expect(parseUnitCode(code, all)?.size).toBe(200);
   });
 });
+
+describe("sharePath in Spanish", () => {
+  it("puts a link made on a Spanish page under /es/s/", () => {
+    expect(sharePath("1:0.1", new Set(), [], "es")).toBe("/es/s/1.0.1");
+    expect(sharePath("1:0.1", new Set(), [])).toBe("/s/1.0.1");
+  });
+});
