@@ -36,8 +36,8 @@ export function RootShell({ lang, children }: { lang: Lang; children: React.Reac
         <a className="skip" href="#main">
           {messages(lang).skip}
         </a>
-        <SiteHeader />
-        <OfflineStrip />
+        <SiteHeader lang={lang} />
+        <OfflineStrip lang={lang} />
         <main id="main">{children}</main>
         <SiteFooter />
         <AccountSync />

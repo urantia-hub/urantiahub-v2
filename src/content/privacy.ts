@@ -55,6 +55,10 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
   { name: "Your last five searches", why: "so you can run one again; the Clear control on the search page removes them" },
 ];
 
+// With Spanish on (NEXT_PUBLIC_SPANISH): the language that the reader chose in the language sheet.
+export const LANGUAGE_UPDATED = "October 24, 2026";
+export const LANGUAGE_ITEM: BrowserItem = { name: "The language that you chose to read in", why: "so the site does not offer the other language again" };
+
 // What an account holds for the Hub. Each entry is one thing that `src/account` writes.
 export const ACCOUNT_ITEMS: readonly string[] = [
   "Your email address, and your name if your account has one",

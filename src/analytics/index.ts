@@ -33,7 +33,9 @@ export type AnalyticsEvents = {
   term_opened: { kind: string; term: string };
   // What a signed-in reader saves. The paper only: never a reference, and never the text of a note.
   // The reader turned "Read offline" on or off.
-  offline_set: { on: boolean };
+  offline_set: { on: boolean; lang?: "en" | "es" };
+  language_set: { to: "en" | "es" };
+  language_offered: undefined;
   bookmark_added: { paper_id: string };
   bookmark_removed: { paper_id: string };
   note_saved: { paper_id: string; kind: "new" | "change" };

@@ -24,6 +24,23 @@ export const en = {
   more: "More",
   textCopied: "Text copied",
   linkCopied: "Link copied",
+  language: "Language",
+  languageOf: "Language: English",
+  readIn: "Read in",
+  englishLine: "The original text",
+  spanishLine: "Machine translation from English, 2026 · Public domain",
+  audio: "Audio",
+  sameParagraph: "The same paper and the same paragraph. Nothing to download to read.",
+  offline: "Offline",
+  offlineKept: (total: number) => `Downloaded · ${total} papers`,
+  offlineLoading: (have: number, total: number) => `${have} of ${total} papers`,
+  offlineGet: (total: number) => `Download the ${total} papers to read them offline`,
+  aboutTitle: "About this translation.",
+  aboutBody:
+    "An AI model translated the text from English, paper by paper. To compare a paragraph with the original, tap it and choose More › See in English. The audio, the Bible, and the other works are in English.",
+  noConnection: "No connection.",
+  offlineAll: (total: number) => `All ${total} papers are on this device.`,
+  offlineSome: (have: number, total: number) => `${have} of the ${total} papers are on this device. The rest download when you go online.`,
 } as const;
 
 type Widen<T> = { [K in keyof T]: T[K] extends (...args: infer A) => string ? (...args: A) => string : string };

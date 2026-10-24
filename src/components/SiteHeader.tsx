@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { BookmarkMark } from "@/brand/BookmarkMark";
+import type { Lang } from "@/i18n/lang";
+import { spanishOn } from "@/i18n/lang";
+import { contentsHref } from "@/i18n/paths";
 import { site } from "@/site";
 import { Icon } from "./icons";
+import { LanguagePill } from "./LanguagePill";
 import { HeaderBack } from "./library/HeaderBack";
 import { ReaderSettings } from "./ReaderSettings";
 import { SearchShortcut } from "./search/SearchShortcut";
 
-export function SiteHeader() {
+export function SiteHeader({ lang = "en" }: { lang?: Lang }) {
   return (
     <header className="site-header">
       <div className="header-start">
@@ -24,10 +28,12 @@ export function SiteHeader() {
         </Link>
         <SearchShortcut />
         {/* Where the header has icons only: the way to the list of all papers. */}
-        <Link className="icon-link contents-link" href="/papers" aria-label="All papers" title="All papers">
+        <Link className="icon-link contents-link" href={contentsHref(lang)} aria-label="All papers" title="All papers">
           <Icon name="list" />
         </Link>
         <ReaderSettings />
+        {/* Only a paper and the contents show it. See chrome.css. */}
+        {spanishOn() && <LanguagePill lang={lang} />}
       </nav>
     </header>
   );

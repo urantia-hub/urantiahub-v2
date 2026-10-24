@@ -17,8 +17,8 @@ for (const path of paths) {
   console.log(`recorded ${path} -> ${file}`);
 }
 
-// The Spanish papers, read by the fixture server for a GET with lang=es.
-for (const id of ["0", "1", "2", "99"]) {
+// The Spanish papers, read by the fixture server for a GET with lang=es. Paper 134 has a "* * *" with no Spanish row.
+for (const id of ["0", "1", "2", "99", "134"]) {
   const res = await fetch(`${base}/papers/${id}?lang=es`);
   if (!res.ok) throw new Error(`GET /papers/${id}?lang=es failed with ${res.status}`);
   writeFileSync(`e2e/fixtures/papers_${id}.es.json`, `${JSON.stringify(await res.json())}\n`);

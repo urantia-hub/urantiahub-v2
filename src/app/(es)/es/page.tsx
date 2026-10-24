@@ -20,7 +20,7 @@ export function generateMetadata(): Metadata {
 export default function SpanishContents() {
   if (!spanishOn()) notFound();
   return (
-    <div className="prose">
+    <div className="prose es-contents">
       <h1>Documentos</h1>
       {PARTS_ES.map((part) => (
         <section key={part.id}>

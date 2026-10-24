@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { initOffline, offlineState, serverOfflineState, subscribeToOffline } from "@/reader/offline";
 import { whenIdle } from "@/lib/when-idle";
 
@@ -16,11 +18,15 @@ function subscribeToConnection(listener: () => void) {
 const connected = () => navigator.onLine;
 const serverConnected = () => true;
 
-// A small line below the header for a reader with no connection who keeps the papers on this device.
+// A small line below the header for a reader with no connection who keeps papers on this device, in the
+// language of the page, or else in the other language.
 // The reader can close it. It shows again at the next visit with no connection. This component also
 // starts "Read offline" at each page load, when the browser is idle.
-export function OfflineStrip() {
-  const offline = useSyncExternalStore(subscribeToOffline, offlineState, serverOfflineState);
+export function OfflineStrip({ lang }: { lang: Lang }) {
+  const t = messages(lang);
+  const mine = useSyncExternalStore(subscribeToOffline, () => offlineState(lang), serverOfflineState);
+  const other = useSyncExternalStore(subscribeToOffline, () => offlineState(lang === "en" ? "es" : "en"), serverOfflineState);
+  const offline = mine.mode === "off" ? other : mine;
   const online = useSyncExternalStore(subscribeToConnection, connected, serverConnected);
   const [closed, setClosed] = useState(false);
   useEffect(() => whenIdle(() => void initOffline()), []);
@@ -31,9 +37,9 @@ export function OfflineStrip() {
     <div className="offline-strip" role="status">
       <Icon name="noSignal" />
       <span>
-        <b>No connection.</b> {offline.mode === "on" ? `All ${offline.total} papers are on this device.` : `${offline.have} of the ${offline.total} papers are on this device. The rest download when you go online.`}
+        <b>{t.noConnection}</b> {offline.mode === "on" ? t.offlineAll(offline.total) : t.offlineSome(offline.have, offline.total)}
       </span>
-      <button type="button" aria-label="Close" onClick={() => setClosed(true)}>
+      <button type="button" aria-label={t.close} onClick={() => setClosed(true)}>
         <Icon name="close" />
       </button>
     </div>
