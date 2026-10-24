@@ -65,3 +65,19 @@ describe("faults that the branch review found", () => {
     expect(startsLikeQuestion("peace?")).toBe(true);
   });
 });
+
+describe("Spanish searches", () => {
+  it("sees a word with accents or an ñ", () => {
+    expect(hasWord("¿Qué es la fe?")).toBe(true);
+    expect(hasWord("ñ")).toBe(true);
+    expect(hasWord("¿?¡!")).toBe(false);
+  });
+
+  it("knows a Spanish question by its marks or by its first word", () => {
+    expect(isQuestion("¿Cómo se ora?")).toBe(true);
+    expect(startsLikeQuestion("qué es el alma")).toBe(true);
+    expect(startsLikeQuestion("por qué sufrimos")).toBe(true);
+    expect(startsLikeQuestion("cuál es el camino")).toBe(true);
+    expect(startsLikeQuestion("ajustador del pensamiento")).toBe(false);
+  });
+});

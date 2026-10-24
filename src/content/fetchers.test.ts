@@ -353,6 +353,16 @@ describe("the two searches", () => {
     expect(calls).toEqual([["related", { q: "what happens after death", limit: 10 }]]);
   });
 
+  it("asks both searches in Spanish for a Spanish page, and leaves English as it was", async () => {
+    const { client, calls } = searchClient();
+    await fetchExact(client, "ajustador del pensamiento", 0, 8, "es");
+    await fetchRelated(client, "¿qué es el alma?", 10, "es");
+    expect(calls).toEqual([
+      ["exact", { q: "ajustador del pensamiento", page: 0, limit: 8, lang: "es" }],
+      ["related", { q: "¿qué es el alma?", limit: 10, lang: "es" }],
+    ]);
+  });
+
   it("gives an empty page for no result", async () => {
     const { client } = searchClient({ exact: { data: [], meta: { total: 0 } } });
     await expect(fetchExact(client, "zzzz", 0, 8)).resolves.toEqual({ hits: [], total: 0 });

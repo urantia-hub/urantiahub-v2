@@ -6,9 +6,10 @@ import { normalizeQuery } from "@/search/query";
 // Two jobs. A paper URL that is not canonical goes to the canonical one, and the query string stays.
 // A search for a reference goes to the paper, so that it works with no JavaScript.
 export function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === "/search") {
+  if (request.nextUrl.pathname === "/search" || request.nextUrl.pathname === "/es/buscar") {
+    const searchLang = request.nextUrl.pathname === "/es/buscar" ? "es" : "en";
     const ref = parseReference(normalizeQuery(request.nextUrl.searchParams.get("q") ?? undefined));
-    return ref && paperById(ref.paperId) ? NextResponse.redirect(new URL(referenceHref(ref), request.url), 307) : NextResponse.next();
+    return ref && paperById(ref.paperId, searchLang) ? NextResponse.redirect(new URL(referenceHref(ref, searchLang), request.url), 307) : NextResponse.next();
   }
 
   const lang = request.nextUrl.pathname.startsWith("/es/") ? "es" : "en";
@@ -31,5 +32,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/papers/:slug", "/es/documentos/:slug", "/search"],
+  matcher: ["/papers/:slug", "/es/documentos/:slug", "/search", "/es/buscar"],
 };

@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, useTransition, type FormEvent, type MouseEvent } from "react";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { searchHref } from "@/i18n/paths";
 import { directHits } from "@/search/direct-hits";
-import { normalizeQuery, searchHref } from "@/search/query";
+import { normalizeQuery } from "@/search/query";
 import { clearRecent, readRecent, saveRecent, subscribeToRecent } from "@/search/recent";
-import { STARTER_GROUPS } from "@/search/starters";
+import { startersFor } from "@/search/starters";
 
 const NO_RECENT: readonly string[] = [];
 const noRecent = () => NO_RECENT;
@@ -16,7 +19,8 @@ const never = () => () => {};
 
 // The one box: a reference or a paper title is a direct hit, and other text is a search.
 // It is a real form, so it works with no JavaScript. `initial` is the text of the results below it.
-export function SearchBox({ initial }: { initial: string }) {
+export function SearchBox({ initial, lang = "en" }: { initial: string; lang?: Lang }) {
+  const t = messages(lang);
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const starters = useRef<HTMLElement>(null);
@@ -49,7 +53,7 @@ export function SearchBox({ initial }: { initial: string }) {
       if (group.dataset.pick === undefined) group.dataset.pick = String(Math.floor(Math.random() * group.children.length));
     });
   }, [startersShown]);
-  const hits = directHits(q);
+  const hits = directHits(q, lang);
   const isReference = hits[0]?.kind === "reference";
   // On the results page the search already ran for `initial`, so the row shows only after a change.
   const searchRow = q !== "" && !isReference && q !== initial;
@@ -61,7 +65,7 @@ export function SearchBox({ initial }: { initial: string }) {
     saveRecent(text);
     track("search_started", { source });
     input.current?.blur();
-    startTransition(() => router.push(searchHref(text)));
+    startTransition(() => router.push(searchHref(lang, text)));
   }
 
   // A starter question or a recent search. The link still works for a new tab and with no JavaScript.
@@ -91,16 +95,16 @@ export function SearchBox({ initial }: { initial: string }) {
 
   return (
     <div className="search-box">
-      <form className="search-bar" role="search" action="/search" method="get" onSubmit={onSubmit} ref={form}>
-        <Link className="icon-button" href="/" aria-label="Back" onClick={onBack}>
+      <form className="search-bar" role="search" action={searchHref(lang)} method="get" onSubmit={onSubmit} ref={form}>
+        <Link className="icon-button" href={lang === "es" ? "/es" : "/"} aria-label={t.searchBack} onClick={onBack}>
           <Icon name="back" />
         </Link>
         <input
           ref={input}
           type="search"
           name="q"
-          aria-label="Search the Papers"
-          placeholder="Search, ask, or type 99:1.1"
+          aria-label={t.searchField}
+          placeholder={t.searchPlaceholder}
           autoComplete="off"
           autoCapitalize="off"
           enterKeyHint="search"
@@ -114,7 +118,7 @@ export function SearchBox({ initial }: { initial: string }) {
           <button
             type="button"
             className="icon-button"
-            aria-label="Clear the field"
+            aria-label={t.searchClear}
             onClick={() => {
               setValue("");
               input.current?.focus();
@@ -127,8 +131,8 @@ export function SearchBox({ initial }: { initial: string }) {
 
       {pending && (
         <div className="search-wrap">
-          <h2 className="search-label">Searching</h2>
-          <div className="waiting" role="status" aria-label="Searching">
+          <h2 className="search-label">{t.searchSearching}</h2>
+          <div className="waiting" role="status" aria-label={t.searchSearching}>
             <span />
             <span />
             <span />
@@ -137,8 +141,8 @@ export function SearchBox({ initial }: { initial: string }) {
       )}
       <div className="search-wrap" hidden={pending}>
         {hits.length > 0 && (
-          <section aria-label="Go to">
-            <h2 className="search-label">Go to</h2>
+          <section aria-label={t.searchGoTo}>
+            <h2 className="search-label">{t.searchGoTo}</h2>
             {hits.map((hit) => (
               <Link className="search-row hit" href={hit.href} key={hit.href} onClick={() => track("search_direct_hit", { kind: hit.kind })}>
                 <span className="glyph">
@@ -154,27 +158,27 @@ export function SearchBox({ initial }: { initial: string }) {
         )}
 
         {searchRow && (
-          <section aria-label="Search">
-            <h2 className="search-label">Search</h2>
+          <section aria-label={t.searchRow}>
+            <h2 className="search-label">{t.searchRow}</h2>
             <button type="button" className="search-row go" onClick={onSubmit}>
               <span className="glyph">
                 <Icon name="search" />
               </span>
-              <span>Search the Papers for “{q}”</span>
+              <span>{t.searchFor(q)}</span>
             </button>
           </section>
         )}
 
         {inBrowser && q === "" && recent.length > 0 && (
-          <section aria-label="Recent">
+          <section aria-label={t.searchRecent}>
             <h2 className="search-label">
-              Recent
+              {t.searchRecent}
               <button type="button" onClick={clearRecent}>
-                Clear
+                {t.searchClearRecent}
               </button>
             </h2>
             {recent.map((text) => (
-              <Link className="search-row" href={searchHref(text)} key={text} prefetch={false} onClick={(event) => onPick(event, text, "recent")}>
+              <Link className="search-row" href={searchHref(lang, text)} key={text} prefetch={false} onClick={(event) => onPick(event, text, "recent")}>
                 <span className="glyph">
                   <Icon name="clock" />
                 </span>
@@ -185,13 +189,13 @@ export function SearchBox({ initial }: { initial: string }) {
         )}
 
         {startersShown && (
-          <section aria-label="Ask in your own words" ref={starters}>
-            <h2 className="search-label">Ask in your own words</h2>
-            {STARTER_GROUPS.map((group) => (
+          <section aria-label={t.searchAsk} ref={starters}>
+            <h2 className="search-label">{t.searchAsk}</h2>
+            {startersFor(lang).map((group) => (
               // One question of each group shows. CSS hides the others.
               <div className="starter-group" key={group.name}>
                 {group.questions.map((text) => (
-                  <Link className="search-row" href={searchHref(text)} key={text} prefetch={false} onClick={(event) => onPick(event, text, "starter")}>
+                  <Link className="search-row" href={searchHref(lang, text)} key={text} prefetch={false} onClick={(event) => onPick(event, text, "starter")}>
                     <span className="glyph">
                       <Icon name="question" />
                     </span>
