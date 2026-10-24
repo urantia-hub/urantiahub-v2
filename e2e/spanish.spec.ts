@@ -129,19 +129,12 @@ test("the language sheet opens the same paragraph in English, with no sheet open
   await expect(page.locator("html")).toHaveAttribute("data-text-size", "3");
 });
 
-test("the pill shows on a paper and the contents, and not on other pages", async ({ page }) => {
-  for (const path of [ES_PAPER_1, "/es", "/papers"]) {
+// Kelson, 2026-10-24: the pill is on every page.
+test("the pill shows on every page", async ({ page }) => {
+  for (const path of [ES_PAPER_1, "/es/documentos", "/papers", "/", "/about", "/texts", "/you", "/saved"]) {
     await page.goto(path);
-    await expect(page.locator(".lang-pill")).toBeVisible();
+    await expect(page.locator(".lang-pill"), path).toBeVisible();
   }
-  await page.goto("/about");
-  await expect(page.locator(".lang-pill")).toBeHidden();
-  // A move by a link to a page with no pill: the paper that Next.js keeps hidden does not count.
-  await page.goto(ES_PAPER_1);
-  await page.goto("/papers");
-  await page.getByRole("link", { name: "About" }).first().click();
-  await expect(page).toHaveURL(/\/about$/);
-  await expect(page.locator(".lang-pill")).toBeHidden();
 });
 
 test.describe("a browser in Spanish", () => {
