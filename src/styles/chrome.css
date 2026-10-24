@@ -101,15 +101,15 @@ html[data-bars="away"] body:has(.paper:not([style*="display: none"])) .site-head
   width: 19px;
   height: 19px;
 }
-/* Signed in, the icon is the reader's initial. */
+/* Signed in, the icon is the reader's initial, on the background of the language pill (Kelson, 2026-10-24). */
 .settings-button .face {
   display: grid;
   place-items: center;
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--mark);
+  color: var(--ink);
   font: 600 12.5px/1 var(--font-ui);
 }
 .settings-scrim {
