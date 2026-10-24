@@ -41,6 +41,19 @@ export const en = {
   noConnection: "No connection.",
   offlineAll: (total: number) => `All ${total} papers are on this device.`,
   offlineSome: (have: number, total: number) => `${have} of the ${total} papers are on this device. The rest download when you go online.`,
+  termsIn: (ref: string) => `Terms in ${ref}`,
+  termsLoading: "Loading the terms",
+  termsFailed: "The terms did not load.",
+  tryAgain: "Try again",
+  termsNone: "No glossary term stands in this paragraph.",
+  termsNames: "Names",
+  termsIdeas: "Ideas",
+  alsoCalled: "Also called:",
+  seeAlso: "See also:",
+  eachPlace: "Each place in the Papers",
+  termsBack: "Back to the terms",
+  termsClose: "Close the terms",
+  termsRow: "Terms in this paragraph",
 } as const;
 
 type Widen<T> = { [K in keyof T]: T[K] extends (...args: infer A) => string ? (...args: A) => string : string };

@@ -934,7 +934,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             }}
           >
             <Icon name="terms" />
-            Terms in this paragraph
+            {t.termsRow}
           </button>
           <button
             type="button"
@@ -1034,7 +1034,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           </div>
         </Sheet>
       )}
-      {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} onClose={closeTerms} />}
+      {termsOpen && picked && <TermsSheet reference={picked} paperId={paper.id} lang={lang} onClose={closeTerms} />}
       {parallelsOpen && picked && (
         <Suspense fallback={null}>
           <ParallelsSheet
