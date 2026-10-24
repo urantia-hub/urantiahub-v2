@@ -1,5 +1,7 @@
 // The Saved page works on one loaded list: it filters, searches, and sorts in the browser.
 import type { SavedEntry } from "@/account/saved-data";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 
 export type Kind = "all" | "paragraphs" | "notes";
 export type Order = "newest" | "paper";
@@ -33,12 +35,13 @@ export function sortEntries(entries: readonly SavedEntry[], order: Order): Saved
   return [...entries].sort(order === "paper" ? byText : (a, b) => latest(b).localeCompare(latest(a)) || byText(a, b));
 }
 
-export function groupByPaper(sorted: readonly SavedEntry[]): { paperId: string; title: string; entries: SavedEntry[] }[] {
+export function groupByPaper(sorted: readonly SavedEntry[], lang: Lang = "en"): { paperId: string; title: string; entries: SavedEntry[] }[] {
+  const t = messages(lang);
   const groups: { paperId: string; title: string; entries: SavedEntry[] }[] = [];
   for (const entry of sorted) {
     const last = groups.at(-1);
     if (last?.paperId === entry.paperId) last.entries.push(entry);
-    else groups.push({ paperId: entry.paperId, title: entry.paperId === "0" ? entry.paperTitle : `Paper ${entry.paperId} · ${entry.paperTitle}`, entries: [entry] });
+    else groups.push({ paperId: entry.paperId, title: entry.paperId === "0" ? entry.paperTitle : t.paperNamed(entry.paperId, entry.paperTitle), entries: [entry] });
   }
   return groups;
 }

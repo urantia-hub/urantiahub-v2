@@ -60,7 +60,7 @@ export default async function SpanishPaperPage({ params }: Props) {
       <JsonLd data={paperJsonLd(entry, describe(paper.sections[0].paragraphs[0].text), "es")} />
       <PaperView paper={paper} lang="es" />
       <ReadMarks paperId={paper.id} />
-      <SavedMarks paperId={paper.id} />
+      <SavedMarks paperId={paper.id} lang="es" />
       <SharedMark />
       {/* No voice in Spanish. */}
       <ReadingNav

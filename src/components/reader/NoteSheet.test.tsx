@@ -19,7 +19,7 @@ const clearCookies = () => {
   for (const part of document.cookie.split(";")) document.cookie = `${part.split("=")[0].trim()}=; max-age=0; path=/`;
 };
 
-async function open(write: Answer = () => Response.json({ ok: true }), notes = NOTES, load: Answer = () => Response.json({ bookmarks: [], notes })) {
+async function open(write: Answer = () => Response.json({ ok: true }), notes = NOTES, load: Answer = () => Response.json({ bookmarks: [], notes }), lang: "en" | "es" = "en") {
   document.cookie = "hub_in=1; path=/";
   resetAccountForTest(true);
   const fetch = vi.fn(async (url: string, init?: RequestInit) => (url === "/api/auth/session" ? Response.json({ user: { name: "Ana", email: null, key: "k1" } }) : url.startsWith("/api/me/saved") ? load(url, init) : write(url, init)));
@@ -29,7 +29,7 @@ async function open(write: Answer = () => Response.json({ ok: true }), notes = N
     await loadSaved("1");
   });
   const onClose = vi.fn();
-  render(<NoteSheet reference="1:0.3" paperId="1" onClose={onClose} />);
+  render(<NoteSheet reference="1:0.3" paperId="1" onClose={onClose} lang={lang} />);
   return { fetch, onClose };
 }
 const list = () => screen.getByRole("list", { name: "Your notes" });
@@ -215,5 +215,25 @@ describe("the notes while they load", () => {
   it("puts the reader in the field when the paragraph has no note", async () => {
     await open(undefined, []);
     expect(screen.getByRole("textbox", { name: "Add a note" })).toHaveFocus();
+  });
+});
+
+describe("the notes of a Spanish paragraph", () => {
+  it("speak Spanish, and the link to all notes goes to the Spanish saved page", async () => {
+    const many = Array.from({ length: 4 }, (_, i) => ({ id: `m${i}`, ref: "1:0.3", text: `Nota ${i}.`, at: "2026-10-01T00:00:00.000Z" }));
+    await open(undefined, many, undefined, "es");
+    expect(screen.getByRole("heading", { name: "Tus notas sobre 1:0.3" })).toBeInTheDocument();
+    expect(screen.getByText("Solo tú las ves.")).toBeInTheDocument();
+    const thread = screen.getByRole("list", { name: "Tus notas" });
+    expect(within(thread).getAllByRole("button", { name: "Editar" })).toHaveLength(3);
+    expect(screen.getByRole("link", { name: "Ver las 4 notas" })).toHaveAttribute("href", "/es/guardados?ref=1%3A0.3");
+    await userEvent.click(within(thread).getAllByRole("button", { name: "Borrar" })[0]);
+    expect(screen.getByRole("group", { name: "¿Borrar esta nota?" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Conservar" })).toBeInTheDocument();
+  });
+
+  it("has a Spanish field for a new note", async () => {
+    await open(undefined, [], undefined, "es");
+    expect(screen.getByRole("textbox", { name: "Añade una nota" })).toHaveAttribute("placeholder", "Añade una nota");
   });
 });

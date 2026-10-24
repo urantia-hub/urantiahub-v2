@@ -68,3 +68,16 @@ describe("the notes in the margin", () => {
     expect(card("1:0.3").querySelector("b, img")).toBeNull();
   });
 });
+
+describe("the notes in the margin of a Spanish paper", () => {
+  it("speak Spanish, and the link to all notes goes to the Spanish saved page", async () => {
+    const four = [1, 2, 3, 4].map((d) => note(String(d), "1:0.3", `Nota ${d}.`, d));
+    const { unmount } = render(<MarginNotes notes={four.slice(0, 3)} lang="es" />);
+    const spanish = screen.getByRole("complementary", { name: "Tus notas sobre 1:0.3" });
+    await userEvent.click(within(spanish).getByRole("button", { name: "2 notas más" }));
+    expect(within(spanish).getByRole("button", { name: "Mostrar menos" })).toBeInTheDocument();
+    unmount();
+    render(<MarginNotes notes={four} lang="es" />);
+    expect(screen.getByRole("link", { name: "Ver las 4 notas" })).toHaveAttribute("href", "/es/guardados?ref=1%3A0.3");
+  });
+});

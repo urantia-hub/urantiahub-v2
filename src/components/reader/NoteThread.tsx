@@ -6,6 +6,8 @@ import { failureWords } from "@/account/limited";
 import { NOTE_MAX } from "@/account/note-limit";
 import type { NoteResult } from "@/account/saved";
 import type { SavedNote } from "@/account/saved-data";
+import type { Lang } from "@/i18n/lang";
+import { messages, type Messages } from "@/i18n/messages";
 import { age } from "@/reader/age";
 
 type Props = {
@@ -22,6 +24,7 @@ type Props = {
   focusField?: boolean;
   // Each note in full. Without it, a long note shows a few lines and "Read more".
   whole?: boolean;
+  lang?: Lang;
 };
 
 // A field that is as tall as its text. It has no handle to drag.
@@ -46,11 +49,11 @@ function NoteField({ value, onChange, label, placeholder, focus }: { value: stri
 // limit, and past it the count is below zero and "Save" is off until the reader trims the text.
 const NEAR = 200;
 const left = (text: string) => NOTE_MAX - text.trim().length;
-function Count({ text }: { text: string }) {
+function Count({ text, t }: { text: string; t: Messages }) {
   const n = left(text);
   if (n > NEAR) return null;
   return (
-    <p className={`note-count${n < 0 ? " over" : ""}`} role="status" aria-label={n < 0 ? `${-n} characters too many` : `${n} characters left`}>
+    <p className={`note-count${n < 0 ? " over" : ""}`} role="status" aria-label={n < 0 ? t.charsTooMany(-n) : t.charsLeft(n)}>
       {n}
     </p>
   );
@@ -62,7 +65,8 @@ const isLong = (text: string) => text.length > LONG || text.split("\n").length >
 
 // The notes of one paragraph as a thread: the oldest first, and the field for a new one at the end.
 // "Edit" and "Delete" work on a note in its place, one note at a time.
-export function NoteThread({ reference, notes: every, add, change, remove, last, allHref, focusField, whole }: Props) {
+export function NoteThread({ reference, notes: every, add, change, remove, last, allHref, focusField, whole, lang = "en" }: Props) {
+  const t = messages(lang);
   const [shownWhole, setShownWhole] = useState<ReadonlySet<string>>(new Set());
   const cut = last !== undefined && every.length > last;
   const notes = cut ? every.slice(-last) : every;
@@ -80,7 +84,7 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
     if (result.ok) return done();
     if (result.why === "gone") {
       setOpen(null);
-      return setProblem("This note is gone.");
+      return setProblem(t.noteGone);
     }
     setProblem(failed());
   }
@@ -89,39 +93,39 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
     event.preventDefault();
     const text = draft.trim();
     if (!text || busy || text.length > NOTE_MAX) return;
-    void run(() => add!(reference, text), () => failureWords("The note did not save. Try again."), () => setDraft(""));
+    void run(() => add!(reference, text), () => failureWords(t.noteNotSaved, lang), () => setDraft(""));
   }
 
   function onChange(event: FormEvent) {
     event.preventDefault();
     const text = open?.text.trim();
     if (!open || !text || busy || text.length > NOTE_MAX) return;
-    void run(() => change(open.id, text), () => failureWords("The note did not save. Try again."), () => setOpen(null));
+    void run(() => change(open.id, text), () => failureWords(t.noteNotSaved, lang), () => setOpen(null));
   }
 
-  const onDelete = (id: string) => void run(() => remove(id), () => failureWords("The note is still here. Try again."), () => setOpen(null));
+  const onDelete = (id: string) => void run(() => remove(id), () => failureWords(t.noteStillHere, lang), () => setOpen(null));
 
   return (
     <>
       {cut && allHref && (
         <Link className="note-all" href={allHref} prefetch={false}>
-          See all {every.length} notes
+          {t.seeAllNotes(every.length)}
         </Link>
       )}
       {notes.length > 0 && (
-        <ul className="note-list" aria-label="Your notes">
+        <ul className="note-list" aria-label={t.yourNotes}>
           {notes.map((note) => (
             <li key={note.id}>
               {open?.id === note.id && open.mode === "edit" ? (
                 <form onSubmit={onChange}>
-                  <NoteField label="Your note" value={open.text} onChange={(text) => setOpen({ ...open, text })} focus />
-                  <Count text={open.text} />
+                  <NoteField label={t.yourNote} value={open.text} onChange={(text) => setOpen({ ...open, text })} focus />
+                  <Count text={open.text} t={t} />
                   <div className="panel-actions">
                     <button type="submit" className="panel-button dark" disabled={busy || !fits(open.text)}>
-                      Save
+                      {t.save}
                     </button>
                     <button type="button" className="panel-button" onClick={() => setOpen(null)}>
-                      Cancel
+                      {t.cancel}
                     </button>
                   </div>
                 </form>
@@ -135,29 +139,29 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
                       aria-expanded={shownWhole.has(note.id)}
                       onClick={() => setShownWhole((was) => new Set(was.has(note.id) ? [...was].filter((id) => id !== note.id) : [...was, note.id]))}
                     >
-                      {shownWhole.has(note.id) ? "Show less" : "Read more"}
+                      {shownWhole.has(note.id) ? t.parShowLess : t.parReadMore}
                     </button>
                   )}
                   {open?.id === note.id ? (
-                    <div className="note-ask" role="group" aria-label="Delete this note?">
-                      <b>Delete this note?</b>
+                    <div className="note-ask" role="group" aria-label={t.deleteAsk}>
+                      <b>{t.deleteAsk}</b>
                       <div className="panel-actions">
                         <button type="button" className="panel-button dark" disabled={busy} onClick={() => onDelete(note.id)}>
-                          Delete
+                          {t.deleteWord}
                         </button>
                         <button type="button" className="panel-button" onClick={() => setOpen(null)}>
-                          Keep
+                          {t.keep}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <p className="note-meta">
-                      <time dateTime={note.at}>{age(note.at)}</time>
+                      <time dateTime={note.at}>{age(note.at, undefined, lang)}</time>
                       <button type="button" onClick={() => setOpen({ id: note.id, mode: "edit", text: note.text })}>
-                        Edit
+                        {t.edit}
                       </button>
                       <button type="button" onClick={() => setOpen({ id: note.id, mode: "delete", text: note.text })}>
-                        Delete
+                        {t.deleteWord}
                       </button>
                     </p>
                   )}
@@ -177,12 +181,12 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
       {/* While a note is in "Edit" or "Delete", the field for a new one waits. */}
       {add && !open && (
         <form className="note-add" onSubmit={onAdd}>
-          <NoteField label="Add a note" placeholder="Add a note" value={draft} onChange={setDraft} focus={focusField} />
-          <Count text={draft} />
+          <NoteField label={t.addNote} placeholder={t.addNote} value={draft} onChange={setDraft} focus={focusField} />
+          <Count text={draft} t={t} />
           {draft.trim() && (
             <div className="panel-actions">
               <button type="submit" className="panel-button dark" disabled={busy || !fits(draft)}>
-                Save
+                {t.save}
               </button>
             </div>
           )}

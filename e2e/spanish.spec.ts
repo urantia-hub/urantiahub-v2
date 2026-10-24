@@ -64,6 +64,21 @@ test("Continuar names the place in Spanish and opens the Spanish paper", async (
   await expect(page).toHaveURL(`${ES_PAPER_1}#1:1`);
 });
 
+test("the settings speak Spanish on a Spanish page", async ({ page }) => {
+  await page.goto("/es");
+  await page.getByRole("button", { name: "Cuenta y ajustes" }).click();
+  const panel = page.getByRole("dialog", { name: "Cuenta y ajustes" });
+  await expect(panel.getByRole("heading", { name: "Este dispositivo" })).toBeVisible();
+  await expect(panel.getByRole("button", { name: "Oscuro" })).toBeVisible();
+});
+
+test("the Spanish saved page asks a reader with no account to sign in, in Spanish", async ({ page }) => {
+  await page.goto("/es/guardados");
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(page.getByRole("heading", { level: 1, name: "Guardados" })).toBeVisible();
+  await expect(page.getByText("Tus párrafos guardados y tus notas")).toBeVisible();
+});
+
 test("a Spanish address with no page answers 404 in Spanish", async ({ page }) => {
   for (const path of ["/es/nada", "/es/documentos/documento-197-nada"]) {
     const response = await page.goto(path);
@@ -83,9 +98,9 @@ test("a separator with no Spanish row shows as it does in English", async ({ pag
 
 test("the language sheet opens the same paragraph in English, with no sheet open, and the theme and text size hold", async ({ page }) => {
   await page.goto(`${ES_PAPER_1}#1:0.1`);
-  await page.getByRole("button", { name: "Account and settings" }).click();
-  await page.getByRole("button", { name: "Dark" }).click();
-  await page.getByRole("button", { name: "Larger text" }).click();
+  await page.getByRole("button", { name: "Cuenta y ajustes" }).click();
+  await page.getByRole("button", { name: "Oscuro" }).click();
+  await page.getByRole("button", { name: "Texto más grande" }).click();
   await page.keyboard.press("Escape");
   await page.locator('[id="1:0.1"] .text').click({ position: { x: 40, y: 12 } });
   await page.getByRole("button", { name: "Más" }).click();

@@ -41,9 +41,15 @@ export function RootShell({ lang, children }: { lang: Lang; children: React.Reac
         <main id="main">{children}</main>
         <SiteFooter lang={lang} />
         <AccountSync />
-        <NoticeQuestion />
-        <StreakQuestion />
-        <MarkMoment />
+        {/* The questions and the moments of the streak are in English, as the emails and pushes they offer.
+            They wait for an English page. */}
+        {lang === "en" && (
+          <>
+            <NoticeQuestion />
+            <StreakQuestion />
+            <MarkMoment />
+          </>
+        )}
       </body>
     </html>
   );

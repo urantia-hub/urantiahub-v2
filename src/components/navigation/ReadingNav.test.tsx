@@ -31,7 +31,7 @@ const VOICE: PaperVoice = {
   ],
 };
 
-function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible", voice: PaperVoice | null = null) {
+function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible", voice: PaperVoice | null = null, lang: "en" | "es" = "en") {
   return (
     <Activity mode={mode}>
       <article className="paper">
@@ -55,6 +55,7 @@ function tree(tracks: Track[] | null, mode: "visible" | "hidden" = "visible", vo
         next={{ id: "2", title: "2 · The Nature of God", href: "/papers/paper-2-the-nature-of-god" }}
         tracks={tracks}
         voice={voice}
+        lang={lang}
       />
     </Activity>
   );
@@ -1004,6 +1005,20 @@ describe("More", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(screen.getByRole("dialog", { name: "Sign in to save this" })).toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: /Parallels for/ })).toBeNull();
+    resetAccountForTest(false);
+  });
+
+  it("asks a Spanish reader to sign in, in Spanish", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    resetAccountForTest(true);
+    await act(async () => startAccount());
+    render(tree(null, "visible", null, "es"));
+    await userEvent.click(text("1:0.2"));
+    await userEvent.click(screen.getByRole("button", { name: "Guardar" }));
+    const ask = screen.getByRole("dialog", { name: "Inicia sesión para guardar esto" });
+    expect(ask).toHaveTextContent("Tus párrafos guardados y tus notas quedan en tu cuenta de UrantiaHub.");
+    expect(screen.getByRole("link", { name: "Iniciar sesión" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ahora no" })).toBeInTheDocument();
     resetAccountForTest(false);
   });
 

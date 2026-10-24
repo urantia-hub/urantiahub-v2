@@ -100,3 +100,19 @@ describe("ReaderSettings", () => {
     expect(within(await openPanel()).queryByRole("link", { name: /Continue/ })).toBeNull();
   });
 });
+
+describe("ReaderSettings in Spanish", () => {
+  it("speaks Spanish, and Continuar opens the Spanish paper", async () => {
+    path.mockReturnValue("/es");
+    saveLastRead({ paperId: "2", sectionId: "0", label: null });
+    render(<ReaderSettings lang="es" />);
+    await userEvent.click(screen.getByRole("button", { name: "Cuenta y ajustes" }));
+    const panel = screen.getByRole("dialog", { name: "Cuenta y ajustes" });
+    expect(within(panel).getByRole("heading", { name: "Este dispositivo" })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "Claro" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(panel).getByRole("button", { name: "Oscuro" })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "Texto más grande" })).toBeInTheDocument();
+    expect(within(panel).getByRole("link", { name: /Continuar/ })).toHaveAttribute("href", "/es/documentos/documento-2-la-naturaleza-de-dios#paper-top");
+    path.mockReturnValue("/papers");
+  });
+});

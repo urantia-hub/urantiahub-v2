@@ -16,6 +16,12 @@ export function searchHref(lang: Lang, q?: string): string {
   return q ? `${base}?q=${encodeURIComponent(q)}` : base;
 }
 
+// The Saved page, or the page of the notes of one paragraph.
+export function savedHref(lang: Lang, ref?: string): string {
+  const base = lang === "es" ? "/es/guardados" : "/saved";
+  return ref ? `${base}?ref=${encodeURIComponent(ref)}` : base;
+}
+
 export function shareHref(lang: Lang, ref: string): string {
   return `${lang === "es" ? "/es" : ""}/s/${refForLink(ref)}`;
 }

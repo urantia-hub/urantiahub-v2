@@ -26,3 +26,14 @@ describe("the age of a note", () => {
     expect(age("x", NOW)).toBe("");
   });
 });
+
+describe("the age of a note in Spanish", () => {
+  it.each([
+    [0, "hoy"],
+    [1, "ayer"],
+    [3, "hace 3 días"],
+    [20, "hace 2 semanas"],
+  ])("%i days is %s", (days, said) => {
+    expect(age(ago(days), NOW, "es")).toBe(said);
+  });
+});

@@ -58,3 +58,10 @@ describe("the groups of By paper", () => {
     ]);
   });
 });
+
+describe("the groups of a Spanish list", () => {
+  it("names each paper in Spanish", () => {
+    const entry = { ref: "1:0.3", paperId: "1", paperTitle: "El Padre Universal", text: "x", savedAt: "2026-10-01", notes: [] };
+    expect(groupByPaper([entry], "es")[0].title).toBe("Documento 1 · El Padre Universal");
+  });
+});

@@ -1,6 +1,9 @@
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+
 // The site allows each address a number of requests a minute for a reader's data. Past it, a request
 // is refused with status 429 for a short time. The reader gets words that say so, not a plain failure.
-export const LIMITED_WORDS = "Too many requests for now. Wait a minute, then try again.";
+export const LIMITED_WORDS = messages("en").limited;
 
 let limited = false;
 
@@ -10,6 +13,6 @@ export function noteStatus(status: number | null): void {
 }
 
 // The words for the request that just failed: the limit when that was the reason, or the words given.
-export function failureWords(other: string): string {
-  return limited ? LIMITED_WORDS : other;
+export function failureWords(other: string, lang: Lang = "en"): string {
+  return limited ? messages(lang).limited : other;
 }

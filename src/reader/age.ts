@@ -1,8 +1,11 @@
+import type { Lang } from "@/i18n/lang";
+
 // How long ago, in the words of a reader: "today", "yesterday", "3 days ago", "last month".
 const DAY = 86_400_000;
-const words = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+const WORDS = { en: new Intl.RelativeTimeFormat("en", { numeric: "auto" }), es: new Intl.RelativeTimeFormat("es", { numeric: "auto" }) };
 
-export function age(at: string, now: number = Date.now()): string {
+export function age(at: string, now: number = Date.now(), lang: Lang = "en"): string {
+  const words = WORDS[lang];
   const then = Date.parse(at);
   if (!Number.isFinite(then)) return "";
   const days = Math.max(0, Math.floor((now - then) / DAY));

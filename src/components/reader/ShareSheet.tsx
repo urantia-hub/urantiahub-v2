@@ -82,7 +82,7 @@ export default function ShareSheet({ reference, paperTitle, text, onClose, onCop
     </>
   );
   return (
-    <Sheet label={t.shareTitle(reference)} onClose={onClose} className="share" close foot={foot}>
+    <Sheet label={t.shareTitle(reference)} onClose={onClose} className="share" close closeLabel={t.close} foot={foot}>
       <h2>{t.shareTitle(reference)}</h2>
       <p className="share-sub">{all.length > 1 ? t.sharePick(clauses) : t.shareOne}</p>
       <div className="share-cols">
