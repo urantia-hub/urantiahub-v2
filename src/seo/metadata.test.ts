@@ -107,3 +107,15 @@ describe("paperJsonLd in Spanish", () => {
     expect(article).toMatchObject({ inLanguage: "es", url: "https://next.urantiahub.com/es/documentos/prologo" });
   });
 });
+
+// A pair of hreflang links counts only when each page names the other.
+describe("the contents pages in two languages", () => {
+  it("names each other while Spanish is on", async () => {
+    vi.stubEnv("SITE_ORIGIN", "https://www.urantiahub.com");
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const en = (await import("@/app/(en)/papers/page")).metadata;
+    const es = (await import("@/app/(es)/es/page")).generateMetadata();
+    expect(en.alternates?.languages).toEqual(es.alternates?.languages);
+    expect(en.alternates?.languages).toMatchObject({ es: "https://www.urantiahub.com/es" });
+  });
+});
