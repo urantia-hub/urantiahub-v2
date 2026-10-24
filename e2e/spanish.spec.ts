@@ -233,3 +233,33 @@ test.describe("the tools of a Spanish paragraph", () => {
     await expect(page).toHaveURL(/\/es\/documentos\/documento-1-el-padre-universal#1:0\.1$/);
   });
 });
+
+// The Spanish home page, with the Spanish passages (Kelson, 2026-10-24).
+test("the Spanish home page is at /es, and the two home pages name each other", async ({ page }) => {
+  const res = await page.goto("/es");
+  expect(res?.status()).toBe(200);
+  await expect(page).toHaveURL(/\/es$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(page.getByRole("heading", { level: 1, name: "Los Documentos de Urantia" })).toBeVisible();
+  expect((await page.locator(".site-header .brand-name").boundingBox())!.width).toBeGreaterThan(20);
+  await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", /^http:\/\/localhost:3100\/?$/);
+  await expect(page.locator(".home").getByRole("link", { name: "Leer los Documentos" })).toHaveAttribute("href", "/es/documentos");
+  const about = page.locator(".home").getByRole("link", { name: "¿Qué son los Documentos de Urantia?" });
+  await expect(about).toHaveAttribute("href", "/about");
+  await expect(about).toHaveAttribute("hreflang", "en");
+  // With no place, the page shows "Leer los Documentos" and hides "Todos los documentos", as in English.
+  await expect(page.locator(".home a.all-papers")).toHaveAttribute("href", "/es/documentos");
+  await page.locator(".home").getByRole("link", { name: "Leer los Documentos" }).click();
+  await expect(page).toHaveURL(/\/es\/documentos$/);
+
+  await page.goto("/");
+  await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute("href", "http://localhost:3100/es");
+});
+
+test("the language sheet on the Spanish home page goes to the English home page", async ({ page }) => {
+  await page.goto("/es");
+  await page.getByRole("button", { name: "Idioma: español" }).click();
+  await page.getByRole("dialog", { name: "Idioma" }).getByRole("radio", { name: /^English/ }).click();
+  await expect(page).toHaveURL("http://localhost:3100/");
+  await expect(page.getByRole("heading", { level: 1, name: "The Urantia Papers" })).toBeVisible();
+});

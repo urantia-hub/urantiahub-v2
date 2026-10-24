@@ -19,6 +19,7 @@ const PAGES = [
   "/texts/how-it-works",
   "/about",
   PAIR,
+  "/es",
   "/es/documentos",
   "/es/documentos/documento-1-el-padre-universal",
   "/es/guardados",

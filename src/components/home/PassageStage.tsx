@@ -1,5 +1,7 @@
 import type { Passage } from "@/content/fetchers";
 import { referenceHref } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { parseReference } from "@/lib/paper-url";
 import { PassageTracker } from "./PassageTracker";
 
@@ -12,16 +14,17 @@ export function passageSize(text: string): "s" | "m" | "l" {
   return "l";
 }
 
-export function PassageStage({ passages }: { passages: Passage[] }) {
+export function PassageStage({ passages, lang = "en" }: { passages: Passage[]; lang?: Lang }) {
+  const t = messages(lang);
   return (
     <div className="stage" suppressHydrationWarning>
       {passages.map((passage, i) => (
         <figure className={`passage ${passageSize(passage.text)}`} key={i}>
           <blockquote>{passage.text}</blockquote>
           <figcaption>
-            <a className="cite" href={referenceHref(parseReference(passage.ref)!)}>
+            <a className="cite" href={referenceHref(parseReference(passage.ref)!, lang)}>
               <b>{passage.ref}</b>
-              {passage.paperId === "0" ? "Foreword" : `Paper ${passage.paperId} · ${passage.paperTitle}`}
+              {passage.paperId === "0" ? t.foreword : t.paperNamed(passage.paperId, passage.paperTitle)}
             </a>
           </figcaption>
         </figure>

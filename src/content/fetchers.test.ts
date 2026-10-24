@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ContentError, excerptPassage, fetchExact, fetchPaper, fetchPassage, fetchRelated, novaAudio, paperAudio, type SearchClient, type ContentClient, type Passage } from "./fetchers";
 
@@ -37,7 +38,8 @@ function client(over: Partial<{ paper: unknown; paragraph: unknown; fail: boolea
       },
     },
     paragraphs: {
-      get: async () => {
+      get: async (...args: unknown[]) => {
+        over.asked?.push(args);
         if (over.fail) throw new Error("network down");
         return "paragraph" in over ? over.paragraph : { data: paragraph("1:0.1", "0", null) };
       },
@@ -104,6 +106,14 @@ describe("fetchPassage", () => {
     });
   });
 
+  it("asks the API in Spanish and returns the Spanish text", async () => {
+    const asked: unknown[] = [];
+    const spanish = JSON.parse(readFileSync("e2e/fixtures/paragraphs_1_0.3.es.json", "utf8"));
+    const passage = await fetchPassage(client({ asked, paragraph: spanish }), "1:0.3", "es");
+    expect(asked).toEqual([["1:0.3", { lang: "es" }]]);
+    expect(passage).toMatchObject({ ref: "1:0.3", paperTitle: "El Padre Universal", text: spanish.data.text });
+  });
+
   it("rejects a response for a different reference", async () => {
     await expect(fetchPassage(client(), "99:1.1")).rejects.toBeInstanceOf(ContentError);
   });
@@ -163,6 +173,13 @@ describe("excerptPassage", () => {
 
     it("can end at a dash of the source, and the page adds no punctuation", () => {
       expect(excerptPassage(p, { text: "The thesis of it", clause: true }).text).toBe("The thesis of it");
+    });
+
+    // The Spanish text puts no space before a dash.
+    it("can end at a dash with no space before it, but not inside a word", () => {
+      const es = { ...paragraph, text: "La tesis de ello—una parte, otra; la última." };
+      expect(excerptPassage(es, { text: "La tesis de ello", clause: true }).text).toBe("La tesis de ello");
+      expect(() => excerptPassage(es, { text: "La tesis de ell", clause: true })).toThrow(/whole sentences/);
     });
 
     it("can end at a semicolon of the source", () => {

@@ -27,3 +27,22 @@ describe("Continue reading on the home page", () => {
     expect(screen.getByRole("link", { name: "Continue reading" })).toHaveAttribute("href", "/papers");
   });
 });
+
+describe("Continue reading on the Spanish home page", () => {
+  it("goes to the Spanish paper, and the line below names it in Spanish", () => {
+    saveLastRead({ paperId: "1", sectionId: "1", label: null });
+    render(
+      <>
+        <HomeContinue lang="es" />
+        <HomePlace lang="es" />
+      </>,
+    );
+    expect(screen.getByRole("link", { name: "Seguir leyendo" })).toHaveAttribute("href", "/es/documentos/documento-1-el-padre-universal#1:1");
+    expect(screen.getByText(/^Documento 1 · El Padre Universal/)).toBeInTheDocument();
+  });
+
+  it("goes to the Spanish contents for a reader with no place", () => {
+    render(<HomeContinue lang="es" />);
+    expect(screen.getByRole("link", { name: "Seguir leyendo" })).toHaveAttribute("href", "/es/documentos");
+  });
+});

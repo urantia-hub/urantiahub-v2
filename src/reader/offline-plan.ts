@@ -24,7 +24,7 @@ export function assetsOfStyle(css: string, sheet: string): string[] {
 
 /** The pages to keep: the home page, the contents, and each paper. */
 export function pagesToKeep(lang: "en" | "es", paperPaths: readonly string[]): string[] {
-  return lang === "es" ? ["/es/documentos", ...paperPaths] : ["/", "/papers", ...paperPaths];
+  return lang === "es" ? ["/es", "/es/documentos", ...paperPaths] : ["/", "/papers", ...paperPaths];
 }
 
 /** Runs a job for each item, a few at a time. It stops at the first failure and says how far it got. */

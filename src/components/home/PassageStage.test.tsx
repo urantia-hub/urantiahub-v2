@@ -67,3 +67,17 @@ describe("PassageStage", () => {
     expect(container.querySelector(".stage script")?.textContent).toContain("dataset.pick");
   });
 });
+
+describe("PassageStage in Spanish", () => {
+  it("names the paper in Spanish and links to the Spanish paper", () => {
+    const es: Passage[] = [
+      { ref: "99:1.1", paperId: "99", paperTitle: "Los problemas sociales de la religión", text: "Texto." },
+      { ref: "0:1.1", paperId: "0", paperTitle: "Prólogo", text: "Texto." },
+    ];
+    const { container } = render(<PassageStage passages={es} lang="es" />);
+    const cites = container.querySelectorAll("a.cite");
+    expect(cites[0]).toHaveTextContent("99:1.1Documento 99 · Los problemas sociales de la religión");
+    expect(cites[0].getAttribute("href")).toMatch(/^\/es\/documentos\/documento-99-[a-z0-9-]+#99:1\.1$/);
+    expect(cites[1]).toHaveTextContent("0:1.1Prólogo");
+  });
+});

@@ -19,9 +19,8 @@ describe("the pages to keep", () => {
   it("starts with the home page and the contents", () => {
     expect(pagesToKeep("en", ["/papers/foreword"])).toEqual(["/", "/papers", "/papers/foreword"]);
   });
-  // /es/documentos is a redirect to /es, and a redirect is not kept.
-  it("keeps the Spanish contents and each Spanish paper", () => {
-    expect(pagesToKeep("es", ["/es/documentos/prologo"])).toEqual(["/es/documentos", "/es/documentos/prologo"]);
+  it("starts with the Spanish home page and the Spanish contents", () => {
+    expect(pagesToKeep("es", ["/es/documentos/prologo"])).toEqual(["/es", "/es/documentos", "/es/documentos/prologo"]);
   });
 });
 
