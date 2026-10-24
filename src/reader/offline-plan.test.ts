@@ -21,7 +21,7 @@ describe("the pages to keep", () => {
   });
   // /es/documentos is a redirect to /es, and a redirect is not kept.
   it("keeps the Spanish contents and each Spanish paper", () => {
-    expect(pagesToKeep("es", ["/es/documentos/prologo"])).toEqual(["/es", "/es/documentos/prologo"]);
+    expect(pagesToKeep("es", ["/es/documentos/prologo"])).toEqual(["/es/documentos", "/es/documentos/prologo"]);
   });
 });
 

@@ -23,6 +23,6 @@ async function loadLibrary() {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const fixed = ["/", "/papers", "/about", "/resources", "/releases", "/privacy", "/terms"];
   const library = await libraryPaths(LIBRARY_LINKS, loadLibrary);
-  const spanish = spanishOn() ? ["/es", ...PAPERS.map((paper) => paperPath(paper.id, "es"))] : [];
+  const spanish = spanishOn() ? ["/es/documentos", ...PAPERS.map((paper) => paperPath(paper.id, "es"))] : [];
   return [...fixed, ...PAPERS.map((paper) => paperPath(paper.id)), ...library, ...spanish].map((path) => ({ url: absoluteUrl(path) }));
 }

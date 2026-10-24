@@ -114,8 +114,8 @@ describe("the contents pages in two languages", () => {
     vi.stubEnv("SITE_ORIGIN", "https://www.urantiahub.com");
     vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
     const en = (await import("@/app/(en)/papers/page")).metadata;
-    const es = (await import("@/app/(es)/es/page")).generateMetadata();
+    const es = (await import("@/app/(es)/es/documentos/page")).generateMetadata();
     expect(en.alternates?.languages).toEqual(es.alternates?.languages);
-    expect(en.alternates?.languages).toMatchObject({ es: "https://www.urantiahub.com/es" });
+    expect(en.alternates?.languages).toMatchObject({ es: "https://www.urantiahub.com/es/documentos" });
   });
 });

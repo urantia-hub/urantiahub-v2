@@ -1,22 +1,8 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { ContentsView } from "@/components/ContentsView";
+import { notFound, redirect } from "next/navigation";
 import { spanishOn } from "@/i18n/lang";
-import { pageMetadata } from "@/seo/metadata";
 
-export function generateMetadata(): Metadata {
-  if (!spanishOn()) return {};
-  return pageMetadata({
-    title: "Los Documentos de Urantia: índice",
-    description: "El prólogo y los 196 documentos de Urantia en español, en cuatro partes.",
-    path: "/es",
-    lang: "es",
-    twin: "/papers",
-  });
-}
-
-// The Spanish contents page: the same page as the English one, in Spanish.
-export default function SpanishContents() {
+// The Spanish home page comes here next. Until then the Spanish contents answer, with a redirect that is not permanent.
+export default function SpanishHome() {
   if (!spanishOn()) notFound();
-  return <ContentsView lang="es" />;
+  redirect("/es/documentos");
 }

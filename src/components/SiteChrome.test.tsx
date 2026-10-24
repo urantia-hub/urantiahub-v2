@@ -62,11 +62,11 @@ describe("the chrome of a Spanish page", () => {
   it("names the Spanish contents in the header, and the brand goes to the Spanish home", () => {
     render(<SiteHeader lang="es" />);
     expect(screen.getByRole("link", { name: "UrantiaHub" })).toHaveAttribute("href", "/es");
-    expect(screen.getByRole("link", { name: "Documentos" })).toHaveAttribute("href", "/es");
+    expect(screen.getByRole("link", { name: "Documentos" })).toHaveAttribute("href", "/es/documentos");
     const about = screen.getByRole("link", { name: "Acerca de" });
     expect(about).toHaveAttribute("href", "/about");
     expect(about).toHaveAttribute("hreflang", "en");
-    expect(screen.getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es");
+    expect(screen.getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es/documentos");
   });
 
   // The pages of the footer are in English. The words that lead to them are in Spanish.

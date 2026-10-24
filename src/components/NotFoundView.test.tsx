@@ -13,6 +13,6 @@ describe("NotFoundView", () => {
     render(<NotFoundView lang="es" />);
     expect(screen.getByRole("heading", { level: 1, name: "Página no encontrada" })).toBeInTheDocument();
     expect(screen.getByText("Esta dirección no tiene página.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es");
+    expect(screen.getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es/documentos");
   });
 });

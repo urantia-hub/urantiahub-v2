@@ -42,7 +42,7 @@ test("the pager and the navigator speak Spanish", async ({ page }) => {
 });
 
 test("the Spanish contents page lists the papers", async ({ page }) => {
-  await page.goto("/es");
+  await page.goto("/es/documentos");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
   await expect(page.getByRole("heading", { level: 1, name: "Documentos" })).toBeVisible();
   await expect(page.getByText("Un prólogo y 196 documentos, en cuatro partes.")).toBeVisible();
@@ -53,7 +53,7 @@ test("the Spanish contents page lists the papers", async ({ page }) => {
 
 // The place keeps the English title. A Spanish page names the section in Spanish, from its number.
 test("Continuar names the place in Spanish and opens the Spanish paper", async ({ page }) => {
-  await page.goto("/es");
+  await page.goto("/es/documentos");
   await page.evaluate(() =>
     window.localStorage.setItem("hub:last-read", JSON.stringify({ paperId: "1", sectionId: "1", label: "1. The Father’s Name", at: Date.now() })),
   );
@@ -65,7 +65,7 @@ test("Continuar names the place in Spanish and opens the Spanish paper", async (
 });
 
 test("the settings speak Spanish on a Spanish page", async ({ page }) => {
-  await page.goto("/es");
+  await page.goto("/es/documentos");
   await page.getByRole("button", { name: "Cuenta y ajustes" }).click();
   const panel = page.getByRole("dialog", { name: "Cuenta y ajustes" });
   await expect(panel.getByRole("heading", { name: "Este dispositivo" })).toBeVisible();
@@ -85,7 +85,7 @@ test("a Spanish address with no page answers 404 in Spanish", async ({ page }) =
     expect(response?.status(), path).toBe(404);
     await expect(page.locator("html")).toHaveAttribute("lang", "es");
     await expect(page.getByRole("heading", { level: 1, name: "Página no encontrada" })).toBeVisible();
-    await expect(page.getByRole("main").getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es");
+    await expect(page.getByRole("main").getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es/documentos");
   }
 });
 
