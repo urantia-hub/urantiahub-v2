@@ -3,8 +3,9 @@ import { BookmarkMark } from "@/brand/BookmarkMark";
 import type { Lang } from "@/i18n/lang";
 import { spanishOn } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
-import { contentsHref, searchHref } from "@/i18n/paths";
+import { homeHref, searchHref } from "@/i18n/paths";
 import { site } from "@/site";
+import { ContentsLink } from "./ContentsLink";
 import { Icon } from "./icons";
 import { LanguagePill } from "./LanguagePill";
 import { HeaderBack } from "./library/HeaderBack";
@@ -16,28 +17,21 @@ export function SiteHeader({ lang = "en" }: { lang?: Lang }) {
   return (
     <header className="site-header">
       <div className="header-start">
-        <Link className="brand" href={lang === "es" ? "/es" : "/"}>
+        <Link className="brand" href={homeHref(lang)}>
           <BookmarkMark size={22} />
           <span className="brand-name">{site.name}</span>
         </Link>
         <HeaderBack />
       </div>
+      {/* The same four controls on every page, in this order, so none moves (Kelson, 2026-10-24). */}
       <nav aria-label="Site">
-        <Link href={contentsHref(lang)}>{t.papersNav}</Link>
-        <Link href="/about" hrefLang={lang === "en" ? undefined : "en"}>
-          {t.about}
-        </Link>
-        <Link className="icon-link search-link" href={searchHref(lang)} aria-label={t.searchTitle} title={`${t.searchTitle} ( / )`}>
+        <Link className="icon-link search-link" data-slot="search" href={searchHref(lang)} aria-label={t.searchTitle} title={`${t.searchTitle} ( / )`}>
           <Icon name="search" />
         </Link>
         <SearchShortcut />
-        {/* Where the header has icons only: the way to the list of all papers. */}
-        <Link className="icon-link contents-link" href={contentsHref(lang)} aria-label={t.allPapers} title={t.allPapers}>
-          <Icon name="list" />
-        </Link>
-        <ReaderSettings lang={lang} />
-        {/* Only a paper and the contents show it. See chrome.css. */}
+        <ContentsLink lang={lang} />
         {spanishOn() && <LanguagePill lang={lang} />}
+        <ReaderSettings lang={lang} />
       </nav>
     </header>
   );

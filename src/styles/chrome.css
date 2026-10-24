@@ -17,6 +17,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 16px 18px;
 }
 .site-header .brand {
@@ -37,18 +38,29 @@
 .mark-shape {
   fill: var(--bg);
 }
+/* One header on every page (Kelson, 2026-10-24): search, contents, language, and account, each in a box of
+   a fixed width, so no control moves from page to page or when its content changes. */
 .site-header nav {
+  flex: none;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 6px;
+  margin: -6px -6px -6px 0;
 }
 .site-header .icon-link {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  margin: -6px -10px -6px -6px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--muted);
+}
+.site-header .icon-link:hover {
+  color: var(--ink);
+}
+.site-header .contents-link[aria-current="page"] {
+  color: var(--ink);
+  background: var(--mark);
 }
 .site-header .icon-link .icon {
   display: block;
@@ -83,9 +95,8 @@ html[data-bars="away"] body:has(.paper:not([style*="display: none"])) .site-head
 .settings-button {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  margin: -6px -8px -6px -6px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 50%;
   background: none;
@@ -274,8 +285,9 @@ html[data-bars="away"] body:has(.paper:not([style*="display: none"])) .site-head
   clip-path: inset(50%);
   white-space: nowrap;
 }
-/* On a paper the header shows the mark only. The mark is the way home. (Kelson, 2026-10-09) */
-body:has(.paper:not([style*="display: none"])) .site-header .brand-name {
+/* The header shows the mark only, and the name on the home page (Kelson, 2026-10-24). The name stays for a
+   screen reader. A hidden home page (kept alive by Next.js) must not count. */
+.site-header .brand-name {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -300,17 +312,12 @@ body:has(.paper:not([style*="display: none"])) .site-header .brand-name {
     box-shadow: 0 12px 34px var(--shade);
   }
 }
-/* A hidden paper page (kept alive by Next.js) must not count. */
-body:has(.paper:not([style*="display: none"])) .site-header nav a:not(.icon-link) {
-  display: none;
-}
-.site-header nav a {
-  font: 500 14px/1 var(--font-ui);
-  color: var(--muted);
-  text-decoration: none;
-}
-.site-header nav a:hover {
-  color: var(--ink);
+body:has(.home:not([style*="display: none"])) .site-header .brand-name {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
 }
 
 main {
@@ -371,31 +378,10 @@ main {
   margin: 0;
 }
 
-/* The contents page has the header of a paper: the mark, search, and settings (Kelson, 2026-10-09).
-   "About" is in the footer. The header is not sticky there. Its settings have no text size, because
-   the page has no text of a paper. A hidden page (kept alive by Next.js) must not count. */
-body:has(:is(.toc, .work-home, .saved-page, .study-page, .pair-page):not([style*="display: none"])) .site-header nav a:not(.icon-link) {
-  display: none;
-}
-body:has(:is(.toc, .work-home, .saved-page, .study-page, .pair-page):not([style*="display: none"])) .site-header .brand-name {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
+/* The settings of a page with no text of a paper have no text size. A hidden page (kept alive by Next.js)
+   must not count. */
 body:not(:has(.paper:not([style*="display: none"]))) .settings-panel .size-row {
   display: none;
-}
-
-/* The icon for the list of all papers shows where the header has no "Papers" link: on a paper, on the
-   saved page, and on the study page. */
-.site-header .contents-link {
-  display: none;
-}
-body:has(:is(.paper, .saved-page, .study-page):not([style*="display: none"])) .site-header .contents-link {
-  display: grid;
 }
 
 /* A row that works on something: the sign-out, while it runs. */
@@ -611,14 +597,15 @@ a[aria-busy="true"] {
   height: 16px;
 }
 
-/* The language pill: "EN" or "ES" with a globe. Only a paper and the contents show it. */
+/* The language pill: "EN" or "ES" with a globe, on every page, in a box of a fixed width. */
 .lang-pill {
-  display: none;
+  display: inline-flex;
+  justify-content: center;
   align-items: center;
   gap: 5px;
+  width: 58px;
   height: 30px;
-  margin-left: 4px;
-  padding: 0 11px 0 9px;
+  padding: 0;
   border: 0;
   border-radius: 999px;
   background: var(--mark);
@@ -630,9 +617,6 @@ a[aria-busy="true"] {
 .lang-pill .icon {
   width: 15px;
   height: 15px;
-}
-body:has(:is(.paper, .toc:not(.library)):not([style*="display: none"])) .lang-pill {
-  display: inline-flex;
 }
 .lang-scrim {
   position: fixed;

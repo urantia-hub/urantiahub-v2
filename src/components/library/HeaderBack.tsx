@@ -12,7 +12,7 @@ export function HeaderBack() {
   return (
     <Link className="hdr-back" href={back.href}>
       <Icon name="back" />
-      {back.label}
+      <span>{back.label}</span>
     </Link>
   );
 }

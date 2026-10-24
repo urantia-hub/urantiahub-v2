@@ -7,7 +7,7 @@ import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { LanguageSheet } from "./LanguageSheet";
 
-// "EN" or "ES" with a globe, in the header of a paper and of the contents. It opens the language sheet.
+// "EN" or "ES" with a globe, in the header of every page. It opens the language sheet.
 export function LanguagePill({ lang }: { lang: Lang }) {
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
@@ -17,6 +17,7 @@ export function LanguagePill({ lang }: { lang: Lang }) {
       <button
         type="button"
         className="lang-pill"
+        data-slot="lang"
         ref={button}
         aria-label={t.languageOf}
         title={t.language}

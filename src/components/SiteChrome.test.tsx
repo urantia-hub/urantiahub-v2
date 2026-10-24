@@ -1,14 +1,29 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 
+const slots = () => [...screen.getByRole("navigation", { name: "Site" }).querySelectorAll("[data-slot]")].map((el) => el.getAttribute("data-slot"));
+
+// One header on every page: the controls keep their order, so none moves (spec 2026-10-24).
 describe("SiteHeader", () => {
-  it("shows the name as a link to the home page, and the two links", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("keeps the name for a screen reader, as a link to the home page", () => {
     render(<SiteHeader />);
     expect(screen.getByRole("link", { name: "UrantiaHub" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("link", { name: "Papers" })).toHaveAttribute("href", "/papers");
-    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+  });
+  it("has no text links, and the four controls in their order", () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    render(<SiteHeader />);
+    const nav = screen.getByRole("navigation", { name: "Site" });
+    expect(within(nav).queryByRole("link", { name: "Papers" })).toBeNull();
+    expect(within(nav).queryByRole("link", { name: "About" })).toBeNull();
+    expect(slots()).toEqual(["search", "contents", "lang", "account"]);
+  });
+  it("with Spanish off, has three controls and no pill", () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+    render(<SiteHeader />);
+    expect(slots()).toEqual(["search", "contents", "account"]);
   });
 });
 
@@ -59,14 +74,11 @@ describe("SiteFooter", () => {
 });
 
 describe("the chrome of a Spanish page", () => {
-  it("names the Spanish contents in the header, and the brand goes to the Spanish home", () => {
+  it("links the Spanish contents and the Spanish home from the header", () => {
     render(<SiteHeader lang="es" />);
     expect(screen.getByRole("link", { name: "UrantiaHub" })).toHaveAttribute("href", "/es");
-    expect(screen.getByRole("link", { name: "Documentos" })).toHaveAttribute("href", "/es/documentos");
-    const about = screen.getByRole("link", { name: "Acerca de" });
-    expect(about).toHaveAttribute("href", "/about");
-    expect(about).toHaveAttribute("hreflang", "en");
     expect(screen.getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es/documentos");
+    expect(screen.getByRole("link", { name: "Buscar" })).toHaveAttribute("href", "/es/buscar");
   });
 
   // The pages of the footer are in English. The words that lead to them are in Spanish.
