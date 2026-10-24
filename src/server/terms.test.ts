@@ -28,6 +28,16 @@ describe("handleTerms", () => {
     expect(body.names.every((t) => t.kind !== "Idea")).toBe(true);
   });
 
+  it("answers in Spanish from the Spanish text, with Spanish kinds", async () => {
+    const loadEs = vi.fn(async () => "Los Hijos de Dios conocen al Padre Universal en el Paraíso.");
+    const res = await handleTerms("1:0.1", loadEs, "es");
+    expect(loadEs).toHaveBeenCalledWith("1", "1:0.1", "es");
+    const body = (await res.json()) as TermsAnswer;
+    expect(body.names.map((t) => t.name)).toEqual(["Hijos de Dios", "Padre Universal", "Paraíso"]);
+    expect(body.names.map((t) => t.kind)).toEqual(["Orden de seres", "Ser", "Lugar"]);
+    expect(body.names[1].description).toMatch(/Padre/);
+  });
+
   it("lets a shared cache keep the answer", async () => {
     const res = await handleTerms("1:0.1", load);
     expect(res.headers.get("cache-control")).toBe("public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800");
@@ -53,7 +63,7 @@ describe("handleTerms", () => {
   it("asks for the one paragraph, by the paper number in its plain form", async () => {
     load.mockClear();
     await handleTerms("1:0.1", load);
-    expect(load).toHaveBeenCalledWith("1", "1:0.1");
+    expect(load).toHaveBeenCalledWith("1", "1:0.1", "en");
   });
 
   // A reference with extra zeros is not the name of a paragraph. It must not reach the loader and its cache.

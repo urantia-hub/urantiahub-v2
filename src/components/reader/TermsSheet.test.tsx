@@ -178,3 +178,28 @@ describe("TermsSheet", () => {
     expect(sheet()).toHaveFocus();
   });
 });
+
+describe("TermsSheet in Spanish", () => {
+  const es: TermsAnswer = {
+    names: [term("Padre Universal", "Ser", { aliases: ["Primera Fuente y Centro"], seeAlso: ["Dios", "YO SOY"], citations: 404 })],
+    ideas: [term("verdad", "Idea")],
+  };
+  const hoja = () => screen.getByRole("dialog", { name: "Términos en 1:0.3" });
+
+  it("asks for the Spanish terms and speaks Spanish", async () => {
+    render(<TermsSheet reference="1:0.3" paperId="1" lang="es" onClose={() => {}} />);
+    expect(within(hoja()).getByRole("status", { name: "Cargando los términos" })).toBeInTheDocument();
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/terms/1%3A0.3?lang=es");
+    resolve(Response.json(es));
+    await waitFor(() => expect(within(hoja()).queryByRole("status")).toBeNull());
+    expect(within(hoja()).getByRole("list", { name: "Nombres" })).toBeInTheDocument();
+    expect(within(hoja()).getByRole("list", { name: "Ideas" })).toBeInTheDocument();
+
+    await userEvent.click(within(hoja()).getByRole("button", { name: /Padre Universal/ }));
+    expect(within(hoja()).getByText("También:")).toBeInTheDocument();
+    expect(within(hoja()).getByText("Ver también:")).toBeInTheDocument();
+    expect(within(hoja()).getByRole("link", { name: /Cada lugar en los Documentos/ })).toHaveAttribute("href", "/es/buscar?q=Padre%20Universal");
+    expect(within(hoja()).getByRole("button", { name: "Volver a los términos" })).toBeInTheDocument();
+    expect(within(hoja()).getByRole("button", { name: "Cerrar los términos" })).toBeInTheDocument();
+  });
+});

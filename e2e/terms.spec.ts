@@ -114,3 +114,19 @@ test("on a phone the terms are a bottom sheet, and on a desktop a card in the ri
     expect(box.x).toBeGreaterThanOrEqual(text.x + text.width - 40);
   }
 });
+
+test("a Spanish paragraph lists its terms in Spanish, from the Spanish text", async ({ page }) => {
+  await page.goto("/es/documentos/documento-1-el-padre-universal");
+  await tap(page, "1:0.1");
+  await page.getByRole("button", { name: "Más" }).click();
+  await page.getByRole("button", { name: "Términos de este párrafo" }).click();
+  const terms = page.getByRole("dialog", { name: "Términos en 1:0.1" });
+  const names = terms.getByRole("list", { name: "Nombres" });
+  await expect(names.getByRole("button", { name: /Padre Universal/ })).toContainText("Ser");
+  await expect(names.getByRole("button", { name: /Hijos de Dios/ })).toContainText("Orden de seres");
+  await expect(terms.getByRole("list", { name: "Ideas" }).getByRole("button", { name: /verdad/ })).toBeVisible();
+  await names.getByRole("button", { name: /Padre Universal/ }).click();
+  await expect(terms.getByRole("heading", { name: "Padre Universal" })).toBeVisible();
+  await expect(terms).toContainText("También:");
+  await expect(terms.getByRole("button", { name: "Volver a los términos" })).toBeVisible();
+});
