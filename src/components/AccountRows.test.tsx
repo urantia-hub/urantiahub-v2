@@ -17,7 +17,7 @@ vi.mock("@/account/client", () => ({
   },
 }));
 
-import { AccountRows } from "./AccountRows";
+import { AccountRows, SignInInvite } from "./AccountRows";
 
 afterEach(() => {
   world.calls = 0;
@@ -43,5 +43,26 @@ describe("the sign-out row", () => {
     world.done?.(false);
     expect(await screen.findByRole("status")).toHaveTextContent("The sign-out did not finish");
     expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+});
+
+describe("the account rows in Spanish", () => {
+  it("names the rows in Spanish", async () => {
+    render(<AccountRows lang="es" />);
+    expect(screen.getByRole("link", { name: /Tu página/ })).toHaveAttribute("href", "/you");
+    expect(screen.getByRole("link", { name: "Guardados" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+    expect(screen.getByRole("button", { name: "Cerrando la sesión…" })).toBeDisabled();
+  });
+
+  it("asks a reader with no account to sign in, in Spanish", () => {
+    world.state = { status: "out" } as typeof world.state;
+    try {
+      render(<SignInInvite lang="es" />);
+      expect(screen.getByText("Guarda párrafos y escribe notas")).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Iniciar sesión" })).toHaveAttribute("href", "/api/auth/start");
+    } finally {
+      world.state = { status: "in", user: { name: "Ana", email: "ana@example.com", key: "k" } };
+    }
   });
 });

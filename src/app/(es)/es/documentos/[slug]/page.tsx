@@ -9,6 +9,7 @@ import { SharedMark } from "@/components/reader/SharedMark";
 import type { NavPaper } from "@/components/navigation/nav-state";
 import { PAPERS_ES, paperById, paperPath } from "@/content/paper-index";
 import { spanishPrerenderIds } from "@/content/prerender";
+import { titlesOf } from "@/content/section-index";
 import { spanishOn } from "@/i18n/lang";
 import { idFromSlug } from "@/lib/paper-url";
 import { JsonLd } from "@/seo/JsonLd";
@@ -70,6 +71,7 @@ export default async function SpanishPaperPage({ params }: Props) {
         tracks={null}
         voice={null}
         lang="es"
+        englishTitles={titlesOf(paper.id)}
       />
     </>
   );

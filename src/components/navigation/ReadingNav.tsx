@@ -47,6 +47,8 @@ type Props = {
   voice: PaperVoice | null;
   // The language of the page. A Spanish page has no voice (`tracks` is null).
   lang?: Lang;
+  // On a Spanish page: the English title of each section, for the place. The place stays in English.
+  englishTitles?: Record<string, string | null>;
 };
 
 const IDLE: PaperVoiceState = { status: "idle", index: -1, time: 0, speed: 1, item: null, sentence: 0 };
@@ -85,7 +87,7 @@ function inView(id: string | null): boolean {
 }
 
 // The controls at the bottom of a paper: a round button for the voice, and a pill with three jobs.
-export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice, lang = "en" }: Props) {
+export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice, lang = "en", englishTitles }: Props) {
   const t = messages(lang);
   const [current, setCurrent] = useState("0");
   const [progress, setProgress] = useState(0);
@@ -497,9 +499,10 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
 
   // The contents page offers the way back to this place.
   useEffect(() => {
-    const at = sections.find((s) => s.id === current);
-    saveLastRead({ paperId: paper.id, sectionId: current, label: at && at.id !== "0" ? sectionLabel(at) : null });
-  }, [paper.id, current, sections]);
+    const found = sections.find((s) => s.id === current);
+    const at = found && englishTitles ? { id: found.id, title: englishTitles[found.id] ?? null } : found;
+    saveLastRead({ paperId: paper.id, sectionId: current, label: at && at.id !== "0" && (at.title || !englishTitles) ? sectionLabel(at) : null });
+  }, [paper.id, current, sections, englishTitles]);
 
   function start(ref: string, from: "bar" | "paragraph" | "place" | "streak") {
     const index = tracks?.findIndex((t) => t.ref === ref) ?? -1;

@@ -335,6 +335,33 @@ describe("the top bar", () => {
 });
 
 describe("the place the reader left", () => {
+  // The place goes to the account and to the place email in English, so a Spanish page keeps the English title.
+  it("keeps the English title of the section from a Spanish page", async () => {
+    window.localStorage.clear();
+    render(
+      <>
+        <article className="paper">
+          <h2 className="sec" id="1:1">1. El nombre del Padre</h2>
+        </article>
+        <ReadingNav
+          paper={{ id: "1", title: "El Padre Universal" }}
+          sections={[
+            { id: "0", title: null },
+            { id: "1", title: "El nombre del Padre" },
+          ]}
+          englishTitles={{ "1": "The Father’s Name" }}
+          previous={null}
+          next={null}
+          tracks={null}
+          voice={null}
+          lang="es"
+        />
+      </>,
+    );
+    await scrollTo(100);
+    expect(JSON.parse(window.localStorage.getItem("hub:last-read")!)).toMatchObject({ paperId: "1", sectionId: "1", label: "1. The Father’s Name" });
+  });
+
   it("is kept in this browser as the paper and the section in view", async () => {
     window.localStorage.clear();
     renderNav();

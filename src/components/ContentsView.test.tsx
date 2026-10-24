@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { partNumeral } from "@/content/paper-index";
+import { PARTS_ES, partNumeral } from "@/content/paper-index";
 import { ContentsView } from "./ContentsView";
 
 describe("partNumeral", () => {
@@ -53,5 +53,35 @@ describe("ContentsView", () => {
     expect(within(beside).getByRole("heading", { level: 2, name: "World texts" })).toBeInTheDocument();
     expect(beside).toHaveTextContent("The Bible and 21 other texts of the world's religions, each with the passages of the Papers that are near to it in meaning.");
     expect(within(beside).getByRole("link", { name: "Browse world texts" })).toHaveAttribute("href", "/texts");
+  });
+});
+
+describe("ContentsView in Spanish", () => {
+  it("has the Spanish title, line, and links to all 197 Spanish papers", () => {
+    render(<ContentsView lang="es" />);
+    expect(screen.getByRole("heading", { level: 1, name: "Documentos" })).toBeInTheDocument();
+    expect(screen.getByText("Un prólogo y 196 documentos, en cuatro partes.")).toBeInTheDocument();
+    const links = screen.getAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("/es/documentos/"));
+    expect(links).toHaveLength(197);
+    const foreword = screen.getByRole("region", { name: "Prólogo" });
+    expect(within(foreword).getByRole("link", { name: "Prólogo" })).toHaveAttribute("href", "/es/documentos/prologo");
+  });
+
+  it("shows each part with its Spanish range, title, and sponsorship from the index", () => {
+    render(<ContentsView lang="es" />);
+    const first = PARTS_ES[1];
+    const part = screen.getByRole("region", { name: first.title });
+    expect(within(part).getByText("Parte I · Documentos 1–31")).toBeInTheDocument();
+    expect(within(part).getByText(first.sponsorship!)).toBeInTheDocument();
+  });
+
+  it("names the parts in Spanish, and Otras obras goes to the English World texts", () => {
+    render(<ContentsView lang="es" libraryLinks />);
+    const jump = screen.getByRole("navigation", { name: "Partes" });
+    expect(within(jump).getAllByRole("link").map((a) => a.textContent)).toEqual(["Parte I", "Parte II", "Parte III", "Parte IV", "Otras obras"]);
+    expect(within(jump).getByRole("link", { name: "Otras obras" })).toHaveAttribute("href", "/texts");
+    const beside = screen.getByRole("region", { name: "Junto a los Documentos" });
+    expect(within(beside).getByRole("heading", { level: 2, name: "Otras obras" })).toBeInTheDocument();
+    expect(within(beside).getByRole("link", { name: "Ver las otras obras" })).toHaveAttribute("href", "/texts");
   });
 });

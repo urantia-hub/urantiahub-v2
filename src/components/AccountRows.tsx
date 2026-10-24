@@ -5,6 +5,8 @@ import { useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { accountState, never, noSignInProblem, serverAccountState, signInProblem, signOut, subscribeToAccount } from "@/account/client";
 import { Icon } from "@/components/icons";
 import { SignInLink, useSignInLink } from "@/components/SignInLink";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 
 // Off until the notices can be sent.
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
@@ -19,7 +21,8 @@ const useProblem = () => useSyncExternalStore(never, signInProblem, noSignInProb
 // the notifications are on the reader's page (Kelson, 2026-10-12).
 type Part = "who" | "pages" | "out";
 
-export function AccountRows({ part }: { part?: Part }) {
+export function AccountRows({ part, lang = "en" }: { part?: Part; lang?: Lang }) {
+  const t = messages(lang);
   const has = (name: Part) => !part || part === name;
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const problem = useProblem();
@@ -35,17 +38,17 @@ export function AccountRows({ part }: { part?: Part }) {
         <a className="account-row" {...signIn.link}>
           <Icon name="person" />
           <span>
-            {signIn.going ? "Opening the sign-in…" : "Sign in"}
-            <small>Save paragraphs, write notes, and keep your place</small>
+            {signIn.going ? t.signInGoing : t.signIn}
+            <small>{t.signInRowLine}</small>
           </span>
           <Icon name="paperAfter" />
         </a>
-        {problem && <p role="status">The sign-in did not finish. Try again.</p>}
+        {problem && <p role="status">{t.signInFailed}</p>}
       </div>
     );
   }
 
-  const name = account.user?.name || account.user?.email || "Your account";
+  const name = account.user?.name || account.user?.email || t.yourAccount;
   return (
     <div className="account-rows">
       {has("who") && (
@@ -55,7 +58,7 @@ export function AccountRows({ part }: { part?: Part }) {
           </span>
           <span>
             {name}
-            <small>Your page: progress{NOTICES_ON ? " and notifications" : ""}</small>
+            <small>{t.yourPage(NOTICES_ON)}</small>
           </span>
           <Icon name="paperAfter" />
         </Link>
@@ -64,7 +67,7 @@ export function AccountRows({ part }: { part?: Part }) {
         <>
           <Link className="account-row" href="/saved">
             <Icon name="save" />
-            <span>Saved</span>
+            <span>{t.savedTitle}</span>
             <Icon name="paperAfter" />
           </Link>
         </>
@@ -86,10 +89,10 @@ export function AccountRows({ part }: { part?: Part }) {
           }}
         >
           <Icon name="signOut" />
-          <span>{leaving ? "Signing out…" : "Sign out"}</span>
+          <span>{leaving ? t.signingOut : t.signOut}</span>
         </button>
       )}
-      {has("out") && stuck && <p role="status">The sign-out did not finish, so you are still signed in. Try again.</p>}
+      {has("out") && stuck && <p role="status">{t.signOutStuck}</p>}
     </div>
   );
 }
@@ -99,7 +102,8 @@ export function AccountRows({ part }: { part?: Part }) {
 // while the page carries the mark of a reader with no account.
 const SIGN_IN_ON = process.env.NEXT_PUBLIC_SIGN_IN === "on";
 
-export function SignInInvite() {
+export function SignInInvite({ lang = "en" }: { lang?: Lang }) {
+  const t = messages(lang);
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const problem = useProblem();
   const out = account.status === "out";
@@ -113,10 +117,10 @@ export function SignInInvite() {
   return (
     <div className="invite">
       <p>
-        <strong>Save paragraphs and write notes</strong>
-        {problem ? "The sign-in did not finish. Try again." : "Sign in, and they stay with you on each device."}
+        <strong>{t.inviteTitle}</strong>
+        {problem ? t.signInFailed : t.inviteLine}
       </p>
-      <SignInLink />
+      <SignInLink lang={lang} />
     </div>
   );
 }
