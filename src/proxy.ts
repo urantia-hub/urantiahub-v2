@@ -11,23 +11,25 @@ export function proxy(request: NextRequest) {
     return ref && paperById(ref.paperId) ? NextResponse.redirect(new URL(referenceHref(ref), request.url), 307) : NextResponse.next();
   }
 
+  const lang = request.nextUrl.pathname.startsWith("/es/") ? "es" : "en";
+  const prefix = lang === "es" ? "/es/documentos/" : "/papers/";
   let slug: string;
   try {
-    slug = decodeURIComponent(request.nextUrl.pathname.slice("/papers/".length));
+    slug = decodeURIComponent(request.nextUrl.pathname.slice(prefix.length));
   } catch {
     // A malformed escape is not a paper. Next.js answers 500 if it reaches the route,
     // so send it to a path with no page: the not-found page answers 404.
     return NextResponse.rewrite(new URL("/not-found", request.url));
   }
   const id = idFromSlug(slug);
-  const paper = id === null ? undefined : paperById(id);
+  const paper = id === null ? undefined : paperById(id, lang);
   if (!paper || paper.slug === slug) return NextResponse.next();
 
   const url = request.nextUrl.clone();
-  url.pathname = `/papers/${paper.slug}`;
+  url.pathname = `${prefix}${paper.slug}`;
   return NextResponse.redirect(url, 308);
 }
 
 export const config = {
-  matcher: ["/papers/:slug", "/search"],
+  matcher: ["/papers/:slug", "/es/documentos/:slug", "/search"],
 };

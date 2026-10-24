@@ -35,18 +35,21 @@ export const PAPERS: PaperEntry[] = byId(PARTS);
 export const PARTS_ES: PartEntry[] = buildParts(rawEs, "es");
 export const PAPERS_ES: PaperEntry[] = byId(PARTS_ES);
 
-export function paperById(id: string): PaperEntry | undefined {
-  return /^\d{1,3}$/.test(id) ? PAPERS[Number(id)] : undefined;
+export const PAPERS_BY_LANG: Record<"en" | "es", PaperEntry[]> = { en: PAPERS, es: PAPERS_ES };
+export const PARTS_BY_LANG: Record<"en" | "es", PartEntry[]> = { en: PARTS, es: PARTS_ES };
+
+export function paperById(id: string, lang: "en" | "es" = "en"): PaperEntry | undefined {
+  return /^\d{1,3}$/.test(id) ? PAPERS_BY_LANG[lang][Number(id)] : undefined;
 }
 
-export function paperPath(id: string): string {
-  const paper = paperById(id);
+export function paperPath(id: string, lang: "en" | "es" = "en"): string {
+  const paper = paperById(id, lang);
   if (!paper) throw new Error(`Unknown paper id: ${id}`);
-  return `/papers/${paper.slug}`;
+  return lang === "es" ? `/es/documentos/${paper.slug}` : `/papers/${paper.slug}`;
 }
 
-export function referenceHref(ref: ParsedReference): string {
-  return `${paperPath(ref.paperId)}${anchorFor(ref)}`;
+export function referenceHref(ref: ParsedReference, lang: "en" | "es" = "en"): string {
+  return `${paperPath(ref.paperId, lang)}${anchorFor(ref)}`;
 }
 
 const NUMERALS: Record<string, string> = { "1": "I", "2": "II", "3": "III", "4": "IV" };

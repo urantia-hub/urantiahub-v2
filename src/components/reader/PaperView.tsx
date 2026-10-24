@@ -1,26 +1,31 @@
 import Link from "next/link";
 import type { PaperDoc } from "@/content/fetchers";
-import { PAPERS, paperPath, partNumeral } from "@/content/paper-index";
+import { PAPERS_BY_LANG, paperPath, partNumeral } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { hasOwnNumber } from "@/components/navigation/nav-state";
 import { AskPaperButton } from "./AskPaperButton";
 import { MissingReferenceNotice } from "./MissingReferenceNotice";
 
-export function paperEyebrow(paper: { id: string; partId: string }): string | null {
-  return paper.id === "0" ? null : `Part ${partNumeral(paper.partId)} · Paper ${paper.id}`;
+export function paperEyebrow(paper: { id: string; partId: string }, lang: Lang = "en"): string | null {
+  return paper.id === "0" ? null : messages(lang).paperEyebrow(partNumeral(paper.partId), Number(paper.id));
 }
 
-export function PaperView({ paper }: { paper: PaperDoc }) {
+export function PaperView({ paper, lang = "en" }: { paper: PaperDoc; lang?: Lang }) {
+  const t = messages(lang);
+  const papers = PAPERS_BY_LANG[lang];
   const n = Number(paper.id);
-  const previous = n > 0 ? PAPERS[n - 1] : null;
-  const next = n < PAPERS.length - 1 ? PAPERS[n + 1] : null;
-  const eyebrow = paperEyebrow(paper);
+  const previous = n > 0 ? papers[n - 1] : null;
+  const next = n < papers.length - 1 ? papers[n + 1] : null;
+  const eyebrow = paperEyebrow(paper, lang);
 
   return (
     <article className="paper">
       <header className="paper-head">
         {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1 id="paper-top">{paper.title}</h1>
-        <AskPaperButton />
+        {/* The assistant in Spanish comes with the rest of the Spanish tools. */}
+        {lang === "en" && <AskPaperButton />}
       </header>
       <MissingReferenceNotice paperId={paper.id} />
 
@@ -49,19 +54,19 @@ export function PaperView({ paper }: { paper: PaperDoc }) {
         </section>
       ))}
 
-      <nav className="pager" aria-label="Papers">
+      <nav className="pager" aria-label={t.papersNav}>
         {previous ? (
-          <Link href={paperPath(previous.id)}>
-            <small>Previous</small>
-            {previous.id === "0" ? previous.title : `Paper ${previous.id} · ${previous.title}`}
+          <Link href={paperPath(previous.id, lang)}>
+            <small>{t.previous}</small>
+            {previous.id === "0" ? previous.title : t.paperNamed(previous.id, previous.title)}
           </Link>
         ) : (
           <span />
         )}
         {next && (
-          <Link className="next" href={paperPath(next.id)}>
-            <small>Next</small>
-            Paper {next.id} · {next.title}
+          <Link className="next" href={paperPath(next.id, lang)}>
+            <small>{t.next}</small>
+            {t.paperNamed(next.id, next.title)}
           </Link>
         )}
       </nav>

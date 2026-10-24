@@ -13,6 +13,10 @@ describe("proxy", () => {
     expect(res.headers.get("x-middleware-next")).toBe("1");
   });
 
+  it("lets the canonical Spanish URL through", () => {
+    expect(run("/es/documentos/documento-1-el-padre-universal").headers.get("location")).toBeNull();
+  });
+
   it.each([
     ["/papers/1", "/papers/paper-1-the-universal-father"],
     ["/papers/paper-1", "/papers/paper-1-the-universal-father"],
@@ -21,6 +25,9 @@ describe("proxy", () => {
     // Review Focus 2: a messaging app or a person changed the case.
     ["/papers/Paper-1-The-Universal-Father", "/papers/paper-1-the-universal-father"],
     ["/papers/FOREWORD", "/papers/foreword"],
+    ["/es/documentos/documento-1-otro-titulo", "/es/documentos/documento-1-el-padre-universal"],
+    ["/es/documentos/1", "/es/documentos/documento-1-el-padre-universal"],
+    ["/es/documentos/0", "/es/documentos/prologo"],
   ])("redirects %s to %s with 308", (from, to) => {
     const res = run(from);
     expect(res.status).toBe(308);

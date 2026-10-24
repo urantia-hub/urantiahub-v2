@@ -1,6 +1,7 @@
 import "server-only";
 import { UrantiaAPI } from "@urantia/api";
 import { cacheLife, cacheTag } from "next/cache";
+import type { Lang } from "@/i18n/lang";
 import { queryKey } from "@/search/query";
 import { fetchLibrary, fetchPassageOthers, fetchPassagePapers, fetchWorkPage, fetchWorkPages, fetchWorkPairs, type LibraryWork, PageNotFound, type RawPassageOthers, type RawPassagePapers, type WorkPage, type WorkPair, type WorkPassage } from "./library";
 import { fetchParallels, fetchWorks, type RawParallels, type RawWork } from "./parallels";
@@ -9,11 +10,12 @@ import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, 
 // The only place in the app that talks to api.urantia.dev.
 const client = new UrantiaAPI({ baseUrl: process.env.URANTIA_API_BASE_URL || undefined });
 
-export async function getPaper(id: string): Promise<PaperDoc> {
+// English keeps the tag `paper:{id}`, so the revalidate route still works. Spanish is `paper:{id}:es`.
+export async function getPaper(id: string, lang: Lang = "en"): Promise<PaperDoc> {
   "use cache";
   cacheLife("weeks");
-  cacheTag(`paper:${id}`);
-  return fetchPaper(client, id);
+  cacheTag(lang === "en" ? `paper:${id}` : `paper:${id}:${lang}`);
+  return fetchPaper(client, id, lang);
 }
 
 export async function getPassage(ref: string): Promise<Passage> {
@@ -26,17 +28,17 @@ export async function getPassage(ref: string): Promise<Passage> {
 // The text of each paragraph of one paper, from the shared cache. The terms address needs one paragraph for
 // each request, and without this each server instance would read the whole paper from the API again.
 // The cache holds one item for each paper, so no one can fill it with references that do not exist.
-async function paragraphTexts(paperId: string): Promise<Record<string, string>> {
+async function paragraphTexts(paperId: string, lang: Lang): Promise<Record<string, string>> {
   "use cache: remote";
   cacheLife("weeks");
-  cacheTag(`paper:${paperId}`);
-  const paper = await getPaper(paperId);
+  cacheTag(lang === "en" ? `paper:${paperId}` : `paper:${paperId}:${lang}`);
+  const paper = await getPaper(paperId, lang);
   return Object.fromEntries(paper.sections.flatMap((section) => section.paragraphs).map((p) => [p.ref, p.text]));
 }
 
 // The check for a missing paragraph is outside the cached call: an error loses its kind when it crosses a cache.
-export async function getParagraphText(paperId: string, ref: string): Promise<string> {
-  const texts = await paragraphTexts(paperId);
+export async function getParagraphText(paperId: string, ref: string, lang: Lang = "en"): Promise<string> {
+  const texts = await paragraphTexts(paperId, lang);
   if (!Object.hasOwn(texts, ref)) throw new ParagraphNotFound(ref);
   return texts[ref];
 }

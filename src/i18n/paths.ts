@@ -1,10 +1,10 @@
-import { PAPERS, PAPERS_ES } from "@/content/paper-index";
+import { paperPath } from "@/content/paper-index";
 import { idFromSlug } from "@/lib/paper-url";
 import { refForLink } from "@/reader/share-link";
 import type { Lang } from "./lang";
 
 export function paperHref(lang: Lang, id: number): string {
-  return lang === "es" ? `/es/documentos/${PAPERS_ES[id].slug}` : `/papers/${PAPERS[id].slug}`;
+  return paperPath(String(id), lang);
 }
 
 export function contentsHref(lang: Lang): string {

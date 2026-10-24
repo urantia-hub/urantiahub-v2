@@ -1,9 +1,11 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { paperPath } from "@/content/paper-index";
+import { spanishOn } from "@/i18n/lang";
+import { paperHref } from "@/i18n/paths";
 import { absoluteUrl } from "@/site";
 
-const TAG = /^(?:paper:(?:\d|[1-9]\d|1[0-8]\d|19[0-6])|passages|parallels|search|library)$/;
+const TAG = /^(?:paper:(?:\d|[1-9]\d|1[0-8]\d|19[0-6])(?::es)?|passages|parallels|search|library)$/;
 const Body = z.object({ tags: z.array(z.string().regex(TAG)).min(1).max(200) });
 
 type Deps = {
@@ -22,6 +24,8 @@ function sameSecret(given: string, expected: string): boolean {
 // The Library is not indexed while it is unlinked. When it is, a search engine finds it through the sitemap.
 function urlsForTag(tag: string): string[] {
   if (tag === "parallels" || tag === "search" || tag === "library") return [];
+  const spanish = /^paper:(\d+):es$/.exec(tag);
+  if (spanish) return spanishOn() ? [absoluteUrl(paperHref("es", Number(spanish[1])))] : [];
   return [tag === "passages" ? absoluteUrl("/") : absoluteUrl(paperPath(tag.slice("paper:".length)))];
 }
 
@@ -41,7 +45,7 @@ export async function handleRevalidate(request: Request, { secret, revalidate, n
   }
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
-    return Response.json({ error: "tags must be paper:{0-196}, passages, parallels, or search" }, { status: 400 });
+    return Response.json({ error: "tags must be paper:{0-196}, paper:{0-196}:es, passages, parallels, or search" }, { status: 400 });
   }
 
   const { tags } = parsed.data;

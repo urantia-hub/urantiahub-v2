@@ -112,14 +112,14 @@ export type Passage = { ref: string; paperId: string; paperTitle: string; text: 
 
 // The part of the SDK client that the gateway uses. Results are unknown until validated.
 export type ContentClient = {
-  papers: { get(id: string): Promise<unknown> };
+  papers: { get(id: string, options?: { lang: "es" }): Promise<unknown> };
   paragraphs: { get(ref: string): Promise<unknown> };
 };
 
-export async function fetchPaper(client: ContentClient, id: string): Promise<PaperDoc> {
+export async function fetchPaper(client: ContentClient, id: string, lang: "en" | "es" = "en"): Promise<PaperDoc> {
   let raw: unknown;
   try {
-    raw = await client.papers.get(id);
+    raw = lang === "es" ? await client.papers.get(id, { lang: "es" }) : await client.papers.get(id);
   } catch (cause) {
     throw new ContentError(`Paper ${id}: the content API request failed`, cause);
   }

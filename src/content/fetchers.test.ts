@@ -27,10 +27,11 @@ const paperResponse = {
   },
 };
 
-function client(over: Partial<{ paper: unknown; paragraph: unknown; fail: boolean }> = {}): ContentClient {
+function client(over: Partial<{ paper: unknown; paragraph: unknown; fail: boolean; asked: unknown[] }> = {}): ContentClient {
   return {
     papers: {
-      get: async () => {
+      get: async (...args: unknown[]) => {
+        over.asked?.push(args);
         if (over.fail) throw new Error("network down");
         return "paper" in over ? over.paper : paperResponse;
       },
@@ -45,6 +46,12 @@ function client(over: Partial<{ paper: unknown; paragraph: unknown; fail: boolea
 }
 
 describe("fetchPaper", () => {
+  it("asks the API in the language of the page", async () => {
+    const asked: unknown[] = [];
+    await fetchPaper(client({ asked }), "1");
+    await fetchPaper(client({ asked }), "1", "es");
+    expect(asked).toEqual([["1"], ["1", { lang: "es" }]]);
+  });
   it("groups the paragraphs into sections in order", async () => {
     const paper = await fetchPaper(client(), "1");
     expect(paper).toMatchObject({ id: "1", title: "The Universal Father", partId: "1" });
