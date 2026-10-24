@@ -42,12 +42,7 @@ for (let page = 0; page < pages; page++) {
   await new Promise((resolve) => setTimeout(resolve, 200));
 }
 
-// Other names that the Spanish entries of the API lack. Without "Josué ben José", the matcher gives Joshua of the
-// Old Testament and Joseph the father for the name of Jesus. Remove a line when the API has the name.
-const ALIAS_GAPS: Record<string, string[]> = { jesus: ["Josué ben José"] };
-
 if (spanish) {
-  for (const e of entries) for (const alias of ALIAS_GAPS[e.id] ?? []) if (!e.aliases.includes(alias)) e.aliases.push(alias);
   // "See also" names English entries. Each becomes the name of its Spanish entry, or goes when there is none.
   const english = JSON.parse(readFileSync("src/content/glossary.json", "utf8")) as Entry[];
   const idOf = new Map(english.map((e) => [e.name, e.id]));
