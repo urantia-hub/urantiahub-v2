@@ -33,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: paperPath(entry.id),
     type: "article",
     ownImage: true,
+    twin: paperPath(entry.id, "es"),
   });
 }
 

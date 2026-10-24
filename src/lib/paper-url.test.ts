@@ -14,6 +14,14 @@ describe("slugify", () => {
   });
 });
 
+describe("slugify in Spanish", () => {
+  it("builds documento-{id}-{title} with no accent and no colon", () => {
+    expect(slugify("1", "El Padre Universal", "es")).toBe("documento-1-el-padre-universal");
+    expect(slugify("0", "Prólogo", "es")).toBe("prologo");
+    expect(slugify("42", "Energía: mente y materia", "es")).toBe("documento-42-energia-mente-y-materia");
+  });
+});
+
 describe("idFromSlug", () => {
   it.each([
     ["foreword", "0"],

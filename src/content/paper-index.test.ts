@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import liveSlugs from "@/lib/live-paper-slugs.json";
-import { PAPERS, PARTS, paperById, paperPath, referenceHref } from "./paper-index";
+import { PAPERS, PAPERS_BY_LANG, PARTS, paperById, paperPath, referenceHref } from "./paper-index";
 
 describe("paper index", () => {
   it("holds 197 papers, and the array index equals the paper number", () => {
@@ -33,5 +33,15 @@ describe("paper index", () => {
     expect(referenceHref({ paperId: "1", sectionId: "0", paragraphId: "1" })).toBe(
       "/papers/paper-1-the-universal-father#1:0.1",
     );
+  });
+});
+
+describe("the Spanish paper index", () => {
+  it("holds each paper of the English index, with a Spanish slug", () => {
+    expect(PAPERS_BY_LANG.es).toHaveLength(197);
+    expect(PAPERS_BY_LANG.es.map((p) => p.id)).toEqual(PAPERS.map((p) => p.id));
+    expect(paperById("1", "es")?.slug).toBe("documento-1-el-padre-universal");
+    expect(paperById("0", "es")?.title).toBe("Prólogo");
+    expect(paperById("1")?.slug).toBe("paper-1-the-universal-father");
   });
 });

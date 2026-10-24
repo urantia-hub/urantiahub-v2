@@ -4,7 +4,7 @@
       "startServerCommand": "SITE_INDEXABLE=on bash e2e/serve.sh",
       "startServerReadyPattern": "Ready in",
       "startServerReadyTimeout": 300000,
-      "url": ["http://localhost:3100/", "http://localhost:3100/papers/paper-1-the-universal-father"],
+      "url": ["http://localhost:3100/", "http://localhost:3100/papers/paper-1-the-universal-father", "http://localhost:3100/es/documentos/documento-1-el-padre-universal"],
       "numberOfRuns": 3
     },
     "assert": {

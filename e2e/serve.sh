@@ -24,6 +24,8 @@ export NEXT_PUBLIC_NOTICES=on
 export NEXT_PUBLIC_VAPID_KEY=
 # The streak is on for the tests. The stand-in says each reader was asked, unless a test sets it.
 export NEXT_PUBLIC_STREAKS=on
+# The Spanish reader is on for the tests.
+export NEXT_PUBLIC_SPANISH=on
 # No analytics from a test run.
 export NEXT_PUBLIC_POSTHOG_KEY=
 

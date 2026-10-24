@@ -22,6 +22,8 @@ import { clearVoicePlace, readVoicePlace, saveVoicePlace, subscribeToVoicePlace 
 import { createHearing } from "@/streak/heard";
 import { noteParagraphs } from "@/streak/client";
 import { Navigator } from "./Navigator";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { nextHidden, sectionLabel, type NavPaper, type NavSection } from "./nav-state";
 
 // Only a signed-in reader opens the notes, so their code loads at the first use.
@@ -42,6 +44,8 @@ type Props = {
   tracks: Track[] | null;
   // One file for the whole paper. With it the voice plays that file; with none, one file for each paragraph.
   voice: PaperVoice | null;
+  // The language of the page. A Spanish page has no voice (`tracks` is null).
+  lang?: Lang;
 };
 
 const IDLE: PaperVoiceState = { status: "idle", index: -1, time: 0, speed: 1, item: null, sentence: 0 };
@@ -80,7 +84,8 @@ function inView(id: string | null): boolean {
 }
 
 // The controls at the bottom of a paper: a round button for the voice, and a pill with three jobs.
-export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice }: Props) {
+export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice, lang = "en" }: Props) {
+  const t = messages(lang);
   const [current, setCurrent] = useState("0");
   const [progress, setProgress] = useState(0);
   const [hidden, setHidden] = useState(false);
@@ -700,7 +705,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     if (!text) return;
     try {
       await navigator.clipboard.writeText(`${text} (${picked})`);
-      say("Text copied");
+      say(t.textCopied);
     } catch {
       // The browser refused the clipboard. The reader can still select the text.
     }
@@ -714,8 +719,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   }
 
   const section = sections.find((s) => s.id === current);
-  const label = !section || section.id === "0" ? paper.title : sectionLabel(section);
-  const paperLabel = paper.id === "0" ? "The Urantia Papers" : `Paper ${paper.id}`;
+  const label = !section || section.id === "0" ? paper.title : sectionLabel(section, lang);
+  const paperLabel = paper.id === "0" ? t.thePapers : t.paperNumber(paper.id);
   const pauseShown = intent.kind === "pause";
   const isSaved = picked !== null && saved.bookmarks.has(picked);
   const roundName = pauseShown ? "Pause" : picked ? `Listen from ${picked}` : "Listen";
@@ -749,7 +754,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           {job === "reading" && (
             <div className="row read">
               {previous ? (
-                <Link className="arrow" href={previous.href} aria-label={`Previous: ${previous.title}`} tabIndex={deep ? -1 : undefined}>
+                <Link className="arrow" href={previous.href} aria-label={`${t.previous}: ${previous.title}`} tabIndex={deep ? -1 : undefined}>
                   <Icon name="paperBefore" />
                 </Link>
               ) : (
@@ -759,7 +764,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
                 type="button"
                 className="where"
                 aria-haspopup="dialog"
-                aria-label={`${paperLabel} ${label}. Open the navigator`}
+                aria-label={`${paperLabel} ${label}. ${t.openNavigator}`}
                 onClick={() => {
                   track("navigator_opened", { paper_id: paper.id });
                   setOpen(true);
@@ -769,7 +774,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
                 <span data-testid="reading-bar-label">{label}</span>
               </button>
               {next ? (
-                <Link className="arrow" href={next.href} aria-label={`Next: ${next.title}`} tabIndex={deep ? -1 : undefined}>
+                <Link className="arrow" href={next.href} aria-label={`${t.next}: ${next.title}`} tabIndex={deep ? -1 : undefined}>
                   <Icon name="paperAfter" />
                 </Link>
               ) : (
@@ -823,18 +828,18 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
                 {account.status !== "off" && (
                   <button type="button" className="tile" aria-pressed={isSaved} onClick={onSave} ref={saveTile}>
                     <Icon name={isSaved ? "saved" : "save"} />
-                    {isSaved ? "Saved" : "Save"}
+                    {isSaved ? t.saved : t.save}
                   </button>
                 )}
                 {account.status !== "off" && (
                   <button type="button" className="tile" aria-haspopup="dialog" aria-expanded={panel === "notes"} onClick={onNote} ref={noteTile}>
                     <Icon name="note" />
-                    Note
+                    {t.note}
                   </button>
                 )}
                 <button type="button" className="tile" aria-haspopup="dialog" aria-expanded={panel === "share"} onClick={onShare} ref={shareTile}>
                   <Icon name="share" />
-                  Share
+                  {t.share}
                 </button>
                 <button
                   type="button"
@@ -849,10 +854,10 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
                   ref={moreTile}
                 >
                   <Icon name="more" />
-                  More
+                  {t.more}
                 </button>
               </div>
-              <button type="button" className="close" aria-label="Close"
+              <button type="button" className="close" aria-label={t.close}
                 onClick={() => {
                   setPicked(null);
                   setHidden(false);
@@ -1000,7 +1005,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             onClose={closePanel}
             onCopied={() => {
               closePanel();
-              say("Link copied");
+              say(t.linkCopied);
             }}
             onImage={(chosen) => {
               setImageStart(chosen.size > 0 ? chosen : undefined);
@@ -1054,6 +1059,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
         current={current}
         previous={previous}
         next={next}
+        lang={lang}
       />
     </>
   );

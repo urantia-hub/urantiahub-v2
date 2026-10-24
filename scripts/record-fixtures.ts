@@ -17,6 +17,14 @@ for (const path of paths) {
   console.log(`recorded ${path} -> ${file}`);
 }
 
+// The Spanish papers, read by the fixture server for a GET with lang=es.
+for (const id of ["0", "1", "2", "99"]) {
+  const res = await fetch(`${base}/papers/${id}?lang=es`);
+  if (!res.ok) throw new Error(`GET /papers/${id}?lang=es failed with ${res.status}`);
+  writeFileSync(`e2e/fixtures/papers_${id}.es.json`, `${JSON.stringify(await res.json())}\n`);
+  console.log(`recorded /papers/${id}?lang=es`);
+}
+
 // Search responses. The fixture server pages and limits them itself, so one large record serves each request.
 const slug = (q: string) => q.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 for (const q of ["thought adjuster", "what happens after death"]) {

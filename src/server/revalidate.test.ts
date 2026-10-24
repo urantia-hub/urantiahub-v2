@@ -24,6 +24,18 @@ describe("handleRevalidate", () => {
     expect(await response.json()).toEqual({ revalidated: ["paper:12", "passages"] });
   });
 
+  // A Spanish page has its own tag. A search engine hears of it only while the Spanish reader is on.
+  it("refreshes a Spanish paper", async () => {
+    const off = await call({ tags: ["paper:1:es"] });
+    expect(off.response.status).toBe(200);
+    expect(off.revalidate.mock.calls).toEqual([["paper:1:es"]]);
+    expect(off.notify).toHaveBeenCalledWith([]);
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const on = await call({ tags: ["paper:1:es"] });
+    expect(on.notify).toHaveBeenCalledWith([expect.stringMatching(/\/es\/documentos\/documento-1-el-padre-universal$/)]);
+    vi.unstubAllEnvs();
+  });
+
   // An address of a parallel that the API corrected must not stay in the Hub for weeks.
   it("refreshes the parallels, and tells no search engine about it, because no page changed", async () => {
     const { response, revalidate, notify } = await call({ tags: ["parallels"] });

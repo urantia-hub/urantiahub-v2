@@ -43,7 +43,8 @@ function answer(url: string) {
   const library = libraryFile(path);
   if (library !== undefined) return library && existsSync(library) ? json(200, readFileSync(library)) : json(404, JSON.stringify({ error: "not recorded" }));
   if (!/^[a-z]+\/[0-9:.]+$/.test(path)) return json(400, JSON.stringify({ error: "bad path" }));
-  const file = join(dir, `${path.replace(/[/:]/g, "_")}.json`);
+  // A GET with lang=es reads the Spanish record beside the English one.
+  const file = join(dir, `${path.replace(/[/:]/g, "_")}${query.get("lang") === "es" ? ".es" : ""}.json`);
   if (!existsSync(file)) return json(404, JSON.stringify({ error: "not recorded" }));
   return json(200, readFileSync(file));
 }

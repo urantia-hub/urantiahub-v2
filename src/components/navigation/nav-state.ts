@@ -1,3 +1,5 @@
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 export type NavSection = { id: string; title: string | null };
 export type NavPaper = { id: string; title: string; href: string };
 
@@ -14,8 +16,8 @@ export function hasOwnNumber(title: string | null): boolean {
 }
 
 // Section 0 has no title in the text. "Introduction" is the Hub's label for it.
-export function sectionLabel(section: NavSection): string {
-  if (section.id === "0") return "Introduction";
+export function sectionLabel(section: NavSection, lang: Lang = "en"): string {
+  if (section.id === "0") return messages(lang).introduction;
   if (hasOwnNumber(section.title)) return section.title!;
   return `${section.id}. ${section.title ?? ""}`.trim();
 }

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getLibrary, getWorkPages } from "@/content";
 import { PAPERS, paperPath } from "@/content/paper-index";
+import { spanishOn } from "@/i18n/lang";
 import { LIBRARY_LINKS } from "@/library/flags";
 import { libraryPaths } from "@/library/sitemap";
 import { absoluteUrl } from "@/site";
@@ -22,5 +23,6 @@ async function loadLibrary() {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const fixed = ["/", "/papers", "/about", "/resources", "/releases", "/privacy", "/terms"];
   const library = await libraryPaths(LIBRARY_LINKS, loadLibrary);
-  return [...fixed, ...PAPERS.map((paper) => paperPath(paper.id)), ...library].map((path) => ({ url: absoluteUrl(path) }));
+  const spanish = spanishOn() ? ["/es", ...PAPERS.map((paper) => paperPath(paper.id, "es"))] : [];
+  return [...fixed, ...PAPERS.map((paper) => paperPath(paper.id)), ...library, ...spanish].map((path) => ({ url: absoluteUrl(path) }));
 }
