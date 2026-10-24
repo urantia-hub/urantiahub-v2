@@ -2,6 +2,8 @@
 
 import { type MouseEvent, useEffect, useState } from "react";
 import { signInHref } from "@/account/client";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 
 // The link to the sign-in, with a state while the sign-in page opens. The way there takes a moment,
 // and a reader who sees nothing presses again and again (Kelson, 2026-10-11).
@@ -29,11 +31,12 @@ export function useSignInLink() {
 }
 
 // A plain sign-in button.
-export function SignInLink({ className }: { className?: string }) {
+export function SignInLink({ className, lang = "en" }: { className?: string; lang?: Lang }) {
+  const t = messages(lang);
   const { going, link } = useSignInLink();
   return (
     <a className={className} {...link}>
-      {going ? "Opening the sign-in…" : "Sign in"}
+      {going ? t.signInGoing : t.signIn}
     </a>
   );
 }

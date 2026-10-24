@@ -631,7 +631,7 @@ a[aria-busy="true"] {
   width: 15px;
   height: 15px;
 }
-body:has(:is(.paper, .toc:not(.library), .es-contents):not([style*="display: none"])) .lang-pill {
+body:has(:is(.paper, .toc:not(.library)):not([style*="display: none"])) .lang-pill {
   display: inline-flex;
 }
 .lang-scrim {

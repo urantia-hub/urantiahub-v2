@@ -13,6 +13,7 @@
     "sync:index": "bun scripts/sync-paper-index.ts",
     "sync:glossary": "bun scripts/sync-glossary.ts",
     "sync:sections": "bun scripts/sync-section-index.ts",
+    "sync:sections-es": "bun scripts/sync-section-titles-es.ts",
     "sync:texts": "bun scripts/sync-text-index.ts",
     "indexnow": "bun scripts/indexnow-submit.ts",
     "record:fixtures": "bun scripts/record-fixtures.ts",

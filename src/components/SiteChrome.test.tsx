@@ -57,3 +57,27 @@ describe("SiteFooter", () => {
     expect(links.at(-1)).toBe("https://urantia.dev");
   });
 });
+
+describe("the chrome of a Spanish page", () => {
+  it("names the Spanish contents in the header, and the brand goes to the Spanish home", () => {
+    render(<SiteHeader lang="es" />);
+    expect(screen.getByRole("link", { name: "UrantiaHub" })).toHaveAttribute("href", "/es");
+    expect(screen.getByRole("link", { name: "Documentos" })).toHaveAttribute("href", "/es");
+    const about = screen.getByRole("link", { name: "Acerca de" });
+    expect(about).toHaveAttribute("href", "/about");
+    expect(about).toHaveAttribute("hreflang", "en");
+    expect(screen.getByRole("link", { name: "Todos los documentos" })).toHaveAttribute("href", "/es");
+  });
+
+  // The pages of the footer are in English. The words that lead to them are in Spanish.
+  it("says what the site is in Spanish, with links to the English pages", () => {
+    render(<SiteFooter lang="es" />);
+    expect(screen.getByText("UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia. Es un proyecto independiente, sin afiliación con la Fundación Urantia.")).toBeInTheDocument();
+    const privacy = screen.getByRole("link", { name: "Privacidad" });
+    expect(privacy).toHaveAttribute("href", "/privacy");
+    expect(privacy).toHaveAttribute("hreflang", "en");
+    expect(screen.getByRole("navigation", { name: "Acerca de UrantiaHub" })).toBeInTheDocument();
+    const links = [...screen.getByRole("contentinfo").querySelectorAll("a")].map((a) => a.getAttribute("href"));
+    expect(links.at(-1)).toBe("https://urantia.dev");
+  });
+});
