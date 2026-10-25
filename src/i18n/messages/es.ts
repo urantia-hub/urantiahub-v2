@@ -148,7 +148,7 @@ export const es: Messages = {
   parEnglish: "en inglés",
   scoreLabel: (n: number) => `${n}% cercano en sentido. ¿Qué es este número?`,
   scoreTip: "Cuán cercano en sentido es este pasaje al párrafo. Lo mide una computadora.",
-  scoreLink: "Qué significa este número (en inglés)",
+  scoreLink: "Qué significa este número",
   searchTitle: "Buscar",
   searchMatches: "Coincidencias",
   searchRelated: "Relacionados",

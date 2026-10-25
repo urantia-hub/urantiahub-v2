@@ -7,6 +7,7 @@ import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
+import { textsHref } from "@/i18n/paths";
 import { Score } from "@/components/parallels/Score";
 import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
@@ -38,7 +39,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
   const halves: [Half, string][] = work ? [["papers", t.parPapers], ["outside", t.parOther]] : [["outside", t.parOther], ["papers", t.parPapers]];
   // Each event of a passage says so; the events of a paragraph stay as they were.
   const from = work ? { source: "passage" } : {};
-  const endpoint = work ? `/api/parallels/texts/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}${lang === "es" ? "?lang=es" : ""}`;
+  const endpoint = `${work ? `/api/parallels/texts/${encodeURIComponent(work)}/${encodeURIComponent(reference)}` : `/api/parallels/${encodeURIComponent(reference)}`}${lang === "es" ? "?lang=es" : ""}`;
   const [all, setAll] = useState(false);
   // The reader asked for the passages below the floor.
   const [weak, setWeak] = useState(false);
@@ -158,7 +159,7 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
         <div className="parallel-acts">
           {more}
           {LIBRARY_LINKS && half === "outside" && p.library && (
-            <Link className="parallel-open" href={`/texts/${p.library.slug}/at/${encodeURIComponent(p.library.ref)}`} prefetch={false} onClick={opened}>
+            <Link className="parallel-open" href={`${textsHref(lang, p.library.slug)}/at/${encodeURIComponent(p.library.ref)}`} prefetch={false} onClick={opened}>
               {t.parReadHere}
               <span className="sr-only"> {p.ref}</span>
               <Icon name="paperAfter" />

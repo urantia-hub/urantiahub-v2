@@ -322,4 +322,15 @@ describe("the parallels of a passage of the Library", () => {
     expect(here).toHaveLength(1);
     expect(here[0]).toHaveAttribute("href", "/texts/quran/at/Quran%202.255-257");
   });
+
+  it("asks the Spanish Papers on a Spanish work page, and reads a work here in Spanish", async () => {
+    answers(PASSAGE);
+    render(<ParallelsSheet reference="Dhp 21" paperId="" work="dhammapada" onClose={onClose} lang="es" />);
+    await within(screen.getByRole("dialog")).findByText("56:9.10", { selector: "b" });
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/parallels/texts/dhammapada/Dhp%2021?lang=es");
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Otras obras" }));
+    expect(within(screen.getByRole("dialog")).getByRole("link", { name: /Leer aquí/ })).toHaveAttribute("href", "/es/textos/quran/at/Quran%202.255-257");
+    await userEvent.click(within(screen.getByRole("dialog")).getAllByRole("button", { name: /cercano en sentido/ })[0]);
+    expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Qué significa este número" })).toHaveAttribute("href", "/es/textos/como-funciona#number");
+  });
 });

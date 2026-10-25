@@ -46,6 +46,8 @@ describe("the nearest marks", () => {
     const whole = nextMarks({ rows: [], current: 0, earned: {}, nextMinutes: 1, texts: { dhammapada: keys } }, 40).find((mark) => mark.id === "texts-1");
     expect(whole?.line).toMatch(/^The Dhammapada · 4 of 26 chapters left · about \d+ min$/);
     expect(whole?.progress).toBeCloseTo(22 / 26);
+    const es = nextMarks({ rows: [], current: 0, earned: {}, nextMinutes: 1, texts: { dhammapada: keys } }, 40, "es").find((mark) => mark.id === "texts-1");
+    expect(es?.line).toMatch(/^Dhammapada · quedan 4 de 26 capítulos · unos \d+ min$/);
   });
 
   it("counts world texts by the shortest ones left", () => {
