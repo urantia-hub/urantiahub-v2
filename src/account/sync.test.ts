@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LAST_READ_KEY, saveLastRead } from "@/reader/last-read";
+import { setReadingLang } from "@/reader/reading-lang";
 import { refreshAccount, resetAccountForTest, startAccount } from "./client";
 import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, onPageShown, pullFromAccount, queueRead, resetSyncForTest, startSync } from "./sync";
 
@@ -243,5 +244,49 @@ describe("the theme and the text size", () => {
     await pullFromAccount();
     expect(window.localStorage.getItem("theme")).toBe("light");
     expect(document.documentElement.dataset.theme).not.toBe("dark");
+  });
+});
+
+// The language follows the reader: the last choice on any device wins (Kelson, 2026-10-24).
+describe("the language", () => {
+  const langPuts = (fetch: ReturnType<typeof vi.fn>) => fetch.mock.calls.filter(([url]) => url === "/api/me/lang").map(([, init]) => JSON.parse(String((init as RequestInit).body)));
+
+  it("comes from the account when the account holds a newer choice", async () => {
+    window.localStorage.setItem("hub:lang", "en");
+    const fetch = await signedInAs("k1", async () => Response.json({ place: null, lang: { lang: "es", at: 10 } }));
+    startSync();
+    await pullFromAccount();
+    expect(window.localStorage.getItem("hub:lang")).toBe("es");
+    // A value applied from the account is not sent back.
+    expect(langPuts(fetch)).toEqual([]);
+  });
+
+  it("goes to the account when the browser holds a newer choice", async () => {
+    window.localStorage.setItem("hub:lang", "es");
+    window.localStorage.setItem("hub:lang-at", "20");
+    const fetch = await signedInAs("k1", async () => Response.json({ place: null, lang: { lang: "en", at: 10 } }));
+    await pullFromAccount();
+    expect(langPuts(fetch)).toEqual([{ lang: "es", at: 20 }]);
+  });
+
+  it("goes to the account at each new choice of a signed-in reader, and the last choice wins", async () => {
+    const fetch = await signedInAs("k1", async () => Response.json({ place: null, lang: null }));
+    startSync();
+    await pullFromAccount();
+    setReadingLang("es");
+    setReadingLang("en");
+    await vi.waitFor(() => expect(langPuts(fetch)).toHaveLength(2));
+    expect(langPuts(fetch).map((value) => value.lang)).toEqual(["es", "en"]);
+    // The page loads the other language at once, so the request must outlive it.
+    const call = fetch.mock.calls.find(([url]) => url === "/api/me/lang");
+    expect((call?.[1] as RequestInit).keepalive).toBe(true);
+  });
+
+  it("does not go out for a reader who is not signed in", async () => {
+    const fetch = vi.fn(async (_url: string) => Response.json({}));
+    vi.stubGlobal("fetch", fetch);
+    startSync();
+    setReadingLang("es");
+    expect(fetch.mock.calls.some(([url]) => url === "/api/me/lang")).toBe(false);
   });
 });

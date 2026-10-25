@@ -1,13 +1,14 @@
-// Keeps the place of a signed-in reader the same on each device. The browser stays the first source
+// Keeps the place and the language of a signed-in reader the same on each device. The browser stays the first source
 // on this device: the page paints from it before any request. The place holds the time of its last
 // change, and the newer one wins. The theme and the text size belong to the device: they never go to
 // the account, because a phone and a computer need different ones.
 
 import { forgetStreak } from "@/streak/client";
 import { clearLastRead, readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
+import { readLangChoice, setReadingLang, subscribeToReadingLang } from "@/reader/reading-lang";
 import { accountKey, markSignedOut, refreshAccount } from "./client";
 import { clearProgress } from "./progress";
-import { newer, parsePlace, type Place } from "./reader-data";
+import { type LangChoice, newer, parseLang, parsePlace, type Place } from "./reader-data";
 
 // While the place in this browser is that of a signed-in reader: the key of that reader.
 export const ACCOUNT_DATA_KEY = "hub:account-data";
@@ -140,6 +141,14 @@ function onPlace() {
   if (place && place.at > 0) queuePlace(place);
 }
 
+// A new choice goes out at once. The page of the other language loads right after it, so the request
+// must outlive this page (`keepalive`).
+function onLang() {
+  if (applying || !ready()) return;
+  const choice = readLangChoice();
+  if (choice && choice.at > 0) void send("/api/me/lang", choice, true);
+}
+
 export function markAccountData(key: string): void {
   try {
     window.localStorage.setItem(ACCOUNT_DATA_KEY, key);
@@ -215,7 +224,7 @@ async function pullNow(): Promise<void> {
   const at = epoch;
   const stale = () => epoch !== at || accountKey() !== key;
 
-  let body: { place?: unknown };
+  let body: { place?: unknown; lang?: unknown };
   try {
     const response = await fetch("/api/me/reader", { headers: { accept: "application/json", "x-hub-reader": key } });
     if (stale()) return;
@@ -234,6 +243,12 @@ async function pullNow(): Promise<void> {
     const value = place.value;
     applyFromAccount(() => storeLastRead(value));
   } else if (place.from === "browser" && place.value && place.value.at > 0) queuePlace(place.value);
+
+  const lang = newer<LangChoice>(readLangChoice(), parseLang(body.lang));
+  if (lang.from === "account" && lang.value) {
+    const { lang: value, at: when } = lang.value;
+    applyFromAccount(() => setReadingLang(value, when));
+  } else if (lang.from === "browser" && lang.value && lang.value.at > 0) void send("/api/me/lang", lang.value);
 }
 
 // The browser can show a page again as it was, from its memory, when the reader presses Back. That page
@@ -257,6 +272,7 @@ export function startSync(): void {
   if (running) return;
   running = true;
   subscribeToLastRead(onPlace);
+  subscribeToReadingLang(onLang);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "hidden") return;
     sendPlaceNow(true);
