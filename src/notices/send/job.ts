@@ -156,22 +156,24 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
 
 // One of each email, to one address, now. For a look at the real emails in a real mail program
 // before any reader gets one. It claims nothing, so it changes nothing for a reader.
-export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string, sample: News | null = null): Promise<{ mails: number; sent: number }> {
+// `lang`: the language of the emails. A Spanish sample has a release only when the release has Spanish words.
+export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string, sample: News | null = null, lang: Lang = "en"): Promise<{ mails: number; sent: number }> {
   const settingsUrl = `${deps.origin}/notifications`;
   const links = (kind: MailKind) => ({ offUrl: deps.offUrl(userId, kind), settingsUrl });
   const out = (mail: Mail, kind: MailKind): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind), offPost: deps.offPost(userId, kind) });
   const mails: OutMail[] = [];
   // The passage of today, and the longest passage of the list, so a long text can be judged.
   for (const ref of [passageFor(deps.now.toISOString().slice(0, 10)), longRef]) {
-    const passage = await deps.passage(ref, "en");
-    mails.push(out(dailyMail({ ...passage, url: `${deps.origin}${paperPath(passage.paperId)}#${passage.ref}` }, links("daily")), "daily"));
+    const passage = await deps.passage(ref, lang);
+    mails.push(out(dailyMail({ ...passage, url: `${deps.origin}${paperPath(passage.paperId, lang)}#${passage.ref}` }, links("daily"), lang), "daily"));
   }
-  const paper = paperById("2");
+  const paper = paperById("2", lang);
   if (paper) {
-    const first = await deps.passage("2:1.1", "en").catch(() => null);
-    mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" })}`, opening: first ? opening(first.text) : null }, links("reminder")), "reminder"));
+    const first = await deps.passage("2:1.1", lang).catch(() => null);
+    mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" }, lang)}`, opening: first ? opening(first.text) : null }, links("reminder"), lang), "reminder"));
   }
-  if (sample) mails.push(out(releaseMail({ title: sample.title, changes: sample.changes, date: releaseDate(sample.date), url: `${deps.origin}/releases`, origin: deps.origin, mail: sample.mail }, links("releases")), "releases"));
+  const words = lang === "es" ? sample?.es : sample;
+  if (sample && words) mails.push(out(releaseMail({ title: words.title, changes: words.changes, date: releaseDate(sample.date, lang), url: `${deps.origin}/releases`, origin: deps.origin, mail: sample.mail }, links("releases"), lang), "releases"));
   const sent = await deps.sendMails(mails);
   return { mails: mails.length, sent: sent.filter(Boolean).length };
 }
