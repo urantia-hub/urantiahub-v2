@@ -17,12 +17,13 @@ test("the first page of a visit opens in Spanish, and a later English page stays
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
+// Each fixed page has a twin since Part 4, so the page with no twin is a page that is not found.
 test("a page with no Spanish twin stays, also after a reload", async ({ page, context }) => {
   await choose(context, "es");
-  await page.goto("/privacy");
-  await expect(page).toHaveURL("/privacy");
+  await page.goto("/papers/no-such-paper");
+  await expect(page).toHaveURL("/papers/no-such-paper");
   await page.reload();
-  await expect(page).toHaveURL("/privacy");
+  await expect(page).toHaveURL("/papers/no-such-paper");
 });
 
 test("English is remembered too: the Spanish home opens in English", async ({ page, context }) => {
@@ -71,8 +72,9 @@ test("the first page of a visit moves after the pull when only the account knows
   await page.goto("/privacy");
   await page.getByRole("button", { name: "Account and settings" }).click();
   await page.getByRole("dialog", { name: "Account and settings" }).getByRole("link", { name: /^Sign in/ }).click();
-  await page.waitForURL((url) => url.pathname === "/privacy");
-  await expect(page.getByRole("button", { name: "Account and settings" })).toBeVisible();
+  // The sign-in returns to the twin in the language of the account.
+  await page.waitForURL((url) => url.pathname === "/es/privacidad");
+  await expect(page.getByRole("button", { name: "Cuenta y ajustes" })).toBeVisible();
 
   // A new visit on a browser that has no choice yet: the script cannot move, the pull does.
   await context.addInitScript(() => {

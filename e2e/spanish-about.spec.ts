@@ -5,9 +5,11 @@ const TWINS = [
   ["/about", "/es/acerca-de", "Acerca de"],
   ["/resources", "/es/recursos", "Recursos"],
   ["/releases", "/es/novedades", "Novedades"],
+  ["/privacy", "/es/privacidad", "Privacidad"],
+  ["/terms", "/es/terminos", "Términos"],
 ] as const;
 // The Hub words of the English pages that must not be on their Spanish twins. The names of places stay as they are.
-const ENGLISH = ["About", "The Urantia Papers", "See all papers", "listen on Spotify", "independent project", "The text", "public domain", "Resources", "Places to study", "By the maker of UrantiaHub", "Organizations", "Communities", "Listen and watch", "opens in a new tab", "Releases", "What changed", "A streak, an assistant", "The new UrantiaHub", "Launch", "October", "January"];
+const ENGLISH = ["About", "The Urantia Papers", "See all papers", "listen on Spotify", "independent project", "The text", "public domain", "Resources", "Places to study", "By the maker of UrantiaHub", "Organizations", "Communities", "Listen and watch", "opens in a new tab", "Releases", "What changed", "A streak, an assistant", "The new UrantiaHub", "Launch", "October", "January", "The short version", "Who we are", "What the site collects", "Who handles data", "Your choices", "Last updated", "The agreement", "No warranty", "Limit of liability", "What you must not do", "Changes"];
 
 async function hubWords(page: Page) {
   return page.evaluate(() => {
@@ -41,14 +43,17 @@ for (const [en, es, heading] of TWINS) {
   });
 }
 
-test("the footer of a Spanish page links the Spanish twins, and Privacy and Terms in English", async ({ page }) => {
+test("the footer of a Spanish page links each Spanish twin, with no page in English", async ({ page }) => {
   await page.goto("/es");
   const footer = page.getByRole("contentinfo");
-  for (const [, es, name] of TWINS) await expect(footer.getByRole("link", { name, exact: true })).toHaveAttribute("href", es);
-  await expect(footer.getByRole("link", { name: "Privacidad" })).toHaveAttribute("hreflang", "en");
+  for (const [, es, name] of TWINS) {
+    const link = footer.getByRole("link", { name, exact: true });
+    await expect(link).toHaveAttribute("href", es);
+    await expect(link).not.toHaveAttribute("hreflang");
+  }
 });
 
-test("the sitemap lists the three Spanish twins", async ({ request }) => {
+test("the sitemap lists the Spanish twins", async ({ request }) => {
   const xml = await (await request.get("/sitemap.xml")).text();
   for (const [, es] of TWINS) expect(xml).toContain(`${es}<`);
 });

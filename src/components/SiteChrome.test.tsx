@@ -93,7 +93,7 @@ describe("the chrome of a Spanish page", () => {
 
   it("says what the site is in Spanish, and links the Spanish twins", () => {
     render(<SiteFooter lang="es" />);
-    expect(screen.getByText("UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia. Es un proyecto independiente, sin afiliación con la Fundación Urantia.")).toBeInTheDocument();
+    expect(screen.getByText("UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia. Es un proyecto independiente, sin afiliación con Urantia Foundation.")).toBeInTheDocument();
     const privacy = screen.getByRole("link", { name: "Privacidad" });
     expect(privacy).toHaveAttribute("href", "/es/privacidad");
     expect(privacy).not.toHaveAttribute("hreflang");
