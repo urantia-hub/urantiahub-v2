@@ -274,3 +274,18 @@ test("the language sheet on the Spanish home page goes to the English home page"
   await expect(page).toHaveURL("http://localhost:3100/");
   await expect(page.getByRole("heading", { level: 1, name: "The Urantia Papers" })).toBeVisible();
 });
+
+test("a bad escape in a Spanish paper address answers the Spanish 404", async ({ page, request }) => {
+  const es = await request.get("/es/documentos/%E0%A4%A");
+  expect(es.status()).toBe(404);
+  expect(await es.text()).toContain("Página no encontrada");
+  await page.goto("/es/documentos/%E0%A4%A");
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(page.getByRole("heading", { level: 1, name: "Página no encontrada" })).toBeVisible();
+
+  const en = await request.get("/papers/%E0%A4%A");
+  expect(en.status()).toBe(404);
+  const enBody = await en.text();
+  expect(enBody).toContain('<html lang="en"');
+  expect(enBody).toContain("Page not found");
+});

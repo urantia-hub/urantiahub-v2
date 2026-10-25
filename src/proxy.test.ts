@@ -50,6 +50,15 @@ describe("proxy", () => {
     },
   );
 
+  it.each(["/es/documentos/%E0%A4%A", "/es/documentos/%"])(
+    "sends the malformed Spanish escape %s to a Spanish address with no page, so the 404 is in Spanish",
+    (path) => {
+      const res = run(path);
+      expect(res.headers.get("location")).toBeNull();
+      expect(new URL(res.headers.get("x-middleware-rewrite")!).pathname).toBe("/es/no-encontrado");
+    },
+  );
+
   it.each(["/papers/paper-197-x", "/papers/nothing", "/papers/the-universal-father"])(
     "does not redirect %s, so the page can answer 404",
     (path) => {

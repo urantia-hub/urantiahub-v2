@@ -196,6 +196,8 @@ export const es: Messages = {
   forDevelopers: "Para desarrolladores:",
   notFoundTitle: "Página no encontrada",
   notFoundLine: "Esta dirección no tiene página.",
+  errorTitle: "Esta página no cargó",
+  errorBody: "El sitio no pudo obtener esta página. El fallo es nuestro.",
   signIn: "Iniciar sesión",
   signInGoing: "Abriendo el inicio de sesión…",
   signInFailed: "El inicio de sesión no terminó. Vuelve a intentarlo.",

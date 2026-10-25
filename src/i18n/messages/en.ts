@@ -194,6 +194,8 @@ export const en = {
   forDevelopers: "For developers:",
   notFoundTitle: "Page not found",
   notFoundLine: "This address has no page.",
+  errorTitle: "This page did not load",
+  errorBody: "The site could not get this page. The fault is on our side.",
   signIn: "Sign in",
   signInGoing: "Opening the sign-in…",
   signInFailed: "The sign-in did not finish. Try again.",
