@@ -27,7 +27,8 @@ export type Deps = {
   secret: string;
   // The origin of this site, as the accounts site knows it.
   origin: string;
-  authorize(input: { askAccount: boolean }): Promise<{ url: string; state: string; codeVerifier: string }>;
+  // `lang` asks the accounts site and the sign-in email for Spanish.
+  authorize(input: { askAccount: boolean; lang?: "es" }): Promise<{ url: string; state: string; codeVerifier: string }>;
   exchange(input: { code: string; codeVerifier: string }): Promise<Tokens>;
   refresh(refreshToken: string): Promise<Tokens>;
   revoke(refreshToken: string): Promise<void>;
@@ -101,7 +102,9 @@ export async function handleStart(request: NextRequest, deps: Deps): Promise<Nex
   const choice = parseLang({ lang: params.get("lang"), at: Number(params.get("at")) });
   let started: Awaited<ReturnType<Deps["authorize"]>>;
   try {
-    started = await deps.authorize({ askAccount: request.cookies.get(cookieNames(deps.origin).ask)?.value === "1" });
+    const askAccount = request.cookies.get(cookieNames(deps.origin).ask)?.value === "1";
+    // A sign-in from a Spanish page is in Spanish on the accounts site and in the email.
+    started = await deps.authorize(spanishOn() && /^\/es(?:[/?#]|$)/.test(next) ? { askAccount, lang: "es" } : { askAccount });
   } catch {
     return redirect(deps, next);
   }
