@@ -74,7 +74,8 @@ export function dueNotices(reader: Reader, now: Date, news: { date: string } | n
   const zone = reader.settings?.zone ?? "UTC";
   const local = localTime(now, zone);
   const due: Due[] = [];
-  const lang = reader.lang ?? "en";
+  // Only a language that the Hub has: any other value from the API is English.
+  const lang: Lang = reader.lang === "es" ? "es" : "en";
   const add = (kind: Kind, key: string, place: Due["place"]) => {
     const base = { userId: reader.userId, kind, key, place, lang };
     if (reader.email && reader.settings?.email[kind]) due.push({ ...base, channel: "email", email: reader.email, devices: [] });

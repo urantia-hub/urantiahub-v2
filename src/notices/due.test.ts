@@ -172,5 +172,7 @@ describe("the language of a notice", () => {
     const now = at("2026-10-11T12:05:00Z");
     expect(dueNotices(reader({ lang: "es" }), now).map((n) => n.lang)).toEqual(["es"]);
     expect(dueNotices(reader(), now).map((n) => n.lang)).toEqual(["en"]);
+    // A value the Hub does not know must not stop the run for each reader after this one.
+    expect(dueNotices(reader({ lang: "es-MX" as never }), now).map((n) => n.lang)).toEqual(["en"]);
   });
 });
