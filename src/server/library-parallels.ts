@@ -66,7 +66,7 @@ export function shapePassageParallels(raw: RawPassagePapers, others: RawPassageO
     label: shortRef(others?.label ?? raw.reference, work),
     source: work.year === null ? work.translator : `${surname(work.translator)}, ${work.year}`,
     href: outsideHref(raw.url ?? null),
-    papers: pick(papers, false).map((p) => (marked ? { ...p, pairPath: pairPath({ ref: refForLink(p.ref), refCode: "", work: work.slug, passage: passageForLink(marked, work), passageCode: "" }) } : p)),
+    papers: pick(papers, false).map((p) => (marked ? { ...p, pairPath: pairPath({ ref: refForLink(p.ref), refCode: "", work: work.slug, passage: passageForLink(marked, work), passageCode: "" }, lang) } : p)),
     weakerPapers: pick(papers, true).slice(0, WEAK_MOST),
     outside: pick(outsideAll, false),
     weaker: pick(outsideAll, true).slice(0, WEAK_MOST),

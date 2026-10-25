@@ -102,6 +102,16 @@ describe("the works that the Hub compares", () => {
     expect(works.map((w) => w.work)).toEqual([...WORKS]);
     expect(works.every((w) => w.href === null || w.work === "The Urantia Papers" || w.work === "Bible")).toBe(true);
   });
+
+  it("names the Papers in Spanish, with the Spanish contents, so the study page counts their passages", async () => {
+    const load = vi.fn().mockResolvedValue(RAW);
+    const text = async () => "Texto";
+    const good = (await (await handleParallels("1:0.3", load, text, async () => CORPORA, "es")).json()) as ParallelsAnswer;
+    expect(good.works[0]).toEqual({ work: "Los Documentos de Urantia", source: "", href: "/es/documentos" });
+    expect(good.papers.every((p) => p.work === good.works[0].work)).toBe(true);
+    const bad = (await (await handleParallels("1:0.3", load, text, async () => Promise.reject(new Error("down")), "es")).json()) as ParallelsAnswer;
+    expect(bad.works[0]).toEqual({ work: "Los Documentos de Urantia", source: "", href: "/es/documentos" });
+  });
 });
 
 describe("the parallels of a paragraph, as the reader sees them", () => {
@@ -279,13 +289,12 @@ describe("the parallels in Spanish", () => {
     expect(answer.papers[0].href).toMatch(/^\/es\/documentos\/documento-56-[a-z0-9-]+#56:9\.10$/);
   });
 
-  it("marks each passage of the Bible and of another work as English, and gives it no pair page", () => {
+  it("marks each passage of the Bible and of another work as English, with the Spanish pair page of a near one", () => {
     const answer = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3", "es");
     expect(answer.outside.length).toBeGreaterThan(0);
-    for (const row of [...answer.outside, ...answer.weaker]) {
-      expect(row.english).toBe(true);
-      expect(row.pairPath).toBeUndefined();
-    }
+    for (const row of [...answer.outside, ...answer.weaker]) expect(row.english).toBe(true);
+    for (const row of answer.outside.filter((r) => r.library)) expect(row.pairPath).toMatch(/^\/es\/s\/1\.0\.3\//);
+    expect(answer.weaker.every((row) => row.pairPath === undefined)).toBe(true);
     // English keeps its rows as they were.
     const en = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3");
     expect(en.outside.every((row) => row.english === undefined)).toBe(true);

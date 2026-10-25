@@ -3,6 +3,7 @@
 import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { track } from "@/analytics";
 import { Icon } from "@/components/icons";
+import { messages } from "@/i18n/messages";
 import { PairBack } from "./PairBack";
 import { PairQuote } from "./PairQuotes";
 import { type Chosen, pathOf, targetOf, type ViewPair, wordsOf } from "./view";
@@ -47,18 +48,31 @@ export function PairView({ pair, start }: { pair: ViewPair; start: { a: number[]
     });
 
   const back = from && pair[from];
+  const lang = pair.lang ?? "en";
+  const t = messages(lang);
+  const english = lang !== "en";
   return (
     <>
       {back && <PairBack href={`${back.base}${back.hash}`} label={back.shortRef} />}
       <div className="pair-cols">
-        <PairQuote href={targetOf(pair.a, chosen.a)} eyebrow={pair.a.eyebrow} kind={null} words={wordsOf(pair.a, chosen.a)} source={pair.a.source} go="Read in the paper" />
-        <div className="pair-and">and</div>
-        <PairQuote href={targetOf(pair.b, chosen.b)} eyebrow={pair.b.eyebrow} kind={pair.b.kind} words={wordsOf(pair.b, chosen.b)} source={pair.b.source} go="Read in World texts" />
+        <PairQuote href={targetOf(pair.a, chosen.a)} eyebrow={pair.a.eyebrow} kind={null} words={wordsOf(pair.a, chosen.a)} source={pair.a.source} go={t.pair.readPaper} showAll={t.pair.showAll} />
+        <div className="pair-and">{t.pair.and}</div>
+        <PairQuote
+          href={targetOf(pair.b, chosen.b)}
+          eyebrow={pair.b.eyebrow}
+          kind={pair.b.kind}
+          words={wordsOf(pair.b, chosen.b)}
+          source={pair.b.source}
+          go={t.pair.readText}
+          showAll={t.pair.showAll}
+          english={english}
+          note={english ? t.texts.englishText : undefined}
+        />
       </div>
       <div className="pair-acts">
         <button type="button" className="pair-share-button" onClick={() => setOpen(true)}>
           <Icon name="share" />
-          Share
+          {t.share}
         </button>
       </div>
       {open && (

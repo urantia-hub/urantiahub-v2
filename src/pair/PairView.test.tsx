@@ -26,3 +26,29 @@ describe("the back link of a pair from a sheet", () => {
     expect(back()).toBe("1:0.3");
   });
 });
+
+describe("a pair in Spanish", () => {
+  const ES = { ...PAIR, lang: "es", a: { ...PAIR.a, base: "/es/documentos/documento-1" }, b: { ...PAIR.b, base: "/es/textos/dhammapada/at/Dhp%2021" } };
+
+  it("speaks Spanish, says the text of the work is English, and keeps the Spanish address", async () => {
+    document.body.innerHTML = '<header class="site-header"><div class="header-start"></div></header>';
+    window.history.replaceState(null, "", "/es/s/1.0.3/dhammapada/21");
+    const { container } = render(<PairView pair={ES as never} start={{ a: [], b: [] }} />, { container: document.body.appendChild(document.createElement("div")) });
+    expect(container.querySelector(".pair-and")?.textContent).toBe("y");
+    expect(screen.getByText(/Leer en el documento/)).toBeInTheDocument();
+    expect(screen.getByText(/Leer en Textos del mundo/)).toBeInTheDocument();
+    expect(screen.getByText("El texto de esta obra está en inglés.")).toBeInTheDocument();
+    expect(container.querySelectorAll(".pair-side blockquote")[1]).toHaveAttribute("lang", "en");
+    expect(container.querySelectorAll(".pair-side blockquote")[0]).not.toHaveAttribute("lang");
+    await userEvent.click(screen.getByRole("button", { name: /Compartir/ }));
+    expect(await screen.findByRole("heading", { name: "Compartir estos dos pasajes" })).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: "Second is here." }));
+    expect(window.location.pathname).toBe("/es/s/1.0.3/dhammapada/21/2");
+  });
+
+  it("has no line about the language in English", () => {
+    const { container } = render(<PairView pair={PAIR as never} start={{ a: [], b: [] }} />);
+    expect(container.querySelector(".pair-lang")).toBeNull();
+    expect(container.querySelectorAll(".pair-side blockquote")[1]).not.toHaveAttribute("lang");
+  });
+});

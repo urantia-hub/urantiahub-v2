@@ -229,6 +229,16 @@ describe("a parallel that has a pair page", () => {
     expect(within(other).getByRole("link", { name: /Open/ })).toHaveAttribute("href", "https://ebible.org/eng-web/Tobit 13:4");
   });
 
+  it("marks a Spanish paired row English, and names the pair in Spanish", async () => {
+    answers({ ...PAIRED, outside: [{ ...PAIRED.outside[0], english: true, pairPath: "/es/s/1.0.3/bhagavad-gita/7.22-24" }] });
+    render(<ParallelsSheet reference="1:0.3" paperId="1" onClose={onClose} lang="es" />);
+    const row = (await within(screen.getByRole("dialog")).findByText("Bhagavad Gita 7.22-24", { selector: "b" })).closest("li") as HTMLElement;
+    expect(within(row).getByText("en inglés")).toBeInTheDocument();
+    expect(row.querySelector(":scope > p")).toHaveAttribute("lang", "en");
+    expect(within(row).getByRole("link")).toHaveTextContent(/junto a este pasaje/);
+    expect(row.textContent).not.toContain("beside");
+  });
+
   it("keeps the score and Read more as buttons outside the link", async () => {
     answers({ ...PAIRED, outside: [{ ...PAIRED.outside[0], text: LONG }] });
     open();
@@ -321,6 +331,12 @@ describe("the parallels of a passage of the Library", () => {
     const here = within(passageSheet()).getAllByRole("link", { name: /Read here/ });
     expect(here).toHaveLength(1);
     expect(here[0]).toHaveAttribute("href", "/texts/quran/at/Quran%202.255-257");
+  });
+
+  it("links a Spanish paragraph to the Spanish study page", async () => {
+    answers(ANSWER);
+    render(<ParallelsSheet reference="1:0.3" paperId="1" onClose={onClose} lang="es" />);
+    expect(await screen.findByRole("link", { name: "Estudiar estos paralelos" })).toHaveAttribute("href", "/es/paralelos?ref=1%3A0.3");
   });
 
   it("asks the Spanish Papers on a Spanish work page, and reads a work here in Spanish", async () => {

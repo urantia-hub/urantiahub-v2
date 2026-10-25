@@ -12,6 +12,8 @@
 .pair-go { font: 500 13.5px/1 var(--font-ui); color: var(--accent); }
 .pair-and { display: flex; align-items: center; gap: 14px; margin: 34px 0; color: var(--muted); font-style: italic; font-size: 0.95em; }
 .pair-and::before, .pair-and::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+/* On a Spanish page: the line under the work that says its text is English. */
+.pair-lang { margin: 10px 0 0; font: 400 13px/1.45 var(--font-ui); color: var(--muted); }
 .pair-acts { display: flex; justify-content: center; margin: 44px 0 0; }
 
 @media (min-width: 768px) {

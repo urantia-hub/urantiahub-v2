@@ -5,6 +5,7 @@ import { track } from "@/analytics";
 import { BOOKMARK_PATH } from "@/brand/BookmarkMark";
 import { Icon } from "@/components/icons";
 import { Sheet } from "@/components/reader/Sheet";
+import { messages } from "@/i18n/messages";
 import { hasShareSheet, shareParagraph } from "@/reader/share";
 import { earnToolMark } from "@/streak/client";
 import { cardQuote, type Chosen, pairSize, pathOf, type ViewPair, type ViewSide, wordsOf } from "./view";
@@ -33,21 +34,22 @@ export default function PairShareSheet({ pair, chosen, onChoose, onClose, onCopi
   const [note, setNote] = useState<string | null>(null);
   const [withSheet] = useState(hasShareSheet);
   const path = pathOf(pair, chosen);
+  const t = messages(pair.lang ?? "en");
   const host = window.location.host.replace(/^www\./, "");
   const quotes = { a: cardQuote(wordsOf(pair.a, chosen.a)), b: cardQuote(wordsOf(pair.b, chosen.b)) };
   const size = pairSize(Math.max(quotes.a.length, quotes.b.length));
   const part = (["a", "b"] as const).some((k) => chosen[k].size > 0 && chosen[k].size < pair[k].units.length);
 
   async function send(sheet: boolean) {
-    const method = await shareParagraph({ title: `${pair.a.shortRef} and ${pair.b.shortRef}`, url: `${window.location.origin}${path}` }, navigator, sheet);
+    const method = await shareParagraph({ title: t.pair.title(pair.a.shortRef, pair.b.shortRef), url: `${window.location.origin}${path}` }, navigator, sheet);
     if (method === "none") {
-      if (!sheet) setNote("The link did not copy. Select the address above, then copy it.");
+      if (!sheet) setNote(t.shareFailed);
       return;
     }
     track("pair_shared", { work: pair.work, method, part });
     void earnToolMark("share");
     if (method === "copy") {
-      setNote("Link copied");
+      setNote(t.linkCopied);
       onCopied();
     }
   }
@@ -66,21 +68,21 @@ export default function PairShareSheet({ pair, chosen, onChoose, onClose, onCopi
       <div className="share-acts">
         <button type="button" className={`panel-button${withSheet ? "" : " dark"}`} onClick={() => void send(false)}>
           <Icon name="copy" />
-          Copy link
+          {t.shareCopy}
         </button>
         {withSheet && (
           <button type="button" className="panel-button dark" onClick={() => void send(true)}>
             <Icon name="share" />
-            Share link
+            {t.shareSend}
           </button>
         )}
       </div>
     </>
   );
   return (
-    <Sheet label="Share these two passages" onClose={onClose} className="share pair-share" close foot={foot}>
-      <h2>Share these two passages</h2>
-      <p className="share-sub">Press the sentences to share. None is the whole passage.</p>
+    <Sheet label={t.pair.shareTitle} onClose={onClose} className="share pair-share" close foot={foot}>
+      <h2>{t.pair.shareTitle}</h2>
+      <p className="share-sub">{t.pair.shareSub}</p>
       <div className="share-card">
         {/* The picture of the link is light in each theme: it is one file for each chat app. */}
         <div className="pair-og" style={{ "--q": `${(size / 1200) * 100}cqw` } as React.CSSProperties}>
@@ -93,7 +95,7 @@ export default function PairShareSheet({ pair, chosen, onChoose, onClose, onCopi
               <rect width="64" height="64" rx="13" />
               <path d={BOOKMARK_PATH} />
             </svg>
-            Two passages
+            {t.pair.twoPassages}
           </div>
         </div>
       </div>
@@ -104,7 +106,7 @@ export default function PairShareSheet({ pair, chosen, onChoose, onClose, onCopi
           <div className="pair-share-side" key={k}>
             <p className="share-label">
               {side.eyebrow} · {side.shortRef}
-              <span>{some ? `${chosen[k].size} of ${side.units.length}` : "Whole passage"}</span>
+              <span>{some ? t.pair.ofCount(chosen[k].size, side.units.length) : t.pair.whole}</span>
             </p>
             <div className="share-pickwrap">
               <p className="share-pick" data-all={some ? undefined : ""}>

@@ -158,4 +158,10 @@ describe("the pair of a passage and a paragraph", () => {
     expect(answer.weakerPapers.every((p) => p.pairPath === undefined)).toBe(true);
     expect(answer.outside.every((p) => p.pairPath === undefined)).toBe(true);
   });
+
+  it("names the Spanish pair page on a Spanish page", () => {
+    const answer = shapePassageParallels(papersOf("dhammapada_Dhp-21"), OTHERS, work("dhammapada"), library, "Dhp 22", "es");
+    expect(answer.papers.length).toBeGreaterThan(0);
+    for (const p of answer.papers) expect(p.pairPath).toBe(`/es/s/${p.ref.replace(":", ".")}/dhammapada/22`);
+  });
 });
