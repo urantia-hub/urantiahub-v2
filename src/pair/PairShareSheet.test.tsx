@@ -43,4 +43,16 @@ describe("the share sheet of a pair", () => {
     expect(screen.getByText("1 of 2")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Second is here." })).toHaveAttribute("aria-pressed", "true");
   });
+
+  it("speaks Spanish, with the Spanish address", () => {
+    render(<PairShareSheet pair={{ ...PAIR, lang: "es" }} chosen={{ a: new Set([0]), b: new Set() }} onChoose={vi.fn()} onClose={() => {}} onCopied={() => {}} />);
+    expect(screen.getByRole("heading", { name: "Compartir estos dos pasajes" })).toBeInTheDocument();
+    expect(screen.getByText("Pasaje entero")).toBeInTheDocument();
+    expect(screen.getByText("1 de 3")).toBeInTheDocument();
+    expect(screen.getByText("Dos pasajes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Copiar enlace/ })).toBeInTheDocument();
+    expect(screen.getByTestId("share-url").textContent).toBe("localhost:3000/es/s/1.0.3/1/dhammapada/21");
+    expect(document.body.textContent).not.toMatch(/Share|Whole passage|Two passages|Press the sentences|Copy link/);
+  });
 });
+
