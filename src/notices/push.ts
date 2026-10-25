@@ -1,5 +1,8 @@
 // What this browser can do with notices, and the calls that make this device one that gets them.
 
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+
 export type DeviceState =
   // This browser cannot show a notice of a website, or the site has no key for it yet.
   | "none"
@@ -52,10 +55,11 @@ export function deviceLabel(userAgent: string, touchPoints = 0): string {
 }
 
 // The steps to allow notices again, for the browser of the reader. A website cannot remove a block.
-export function unblockSteps(userAgent: string): string[] {
-  if (/Firefox\//.test(userAgent)) return ["Press the icon at the left of the address.", "Next to “Send notifications”, remove “Blocked”."];
-  if (/Safari\//.test(userAgent) && !/Chrome\/|CriOS\/|Edg\//.test(userAgent)) return ["Open Safari, then Settings, then Websites, then Notifications.", "Set UrantiaHub to “Allow”."];
-  return ["Press the icon at the left of the address.", "Press “Notifications”, then “Allow”."];
+export function unblockSteps(userAgent: string, lang: Lang = "en"): string[] {
+  const t = messages(lang).notices;
+  if (/Firefox\//.test(userAgent)) return [t.unblockFirefox1, t.unblockFirefox2];
+  if (/Safari\//.test(userAgent) && !/Chrome\/|CriOS\/|Edg\//.test(userAgent)) return [t.unblockSafari1, t.unblockSafari2];
+  return [t.unblockOther1, t.unblockOther2];
 }
 
 const bytes = (base64url: string) => Uint8Array.from(atob(base64url.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));

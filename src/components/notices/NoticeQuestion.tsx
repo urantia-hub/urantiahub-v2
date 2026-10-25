@@ -7,6 +7,9 @@ import { accountKey, accountState, serverAccountState, subscribeToAccount } from
 import type { Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Sheet } from "@/components/reader/Sheet";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { pageHref } from "@/i18n/paths";
 import { registerDevice } from "@/notices/device-end";
 import { deviceState } from "@/notices/push";
 
@@ -24,7 +27,10 @@ type Step = { status: "hidden" } | { status: "ask"; passage: Passage | null } | 
 
 // One question, one time for each reader: the daily passage, by email or on this device.
 // It shows after the first sign-in, and the answer is kept in the account, so no other device asks again.
-export function NoticeQuestion() {
+export function NoticeQuestion({ lang = "en" }: { lang?: Lang }) {
+  const all = messages(lang);
+  const t = all.notices;
+  const settingsPage = pageHref(lang, "/notifications");
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const key = account.status === "in" ? (account.user?.key ?? null) : null;
   const path = usePathname();
@@ -36,14 +42,14 @@ export function NoticeQuestion() {
 
   useEffect(() => {
     // The settings page shows the same choices. No question there, or on the page that turns an email off.
-    if (!NOTICES_ON || !key || asked === key || path === "/notifications" || path === "/emails") return;
+    if (!NOTICES_ON || !key || asked === key || path === settingsPage || path === pageHref(lang, "/emails")) return;
     let current = true;
     const timer = window.setTimeout(async () => {
       if (!current || busyPage()) return;
       const notices = (await readerCall("/api/me/notices")) as Notices | null;
       if (!current || !notices?.settings || accountKey() !== key) return;
       if (notices.settings.asked) return setAsked(key);
-      const passage = await fetch(`/api/notices/today?date=${today()}`)
+      const passage = await fetch(`/api/notices/today?date=${today()}${lang === "es" ? "&lang=es" : ""}`)
         .then((response) => (response.ok ? (response.json() as Promise<Passage>) : null))
         .catch(() => null);
       if (!current || busyPage() || accountKey() !== key) return;
@@ -53,7 +59,7 @@ export function NoticeQuestion() {
       current = false;
       window.clearTimeout(timer);
     };
-  }, [key, asked, path]);
+  }, [key, asked, path, settingsPage, lang]);
 
   // Another reader, or a sign-out: the question of the reader before goes away.
   if (step.status !== "hidden" && (!key || (asked !== null && asked !== key))) setStep({ status: "hidden" });
@@ -83,7 +89,7 @@ export function NoticeQuestion() {
     if (deviceState() !== "ask" && deviceState() !== "allowed") {
       void save({});
       close();
-      router.push("/notifications");
+      router.push(settingsPage);
       return;
     }
     setBusy(true);
@@ -98,47 +104,47 @@ export function NoticeQuestion() {
 
   if (step.status === "ask") {
     return (
-      <Sheet label="A passage each day" onClose={notNow} className="notice-question">
-        <p className="eyebrow">New</p>
-        <h2>A passage each day?</h2>
-        <p>UrantiaHub can send you one short passage of the Papers each day, by email or as a push. It is off until you turn it on.</p>
+      <Sheet label={t.dailyTitle} onClose={notNow} className="notice-question">
+        <p className="eyebrow">{t.askNew}</p>
+        <h2>{t.askTitle}</h2>
+        <p>{t.askBody}</p>
         {step.passage && (
           <blockquote>
             {step.passage.text.length > 260 ? `${step.passage.text.slice(0, 260).replace(/\s+\S*$/, "")} …` : step.passage.text}
-            <cite>{step.passage.ref} · the passage of today</cite>
+            <cite>{t.askToday(step.passage.ref)}</cite>
           </blockquote>
         )}
         <button type="button" className="panel-button dark" disabled={busy} onClick={() => void byEmail()}>
-          Send it by email
+          {t.askEmail}
         </button>
         <button type="button" className="panel-button" disabled={busy} onClick={() => void onDevice()}>
-          Send it as a push
+          {t.askPush}
         </button>
         <button type="button" className="notice-later" disabled={busy} onClick={notNow}>
-          Not now
+          {all.notNow}
         </button>
-        <small>It comes at 7:00 AM in your time zone. You can change this at any time: the person button, then Notifications.</small>
+        <small>{t.askFoot}</small>
       </Sheet>
     );
   }
   return (
-    <Sheet label="A passage each day" onClose={close} className="notice-question">
+    <Sheet label={t.dailyTitle} onClose={close} className="notice-question">
       {step.status === "done" ? (
         <>
-          <h2>It is on</h2>
-          <p role="status">{step.how === "email" ? "The passage comes by email" : "The passage comes as a push"} each day at 7:00 AM in your time zone.</p>
+          <h2>{t.onTitle}</h2>
+          <p role="status">{step.how === "email" ? t.onEmail : t.onPush}</p>
         </>
       ) : (
         <>
-          <h2>It did not turn on</h2>
-          <p role="alert">Nothing was changed. You can turn it on in the settings.</p>
+          <h2>{t.offTitle}</h2>
+          <p role="alert">{t.offLine}</p>
         </>
       )}
-      <Link className="panel-button dark" href="/notifications" onClick={close}>
-        Notification settings
+      <Link className="panel-button dark" href={settingsPage} onClick={close}>
+        {t.settings}
       </Link>
       <button type="button" className="notice-later" onClick={close}>
-        Close
+        {all.close}
       </button>
     </Sheet>
   );

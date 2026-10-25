@@ -116,4 +116,29 @@ describe("the question after the first sign-in", () => {
     await user.click(await screen.findByRole("button", { name: "Send it by email" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Nothing was changed.");
   });
+
+  it("asks in Spanish on a Spanish page, with the Spanish passage", async () => {
+    world.path = "/es/documentos";
+    render(<NoticeQuestion lang="es" />);
+    await act(async () => void (await vi.advanceTimersByTimeAsync(1600)));
+    expect(await screen.findByRole("dialog", { name: "Un pasaje cada día" })).toBeInTheDocument();
+    expect(screen.getByText("99:1.1 · el pasaje de hoy")).toBeInTheDocument();
+    expect(vi.mocked(fetch).mock.calls[0][0]).toMatch(/^\/api\/notices\/today\?date=\d{4}-\d{2}-\d{2}&lang=es$/);
+  });
+
+  it.each(["/es/avisos", "/es/correos"])("does not show on %s", async (path) => {
+    world.path = path;
+    render(<NoticeQuestion lang="es" />);
+    await act(async () => void (await vi.advanceTimersByTimeAsync(1600)));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("sends a Spanish reader whose device cannot ask here to the Spanish settings", async () => {
+    world.device = "ios";
+    world.path = "/es/documentos";
+    render(<NoticeQuestion lang="es" />);
+    await act(async () => void (await vi.advanceTimersByTimeAsync(1600)));
+    await user.click(await screen.findByRole("button", { name: "Enviarlo como notificación" }));
+    expect(world.pushed).toEqual(["/es/avisos"]);
+  });
 });
