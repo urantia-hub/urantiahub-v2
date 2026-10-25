@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiLang, spanishOn } from "./lang";
 import { messages } from "./messages";
-import { contentsHref, counterpart, homeHref, pageHref, paperHref, searchHref, shareHref, twinPath } from "./paths";
+import { contentsHref, counterpart, homeHref, howHref, pageHref, paperHref, searchHref, shareHref, textsHref, twinPath } from "./paths";
 
 describe("the twin of a page", () => {
   it("is the same page in the other language, with its query", () => {
@@ -10,8 +10,28 @@ describe("the twin of a page", () => {
     expect(twinPath("/papers", "en")).toBe("/papers");
   });
   it("is null for a page with no twin", () => {
-    expect(twinPath("/texts", "es")).toBeNull();
     expect(twinPath("/about", "es")).toBeNull();
+  });
+});
+
+describe("the twins of World texts", () => {
+  it("keeps the slug, the page key, the query, and the passage", () => {
+    expect(twinPath("/texts", "es")).toBe("/es/textos");
+    expect(twinPath("/es/textos", "en")).toBe("/texts");
+    expect(twinPath("/texts/quran/2?s=1#v2", "es")).toBe("/es/textos/quran/2?s=1#v2");
+    expect(twinPath("/es/textos/bible/john-3", "en")).toBe("/texts/bible/john-3");
+    expect(twinPath("/texts/how-it-works#number", "es")).toBe("/es/textos/como-funciona#number");
+    expect(twinPath("/es/textos/como-funciona", "en")).toBe("/texts/how-it-works");
+    expect(twinPath("/textsx", "es")).toBeNull();
+  });
+  it("gives the address of World texts, a work, and a page in a language", () => {
+    expect(textsHref("en")).toBe("/texts");
+    expect(textsHref("es")).toBe("/es/textos");
+    expect(textsHref("es", "quran")).toBe("/es/textos/quran");
+    expect(textsHref("es", "quran", "2")).toBe("/es/textos/quran/2");
+    expect(textsHref("en", "bible", "john-3")).toBe("/texts/bible/john-3");
+    expect(howHref("en")).toBe("/texts/how-it-works");
+    expect(howHref("es")).toBe("/es/textos/como-funciona");
   });
 });
 
@@ -53,7 +73,7 @@ describe("counterpart", () => {
   });
   it("sends a page with no twin to the home page of the other language, with no query or hash", () => {
     expect(counterpart("/privacy", "es")).toBe("/es");
-    expect(counterpart("/texts/quran/1?s=1#v2", "es")).toBe("/es");
+    expect(counterpart("/texts/quran/1?s=1#v2", "es")).toBe("/es/textos/quran/1?s=1#v2");
     expect(counterpart("/es/nada", "en")).toBe("/");
   });
   // Spanish has no pair page.
