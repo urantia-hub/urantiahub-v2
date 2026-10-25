@@ -62,4 +62,22 @@ describe("the nearest marks", () => {
     expect(timeWords(75)).toBe("about 1 hour");
     expect(timeWords(130)).toBe("about 2 hours");
   });
+
+  it("speaks Spanish on a Spanish page, with the same marks", () => {
+    const es = nextMarks({ rows: [], current: 0, earned: {}, nextMinutes: 1 }, 3, "es");
+    expect(es.map((item) => item.id)).toEqual(["first-section", "first-listen", "search"]);
+    expect(es[0].line).toBe("Termina una sección · 1 min");
+    expect(es[2].line).toBe("Busca cualquier palabra · 1 min");
+    const earned = Object.fromEntries(["first-section", "first-listen", "search", "parallels", "terms", "note", "image", "share", "papers-1", "foreword", "papers-5"].map((id) => [id, "t"]));
+    const rows = ["1", "2", "3", "4", "5"].flatMap(all);
+    expect(nextMarks({ rows, current: 5, earned, nextMinutes: 3 }, 40, "es").find((item) => item.id === "streak-7")?.line).toBe("Quedan 2 días");
+    const one = nextMarks({ rows: all("1").slice(0, 2), current: 1, earned: { "first-section": "t", "first-listen": "t", search: "t", parallels: "t", terms: "t", note: "t", image: "t", share: "t" }, nextMinutes: 3 }, 3, "es");
+    expect(one[0].line).toMatch(/^Los orígenes de la adoración · quedan? \d+ secci(ón|ones) · (unos \d+ min|cerca de 1 hora|unas \d+ horas)$/);
+  });
+
+  it("says a time in Spanish", () => {
+    expect(timeWords(45, "es")).toBe("unos 45 min");
+    expect(timeWords(75, "es")).toBe("cerca de 1 hora");
+    expect(timeWords(240, "es")).toBe("unas 4 horas");
+  });
 });
