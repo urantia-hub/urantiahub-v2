@@ -57,6 +57,7 @@ export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
   ["/about", "/es/acerca-de"],
   ["/resources", "/es/recursos"],
   ["/releases", "/es/novedades"],
+  ["/privacy", "/es/privacidad"],
 ];
 
 // The fixed pages that search engines list, in a language: in Spanish, only those with a twin.

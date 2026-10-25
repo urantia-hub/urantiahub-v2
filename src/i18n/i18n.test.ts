@@ -78,7 +78,7 @@ describe("counterpart", () => {
     expect(counterpart("/es/guardados", "en")).toBe("/saved");
   });
   it("sends a page with no twin to the home page of the other language, with no query or hash", () => {
-    expect(counterpart("/privacy", "es")).toBe("/es");
+    expect(counterpart("/progress", "es")).toBe("/es");
     expect(counterpart("/texts/quran/1?s=1#v2", "es")).toBe("/es/textos/quran/1?s=1#v2");
     expect(counterpart("/es/nada", "en")).toBe("/");
   });
