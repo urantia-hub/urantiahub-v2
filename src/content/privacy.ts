@@ -57,7 +57,9 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
 
 // With Spanish on (NEXT_PUBLIC_SPANISH): the language that the reader chose in the language sheet.
 export const LANGUAGE_UPDATED = "October 24, 2026";
-export const LANGUAGE_ITEM: BrowserItem = { name: "The language that you chose to read in", why: "so the site does not offer the other language again" };
+export const LANGUAGE_ITEM: BrowserItem = { name: "The language that you chose to read in, and when you chose it", why: "so the site does not offer the other language again, and the newest choice wins on each of your devices" };
+// With Spanish on: a mark in this tab only (`hub:visit`), gone when the tab closes.
+export const VISIT_ITEM: BrowserItem = { name: "That this tab already opened a page of the site", why: "so only the first page of a visit opens in your language" };
 
 // With Spanish on, the account also holds the language, so it follows the reader to each device.
 export const ACCOUNT_LANGUAGE_ITEM = "The language that you chose to read in, and when you chose it";

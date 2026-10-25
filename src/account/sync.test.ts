@@ -283,7 +283,7 @@ describe("the language", () => {
   });
 
   it("does not go out for a reader who is not signed in", async () => {
-    const fetch = vi.fn(async (_url: string) => Response.json({}));
+    const fetch = vi.fn<(url: string) => Promise<Response>>(async () => Response.json({}));
     vi.stubGlobal("fetch", fetch);
     startSync();
     setReadingLang("es");
