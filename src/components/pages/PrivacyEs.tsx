@@ -23,7 +23,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
         <a href="/privacy" hrefLang="en">
           versión en inglés
         </a>
-        , vale la versión en inglés.
+        , prevalece la versión en inglés.
       </p>
 
       <h2>En pocas palabras</h2>
@@ -32,7 +32,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
         {accountsOn && <li>Una cuenta es opcional. Con una, tu lugar, tu idioma, tus párrafos guardados y tus notas te siguen a cada dispositivo. El tema y el tamaño del texto se quedan en cada dispositivo.</li>}
         <li>El sitio no muestra publicidad y no vende datos.</li>
         <li>Cuenta qué páginas y funciones usan los lectores, sin cookie{accountsOn ? ". Si inicias sesión, los conteos llevan un código que representa tu cuenta, no tu correo electrónico ni tu nombre." : " y sin identificador."}</li>
-        <li>Registra lo que buscan los lectores, sin relación con el lector.</li>
+        <li>Registra lo que buscan los lectores, sin vínculo con el lector.</li>
         <li>
           Preguntas: <Email />.
         </li>
@@ -74,7 +74,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
       <h3>Búsquedas</h3>
       <p>
         Cuando buscas, el sitio registra las palabras de la búsqueda y cuántos resultados encontró, para que veamos qué
-        buscan los lectores. El registro no tiene relación contigo. Lo envía nuestro servidor, no tu navegador, así que
+        buscan los lectores. El registro no está vinculado a ti. Lo envía nuestro servidor, no tu navegador, así que
         no contiene ninguna dirección IP, ninguna página que abriste ni nada sobre tu dispositivo.
       </p>
       <p>
@@ -107,7 +107,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
           <p>
             Una cookie guarda tu sesión. Está cifrada, y un script de la página no puede leerla. Una segunda cookie dice
             solo que tienes la sesión iniciada, para que la página muestre los controles correctos. No usamos ninguna de
-            las dos para analítica ni para publicidad. Los eventos de analítica no tienen relación con tu cuenta.
+            las dos para analítica ni para publicidad. Los eventos de analítica no están vinculados a tu cuenta.
           </p>
           <p>
             Unas pocas cookies más sirven al inicio de sesión mismo: una guarda el comienzo de un inicio de sesión y el
@@ -164,7 +164,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
         <>
           <h3>Si llevas una racha</h3>
           <p>
-            Un lector con la sesión iniciada puede llevar una racha: la cuenta de los días seguidos con una sección
+            Un lector con la sesión iniciada puede llevar una racha: el número de días seguidos con una sección
             terminada. Está desactivada hasta que digas que sí. Si llevas una, la cuenta también guarda estas cosas:
           </p>
           <ul>
@@ -174,7 +174,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
           </ul>
           <p>
             Puedes desactivar la racha en tu página. Lo que la cuenta guarda para ella se queda, así que una racha que
-            vuelves a activar conserva su cuenta. Cuando borras la cuenta, borramos todo esto.
+            vuelves a activar conserva su conteo. Cuando borras la cuenta, borramos todo esto.
           </p>
         </>
       )}
@@ -233,7 +233,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
         <li>Puedes borrar los datos del sitio en tu navegador en cualquier momento. El sitio sigue funcionando.</li>
         <li>
           Puedes preguntar qué guardamos, o pedirnos que lo quitemos: <Email />. Sin una cuenta, no guardamos nada a tu
-          nombre, así que dinos qué buscas.
+          nombre, así que dinos qué datos buscas.
         </li>
       </ul>
 

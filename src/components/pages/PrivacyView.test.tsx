@@ -72,7 +72,23 @@ describe("the Spanish Privacy page", () => {
     const english = screen.getByRole("link", { name: "versión en inglés" });
     expect(english).toHaveAttribute("href", "/privacy");
     expect(english).toHaveAttribute("hreflang", "en");
-    expect(english.closest("p")).toHaveTextContent("La traducción al español es automática. Si difiere de la versión en inglés, vale la versión en inglés.");
+    expect(english.closest("p")).toHaveTextContent("La traducción al español es automática. Si difiere de la versión en inglés, prevalece la versión en inglés.");
+  });
+
+  // The judge of the back-check (2026-10-25): "relación" read as "has nothing to do with you", "cuenta" means the
+  // account on this page, and two lines named no thing to turn off or the wrong thing that leaves.
+  it("says that a record is not linked to the reader, and uses each word in one sense", () => {
+    set(COMBOS[15]);
+    const page = render(<PrivacyView lang="es" />).container.textContent ?? "";
+    expect(page).not.toMatch(/relación con/);
+    expect(page).toContain("Registra lo que buscan los lectores, sin vínculo con el lector.");
+    expect(page).toContain("El registro no está vinculado a ti.");
+    expect(page).toContain("Los eventos de analítica no están vinculados a tu cuenta.");
+    expect(page).toContain("el número de días seguidos con una sección terminada");
+    expect(page).toContain("conserva su conteo");
+    expect(page).not.toContain("sale de ahí");
+    expect(page).toContain("al terminar la página, se borran");
+    expect(page).toContain("si quitas la descarga, salen del dispositivo");
   });
 
   it("makes no claim about the text", () => {

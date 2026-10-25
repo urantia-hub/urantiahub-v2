@@ -14,7 +14,7 @@ export function TermsEs({ accountsOn }: { accountsOn: boolean }) {
         <a href="/terms" hrefLang="en">
           versión en inglés
         </a>
-        , vale la versión en inglés.
+        , prevalece la versión en inglés.
       </p>
 
       <h2>El acuerdo</h2>
@@ -33,7 +33,7 @@ export function TermsEs({ accountsOn }: { accountsOn: boolean }) {
       <h2>Qué es el sitio</h2>
       <p>
         UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia: el texto, una narración en audio, la
-        búsqueda, un glosario y pasajes de otras obras que se acercan en significado.{accountsOn && " Con una cuenta, también puedes guardar párrafos, escribir notas y conservar tu lugar."}{" "}
+        búsqueda, un glosario y pasajes de otras obras cercanos en significado.{accountsOn && " Con una cuenta, también puedes guardar párrafos, escribir notas y conservar tu lugar."}{" "}
         El sitio es gratuito. Está pensado para lectores de 18 años o más.
       </p>
       <p>
@@ -90,7 +90,7 @@ export function TermsEs({ accountsOn }: { accountsOn: boolean }) {
       <h2>Límite de responsabilidad</h2>
       <p>
         En la mayor medida que la ley permite, {PRIVACY_OPERATOR} y sus miembros, empleados y agentes no son
-        responsables de daños indirectos, incidentales, especiales, consecuentes o punitivos que resulten de tu uso del
+        responsables de daños indirectos, incidentales, especiales, consecuenciales o punitivos que resulten de tu uso del
         sitio.
       </p>
 
@@ -102,13 +102,13 @@ export function TermsEs({ accountsOn }: { accountsOn: boolean }) {
 
       <h2>La ley aplicable</h2>
       <p>
-        Las leyes del Estado de Texas, Estados Unidos, rigen estos términos. Una disputa va a los tribunales del
+        Las leyes del Estado de Texas, Estados Unidos, rigen estos términos. Cualquier controversia se somete a los tribunales del
         condado de Travis, Texas, salvo que la ley que se te aplica exija otro lugar.
       </p>
 
       <h2>Cambios</h2>
       <p>
-        Podemos cambiar estos términos. Cuando un cambio es importante, lo decimos en el sitio antes de que empiece. Si
+        Podemos cambiar estos términos. Cuando un cambio es importante, lo decimos en el sitio antes de que entre en vigor. Si
         usas el sitio después de un cambio, aceptas los nuevos términos.
       </p>
 

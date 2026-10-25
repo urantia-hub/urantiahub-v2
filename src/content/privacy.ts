@@ -28,7 +28,7 @@ export const VENDORS: readonly Vendor[] = [
     purpose: "Analytics: which pages and features readers use.",
     receives: "An event for a page or an action, with your IP address. No cookie and no identifier. Also the search records, which have no link to you.",
     policy: "https://posthog.com/privacy",
-    es: { purpose: "Analítica: qué páginas y funciones usan los lectores.", receives: "Un evento por una página o una acción, con tu dirección IP. Sin cookie y sin identificador. También los registros de las búsquedas, que no tienen relación contigo." },
+    es: { purpose: "Analítica: qué páginas y funciones usan los lectores.", receives: "Un evento por una página o una acción, con tu dirección IP. Sin cookie y sin identificador. También los registros de las búsquedas, que no están vinculados a ti." },
   },
   {
     name: "Cloudflare",
@@ -51,11 +51,11 @@ export type BrowserItem = { name: string; why: string; es: { name: string; why: 
 // What the site keeps in your browser. None of it leaves your device.
 export const BROWSER_ITEMS: readonly BrowserItem[] = [
   { name: "Your theme", why: "so the page opens light or dark, as you chose", es: { name: "Tu tema", why: "para que la página se abra clara u oscura, como elegiste" } },
-  { name: "Your text size", why: "so a paper opens at the size that you chose", es: { name: "Tu tamaño del texto", why: "para que un documento se abra en el tamaño que elegiste" } },
+  { name: "Your text size", why: "so a paper opens at the size that you chose", es: { name: "El tamaño del texto", why: "para que un documento se abra en el tamaño que elegiste" } },
   { name: "The last place that you read", why: "so the contents page can offer to continue there", es: { name: "El último lugar que leíste", why: "para que la página de los documentos pueda ofrecerte continuar ahí" } },
   { name: "The paragraph where the voice stopped", why: "so the paper can offer to continue listening there", es: { name: "El párrafo donde se detuvo la voz", why: "para que el documento pueda ofrecerte seguir escuchando desde ahí" } },
   { name: "The last page that you read in each world text", why: "so the page of that work can offer to continue there", es: { name: "La última página que leíste de cada texto del mundo", why: "para que la página de esa obra pueda ofrecerte continuar ahí" } },
-  { name: "The papers, if you turn on Read offline", why: "so you can read with no connection; turn it off, and they leave the device", es: { name: "Los documentos, si los descargas para leer sin conexión", why: "para que puedas leer sin conexión; si lo desactivas, salen del dispositivo" } },
+  { name: "The papers, if you turn on Read offline", why: "so you can read with no connection; turn it off, and they leave the device", es: { name: "Los documentos, si los descargas para leer sin conexión", why: "para que puedas leer sin conexión; si quitas la descarga, salen del dispositivo" } },
   { name: "The assistant that you chose, if you use Ask an assistant", why: "so the next question opens in the same one", es: { name: "El asistente que elegiste, si usas Preguntar a un asistente", why: "para que la siguiente pregunta se abra en el mismo" } },
   { name: "Your last five searches", why: "so you can run one again; the Clear control on the search page removes them", es: { name: "Tus cinco búsquedas más recientes", why: "para que puedas repetir una; el botón Borrar de la página de búsqueda las quita" } },
 ];
@@ -92,7 +92,7 @@ export const ACCOUNT_POSTHOG: Vendor = {
   purpose: "Analytics: which pages and features readers use.",
   receives: "An event for a page or an action, with your IP address. No cookie. While you are signed in, also a code that stands for your account: not your email address and not your name. Also the search records, which have no link to you.",
   policy: "https://posthog.com/privacy",
-  es: { purpose: "Analítica: qué páginas y funciones usan los lectores.", receives: "Un evento por una página o una acción, con tu dirección IP. Sin cookie. Mientras tienes la sesión iniciada, también un código que representa tu cuenta: no tu correo electrónico ni tu nombre. También los registros de las búsquedas, que no tienen relación contigo." },
+  es: { purpose: "Analítica: qué páginas y funciones usan los lectores.", receives: "Un evento por una página o una acción, con tu dirección IP. Sin cookie. Mientras tienes la sesión iniciada, también un código que representa tu cuenta: no tu correo electrónico ni tu nombre. También los registros de las búsquedas, que no están vinculados a ti." },
 };
 
 // The companies that handle the data of an account. They are in the table only while a reader can sign in.
@@ -168,7 +168,7 @@ export const STREAK_BROWSER_ITEM: BrowserItem = {
 export const STREAK_TEXT_ITEM: BrowserItem = {
   name: "The passages that you read on a page of a world text, while you are signed in and keep a streak",
   why: "so the site can tell when you finish the page for the marks; a finished page leaves them, a sign-out removes them, and only the finished page goes to your account",
-  es: { name: "Los pasajes que leíste en una página de un texto del mundo, mientras tienes la sesión iniciada y llevas una racha", why: "para que el sitio sepa cuándo terminas la página, para las marcas; una página terminada sale de ahí, cerrar la sesión los borra, y solo la página terminada va a tu cuenta" },
+  es: { name: "Los pasajes que leíste en una página de un texto del mundo, mientras tienes la sesión iniciada y llevas una racha", why: "para que el sitio sepa cuándo terminas la página, para las marcas; al terminar la página, se borran, y cerrar la sesión también los borra, y solo la página terminada va a tu cuenta" },
 };
 
 // With the streak on, Supabase also holds the finished sections.

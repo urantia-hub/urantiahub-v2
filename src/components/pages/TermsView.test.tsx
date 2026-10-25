@@ -39,6 +39,6 @@ describe("the Spanish Terms page", () => {
     const english = screen.getByRole("link", { name: "versión en inglés" });
     expect(english).toHaveAttribute("href", "/terms");
     expect(english).toHaveAttribute("hreflang", "en");
-    expect(english.closest("p")).toHaveTextContent("La traducción al español es automática. Si difiere de la versión en inglés, vale la versión en inglés.");
+    expect(english.closest("p")).toHaveTextContent("La traducción al español es automática. Si difiere de la versión en inglés, prevalece la versión en inglés.");
   });
 });
