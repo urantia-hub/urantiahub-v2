@@ -59,13 +59,15 @@ describe("SiteFooter", () => {
     expect(screen.getByRole("link", { name: "urantia.dev" })).toHaveAttribute("href", "https://urantia.dev");
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
   });
-  it("links a Spanish page to each Spanish twin, and marks only a page with no twin English", () => {
+  it("links a Spanish page to each Spanish twin", () => {
     render(<SiteFooter lang="es" />);
     const about = screen.getByRole("link", { name: "Acerca de" });
     expect(about).toHaveAttribute("href", "/es/acerca-de");
     expect(about).not.toHaveAttribute("hreflang");
     expect(screen.getByRole("link", { name: "Privacidad" })).toHaveAttribute("href", "/es/privacidad");
-    expect(screen.getByRole("link", { name: "Términos" })).toHaveAttribute("hreflang", "en");
+    const terms = screen.getByRole("link", { name: "Términos" });
+    expect(terms).toHaveAttribute("href", "/es/terminos");
+    expect(terms).not.toHaveAttribute("hreflang");
   });
   it("links to the resources and the releases", () => {
     render(<SiteFooter />);
