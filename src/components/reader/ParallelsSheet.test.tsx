@@ -323,6 +323,12 @@ describe("the parallels of a passage of the Library", () => {
     expect(here[0]).toHaveAttribute("href", "/texts/quran/at/Quran%202.255-257");
   });
 
+  it("links a Spanish paragraph to the Spanish study page", async () => {
+    answers(ANSWER);
+    render(<ParallelsSheet reference="1:0.3" paperId="1" onClose={onClose} lang="es" />);
+    expect(await screen.findByRole("link", { name: "Estudiar estos paralelos" })).toHaveAttribute("href", "/es/paralelos?ref=1%3A0.3");
+  });
+
   it("asks the Spanish Papers on a Spanish work page, and reads a work here in Spanish", async () => {
     answers(PASSAGE);
     render(<ParallelsSheet reference="Dhp 21" paperId="" work="dhammapada" onClose={onClose} lang="es" />);

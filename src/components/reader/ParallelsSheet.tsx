@@ -289,9 +289,9 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
           <ul className="parallel-list">{nearby.map(item)}</ul>
         </>
       )}
-      {state.status === "ready" && !work && lang === "en" && (
-        <Link className="parallel-study" href={`/parallels?ref=${encodeURIComponent(reference)}`} prefetch={false}>
-          Study these parallels
+      {state.status === "ready" && !work && (
+        <Link className="parallel-study" href={`${lang === "es" ? "/es/paralelos" : "/parallels"}?ref=${encodeURIComponent(reference)}`} prefetch={false}>
+          {t.parStudy}
           <Icon name="paperAfter" />
         </Link>
       )}

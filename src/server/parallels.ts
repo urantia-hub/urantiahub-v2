@@ -121,7 +121,7 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string, s
     ].sort(nearestFirst);
   // A near passage of a work in World texts opens the pair page. The rows below the floor keep their links.
   const prefixes = new Map<string, string>([[BIBLE, ""], ...raw.scripture.flatMap((s) => (slugs.has(s.corpus.id) ? [[slugs.get(s.corpus.id) as string, s.corpus.refPrefix] as const] : []))]);
-  const withPair = (p: Parallel): Parallel => (ref && p.library && lang === "en" ? { ...p, pairPath: pairPath({ ref: refForLink(ref), refCode: "", work: p.library.slug, passage: passageForLink(p.library.ref, { refPrefix: prefixes.get(p.library.slug) ?? "" }), passageCode: "" }) } : p);
+  const withPair = (p: Parallel): Parallel => (ref && p.library ? { ...p, pairPath: pairPath({ ref: refForLink(ref), refCode: "", work: p.library.slug, passage: passageForLink(p.library.ref, { refPrefix: prefixes.get(p.library.slug) ?? "" }), passageCode: "" }, lang) } : p);
   const outside = from((floor) => floor, () => Number.POSITIVE_INFINITY).map(withPair);
   const weaker = from(() => WEAK_FLOOR, (floor) => floor).slice(0, WEAK_MOST);
   const papers: Parallel[] = raw.papers

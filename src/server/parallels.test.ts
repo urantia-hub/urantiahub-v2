@@ -279,13 +279,12 @@ describe("the parallels in Spanish", () => {
     expect(answer.papers[0].href).toMatch(/^\/es\/documentos\/documento-56-[a-z0-9-]+#56:9\.10$/);
   });
 
-  it("marks each passage of the Bible and of another work as English, and gives it no pair page", () => {
+  it("marks each passage of the Bible and of another work as English, with the Spanish pair page of a near one", () => {
     const answer = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3", "es");
     expect(answer.outside.length).toBeGreaterThan(0);
-    for (const row of [...answer.outside, ...answer.weaker]) {
-      expect(row.english).toBe(true);
-      expect(row.pairPath).toBeUndefined();
-    }
+    for (const row of [...answer.outside, ...answer.weaker]) expect(row.english).toBe(true);
+    for (const row of answer.outside.filter((r) => r.library)) expect(row.pairPath).toMatch(/^\/es\/s\/1\.0\.3\//);
+    expect(answer.weaker.every((row) => row.pairPath === undefined)).toBe(true);
     // English keeps its rows as they were.
     const en = shapeParallels(RAW_ES, "", "1", slugs, "1:0.3");
     expect(en.outside.every((row) => row.english === undefined)).toBe(true);

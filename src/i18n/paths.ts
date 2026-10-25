@@ -53,6 +53,7 @@ export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
   ["/you", "/es/tu"],
   ["/notifications", "/es/avisos"],
   ["/emails", "/es/correos"],
+  ["/parallels", "/es/paralelos"],
 ];
 
 // The address of a fixed page in a language, from its English path. A page with no twin keeps its path.
@@ -79,8 +80,8 @@ export function twinPath(pathname: string, to: Lang): string | null {
     const id = idFromSlug(paper[1]);
     if (id !== null) return `${paperHref(to, Number(id))}${tail}`;
   }
-  // A share page and its pick only: a pair page has more segments, and Spanish has none.
-  const share = from === "es" ? /^\/es(\/s\/[^/]+(?:\/[^/]+)?)$/.exec(path) : /^(\/s\/[^/]+(?:\/[^/]+)?)$/.exec(path);
+  // A share page, its pick, and a pair page (up to five parts): the same parts in each language.
+  const share = from === "es" ? /^\/es(\/s(?:\/[^/]+){1,5})$/.exec(path) : /^(\/s(?:\/[^/]+){1,5})$/.exec(path);
   if (share) return `${to === "es" ? "/es" : ""}${share[1]}${tail}`;
   if (path === (from === "es" ? "/es/buscar" : "/search")) return `${searchHref(to)}${tail}`;
   if (path === savedHref(from)) return `${savedHref(to)}${tail}`;
