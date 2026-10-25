@@ -540,6 +540,21 @@ export const en = {
     suggestAfter:
       " with the name of the work, and a translation if you know one. A work can come in when its English translation is in the public domain in the United States, and a copy online was proofread against the printed book.",
   },
+  pair: {
+    papers: "The Urantia Papers",
+    kind: (tradition: string, scripture: boolean) => `${tradition} ${scripture ? "scripture" : "classic"}`,
+    and: "and",
+    readPaper: "Read in the paper",
+    readText: "Read in World texts",
+    showAll: "Show all",
+    title: (a: string, b: string) => `${a} and ${b}`,
+    twoPassages: "Two passages",
+    alt: "A paragraph of the Urantia Papers and a passage of a world text",
+    shareTitle: "Share these two passages",
+    shareSub: "Press the sentences to share. None is the whole passage.",
+    whole: "Whole passage",
+    ofCount: (n: number, total: number) => `${n} of ${total}`,
+  },
   mail: {
     dailyLabel: "Your passage for today",
     dailySubject: (ref: string) => `Your passage for today · ${ref}`,

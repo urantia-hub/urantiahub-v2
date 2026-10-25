@@ -1,3 +1,4 @@
+import type { Lang } from "@/i18n/lang";
 import { isCode } from "@/reader/share-link";
 
 // A pair link: /s/{paragraph}[/{code}]/{work}/{passage}[/{code}]. Each code is optional, so the address has
@@ -20,6 +21,7 @@ export function splitPairPath(parts: readonly string[]): PairParts | null {
   return { ref, refCode: code(first), work, passage, passageCode: code(last) };
 }
 
-export function pairPath(p: PairParts): string {
-  return ["/s", p.ref, p.refCode, p.work, p.passage, p.passageCode].filter(Boolean).join("/");
+// A Spanish pair is the same parts under `/es/s/`.
+export function pairPath(p: PairParts, lang: Lang = "en"): string {
+  return [lang === "es" ? "/es/s" : "/s", p.ref, p.refCode, p.work, p.passage, p.passageCode].filter(Boolean).join("/");
 }

@@ -3,6 +3,9 @@ import * as content from "@/content";
 import { ParagraphNotFound } from "@/content/fetchers";
 import { type LibraryWork, PageNotFound, type WorkPage, type WorkPassage } from "@/content/library";
 import { paperById, paperPath } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { textsHref } from "@/i18n/paths";
 import { type Unit, units } from "@/image/compose";
 import { BIBLE } from "@/library/bible";
 import { pageOfRef } from "@/library/refs";
@@ -18,15 +21,15 @@ export type PairSide = { eyebrow: string; kind: string | null; units: Unit[]; ch
 export type Pair = { path: string; work: string; refPart: string; passagePart: string; a: PairSide; b: PairSide };
 
 export type PairDeps = {
-  paragraphText: (paperId: string, ref: string) => Promise<string>;
-  library: () => Promise<LibraryWork[]>;
+  paragraphText: (paperId: string, ref: string, lang?: Lang) => Promise<string>;
+  library: (lang?: Lang) => Promise<LibraryWork[]>;
   workPages: (slug: string) => Promise<WorkPage[]>;
   workPage: (slug: string, key: string) => Promise<WorkPassage[]>;
 };
 
 const DEPS: PairDeps = {
-  paragraphText: (paperId, ref) => content.getParagraphText(paperId, ref),
-  library: () => content.getLibrary(),
+  paragraphText: (paperId, ref, lang = "en") => content.getParagraphText(paperId, ref, lang),
+  library: (lang = "en") => content.getLibrary(lang),
   workPages: (slug) => content.getWorkPages(slug),
   workPage: (slug, key) => content.getWorkPage(slug, key),
 };
@@ -48,17 +51,18 @@ function side(text: string, code: string) {
   return { all, chosen, code: unitCode(chosen, all), words: unitWords(text, chosen) };
 }
 
-/** The pair that an address names, `{ go }` for the one form of the same pair, or null when a part is not there. */
-export async function pairOf(parts: readonly string[], deps: PairDeps = DEPS): Promise<Pair | { go: string } | null> {
+/** The pair that an address names, `{ go }` for the one form of the same pair, or null when a part is not there.
+ * In Spanish the paragraph, the names, and the addresses are Spanish; the passage of the work stays English. */
+export async function pairOf(parts: readonly string[], deps: PairDeps = DEPS, lang: Lang = "en"): Promise<Pair | { go: string } | null> {
   const split = splitPairPath(parts);
   if (!split) return null;
   // The form with a colon arrives with its escape.
   const ref = refFromLink(split.ref.replace(/%3A/i, ":"));
-  const paper = ref ? paperById(ref.split(":")[0]) : undefined;
+  const paper = ref ? paperById(ref.split(":")[0], lang) : undefined;
   if (!ref || !paper) return null;
-  const text = await orNull(deps.paragraphText(paper.id, ref));
+  const text = await orNull(deps.paragraphText(paper.id, ref, lang));
   if (text === null) return null;
-  const work = (await deps.library()).find((w) => w.slug === split.work);
+  const work = (await deps.library(lang)).find((w) => w.slug === split.work);
   if (!work) return null;
   const pages = await orNull(deps.workPages(work.slug));
   const asked = pages && passageFromLink(split.passage, work, pages);
@@ -73,19 +77,20 @@ export async function pairOf(parts: readonly string[], deps: PairDeps = DEPS): P
   const b = side(found.text, split.passageCode);
   const refPart = refForLink(ref);
   const passagePart = passageForLink(found.ref, work);
-  const path = pairPath({ ref: refPart, refCode: a.code, work: work.slug, passage: passagePart, passageCode: b.code });
-  if (path !== `/s/${parts.join("/")}`) return { go: path };
+  const path = pairPath({ ref: refPart, refCode: a.code, work: work.slug, passage: passagePart, passageCode: b.code }, lang);
+  if (path !== `${lang === "es" ? "/es" : ""}/s/${parts.join("/")}`) return { go: path };
   const query = (code: string) => (code ? `?s=${code}` : "");
-  const bBase = `/texts/${work.slug}/at/${encodeURIComponent(found.ref)}`;
+  const bBase = `${textsHref(lang, work.slug)}/at/${encodeURIComponent(found.ref)}`;
+  const t = messages(lang).pair;
   return {
     path,
     work: work.slug,
     refPart,
     passagePart,
-    a: { eyebrow: "The Urantia Papers", kind: null, units: a.all, chosen: a.chosen, words: a.words, source: `${ref} · ${paper.title}`, shortRef: ref, target: `${paperPath(paper.id)}${query(a.code)}#${ref}`, base: paperPath(paper.id), hash: `#${ref}` },
+    a: { eyebrow: t.papers, kind: null, units: a.all, chosen: a.chosen, words: a.words, source: `${ref} · ${paper.title}`, shortRef: ref, target: `${paperPath(paper.id, lang)}${query(a.code)}#${ref}`, base: paperPath(paper.id, lang), hash: `#${ref}` },
     b: {
       eyebrow: work.title,
-      kind: `${work.tradition} ${work.kind}`,
+      kind: t.kind(work.tradition, work.kind === "scripture"),
       units: b.all,
       chosen: b.chosen,
       words: b.words,

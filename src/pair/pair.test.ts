@@ -8,6 +8,7 @@ vi.mock("server-only", () => ({}));
 // The gateway reads the cache of Next.js; the tests give each answer through `deps`.
 vi.mock("@/content", () => ({}));
 const { pairOf } = await import("./pair");
+const { paperById, paperPath } = await import("@/content/paper-index");
 
 const RV: LibraryWork = {
   slug: "rig-veda",
@@ -91,4 +92,38 @@ describe("a pair", () => {
     await expect(pairOf(["63.0.1", "rig-veda", "10.10.3"], deps({ workPage: down }))).rejects.toThrow("down");
     await expect(pairOf(["63.0.1", "rig-veda", "10.10.3"], deps({ paragraphText: down }))).rejects.toThrow("down");
   });
+
+  describe("in Spanish", () => {
+    const RV_ES: LibraryWork = { ...RV, title: "El Rig Veda", tradition: "Hindú" };
+    const spanish = (over = {}) =>
+      deps({
+        paragraphText: async (_paperId: string, ref: string, lang?: string) => {
+          if (ref !== "63:0.1") throw new ParagraphNotFound(ref);
+          return lang === "es" ? "Uno está aquí. Dos está aquí." : PARAGRAPH;
+        },
+        library: async (lang?: string) => [lang === "es" ? RV_ES : RV],
+        ...over,
+      });
+
+    it("has the Spanish paragraph, the Spanish names, and the Spanish addresses; the passage stays English", async () => {
+      const pair = await pairOf(["63.0.1", "1", "rig-veda", "10.10.3"], spanish(), "es");
+      expect(pair).toMatchObject({
+        path: "/es/s/63.0.1/1/rig-veda/10.10.3",
+        a: { eyebrow: "Los Documentos de Urantia", words: "Uno está aquí.", source: `63:0.1 · ${paperById("63", "es")?.title}`, base: paperPath("63", "es"), target: `${paperPath("63", "es")}?s=1#63:0.1` },
+        b: { eyebrow: "El Rig Veda", kind: "Hindú · Escritura", words: "First of RV 10.10.3. Second of RV 10.10.3.", base: "/es/textos/rig-veda/at/RV%2010.10.3" },
+      });
+    });
+
+    it("goes to the one Spanish form of the same pair", async () => {
+      expect(await pairOf(["063.0.01", "rig-veda", "10.10.3"], spanish(), "es")).toEqual({ go: "/es/s/63.0.1/rig-veda/10.10.3" });
+    });
+
+    it("fails when the Spanish paragraph fails, and never shows the English one", async () => {
+      const down = async () => {
+        throw new ContentError("down");
+      };
+      await expect(pairOf(["63.0.1", "rig-veda", "10.10.3"], spanish({ paragraphText: down }), "es")).rejects.toThrow("down");
+    });
+  });
 });
+

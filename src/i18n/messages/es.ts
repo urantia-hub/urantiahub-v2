@@ -541,6 +541,22 @@ export const es: Messages = {
     suggestAfter:
       " con el nombre de la obra, y una traducción si conoces una. Una obra puede entrar cuando su traducción al inglés es de dominio público en los Estados Unidos y una copia en línea se revisó contra el libro impreso.",
   },
+  pair: {
+    papers: "Los Documentos de Urantia",
+    // "Hindú · Escritura", as the head of a work: a phrase would need the gender of the tradition.
+    kind: (tradition: string, scripture: boolean) => `${tradition} · ${scripture ? "Escritura" : "Clásico"}`,
+    and: "y",
+    readPaper: "Leer en el documento",
+    readText: "Leer en Textos del mundo",
+    showAll: "Mostrar todo",
+    title: (a: string, b: string) => `${a} y ${b}`,
+    twoPassages: "Dos pasajes",
+    alt: "Un párrafo de los Documentos de Urantia y un pasaje de un texto del mundo",
+    shareTitle: "Compartir estos dos pasajes",
+    shareSub: "Pulsa las frases que quieres compartir. Sin ninguna, se comparte el pasaje entero.",
+    whole: "Pasaje entero",
+    ofCount: (n: number, total: number) => `${n} de ${total}`,
+  },
   mail: {
     dailyLabel: "Tu pasaje de hoy",
     dailySubject: (ref: string) => `Tu pasaje de hoy · ${ref}`,
