@@ -214,7 +214,11 @@ test.describe("the tools of a Spanish paragraph", () => {
   });
 
   test("a share link made on a Spanish page is a Spanish link, whatever the browser keeps", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("hub:lang", "en"));
+    // A later page of the visit: the first page of a visit would move to the English twin.
+    await page.addInitScript(() => {
+      localStorage.setItem("hub:lang", "en");
+      sessionStorage.setItem("hub:visit", "1");
+    });
     await pick(page, "1:0.1");
     await page.getByRole("button", { name: "Compartir" }).click();
     await expect(page.getByTestId("share-url")).toHaveText(/\/es\/s\/1\.0\.1$/);

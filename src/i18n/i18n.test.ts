@@ -1,7 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiLang, spanishOn } from "./lang";
 import { messages } from "./messages";
-import { contentsHref, counterpart, homeHref, paperHref, searchHref, shareHref } from "./paths";
+import { contentsHref, counterpart, homeHref, paperHref, searchHref, shareHref, twinPath } from "./paths";
+
+describe("the twin of a page", () => {
+  it("is the same page in the other language, with its query", () => {
+    expect(twinPath("/saved?ref=1:0.3", "es")).toBe("/es/guardados?ref=1:0.3");
+    expect(twinPath("/papers", "es")).toBe("/es/documentos");
+    expect(twinPath("/papers", "en")).toBe("/papers");
+  });
+  it("is null for a page with no twin", () => {
+    expect(twinPath("/texts", "es")).toBeNull();
+    expect(twinPath("/about", "es")).toBeNull();
+  });
+});
 
 describe("counterpart", () => {
   it("maps an English paper to its Spanish twin", () => {

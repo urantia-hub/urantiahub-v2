@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
+import { accountState, serverAccountState, signInHref, subscribeToAccount } from "@/account/client";
 import { failureWords } from "@/account/limited";
 import { noSaved, savedState, subscribeToSaved, toggleBookmark } from "@/account/saved";
 import { track } from "@/analytics";
@@ -686,7 +686,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     setTermsOpen(false);
     setParallelsOpen(false);
     // The sign-in returns to this paragraph, and the row opens again.
-    setAskHref(`/api/auth/start?next=${encodeURIComponent(`${window.location.pathname}${window.location.search}#${picked}`)}`);
+    setAskHref(signInHref(`${window.location.pathname}${window.location.search}#${picked}`));
     setPanel("ask");
   }
 

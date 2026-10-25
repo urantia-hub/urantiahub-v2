@@ -3,6 +3,7 @@
 // These are the pure rules. `server.ts` reads and writes the cookies.
 
 import { EncryptJWT, jwtDecrypt } from "jose";
+import { type LangChoice, parseLang } from "./reader-data";
 
 export { ASK_COOKIE, IN_COOKIE, PROBLEM_COOKIE, SESSION_COOKIE, START_COOKIE } from "./cookies";
 
@@ -91,7 +92,8 @@ export function safeNext(value: string | null | undefined): string {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-export type Start = { state: string; codeVerifier: string; next: string };
+// `choice`: the language that this browser holds, with its time, so the newer of it and the account's wins.
+export type Start = { state: string; codeVerifier: string; next: string; choice?: LangChoice };
 
 // The sign-in that this browser started, for its short cookie.
 export function writeStart(start: Start): string {
@@ -104,7 +106,8 @@ export function readStart(value: string | undefined): Start | null {
     const found = JSON.parse(decodeURIComponent(value)) as Partial<Start> | null;
     if (!found || typeof found.state !== "string" || typeof found.codeVerifier !== "string") return null;
     if (!found.state || !found.codeVerifier) return null;
-    return { state: found.state, codeVerifier: found.codeVerifier, next: safeNext(text(found.next)) };
+    const choice = parseLang(found.choice);
+    return { state: found.state, codeVerifier: found.codeVerifier, next: safeNext(text(found.next)), ...(choice ? { choice } : {}) };
   } catch {
     return null;
   }

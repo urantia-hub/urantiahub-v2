@@ -87,6 +87,16 @@ describe("the link to the sign-in", () => {
     window.history.replaceState(null, "", "/papers/foreword?x=1#0:1.2");
     expect(signInHref()).toBe(`/api/auth/start?next=${encodeURIComponent("/papers/foreword?x=1#0:1.2")}`);
   });
+
+  it("names the language of this browser with its time, so the newer choice wins at the return", () => {
+    window.localStorage.setItem("hub:lang", "es");
+    window.localStorage.setItem("hub:lang-at", "20");
+    expect(signInHref("/papers")).toBe(`/api/auth/start?next=${encodeURIComponent("/papers")}&lang=es&at=20`);
+    // A choice with no time loses to the account, so it is not named.
+    window.localStorage.removeItem("hub:lang-at");
+    expect(signInHref("/papers")).toBe(`/api/auth/start?next=${encodeURIComponent("/papers")}`);
+    window.localStorage.clear();
+  });
 });
 
 describe("a sign-in that did not finish", () => {

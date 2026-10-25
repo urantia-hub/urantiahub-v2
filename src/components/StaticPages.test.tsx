@@ -7,7 +7,7 @@ import ReleasesPage from "@/app/(en)/releases/page";
 import ResourcesPage from "@/app/(en)/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, LANGUAGE_ITEM, VISIT_ITEM, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -73,6 +73,46 @@ describe("Privacy, about accounts", () => {
 });
 
 // The streak is on or off by one setting, and needs an account. The page names what it stores only then.
+describe("Privacy, about the language", () => {
+  const text = () => render(<PrivacyPage />).container.textContent ?? "";
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("names the language in the account while Spanish is on", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const page = text();
+    // One time in the account list, and one time in the list of the browser.
+    expect(page.split(ACCOUNT_LANGUAGE_ITEM)).toHaveLength(3);
+    expect(page).toMatch(/your notes, and the language that you chose\./);
+    expect(page).toContain("With one, your place, your language, your saved paragraphs, and your notes follow you to each device.");
+    expect(page).toContain("If you sign in, the place, the language, and the paragraphs that you read also go to your account.");
+    expect(page).toContain("one holds the start of a sign-in and the language of this browser for a few minutes");
+  });
+
+  it("names the language and its time, and the mark of a visit, in the browser while Spanish is on", () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const page = text();
+    expect(page).toContain(LANGUAGE_ITEM.name);
+    expect(page).toContain(LANGUAGE_ITEM.why);
+    expect(LANGUAGE_ITEM.name).toMatch(/and when you chose it/);
+    expect(page).toContain(VISIT_ITEM.name);
+    expect(page).toContain("so only the first page of a visit opens in your language");
+  });
+
+  it("names neither in the browser while Spanish is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+    const page = text();
+    expect(page).not.toContain(LANGUAGE_ITEM.name);
+    expect(page).not.toContain(VISIT_ITEM.name);
+  });
+
+  it("does not name it while Spanish is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+    expect(text()).not.toContain(ACCOUNT_LANGUAGE_ITEM);
+  });
+});
+
 describe("Privacy, about the streak", () => {
   const text = () => render(<PrivacyPage />).container.textContent ?? "";
   afterEach(() => vi.unstubAllEnvs());

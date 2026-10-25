@@ -32,6 +32,11 @@ export function shareHref(lang: Lang, ref: string): string {
 
 // The same page in the other language, or the home page of that language when the page has no twin.
 export function counterpart(pathname: string, to: Lang): string {
+  return twinPath(pathname, to) ?? homeHref(to);
+}
+
+// The same page in the other language, with its query and its paragraph, or null when it has none.
+export function twinPath(pathname: string, to: Lang): string | null {
   const cut = pathname.search(/[?#]/);
   const path = cut === -1 ? pathname : pathname.slice(0, cut);
   const tail = cut === -1 ? "" : pathname.slice(cut);
@@ -50,5 +55,5 @@ export function counterpart(pathname: string, to: Lang): string {
   if (path === savedHref(from)) return `${savedHref(to)}${tail}`;
   if (path === homeHref(from)) return homeHref(to);
   if (path === contentsHref(from)) return contentsHref(to);
-  return homeHref(to);
+  return null;
 }

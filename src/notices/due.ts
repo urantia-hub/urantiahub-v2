@@ -15,6 +15,8 @@ export type Reader = {
   // `push` is absent in a record from before push was a setting of the account.
   settings: { email: Partial<Record<Kind, boolean>>; push?: Partial<Record<Kind, boolean>>; hour: number; zone: string } | null;
   place: unknown;
+  // The language that the reader chose (`hub.lang`). Absent in a list from before the API gave it.
+  lang?: "en" | "es";
   // The streak (`hub.streak`), the count of finished sections of each recent day, and the last one.
   streak?: unknown;
   sectionDays?: { day: string; count: number }[];

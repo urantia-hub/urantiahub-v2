@@ -1,4 +1,4 @@
-import { ACCOUNT_ITEMS, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, LANGUAGE_ITEM, LANGUAGE_UPDATED, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, LANGUAGE_ITEM, LANGUAGE_UPDATED, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS, VISIT_ITEM } from "@/content/privacy";
 import { spanishOn } from "@/i18n/lang";
 import { pageMetadata } from "@/seo/metadata";
 
@@ -22,10 +22,12 @@ export default function PrivacyPage() {
   const streaksOn = accountsOn && process.env.NEXT_PUBLIC_STREAKS === "on";
   const accountVendors = ACCOUNT_VENDORS.map((vendor) => {
     if (noticesOn && vendor.name === NOTICE_RESEND.name) return NOTICE_RESEND;
-    if (streaksOn && vendor.name === "Supabase") return { ...vendor, receives: vendor.receives.replace(/, and your notes\.$/, `, your notes, ${STREAK_SUPABASE_RECEIVES}.`) };
-    return vendor;
+    if (vendor.name !== "Supabase") return vendor;
+    let receives = streaksOn ? vendor.receives.replace(/, and your notes\.$/, `, your notes, ${STREAK_SUPABASE_RECEIVES}.`) : vendor.receives;
+    if (spanishOn()) receives = receives.replace(/, and your notes\.$/, ", your notes.").replace(/\.$/, ", and the language that you chose.");
+    return { ...vendor, receives };
   });
-  const browserItems = [...BROWSER_ITEMS, ...(streaksOn ? [STREAK_BROWSER_ITEM, STREAK_TEXT_ITEM] : []), ...(spanishOn() ? [LANGUAGE_ITEM] : [])];
+  const browserItems = [...BROWSER_ITEMS, ...(streaksOn ? [STREAK_BROWSER_ITEM, STREAK_TEXT_ITEM] : []), ...(spanishOn() ? [LANGUAGE_ITEM, VISIT_ITEM] : [])];
   const vendors = accountsOn ? [...VENDORS.map((vendor) => (vendor.name === ACCOUNT_POSTHOG.name ? ACCOUNT_POSTHOG : vendor)), ...accountVendors] : VENDORS;
   return (
     <div className="prose privacy">
@@ -35,7 +37,7 @@ export default function PrivacyPage() {
       <h2>The short version</h2>
       <ul>
         <li>You can read and listen with no account. The site does not ask for your name or your email address.</li>
-        {accountsOn && <li>An account is optional. With one, your place, your saved paragraphs, and your notes follow you to each device. The theme and the text size stay on each device.</li>}
+        {accountsOn && <li>An account is optional. With one, your place, {spanishOn() ? "your language, " : ""}your saved paragraphs, and your notes follow you to each device. The theme and the text size stay on each device.</li>}
         <li>The site shows no advertising, and it sells no data.</li>
         <li>It counts which pages and features readers use, with no cookie{accountsOn ? ". If you sign in, the counts carry a code that stands for your account, not your email address or your name." : " and no identifier."}</li>
         <li>It records what readers search for, with no link to the reader.</li>
@@ -104,7 +106,7 @@ export default function PrivacyPage() {
             devices:
           </p>
           <ul>
-            {ACCOUNT_ITEMS.map((item) => (
+            {[...ACCOUNT_ITEMS, ...(spanishOn() ? [ACCOUNT_LANGUAGE_ITEM] : [])].map((item) => (
               <li key={item}>{item}.</li>
             ))}
           </ul>
@@ -114,7 +116,7 @@ export default function PrivacyPage() {
             analytics or advertising. Analytics events have no link to your account.
           </p>
           <p>
-            A few more cookies serve the sign-in itself: one holds the start of a sign-in for a few minutes, one
+            A few more cookies serve the sign-in itself: one holds the start of a sign-in{spanishOn() ? " and the language of this browser" : ""} for a few minutes, one
             remembers that you signed out, so that the next sign-in asks you again, and one says for a minute that a
             sign-in did not finish. The browser also keeps a mark that says which account the place in this browser
             belongs to.
@@ -186,7 +188,7 @@ export default function PrivacyPage() {
       <h2>What stays in your browser</h2>
       <p>
         The site keeps these things in your browser.{" "}
-        {accountsOn ? "If you sign in, the place and the paragraphs that you read also go to your account. The theme and the text size never leave the device. For each other reader, nothing of this leaves the device." : "They do not leave your device."}
+        {accountsOn ? `If you sign in, ${spanishOn() ? "the place, the language, and" : "the place and"} the paragraphs that you read also go to your account. The theme and the text size never leave the device. For each other reader, nothing of this leaves the device.` : "They do not leave your device."}
       </p>
       <ul>
         {browserItems.map((item) => (

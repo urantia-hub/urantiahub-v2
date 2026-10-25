@@ -3,6 +3,7 @@
 
 import { dropDevice, endDevice, syncDevice } from "@/notices/device-end";
 import { IN_COOKIE, PROBLEM_COOKIE } from "./cookies";
+import { readLangChoice } from "@/reader/reading-lang";
 
 // `key` names the reader for the server. See `readerKey` in handlers.ts.
 export type AccountUser = { name: string | null; email: string | null; key: string | null };
@@ -93,10 +94,12 @@ export async function signOut(): Promise<boolean> {
   return true;
 }
 
-// The link to the sign-in. It is a plain link, so it works with no script too.
-export function signInHref(): string {
-  const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-  return `/api/auth/start?next=${encodeURIComponent(here)}`;
+// The link to the sign-in. It is a plain link, so it works with no script too. It names the language
+// that this browser holds, with its time, so the sign-in returns in the newest choice.
+export function signInHref(here: string = `${window.location.pathname}${window.location.search}${window.location.hash}`): string {
+  const choice = readLangChoice();
+  const lang = choice && choice.at > 0 ? `&lang=${choice.lang}&at=${choice.at}` : "";
+  return `/api/auth/start?next=${encodeURIComponent(here)}${lang}`;
 }
 
 // True one time after a sign-in that did not finish.
