@@ -232,7 +232,7 @@ export function NotificationsView({ lang = "en" }: { lang?: Lang }) {
             </select>
           </label>
 
-          <h2>{t.push}</h2>
+          <h2>{t.pushHead}</h2>
           <DeviceLine state={device} here={here} others={others} lang={lang} />
 
           <p className="notices-foot">

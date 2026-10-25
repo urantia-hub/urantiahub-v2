@@ -386,6 +386,7 @@ export const en = {
     lead: "Each one is off until you choose a way to get it. You can choose both.",
     email: "Email",
     push: "Push",
+    pushHead: "Push",
     when: "When",
     dailyAt: "The daily passage comes at",
     streakAt: "The streak reminder comes at",
