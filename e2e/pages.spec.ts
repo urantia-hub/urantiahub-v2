@@ -333,6 +333,27 @@ for (const [path, title] of [
   });
 }
 
+// A Spanish page has the Spanish image: the site image for most, its own image for a paper.
+for (const [path, alt] of [
+  ["/es", "Los Documentos de Urantia en UrantiaHub"],
+  ["/es/documentos", "Los Documentos de Urantia en UrantiaHub"],
+  ["/es/buscar", "Los Documentos de Urantia en UrantiaHub"],
+  ["/es/guardados", "Los Documentos de Urantia en UrantiaHub"],
+  ["/es/documentos/documento-1-el-padre-universal", "Un documento de los Documentos de Urantia"],
+] as const) {
+  test(`a shared link to ${path} has the Spanish image`, async ({ page, request }) => {
+    await page.goto(path);
+    const content = (selector: string) => page.locator(selector).first().getAttribute("content");
+    const image = new URL((await content('meta[property="og:image"]'))!);
+    expect(image.pathname).toMatch(/^\/es\//);
+    expect(new URL((await content('meta[name="twitter:image"]'))!).pathname).toBe(image.pathname);
+    expect(await content('meta[property="og:image:alt"]')).toBe(alt);
+    const answer = await request.get(image.pathname + image.search);
+    expect(answer.status()).toBe(200);
+    expect(answer.headers()["content-type"]).toBe("image/png");
+  });
+}
+
 test("a pair page is its own address for a chat app, and stays out of each search engine", async ({ page }) => {
   await page.goto("/s/1.0.3/dhammapada/21");
   const content = (selector: string) => page.locator(selector).first().getAttribute("content");
