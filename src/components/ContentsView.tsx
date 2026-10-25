@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PARTS_BY_LANG, paperPath, partNumeral } from "@/content/paper-index";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
+import { textsHref } from "@/i18n/paths";
 import { LIBRARY_LINKS } from "@/library/flags";
 import { PLACE_INIT_SCRIPT } from "@/reader/place-script";
 import { SignInInvite } from "./AccountRows";
@@ -11,7 +12,7 @@ import { PaperMark, ProgressLoader } from "./PaperMark";
 
 
 // `libraryLinks` is a prop so a test can render both states of the flag.
-// The World texts are in English, so a Spanish page names them "Otras obras" and links to the English page.
+// A Spanish page links to the Spanish World texts (`/es/textos`): the catalog in Spanish, the texts in English.
 export function ContentsView({ libraryLinks = LIBRARY_LINKS, lang = "en" }: { libraryLinks?: boolean; lang?: Lang }) {
   const t = messages(lang);
   const all = PARTS_BY_LANG[lang];
@@ -32,7 +33,7 @@ export function ContentsView({ libraryLinks = LIBRARY_LINKS, lang = "en" }: { li
           </a>
         ))}
         {libraryLinks && (
-          <Link href="/texts" hrefLang={lang === "en" ? undefined : "en"}>
+          <Link href={textsHref(lang)}>
             {t.worldTexts}
           </Link>
         )}
@@ -69,7 +70,7 @@ export function ContentsView({ libraryLinks = LIBRARY_LINKS, lang = "en" }: { li
           <p className="eyebrow">{t.besidePapers}</p>
           <h2>{t.worldTexts}</h2>
           <p className="spons">{t.worldTextsLead}</p>
-          <Link className="way" href="/texts" hrefLang={lang === "en" ? undefined : "en"}>
+          <Link className="way" href={textsHref(lang)}>
             {t.browseWorldTexts}
             <Icon name="paperAfter" />
           </Link>
