@@ -7,7 +7,7 @@ import ReleasesPage from "@/app/(en)/releases/page";
 import ResourcesPage from "@/app/(en)/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
-import { ACCOUNT_ITEMS, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -73,6 +73,25 @@ describe("Privacy, about accounts", () => {
 });
 
 // The streak is on or off by one setting, and needs an account. The page names what it stores only then.
+describe("Privacy, about the language", () => {
+  const text = () => render(<PrivacyPage />).container.textContent ?? "";
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("names the language in the account while Spanish is on", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const page = text();
+    expect(page).toContain(ACCOUNT_LANGUAGE_ITEM);
+    expect(page).toMatch(/your notes, and the language that you chose\./);
+  });
+
+  it("does not name it while Spanish is off", () => {
+    vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+    expect(text()).not.toContain(ACCOUNT_LANGUAGE_ITEM);
+  });
+});
+
 describe("Privacy, about the streak", () => {
   const text = () => render(<PrivacyPage />).container.textContent ?? "";
   afterEach(() => vi.unstubAllEnvs());

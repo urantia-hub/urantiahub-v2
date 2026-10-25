@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { newer, parsePlace, PLACE_KEY } from "./reader-data";
+import { LANG_KEY, newer, parseLang, parsePlace, PLACE_KEY } from "./reader-data";
 
 describe("a place", () => {
   it("is a paper that exists, a section, and a time", () => {
@@ -46,5 +46,22 @@ describe("which of two values wins", () => {
 describe("the names in the reader's preferences", () => {
   it("start with hub., because the record is shared by all apps", () => {
     expect(PLACE_KEY).toBe("hub.place");
+  });
+});
+
+describe("a language choice", () => {
+  it("is a language of the Hub and a time", () => {
+    expect(LANG_KEY).toBe("hub.lang");
+    expect(parseLang({ lang: "es", at: 5 })).toEqual({ lang: "es", at: 5 });
+    expect(parseLang({ lang: "en", at: 0 })).toEqual({ lang: "en", at: 0 });
+  });
+
+  it("is nothing for another language or a value of another form", () => {
+    for (const bad of [{ lang: "fr", at: 5 }, "es", { lang: "es" }, null, { lang: "es", at: -1 }]) expect(parseLang(bad)).toBeNull();
+  });
+
+  it("does not keep a time from the future", () => {
+    const now = 1_000_000;
+    expect(parseLang({ lang: "es", at: now + 86_400_000 * 2 }, now)?.at).toBe(now);
   });
 });

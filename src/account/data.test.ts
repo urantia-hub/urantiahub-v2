@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { type Gateway, readProgress, readReader, savePlace, saveRead } from "./data";
+import { type Gateway, readProgress, readReader, saveLang, savePlace, saveRead } from "./data";
 
 const NOW = 1_800_000_000_000;
 function gateway(stored: Record<string, unknown> = {}): Gateway & { saved: Record<string, unknown>[] } {
@@ -19,11 +19,29 @@ function gateway(stored: Record<string, unknown> = {}): Gateway & { saved: Recor
 describe("what the reader has in the account", () => {
   it("is the place, and nothing else of the record", async () => {
     const g = gateway({ "hub.place": { paperId: "2", sectionId: "3", at: 5 }, "hub.reader": { theme: "dark", textSize: 3, at: 6 }, "other.app": { secret: 1 } });
-    expect(await readReader(g, "t", NOW)).toEqual({ place: { paperId: "2", sectionId: "3", at: 5, label: null } });
+    expect(await readReader(g, "t", NOW)).toEqual({ place: { paperId: "2", sectionId: "3", at: 5, label: null }, lang: null });
   });
 
   it("is null for what is not there, or not of the right form", async () => {
-    expect(await readReader(gateway({ "hub.place": "x" }), "t", NOW)).toEqual({ place: null });
+    expect(await readReader(gateway({ "hub.place": "x" }), "t", NOW)).toEqual({ place: null, lang: null });
+  });
+});
+
+describe("the language in the account", () => {
+  it("is read beside the place", async () => {
+    expect(await readReader(gateway({ "hub.lang": { lang: "es", at: 5 } }), "t", NOW)).toEqual({ place: null, lang: { lang: "es", at: 5 } });
+  });
+
+  it("is saved as the one key, with the checked value only", async () => {
+    const g = gateway();
+    expect(await saveLang(g, "t", { lang: "es", at: 5, more: 1 })).toEqual({ saved: true });
+    expect(g.saved).toEqual([{ "hub.lang": { lang: "es", at: 5 } }]);
+  });
+
+  it("writes nothing for a language that the Hub does not have", async () => {
+    const g = gateway();
+    expect(await saveLang(g, "t", { lang: "xx" })).toEqual({ saved: false });
+    expect(g.savePreferences).not.toHaveBeenCalled();
   });
 });
 

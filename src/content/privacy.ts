@@ -59,6 +59,9 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
 export const LANGUAGE_UPDATED = "October 24, 2026";
 export const LANGUAGE_ITEM: BrowserItem = { name: "The language that you chose to read in", why: "so the site does not offer the other language again" };
 
+// With Spanish on, the account also holds the language, so it follows the reader to each device.
+export const ACCOUNT_LANGUAGE_ITEM = "The language that you chose to read in, and when you chose it";
+
 // What an account holds for the Hub. Each entry is one thing that `src/account` writes.
 export const ACCOUNT_ITEMS: readonly string[] = [
   "Your email address, and your name if your account has one",
