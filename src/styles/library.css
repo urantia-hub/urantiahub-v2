@@ -39,6 +39,13 @@
   font: 400 13px/1.5 var(--font-ui);
   color: var(--muted);
 }
+/* On a Spanish page: the line that says the text of the work is English, in the face of the meta line. */
+.work-lang {
+  margin: -2.2em 0 2.6em;
+  text-align: center;
+  font: 400 13px/1.5 var(--font-ui);
+  color: var(--muted);
+}
 .work-meta a {
   color: var(--muted);
   text-decoration: underline;
