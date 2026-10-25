@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { messages } from "@/i18n/messages";
 import { dailyMail, releaseMail, reminderMail } from "./mail";
 
 const links = { offUrl: "https://www.urantiahub.com/emails?off=1", settingsUrl: "https://www.urantiahub.com/notifications" };
@@ -62,5 +63,40 @@ describe("the email of a release", () => {
   it("writes the words of a feature as text, never as HTML", () => {
     const mail = releaseMail({ ...release, mail: { ...pictures, features: [{ ...pictures.features[0], line: "<b>x</b>" }] } }, links);
     expect(mail.html).toContain("&lt;b&gt;x&lt;/b&gt;");
+  });
+});
+
+// Each email of today, as it is: a change to the Spanish mail must not change one English word.
+describe("the English emails", () => {
+  it("stay word for word", async () => {
+    const reminder = reminderMail({ paperId: "2", paperTitle: "The Nature of God", url: "https://www.urantiahub.com/papers/2", opening: null }, links);
+    const release = releaseMail({ title: "Read offline", changes: ["Keep the Papers on a device."], date: "October 11, 2026", url: "https://www.urantiahub.com/releases" }, links);
+    await expect(JSON.stringify({ mail, reminder, release }, null, 1)).toMatchFileSnapshot("./__snapshots__/english-mails.json");
+  });
+});
+
+describe("the Spanish emails", () => {
+  const es = messages("es");
+  const daily = dailyMail({ ref: "1:0.1", text: "Palabras.", paperId: "1", paperTitle: "El Padre Universal", url: "https://www.urantiahub.com/es/documentos/documento-1#1:0.1" }, links, "es");
+  const reminder = reminderMail({ paperId: "2", paperTitle: "La naturaleza de Dios", url: "https://www.urantiahub.com/es/documentos/documento-2", opening: null }, links, "es");
+  const release = releaseMail({ title: "Sin conexión", changes: ["Guarda los Documentos."], date: "11 de octubre de 2026", url: "https://www.urantiahub.com/releases" }, links, "es");
+
+  it("speak Spanish, with the line on the translation under the passage", () => {
+    expect(daily.subject).toBe(es.mail.dailySubject("1:0.1"));
+    expect(daily.html).toContain('<html lang="es">');
+    expect(daily.text).toContain(es.spanishLine);
+    expect(daily.text).toContain("1:0.1 · Documento 1, El Padre Universal");
+    expect(reminder.text).toContain(es.mail.stoppedIn("Documento 2, La naturaleza de Dios"));
+    expect(release.subject).toBe(es.mail.releaseSubject("Sin conexión"));
+  });
+
+  it("hold no word of the English frame", () => {
+    const en = messages("en").mail;
+    const words = [en.dailyLabel, en.readPaper, en.dailyReason, en.reminderLabel, en.continue, en.reminderReason, en.onlyReminder, en.releaseLabel, en.seeNew, en.releaseReason, en.turnOff, en.allSettings, "Paper ", "where you stopped", "Your place"];
+    for (const m of [daily, reminder, release]) for (const word of words) {
+      expect(m.html).not.toContain(word);
+      expect(m.text).not.toContain(word);
+      expect(m.subject).not.toContain(word);
+    }
   });
 });

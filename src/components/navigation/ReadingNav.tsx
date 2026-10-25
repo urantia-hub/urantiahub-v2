@@ -695,7 +695,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     if (account.status !== "in") return ask("save");
     const adding = !saved.bookmarks.has(picked);
     if (await toggleBookmark(picked)) track(adding ? "bookmark_added" : "bookmark_removed", { paper_id: paper.id });
-    else say(failureWords("This did not save. Try again."));
+    else say(failureWords(t.saveFailed, lang));
   }
 
   function onNote() {

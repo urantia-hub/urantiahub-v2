@@ -24,7 +24,7 @@ export function SiteHeader({ lang = "en" }: { lang?: Lang }) {
         <HeaderBack />
       </div>
       {/* The same four controls on every page, in this order, so none moves (Kelson, 2026-10-24). */}
-      <nav aria-label="Site">
+      <nav aria-label={t.siteNav}>
         <Link className="icon-link search-link" data-slot="search" href={searchHref(lang)} aria-label={t.searchTitle} title={`${t.searchTitle} ( / )`}>
           <Icon name="search" />
         </Link>

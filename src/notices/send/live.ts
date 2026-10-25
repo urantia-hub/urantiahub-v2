@@ -121,7 +121,7 @@ export function liveDeps(now: Date = new Date()): JobDeps {
     claim: async (claims) => ((await api("POST", "/claim", { claims })) as { claimed: Claim[] }).claimed,
     release: async (claims) => void (await api("POST", "/release", { claims })),
     devices: async (report) => void (await api("POST", "/devices", report)),
-    passage: (ref) => getPassage(ref),
+    passage: (ref, lang) => getPassage(ref, lang),
     sendMails,
     sendPush,
     readerKey: (userId) => readerKey(secret, userId),

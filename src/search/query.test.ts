@@ -62,6 +62,10 @@ describe("faults that the branch review found", () => {
   it("tells a question by its first word or its mark, with no regard to length", () => {
     expect(startsLikeQuestion("the bestowals of christ michael")).toBe(false);
     expect(startsLikeQuestion("is there life")).toBe(true);
+    // A reader often types Spanish with no accents.
+    for (const q of ["que es dios", "como orar", "por que existe el mal", "cual es el camino", "donde esta el paraiso", "quien es miguel", "quienes son"]) expect(startsLikeQuestion(q)).toBe(true);
+    expect(startsLikeQuestion("queso y pan")).toBe(false);
+    expect(startsLikeQuestion("comodidad")).toBe(false);
     expect(startsLikeQuestion("peace?")).toBe(true);
   });
 });

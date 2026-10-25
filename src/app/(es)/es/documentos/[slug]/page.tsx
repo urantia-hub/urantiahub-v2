@@ -13,7 +13,7 @@ import { titlesOf } from "@/content/section-index";
 import { spanishOn } from "@/i18n/lang";
 import { idFromSlug } from "@/lib/paper-url";
 import { JsonLd } from "@/seo/JsonLd";
-import { describe, pageMetadata, paperJsonLd } from "@/seo/metadata";
+import { describe, pageMetadata, paperHeadline, paperJsonLd } from "@/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -27,15 +27,12 @@ function entryFor(slug: string) {
   return entry && entry.slug === slug ? entry : undefined;
 }
 
-const headline = (entry: { id: string; title: string; partId: string }) =>
-  entry.id === "0" ? entry.title : `Documento ${entry.id}: ${entry.title}`;
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const entry = entryFor((await params).slug);
   if (!spanishOn() || !entry) return {};
   const paper = await getPaper(entry.id, "es");
   return pageMetadata({
-    title: headline(entry),
+    title: paperHeadline(entry, "es"),
     description: describe(paper.sections[0].paragraphs[0].text),
     path: paperPath(entry.id, "es"),
     type: "article",

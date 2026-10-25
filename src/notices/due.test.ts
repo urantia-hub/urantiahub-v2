@@ -166,3 +166,13 @@ describe("the streak notice", () => {
     expect(dueNotices(keeper({ settings: { email: { ...OFF }, push: { ...OFF }, hour: 7, zone: "America/Chicago" } }), NIGHT)).toEqual([]);
   });
 });
+
+describe("the language of a notice", () => {
+  it("is the language of the reader, and English for a reader with none", () => {
+    const now = at("2026-10-11T12:05:00Z");
+    expect(dueNotices(reader({ lang: "es" }), now).map((n) => n.lang)).toEqual(["es"]);
+    expect(dueNotices(reader(), now).map((n) => n.lang)).toEqual(["en"]);
+    // A value the Hub does not know must not stop the run for each reader after this one.
+    expect(dueNotices(reader({ lang: "es-MX" as never }), now).map((n) => n.lang)).toEqual(["en"]);
+  });
+});

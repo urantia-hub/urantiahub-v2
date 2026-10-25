@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { parseReference } from "@/lib/paper-url";
 
 // Tells the reader when the link pointed at a paragraph that this paper does not have.
-export function MissingReferenceNotice({ paperId }: { paperId: string }) {
+export function MissingReferenceNotice({ paperId, lang = "en" }: { paperId: string; lang?: Lang }) {
   const [missing, setMissing] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function MissingReferenceNotice({ paperId }: { paperId: string }) {
   if (!missing) return null;
   return (
     <p className="notice" role="status">
-      Reference {missing} is not in this paper.
+      {messages(lang).missingReference(missing)}
     </p>
   );
 }

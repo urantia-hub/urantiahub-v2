@@ -59,6 +59,13 @@ describe("pageMetadata in two languages", () => {
     expect(pageMetadata({ title: "x", description: "x", path: "/papers" }).openGraph).toMatchObject({ locale: "en_US" });
     expect(pageMetadata({ title: "x", description: "x", path: "/es", lang: "es" }).openGraph).toMatchObject({ locale: "es_LA" });
   });
+  it("names no image on a Spanish page, so the Spanish image file gives it", async () => {
+    const { pageMetadata, SHARE_IMAGE } = await load("");
+    const es = pageMetadata({ title: "x", description: "x", path: "/es/buscar", lang: "es" });
+    expect(es.openGraph).not.toHaveProperty("images");
+    expect(es.twitter).not.toHaveProperty("images");
+    expect(pageMetadata({ title: "x", description: "x", path: "/search" }).openGraph).toMatchObject({ images: [SHARE_IMAGE] });
+  });
   it("links the twin of a page only while Spanish is on", async () => {
     const { pageMetadata } = await load("");
     const input = { title: "x", description: "x", path: "/papers/foreword", twin: "/es/documentos/prologo" };
@@ -105,6 +112,57 @@ describe("paperJsonLd in Spanish", () => {
       "es",
     ) as Record<string, unknown>[];
     expect(article).toMatchObject({ inLanguage: "es", url: "https://next.urantiahub.com/es/documentos/prologo" });
+  });
+
+  it("names the paper, the book, and the way to it in Spanish", async () => {
+    const { paperJsonLd } = await load("");
+    const [article, crumbs] = paperJsonLd(
+      { id: "1", title: "El Padre Universal", partId: "1", slug: "documento-1-el-padre-universal", sections: 7, paragraphs: 70 },
+      "x",
+      "es",
+    ) as Record<string, unknown>[];
+    expect(article).toMatchObject({
+      headline: "Documento 1: El Padre Universal",
+      isPartOf: { "@type": "Book", name: "Los Documentos de Urantia", url: "https://next.urantiahub.com/es/documentos" },
+    });
+    expect(crumbs.itemListElement).toEqual([
+      { "@type": "ListItem", position: 1, name: "UrantiaHub", item: "https://next.urantiahub.com/es" },
+      { "@type": "ListItem", position: 2, name: "Documentos", item: "https://next.urantiahub.com/es/documentos" },
+      { "@type": "ListItem", position: 3, name: "Documento 1: El Padre Universal", item: "https://next.urantiahub.com/es/documentos/documento-1-el-padre-universal" },
+    ]);
+  });
+
+  it("keeps the English object as it is", async () => {
+    const { paperJsonLd } = await load("");
+    const out = paperJsonLd({ id: "1", title: "The Universal Father", partId: "1", slug: "paper-1-the-universal-father", sections: 7, paragraphs: 70 }, "d");
+    expect(out).toEqual([
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: "Paper 1: The Universal Father",
+        description: "d",
+        url: "https://next.urantiahub.com/papers/paper-1-the-universal-father",
+        mainEntityOfPage: "https://next.urantiahub.com/papers/paper-1-the-universal-father",
+        inLanguage: "en",
+        isPartOf: { "@type": "Book", name: "The Urantia Papers", url: "https://next.urantiahub.com/papers" },
+        publisher: { "@type": "Organization", name: "UrantiaHub", url: "https://next.urantiahub.com/" },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "UrantiaHub", item: "https://next.urantiahub.com/" },
+          { "@type": "ListItem", position: 2, name: "Papers", item: "https://next.urantiahub.com/papers" },
+          { "@type": "ListItem", position: 3, name: "Paper 1: The Universal Father", item: "https://next.urantiahub.com/papers/paper-1-the-universal-father" },
+        ],
+      },
+    ]);
+  });
+
+  it("names the foreword by its title alone", async () => {
+    const { paperHeadline } = await load("");
+    expect(paperHeadline({ id: "0", title: "Prólogo" }, "es")).toBe("Prólogo");
+    expect(paperHeadline({ id: "5", title: "La relación de Dios con el individuo" }, "es")).toBe("Documento 5: La relación de Dios con el individuo");
   });
 });
 

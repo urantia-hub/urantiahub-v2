@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import type { PaperEntry } from "@/content/paper-index";
 import { type Lang, spanishOn } from "@/i18n/lang";
-import { paperHref } from "@/i18n/paths";
+import { messages } from "@/i18n/messages";
+import { contentsHref, homeHref, paperHref } from "@/i18n/paths";
 import { absoluteUrl, site } from "@/site";
 
 // A page description from exact text: one line, cut at a word.
@@ -25,7 +26,8 @@ type PageInput = {
   twin?: string;
 };
 
-// The image of each page that has none of its own: `src/app/opengraph-image.tsx`.
+// The image of each English page that has none of its own: `src/app/opengraph-image.tsx`. A Spanish page
+// names none: `src/app/(es)/es/opengraph-image.tsx` gives it, at an address with a suffix of the build.
 export const SHARE_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: "The Urantia Papers on UrantiaHub" };
 
 export function pageMetadata({
@@ -40,7 +42,7 @@ export function pageMetadata({
 }: PageInput): Metadata {
   const url = absoluteUrl(path);
   // A page that sets `openGraph` loses the image of the layout, so each page names it again.
-  const images = ownImage ? {} : { images: [SHARE_IMAGE] };
+  const images = ownImage || lang === "es" ? {} : { images: [SHARE_IMAGE] };
   // The twin pages name each other only while the Spanish reader is on.
   const english = absoluteUrl(lang === "en" ? path : (twin ?? path));
   const languages =
@@ -54,8 +56,8 @@ export function pageMetadata({
   };
 }
 
-export function paperHeadline(paper: { id: string; title: string }): string {
-  return paper.id === "0" ? paper.title : `Paper ${paper.id}: ${paper.title}`;
+export function paperHeadline(paper: { id: string; title: string }, lang: Lang = "en"): string {
+  return paper.id === "0" ? paper.title : messages(lang).paperHeadline(Number(paper.id), paper.title);
 }
 
 export function websiteJsonLd(): object {
@@ -64,25 +66,27 @@ export function websiteJsonLd(): object {
 
 export function paperJsonLd(paper: PaperEntry, description: string, lang: Lang = "en"): object[] {
   const url = absoluteUrl(paperHref(lang, Number(paper.id)));
+  const t = messages(lang);
+  const headline = paperHeadline(paper, lang);
   return [
     {
       "@context": "https://schema.org",
       "@type": "Article",
-      headline: paperHeadline(paper),
+      headline,
       description,
       url,
       mainEntityOfPage: url,
       inLanguage: lang,
-      isPartOf: { "@type": "Book", name: "The Urantia Papers", url: absoluteUrl("/papers") },
+      isPartOf: { "@type": "Book", name: t.thePapers, url: absoluteUrl(contentsHref(lang)) },
       publisher: { "@type": "Organization", name: site.name, url: absoluteUrl("/") },
     },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: site.name, item: absoluteUrl("/") },
-        { "@type": "ListItem", position: 2, name: "Papers", item: absoluteUrl("/papers") },
-        { "@type": "ListItem", position: 3, name: paperHeadline(paper), item: url },
+        { "@type": "ListItem", position: 1, name: site.name, item: absoluteUrl(homeHref(lang)) },
+        { "@type": "ListItem", position: 2, name: t.papersCrumb, item: absoluteUrl(contentsHref(lang)) },
+        { "@type": "ListItem", position: 3, name: headline, item: url },
       ],
     },
   ];

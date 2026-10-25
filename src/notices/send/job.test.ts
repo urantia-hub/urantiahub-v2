@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
+import { paperById } from "@/content/paper-index";
+import { messages } from "@/i18n/messages";
 import type { Reader } from "@/notices/due";
 import { type Claim, type JobDeps, type OutMail, type Push, runNotices, runSamples } from "./job";
 
@@ -232,5 +234,71 @@ describe("the streak push", () => {
     // A second run in the same night sends nothing.
     await runNotices(deps);
     expect(out.pushes).toHaveLength(1);
+  });
+});
+
+describe("a Spanish reader", () => {
+  const es = messages("es");
+  const spanish = (userId: string, over: Partial<Reader> = {}) => reader(userId, { lang: "es", ...over });
+  const asked: [string, string][] = [];
+  const passage = async (ref: string, lang: "en" | "es") => {
+    asked.push([ref, lang]);
+    return { ref, text: lang === "es" ? "Un pasaje de los Documentos." : "A passage of the Papers.", paperId: ref.split(":")[0], paperTitle: lang === "es" ? "Un documento" : "A Paper" };
+  };
+
+  it("gets the daily passage in Spanish, and an English reader in the same run gets it in English", async () => {
+    asked.length = 0;
+    const { deps, out } = world([spanish(A, { devices: [device("one")] }), reader(B)], { passage });
+    await runNotices(deps);
+    const ref = asked[0][0];
+    expect(asked.map(([, lang]) => lang).sort()).toEqual(["en", "es"]);
+    const [mine, theirs] = [out.mails.find((m) => m.to === "a1@example.com")!, out.mails.find((m) => m.to === "b2@example.com")!];
+    expect(mine.subject).toBe(es.mail.dailySubject(ref));
+    expect(mine.text).toContain("Un pasaje de los Documentos.");
+    expect(mine.text).toContain(es.spanishLine);
+    expect(mine.text).toMatch(new RegExp(`${es.mail.readPaper}: https://www\\.urantiahub\\.com/es/documentos/[a-z0-9-]+#${ref.replace(".", "\\.")}`));
+    expect(out.pushes[0].push.title).toBe(es.mail.dailyPush);
+    expect(out.pushes[0].push.path).toMatch(/^\/es\/documentos\//);
+    expect(theirs.subject).toBe(`Your passage for today · ${ref}`);
+    expect(theirs.text).toContain("A passage of the Papers.");
+  });
+
+  it("gets no daily notice when the Spanish passage cannot be read, and the claim goes back", async () => {
+    const { deps, out } = world([spanish(A), reader(B)], {
+      passage: async (ref, lang) => (lang === "es" ? Promise.reject(new Error("down")) : passage(ref, lang)),
+    });
+    expect(await runNotices(deps)).toMatchObject({ mails: 1, failed: 1 });
+    expect(out.mails.map((m) => m.to)).toEqual(["b2@example.com"]);
+    expect(out.released).toEqual([expect.objectContaining({ userId: A, kind: "daily" })]);
+  });
+
+  it("gets the reminder in Spanish, with the Spanish name of the paper", async () => {
+    const place = { paperId: "2", sectionId: "1", at: NOW.getTime() - 8 * 86_400_000 };
+    const { deps, out } = world([spanish(A, { settings: { email: { ...OFF, reminder: true }, push: ALL, hour: 3, zone: "America/Chicago" }, place, devices: [device("one", ["reminder"])] })], { now: new Date("2026-10-11T17:00:00Z"), passage });
+    await runNotices(deps);
+    const name = `Documento 2, ${paperById("2", "es")!.title}`;
+    expect(out.mails[0].subject).toBe(es.mail.reminderSubject);
+    expect(out.pushes[0].push.title).toBe(es.mail.placePush(name));
+    expect(out.pushes[0].push.path).toMatch(/^\/es\/documentos\/documento-2-/);
+    expect(asked).toContainEqual(["2:1.1", "es"]);
+  });
+
+  const DAY = new Date("2026-10-11T15:00:00Z");
+  const wants = (userId: string, over: Partial<Reader> = {}) => reader(userId, { settings: { email: { ...OFF, releases: true }, push: { ...OFF, releases: true }, hour: 7, zone: "America/Chicago" }, ...over });
+  const news = { date: "2026-10-11", title: "Read offline", changes: ["Keep the Papers on a device."] };
+
+  it("gets a release in Spanish when the release has Spanish words", async () => {
+    const { deps, out } = world([wants(A, { lang: "es", devices: [device("one")] })], { now: DAY, news: { ...news, es: { title: "Sin conexión", changes: ["Guarda los Documentos en un dispositivo."] } } });
+    await runNotices(deps);
+    expect(out.mails[0].subject).toBe(es.mail.releaseSubject("Sin conexión"));
+    expect(out.mails[0].text).toContain("Guarda los Documentos en un dispositivo.");
+    expect(out.mails[0].text).toContain("11 de octubre de 2026");
+    expect(out.pushes[0].push).toMatchObject({ title: es.mail.releaseSubject("Sin conexión"), body: "Guarda los Documentos en un dispositivo." });
+  });
+
+  it("gets no release with no Spanish words, and an English reader still gets it", async () => {
+    const { deps, out } = world([wants(A, { lang: "es" }), wants(B)], { now: DAY, news });
+    expect(await runNotices(deps)).toMatchObject({ due: 1, mails: 1, failed: 0 });
+    expect(out.mails.map((m) => m.to)).toEqual(["b2@example.com"]);
   });
 });

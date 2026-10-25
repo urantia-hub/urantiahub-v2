@@ -5,7 +5,8 @@ import type { ReleasePictures } from "@/notices/send/mail";
 
 // `notify`: readers who chose "New releases" get one notice of this entry. Mark a few in a year.
 // `mail`: the email of the notice with pictures; its files stay in `public/email/` after the send.
-export type Release = { date: string; title: string; changes: string[]; notify?: true; mail?: ReleasePictures };
+// `es`: the Spanish words of a `notify` entry. A Spanish reader hears of an entry only when it has them.
+export type Release = { date: string; title: string; changes: string[]; notify?: true; mail?: ReleasePictures; es?: { title: string; changes: string[] } };
 
 export const RELEASES: Release[] = [
   {
@@ -83,10 +84,12 @@ export const RELEASES: Release[] = [
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-// "2026-10-10" as "October 10, 2026". No clock and no time zone has a part in it.
-export function releaseDate(date: string): string {
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+// "2026-10-10" as "October 10, 2026", or "10 de octubre de 2026". No clock and no time zone has a part in it.
+export function releaseDate(date: string, lang: "en" | "es" = "en"): string {
   const [year, month, day] = date.split("-").map(Number);
-  return `${MONTHS[month - 1]} ${day}, ${year}`;
+  return lang === "es" ? `${day} de ${MESES[month - 1]} de ${year}` : `${MONTHS[month - 1]} ${day}, ${year}`;
 }
 
 const NOTIFY_DAYS = 4;

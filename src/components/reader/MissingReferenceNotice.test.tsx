@@ -9,6 +9,12 @@ function setup(hash: string, existingId?: string) {
   return render(<MissingReferenceNotice paperId="1" />);
 }
 
+function setupSpanish(hash: string) {
+  document.body.innerHTML = "";
+  window.history.replaceState(null, "", `/es/documentos/documento-1-el-padre-universal${hash}`);
+  return render(<MissingReferenceNotice paperId="1" lang="es" />);
+}
+
 const scrollTo = vi.fn();
 
 beforeEach(() => {
@@ -64,5 +70,10 @@ describe("MissingReferenceNotice", () => {
   it("ignores a fragment that is not a reference", () => {
     setup("#paper-top");
     expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("speaks Spanish on a Spanish paper", () => {
+    setupSpanish("#1:99.9");
+    expect(screen.getByRole("status")).toHaveTextContent("La referencia 1:99.9 no está en este documento.");
   });
 });

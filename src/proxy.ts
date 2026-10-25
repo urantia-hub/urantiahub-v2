@@ -19,8 +19,8 @@ export function proxy(request: NextRequest) {
     slug = decodeURIComponent(request.nextUrl.pathname.slice(prefix.length));
   } catch {
     // A malformed escape is not a paper. Next.js answers 500 if it reaches the route,
-    // so send it to a path with no page: the not-found page answers 404.
-    return NextResponse.rewrite(new URL("/not-found", request.url));
+    // so send it to a path with no page in the same language: the not-found page answers 404.
+    return NextResponse.rewrite(new URL(lang === "es" ? "/es/no-encontrado" : "/not-found", request.url));
   }
   const id = idFromSlug(slug);
   const paper = id === null ? undefined : paperById(id, lang);
