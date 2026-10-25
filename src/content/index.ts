@@ -73,11 +73,12 @@ export async function getWorks(): Promise<RawWork[]> {
 // shared store. The checks for a missing work or page are outside the cached calls, as for the terms.
 const apiBase = () => process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev";
 
-export async function getLibrary(): Promise<LibraryWork[]> {
+// `lang` is the language of the catalog: the titles and labels. The text of a work is English in each.
+export async function getLibrary(lang: Lang = "en"): Promise<LibraryWork[]> {
   "use cache: remote";
   cacheLife("weeks");
   cacheTag("library");
-  return fetchLibrary(apiBase());
+  return fetchLibrary(apiBase(), lang);
 }
 
 async function libraryWork(slug: string): Promise<LibraryWork> {
@@ -86,16 +87,16 @@ async function libraryWork(slug: string): Promise<LibraryWork> {
   return work;
 }
 
-async function cachedWorkPages(slug: string): Promise<WorkPage[]> {
+async function cachedWorkPages(slug: string, lang: Lang): Promise<WorkPage[]> {
   "use cache: remote";
   cacheLife("weeks");
   cacheTag("library");
-  return fetchWorkPages(apiBase(), slug);
+  return fetchWorkPages(apiBase(), slug, lang);
 }
 
-export async function getWorkPages(slug: string): Promise<WorkPage[]> {
+export async function getWorkPages(slug: string, lang: Lang = "en"): Promise<WorkPage[]> {
   await libraryWork(slug);
-  return cachedWorkPages(slug);
+  return cachedWorkPages(slug, lang);
 }
 
 async function cachedWorkPage(slug: string, key: string): Promise<WorkPassage[]> {
@@ -103,7 +104,7 @@ async function cachedWorkPage(slug: string, key: string): Promise<WorkPassage[]>
   cacheLife("weeks");
   cacheTag("library");
   const work = await libraryWork(slug);
-  const page = (await cachedWorkPages(slug)).find((p) => p.key === key) as WorkPage;
+  const page = (await cachedWorkPages(slug, "en")).find((p) => p.key === key) as WorkPage;
   return fetchWorkPage(apiBase(), work, page);
 }
 
