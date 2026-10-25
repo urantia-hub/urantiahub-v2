@@ -12,14 +12,15 @@ const LONGEST_PASSAGE = "11:1.3";
 export async function GET(request: NextRequest) {
   await connection();
   if (!isCron(request.headers.get("authorization"))) return Response.json({ detail: "Not found." }, { status: 404 });
-  // A sample: one of each email, to the one address of the setting, and to no reader.
+  // A sample: one of each email, to the one address of the setting, and to no reader. `&lang=es` for Spanish.
   if (request.nextUrl.searchParams.get("sample") === "1") {
     const to = process.env.NOTICES_SAMPLE_TO ?? "";
     // The links of a sample name no reader, so "Turn this email off" in a sample changes nothing.
     const userId = "00000000-0000-4000-8000-000000000000";
     if (!/^[^@\s]+@[^@\s]+$/.test(to)) return Response.json({ sample: false, reason: "not set" }, { status: 400 });
     try {
-      return Response.json({ sample: true, ...(await runSamples(liveDeps(), to, userId, LONGEST_PASSAGE, RELEASES[0])) });
+      const lang = request.nextUrl.searchParams.get("lang") === "es" ? "es" : "en";
+      return Response.json({ sample: true, lang, ...(await runSamples(liveDeps(), to, userId, LONGEST_PASSAGE, RELEASES[0], lang)) });
     } catch (error) {
       console.error(`notices: the sample failed (${error instanceof Error ? error.name : "unknown"})`);
       return Response.json({ sample: false, reason: "failed" }, { status: 500 });

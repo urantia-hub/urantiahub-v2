@@ -161,6 +161,28 @@ describe("the samples", () => {
     expect(log).toEqual([]);
     expect(out.pushes).toEqual([]);
   });
+
+  it("are in Spanish when asked, with the Spanish passage and paper, and no release with no Spanish words", async () => {
+    const { deps, out, log } = world([]);
+    const asked: string[] = [];
+    deps.passage = async (ref, lang) => {
+      asked.push(lang);
+      return { ref, text: "Un pasaje.", paperId: ref.split(":")[0], paperTitle: "Un documento" };
+    };
+    const news = { date: "2026-10-11", title: "Read offline", changes: ["Keep the Papers."] };
+    expect(await runSamples(deps, "me@example.com", A, "11:1.3", news, "es")).toEqual({ mails: 3, sent: 3 });
+    const es = messages("es").mail;
+    expect(out.mails.map((mail) => mail.subject)).toEqual([expect.stringMatching(/^Tu pasaje de hoy · /), es.dailySubject("11:1.3"), es.reminderSubject]);
+    expect(out.mails[0].text).toContain(messages("es").spanishLine);
+    expect(out.mails[0].text).toMatch(/https:\/\/www\.urantiahub\.com\/es\/documentos\//);
+    expect(out.mails[2].text).toMatch(/https:\/\/www\.urantiahub\.com\/es\/documentos\/documento-2-/);
+    expect(new Set(asked)).toEqual(new Set(["es"]));
+    expect(log).toEqual([]);
+    const withEs = world([]);
+    expect(await runSamples(withEs.deps, "me@example.com", A, "11:1.3", { ...news, es: { title: "Sin conexión", changes: ["Guarda los Documentos."] } }, "es")).toEqual({ mails: 4, sent: 4 });
+    expect(withEs.out.mails[3].subject).toBe(es.releaseSubject("Sin conexión"));
+    expect(withEs.out.mails[3].text).toContain("11 de octubre de 2026");
+  });
 });
 
 describe("the release notice", () => {
