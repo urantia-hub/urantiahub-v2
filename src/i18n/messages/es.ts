@@ -196,7 +196,7 @@ export const es: Messages = {
   markSection: (section: number, sections: number) => (sections >= section ? `Sección ${section} de ${sections}` : `Sección ${section}`),
   continue: "Continuar",
   about: "Acerca de",
-  footerLine: "UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia. Es un proyecto independiente, sin afiliación con la Fundación Urantia.",
+  footerLine: "UrantiaHub es un lugar para leer y estudiar los Documentos de Urantia. Es un proyecto independiente, sin afiliación con Urantia Foundation.",
   footerNav: "Acerca de UrantiaHub",
   resources: "Recursos",
   releases: "Novedades",

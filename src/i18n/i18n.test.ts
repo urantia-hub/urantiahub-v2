@@ -17,6 +17,8 @@ describe("the twin of a page", () => {
     expect(twinPath("/es/acerca-de", "en")).toBe("/about");
     expect(twinPath("/resources", "es")).toBe("/es/recursos");
     expect(twinPath("/releases", "es")).toBe("/es/novedades");
+    expect(twinPath("/privacy", "es")).toBe("/es/privacidad");
+    expect(twinPath("/es/terminos", "en")).toBe("/terms");
   });
 });
 
@@ -78,7 +80,7 @@ describe("counterpart", () => {
     expect(counterpart("/es/guardados", "en")).toBe("/saved");
   });
   it("sends a page with no twin to the home page of the other language, with no query or hash", () => {
-    expect(counterpart("/privacy", "es")).toBe("/es");
+    expect(counterpart("/progress", "es")).toBe("/es");
     expect(counterpart("/texts/quran/1?s=1#v2", "es")).toBe("/es/textos/quran/1?s=1#v2");
     expect(counterpart("/es/nada", "en")).toBe("/");
   });
