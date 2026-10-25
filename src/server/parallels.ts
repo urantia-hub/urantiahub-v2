@@ -5,6 +5,7 @@ import { BIBLE } from "@/library/bible";
 import { pairPath } from "@/pair/link";
 import { passageForLink } from "@/pair/passage";
 import type { Lang } from "@/i18n/lang";
+import { contentsHref } from "@/i18n/paths";
 import { WORKS } from "@/parallels-works";
 import { refForLink } from "@/reader/share-link";
 
@@ -126,24 +127,26 @@ export function shapeParallels(raw: RawParallels, text = "", paperId?: string, s
   const weaker = from(() => WEAK_FLOOR, (floor) => floor).slice(0, WEAK_MOST);
   const papers: Parallel[] = raw.papers
     .filter((p) => p.similarity >= PAPERS_FLOOR && paperById(p.paperId, lang) && REFERENCE.exec(p.reference)?.[1] === p.paperId)
-    .map((p) => ({ ref: p.reference, work: lang === "es" ? "Los Documentos de Urantia" : "The Urantia Papers", source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId, lang)}#${p.reference}` }))
+    .map((p) => ({ ref: p.reference, work: papersName(lang), source: p.paperTitle, text: p.text, percent: percent(p.similarity), href: `${paperPath(p.paperId, lang)}#${p.reference}` }))
     .sort(nearestFirst);
   const near = (p: Parallel) => paperId !== undefined && Math.abs(Number(p.ref.split(":")[0]) - Number(paperId)) <= NEARBY_PAPERS;
   return { text, outside, weaker, papers: papers.filter((p) => !near(p)), nearby: papers.filter(near), works: [] };
 }
 
 export const workName = (corpus: { id: string; title: string }) => WORK_NAMES[corpus.id] ?? NAMES[corpus.id] ?? corpus.title;
-const OWN: Work[] = [
-  { work: "The Urantia Papers", source: "", href: "/papers" },
+// The Papers by their name in the language of the page; the study page counts their passages by it.
+const papersName = (lang: Lang) => (lang === "es" ? "Los Documentos de Urantia" : "The Urantia Papers");
+const own = (lang: Lang): Work[] => [
+  { work: papersName(lang), source: "", href: contentsHref(lang) },
   { work: "Bible", source: "World English Bible", href: "https://ebible.org/eng-web/" },
 ];
 
 // Each work that the Hub compares: the Papers, the Bible, and each text that the API lists.
-export function shapeWorks(corpora: readonly RawWork[]): Work[] {
-  return [...OWN, ...corpora.map((c) => ({ work: workName(c), source: `${surname(c.translator)}, ${c.year}`, href: outsideHref(c.sourceUrl) }))];
+export function shapeWorks(corpora: readonly RawWork[], lang: Lang = "en"): Work[] {
+  return [...own(lang), ...corpora.map((c) => ({ work: workName(c), source: `${surname(c.translator)}, ${c.year}`, href: outsideHref(c.sourceUrl) }))];
 }
 // The list of the API did not load: the names that this code knows, with no page of a source.
-const knownWorks = (): Work[] => WORKS.map((work) => OWN.find((own) => own.work === work) ?? { work, source: "", href: null });
+const knownWorks = (lang: Lang): Work[] => WORKS.map((work) => (work === "The Urantia Papers" ? own(lang)[0] : (own(lang).find((o) => o.work === work) ?? { work, source: "", href: null })));
 
 const refuse = (status: number, error: string) => Response.json({ error }, { status, headers: { "cache-control": "no-store" } });
 
@@ -171,7 +174,7 @@ export async function handleParallels(
   // The parallels change only when the API computes them again, so a shared cache can keep the answer for a day.
   // The list of the works is extra. With no list, the answer stands with the names that this code knows.
   const corpora = loadWorks ? await loadWorks().catch(() => null) : null;
-  const works = corpora ? shapeWorks(corpora) : knownWorks();
+  const works = corpora ? shapeWorks(corpora, lang) : knownWorks(lang);
   const slugs = new Map((corpora ?? []).flatMap((c) => (c.slug ? [[c.id, c.slug] as const] : [])));
   return Response.json({ ...shapeParallels(raw, text, String(Number(parsed[1])), slugs, ref, lang), works }, { headers: { "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" } });
 }

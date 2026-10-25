@@ -254,6 +254,15 @@ describe("analytics", () => {
     expect(out.properties.$current_url).toBe("https://www.urantiahub.com/es/documentos/documento-1-el-padre-universal");
   });
 
+  it("cuts the paragraph from the Spanish study page and the proof from the Spanish emails page", async () => {
+    const { scrubSearchText } = await import("./index");
+    const study = scrubSearchText({ event: "$pageview", properties: { $current_url: "https://www.urantiahub.com/es/paralelos?ref=1:0.3", $referrer: "https%3A%2F%2Fwww.urantiahub.com%2Fes%2Fparalelos%3Fref%3D1%3A0.3" } });
+    expect(study.properties.$current_url).toBe("https://www.urantiahub.com/es/paralelos");
+    expect(JSON.stringify(study)).not.toContain("0.3");
+    const mails = scrubSearchText({ event: "$pageview", properties: { $current_url: "https://www.urantiahub.com/es/correos?off=secret-proof" } });
+    expect(JSON.stringify(mails)).not.toContain("secret-proof");
+  });
+
   it("gives PostHog that rule at the start", async () => {
     vi.stubEnv("NEXT_PUBLIC_POSTHOG_KEY", "phc_test");
     const { initAnalytics } = await import("./index");

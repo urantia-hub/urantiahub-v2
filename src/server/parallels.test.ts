@@ -102,6 +102,16 @@ describe("the works that the Hub compares", () => {
     expect(works.map((w) => w.work)).toEqual([...WORKS]);
     expect(works.every((w) => w.href === null || w.work === "The Urantia Papers" || w.work === "Bible")).toBe(true);
   });
+
+  it("names the Papers in Spanish, with the Spanish contents, so the study page counts their passages", async () => {
+    const load = vi.fn().mockResolvedValue(RAW);
+    const text = async () => "Texto";
+    const good = (await (await handleParallels("1:0.3", load, text, async () => CORPORA, "es")).json()) as ParallelsAnswer;
+    expect(good.works[0]).toEqual({ work: "Los Documentos de Urantia", source: "", href: "/es/documentos" });
+    expect(good.papers.every((p) => p.work === good.works[0].work)).toBe(true);
+    const bad = (await (await handleParallels("1:0.3", load, text, async () => Promise.reject(new Error("down")), "es")).json()) as ParallelsAnswer;
+    expect(bad.works[0]).toEqual({ work: "Los Documentos de Urantia", source: "", href: "/es/documentos" });
+  });
 });
 
 describe("the parallels of a paragraph, as the reader sees them", () => {
