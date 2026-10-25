@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { libraryPaths } from "./sitemap";
+import { libraryLoad, libraryPaths } from "./sitemap";
 
 const works = [{ slug: "dhammapada" }, { slug: "rig-veda" }, { slug: "japji" }];
 // A work of one page has no first page of its own: its text is the page of the work.
@@ -22,5 +22,11 @@ describe("the Library in the sitemap", () => {
 
   it("lists nothing of the Library when its list does not load, so the sitemap stands", async () => {
     expect(await libraryPaths(true, async () => Promise.reject(new Error("down")))).toEqual([]);
+  });
+
+  it("loads the first page of each work, and none for a work of one page", async () => {
+    const pages: Record<string, { key: string }[]> = { dhammapada: [{ key: "1" }, { key: "2" }], japji: [{ key: "1" }] };
+    const load = libraryLoad(async () => [{ slug: "dhammapada" }, { slug: "japji" }], async (slug) => pages[slug]);
+    expect(await load()).toEqual({ works: [{ slug: "dhammapada" }, { slug: "japji" }], firstKeys: { dhammapada: "1", japji: "" } });
   });
 });
