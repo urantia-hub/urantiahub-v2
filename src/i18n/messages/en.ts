@@ -598,6 +598,10 @@ export const en = {
     title: "Resources",
     lead: "Places to study the Urantia Papers and to meet other readers. UrantiaHub runs only the first group.",
   },
+  releasesPage: {
+    title: "Releases",
+    lead: "What changed in UrantiaHub, the newest first.",
+  },
   mail: {
     dailyLabel: "Your passage for today",
     dailySubject: (ref: string) => `Your passage for today · ${ref}`,

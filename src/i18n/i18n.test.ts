@@ -16,6 +16,7 @@ describe("the twin of a page", () => {
     expect(twinPath("/about", "es")).toBe("/es/acerca-de");
     expect(twinPath("/es/acerca-de", "en")).toBe("/about");
     expect(twinPath("/resources", "es")).toBe("/es/recursos");
+    expect(twinPath("/releases", "es")).toBe("/es/novedades");
   });
 });
 

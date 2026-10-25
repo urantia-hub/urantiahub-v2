@@ -35,8 +35,8 @@ describe("the release that readers hear of", () => {
 });
 
 describe("a release in Spanish", () => {
-  it("each release that readers hear of, after 2026-10-24, has Spanish words for each change", () => {
-    for (const release of RELEASES.filter((r) => r.notify && r.date > "2026-10-24")) {
+  it("each release has Spanish words for each change, so the Spanish page has no English entry", () => {
+    for (const release of RELEASES) {
       expect(release.es, release.date).toBeDefined();
       expect(release.es?.changes).toHaveLength(release.changes.length);
     }

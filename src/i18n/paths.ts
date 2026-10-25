@@ -56,6 +56,7 @@ export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
   ["/parallels", "/es/paralelos"],
   ["/about", "/es/acerca-de"],
   ["/resources", "/es/recursos"],
+  ["/releases", "/es/novedades"],
 ];
 
 // The address of a fixed page in a language, from its English path. A page with no twin keeps its path.

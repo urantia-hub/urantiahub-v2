@@ -600,6 +600,10 @@ export const es: Messages = {
     title: "Recursos",
     lead: "Lugares para estudiar los Documentos de Urantia y para conocer a otros lectores. UrantiaHub gestiona solo el primer grupo. La mayoría de estos sitios están en inglés.",
   },
+  releasesPage: {
+    title: "Novedades",
+    lead: "Lo que cambió en UrantiaHub, lo más reciente primero.",
+  },
   mail: {
     dailyLabel: "Tu pasaje de hoy",
     dailySubject: (ref: string) => `Tu pasaje de hoy · ${ref}`,

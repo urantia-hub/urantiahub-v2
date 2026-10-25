@@ -99,8 +99,8 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
       const words = lang === "es" ? news?.es : news;
       if (!news || !words || words.changes.length === 0) return null;
       return {
-        mail: releaseMail({ title: words.title, changes: words.changes, date: releaseDate(news.date, lang), url: `${deps.origin}/releases`, origin: deps.origin, mail: news.mail }, links, lang),
-        push: { title: t.releaseSubject(words.title), body: short(words.changes[0]), path: "/releases" },
+        mail: releaseMail({ title: words.title, changes: words.changes, date: releaseDate(news.date, lang), url: `${deps.origin}${pageHref(lang, "/releases")}`, origin: deps.origin, mail: news.mail }, links, lang),
+        push: { title: t.releaseSubject(words.title), body: short(words.changes[0]), path: pageHref(lang, "/releases") },
       };
     }
     const paper = notice.place ? paperById(notice.place.paperId, lang) : undefined;
@@ -175,7 +175,7 @@ export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage
     mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" }, lang)}`, opening: first ? opening(first.text) : null }, links("reminder"), lang), "reminder"));
   }
   const words = lang === "es" ? sample?.es : sample;
-  if (sample && words) mails.push(out(releaseMail({ title: words.title, changes: words.changes, date: releaseDate(sample.date, lang), url: `${deps.origin}/releases`, origin: deps.origin, mail: sample.mail }, links("releases"), lang), "releases"));
+  if (sample && words) mails.push(out(releaseMail({ title: words.title, changes: words.changes, date: releaseDate(sample.date, lang), url: `${deps.origin}${pageHref(lang, "/releases")}`, origin: deps.origin, mail: sample.mail }, links("releases"), lang), "releases"));
   const sent = await deps.sendMails(mails);
   return { mails: mails.length, sent: sent.filter(Boolean).length };
 }
