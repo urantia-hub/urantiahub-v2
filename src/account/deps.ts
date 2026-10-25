@@ -18,7 +18,8 @@ export const deps: Deps = {
   // Both settings must be on. With the pages off, a direct link to a route makes no session either.
   secret: process.env.NEXT_PUBLIC_SIGN_IN === "on" ? (process.env.HUB_APP_SECRET ?? "") : "",
   origin: site.origin,
-  authorize: ({ askAccount }) => createAuthorizeUrl({ appId: APP_ID, redirectUri, scopes: SCOPES, askAccount, loginUrl: endpoints.loginUrl }),
+  authorize: ({ askAccount, lang }) =>
+    createAuthorizeUrl({ appId: APP_ID, redirectUri, scopes: SCOPES, askAccount, uiLocales: lang, loginUrl: endpoints.loginUrl }),
   exchange: ({ code, codeVerifier }) => exchangeCode({ appId: APP_ID, code, codeVerifier, redirectUri, appSecret: process.env.HUB_APP_SECRET, ...endpoints }),
   refresh: (refreshToken) => refreshTokens({ appId: APP_ID, refreshToken, ...endpoints }),
   revoke: async (refreshToken) => {

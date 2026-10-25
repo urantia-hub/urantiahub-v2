@@ -50,6 +50,30 @@ describe("the start of a sign-in", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
+  // The accounts site and the sign-in email speak the language of the page where the reader started.
+  describe("the language of the sign-in", () => {
+    afterEach(() => vi.unstubAllEnvs());
+    const asked = async (path: string) => {
+      const d = deps();
+      await handleStart(await request(path), d);
+      return vi.mocked(d.authorize).mock.calls[0]?.[0];
+    };
+
+    it("is Spanish from a Spanish page while Spanish is on", async () => {
+      vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+      expect(await asked(`/api/auth/start?next=${encodeURIComponent("/es/documentos/1#1:0.1")}`)).toEqual({ askAccount: false, lang: "es" });
+      expect(await asked(`/api/auth/start?next=%2Fes`)).toEqual({ askAccount: false, lang: "es" });
+    });
+
+    it("names no language from an English page, while Spanish is off, or for a path that only starts like Spanish", async () => {
+      vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+      expect(await asked(`/api/auth/start?next=%2Fpapers&lang=es&at=20`)).toEqual({ askAccount: false });
+      expect(await asked(`/api/auth/start?next=%2Fessay`)).toEqual({ askAccount: false });
+      vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+      expect(await asked(`/api/auth/start?next=%2Fes%2Fdocumentos`)).toEqual({ askAccount: false });
+    });
+  });
+
   it("is not silent after a sign-out", async () => {
     const response = await handleStart(await request("/api/auth/start", { cookies: { [ASK_COOKIE]: "1" } }), deps());
     expect(response.headers.get("location")).toContain("ask=1");
