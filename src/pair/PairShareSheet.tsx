@@ -41,7 +41,7 @@ export default function PairShareSheet({ pair, chosen, onChoose, onClose, onCopi
   const part = (["a", "b"] as const).some((k) => chosen[k].size > 0 && chosen[k].size < pair[k].units.length);
 
   async function send(sheet: boolean) {
-    const method = await shareParagraph({ title: `${pair.a.shortRef} and ${pair.b.shortRef}`, url: `${window.location.origin}${path}` }, navigator, sheet);
+    const method = await shareParagraph({ title: t.pair.title(pair.a.shortRef, pair.b.shortRef), url: `${window.location.origin}${path}` }, navigator, sheet);
     if (method === "none") {
       if (!sheet) setNote(t.shareFailed);
       return;

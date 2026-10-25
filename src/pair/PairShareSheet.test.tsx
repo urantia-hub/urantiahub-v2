@@ -7,6 +7,8 @@ import type { Chosen, ViewPair } from "./view";
 
 vi.mock("@/analytics", () => ({ track: vi.fn() }));
 vi.mock("@/streak/client", () => ({ earnToolMark: vi.fn() }));
+const share = vi.hoisted(() => vi.fn(async () => "copy"));
+vi.mock("@/reader/share", () => ({ hasShareSheet: () => false, shareParagraph: share }));
 
 const PAIR: ViewPair = {
   work: "dhammapada",
@@ -56,3 +58,10 @@ describe("the share sheet of a pair", () => {
   });
 });
 
+describe("the share sheet of a Spanish pair", () => {
+  it("gives the shared link a Spanish title", async () => {
+    render(<PairShareSheet pair={{ ...PAIR, lang: "es" }} chosen={{ a: new Set(), b: new Set() }} onChoose={vi.fn()} onClose={() => {}} onCopied={() => {}} />);
+    await userEvent.click(screen.getByRole("button", { name: /Copiar enlace/ }));
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({ title: "1:0.3 y Dhp 21" }), expect.anything(), false);
+  });
+});
