@@ -1,5 +1,8 @@
 export const en = {
   skip: "Skip to the text",
+  siteNav: "Site",
+  missingReference: (ref: string) => `Reference ${ref} is not in this paper.`,
+  saveFailed: "This did not save. Try again.",
   paperEyebrow: (numeral: string, id: number) => `Part ${numeral} · Paper ${id}`,
   paperNumber: (id: string) => `Paper ${id}`,
   paperNamed: (id: string, title: string) => `Paper ${id} · ${title}`,

@@ -2,6 +2,9 @@ import type { Messages } from "./en";
 
 export const es: Messages = {
   skip: "Saltar al texto",
+  siteNav: "Sitio",
+  missingReference: (ref: string) => `La referencia ${ref} no está en este documento.`,
+  saveFailed: "No se guardó. Inténtalo de nuevo.",
   paperEyebrow: (numeral: string, id: number) => `Parte ${numeral} · Documento ${id}`,
   paperNumber: (id: string) => `Documento ${id}`,
   paperNamed: (id: string, title: string) => `Documento ${id} · ${title}`,

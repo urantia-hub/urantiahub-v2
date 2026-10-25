@@ -16,6 +16,13 @@ test("a Spanish paper renders in Spanish, with no voice", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Saltar al texto" })).toBeAttached();
 });
 
+test("the Spanish paper has no English words of the Hub", async ({ page }) => {
+  await page.goto(`${ES_PAPER_1}#1:99.1`);
+  await expect(page.getByRole("status").filter({ hasText: "1:99.1" })).toHaveText("La referencia 1:99.1 no está en este documento.");
+  await expect(page.getByRole("navigation", { name: "Sitio" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Site" })).toHaveCount(0);
+});
+
 test("the English paper names its Spanish twin", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father");
   await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute(

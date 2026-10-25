@@ -34,7 +34,7 @@ export function PaperView({ paper, lang = "en" }: { paper: PaperDoc; lang?: Lang
         {/* The assistant in Spanish comes with the rest of the Spanish tools. */}
         {lang === "en" && <AskPaperButton />}
       </header>
-      <MissingReferenceNotice paperId={paper.id} />
+      <MissingReferenceNotice paperId={paper.id} lang={lang} />
 
       {paper.sections.map((section) => (
         <section key={section.id}>

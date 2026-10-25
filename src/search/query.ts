@@ -30,8 +30,9 @@ export function hasWord(q: string): boolean {
 
 const QUESTION_WORD = /^(what|why|how|who|whom|when|where|which|is|are|was|were|does|do|did|can|could|will|should)\b/i;
 
-// `\b` reads "é" as no letter, so the Spanish words end where no letter follows.
-const QUESTION_WORD_ES = /^¿?\s*(qué|quién|quiénes|cómo|dónde|adónde|cuándo|por qué|cuál|cuáles)(?!\p{L})/iu;
+// `\b` reads "é" as no letter, so the Spanish words end where no letter follows. A reader often types
+// them with no accent ("que es dios").
+const QUESTION_WORD_ES = /^¿?\s*(qu[eé]|qui[eé]n(?:es)?|c[oó]mo|a?d[oó]nde|cu[aá]ndo|por qu[eé]|cu[aá]l(?:es)?)(?!\p{L})/iu;
 
 export function startsLikeQuestion(q: string): boolean {
   return /\?\s*$/.test(q) || QUESTION_WORD.test(q) || QUESTION_WORD_ES.test(q);
