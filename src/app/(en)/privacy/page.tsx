@@ -116,7 +116,7 @@ export default function PrivacyPage() {
             analytics or advertising. Analytics events have no link to your account.
           </p>
           <p>
-            A few more cookies serve the sign-in itself: one holds the start of a sign-in for a few minutes, one
+            A few more cookies serve the sign-in itself: one holds the start of a sign-in{spanishOn() ? " and the language of this browser" : ""} for a few minutes, one
             remembers that you signed out, so that the next sign-in asks you again, and one says for a minute that a
             sign-in did not finish. The browser also keeps a mark that says which account the place in this browser
             belongs to.

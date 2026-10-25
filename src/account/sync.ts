@@ -5,7 +5,8 @@
 
 import { forgetStreak } from "@/streak/client";
 import { clearLastRead, readLastRead, storeLastRead, subscribeToLastRead } from "@/reader/last-read";
-import { readLangChoice, setReadingLang, subscribeToReadingLang } from "@/reader/reading-lang";
+import { moveToTwin } from "@/reader/lang-move-script";
+import { READING_LANG_AT_KEY, readLangChoice, setReadingLang, subscribeToReadingLang } from "@/reader/reading-lang";
 import { accountKey, markSignedOut, refreshAccount } from "./client";
 import { clearProgress } from "./progress";
 import { type LangChoice, newer, parseLang, parsePlace, type Place } from "./reader-data";
@@ -173,6 +174,9 @@ export function forgetAccountData(): void {
   applying = true;
   try {
     clearLastRead();
+    // The device keeps its language, as it keeps its theme. With no time it loses to the account of the
+    // next reader, and it is never sent there.
+    window.localStorage.removeItem(READING_LANG_AT_KEY);
   } finally {
     applying = false;
   }
@@ -244,10 +248,13 @@ async function pullNow(): Promise<void> {
     applyFromAccount(() => storeLastRead(value));
   } else if (place.from === "browser" && place.value && place.value.at > 0) queuePlace(place.value);
 
+  const firstPage = document.documentElement.dataset.firstPage !== undefined;
+  delete document.documentElement.dataset.firstPage;
   const lang = newer<LangChoice>(readLangChoice(), parseLang(body.lang));
   if (lang.from === "account" && lang.value) {
     const { lang: value, at: when } = lang.value;
     applyFromAccount(() => setReadingLang(value, when));
+    if (firstPage && value !== document.documentElement.lang) moveToTwin(value);
   } else if (lang.from === "browser" && lang.value && lang.value.at > 0) void send("/api/me/lang", lang.value);
 }
 

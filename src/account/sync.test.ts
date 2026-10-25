@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LAST_READ_KEY, saveLastRead } from "@/reader/last-read";
+import { moveToTwin } from "@/reader/lang-move-script";
 import { setReadingLang } from "@/reader/reading-lang";
+
+vi.mock("@/reader/lang-move-script", async (original) => ({ ...(await original<typeof import("@/reader/lang-move-script")>()), moveToTwin: vi.fn() }));
 import { refreshAccount, resetAccountForTest, startAccount } from "./client";
 import { ACCOUNT_DATA_KEY, forgetAccountData, markAccountData, flushRead, onPageShown, pullFromAccount, queueRead, resetSyncForTest, startSync } from "./sync";
 
@@ -280,6 +283,39 @@ describe("the language", () => {
     // The page loads the other language at once, so the request must outlive it.
     const call = fetch.mock.calls.find(([url]) => url === "/api/me/lang");
     expect((call?.[1] as RequestInit).keepalive).toBe(true);
+  });
+
+  // A second person can sign in on this browser. The first person's choice must not go into their account.
+  it("does not go into the account of the next reader on this browser", async () => {
+    setReadingLang("es", 30);
+    markAccountData("k1");
+    forgetAccountData();
+    // The device keeps its language, as it keeps its theme, but with no time it loses to any account.
+    expect(window.localStorage.getItem("hub:lang")).toBe("es");
+    expect(window.localStorage.getItem("hub:lang-at")).toBeNull();
+    const fetch = await signedInAs("k2", async () => Response.json({ place: null, lang: null }));
+    await pullFromAccount();
+    expect(langPuts(fetch)).toEqual([]);
+  });
+
+  // The spec: on the first page of a visit, a signed-in reader whose account holds the other language
+  // goes to the twin once, also when this browser held no choice before the page painted.
+  it("moves the first page of a visit to its twin when the account holds the other language", async () => {
+    document.documentElement.lang = "en";
+    document.documentElement.dataset.firstPage = "";
+    await signedInAs("k1", async () => Response.json({ place: null, lang: { lang: "es", at: 10 } }));
+    await pullFromAccount();
+    expect(moveToTwin).toHaveBeenCalledWith("es");
+    expect(document.documentElement.dataset.firstPage).toBeUndefined();
+  });
+
+  it("does not move a later page of the visit", async () => {
+    vi.mocked(moveToTwin).mockClear();
+    document.documentElement.lang = "en";
+    delete document.documentElement.dataset.firstPage;
+    await signedInAs("k1", async () => Response.json({ place: null, lang: { lang: "es", at: 10 } }));
+    await pullFromAccount();
+    expect(moveToTwin).not.toHaveBeenCalled();
   });
 
   it("does not go out for a reader who is not signed in", async () => {

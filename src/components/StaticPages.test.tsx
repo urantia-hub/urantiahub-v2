@@ -86,6 +86,7 @@ describe("Privacy, about the language", () => {
     expect(page).toMatch(/your notes, and the language that you chose\./);
     expect(page).toContain("With one, your place, your language, your saved paragraphs, and your notes follow you to each device.");
     expect(page).toContain("If you sign in, the place, the language, and the paragraphs that you read also go to your account.");
+    expect(page).toContain("one holds the start of a sign-in and the language of this browser for a few minutes");
   });
 
   it("names the language and its time, and the mark of a visit, in the browser while Spanish is on", () => {

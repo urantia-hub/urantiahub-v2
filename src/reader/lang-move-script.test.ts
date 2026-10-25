@@ -16,6 +16,8 @@ function run({ lang, stored, visit = null, alternate }: { lang: string; stored: 
 describe("the move to the reader's language", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
+    document.documentElement.style.visibility = "";
+    delete document.documentElement.dataset.firstPage;
   });
 
   it("opens the twin of the first page of a visit in the language that the reader chose", () => {
@@ -23,6 +25,16 @@ describe("the move to the reader's language", () => {
     expect(replace).toHaveBeenCalledTimes(1);
     expect(replace).toHaveBeenCalledWith("/es/documentos?x=1#2:1.3");
     expect(session.get(VISIT_KEY)).toBe("1");
+    // The rest of this page parses while the twin loads, so it must not paint.
+    expect(document.documentElement.style.visibility).toBe("hidden");
+  });
+
+  it("marks the first page of a visit, so the pull from the account can still move it", () => {
+    run({ lang: "en", stored: null });
+    expect(document.documentElement.dataset.firstPage).toBe("");
+    delete document.documentElement.dataset.firstPage;
+    run({ lang: "en", stored: null, visit: "1" });
+    expect(document.documentElement.dataset.firstPage).toBeUndefined();
   });
 
   it("does nothing after the first page of a visit", () => {

@@ -60,3 +60,26 @@ test("a sign-in returns to the page in the language of the account", async ({ pa
   await page.waitForURL((url) => url.pathname === "/es/documentos");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("hub:lang"))).toBe("es");
 });
+
+// The spec: a signed-in reader whose account holds Spanish goes to the twin once on the first page of a
+// visit, also when this browser did not know the choice before the page painted.
+test("the first page of a visit moves after the pull when only the account knows the language", async ({ page, context }) => {
+  const STANDIN = "http://localhost:4010";
+  const id = randomUUID();
+  await context.addCookies([{ name: "e2e_reader", value: id, url: STANDIN }]);
+  await context.request.post(`${STANDIN}/__reader/${id}`, { data: { preferences: { "hub.lang": { lang: "es", at: 1 } } } });
+  await page.goto("/about");
+  await page.getByRole("button", { name: "Account and settings" }).click();
+  await page.getByRole("dialog", { name: "Account and settings" }).getByRole("link", { name: /^Sign in/ }).click();
+  await page.waitForURL((url) => url.pathname === "/about");
+  await expect(page.getByRole("button", { name: "Account and settings" })).toBeVisible();
+
+  // A new visit on a browser that has no choice yet: the script cannot move, the pull does.
+  await context.addInitScript(() => {
+    if (!sessionStorage.getItem("hub:visit")) localStorage.removeItem("hub:lang");
+  });
+  const next = await context.newPage();
+  await next.goto("/papers");
+  await next.waitForURL((url) => url.pathname === "/es/documentos");
+  await expect(next.locator("html")).toHaveAttribute("lang", "es");
+});
