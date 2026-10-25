@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiLang, spanishOn } from "./lang";
 import { messages } from "./messages";
-import { contentsHref, counterpart, homeHref, paperHref, searchHref, shareHref, twinPath } from "./paths";
+import { contentsHref, counterpart, homeHref, pageHref, paperHref, searchHref, shareHref, twinPath } from "./paths";
 
 describe("the twin of a page", () => {
   it("is the same page in the other language, with its query", () => {
@@ -12,6 +12,22 @@ describe("the twin of a page", () => {
   it("is null for a page with no twin", () => {
     expect(twinPath("/texts", "es")).toBeNull();
     expect(twinPath("/about", "es")).toBeNull();
+  });
+});
+
+describe("the table of twins", () => {
+  it("pairs each fixed page with its twin, with the query and the paragraph", () => {
+    expect(twinPath("/you", "es")).toBe("/es/tu");
+    expect(twinPath("/es/tu", "en")).toBe("/you");
+    expect(twinPath("/es/avisos", "en")).toBe("/notifications");
+    expect(twinPath("/emails?off=x", "es")).toBe("/es/correos?off=x");
+    expect(counterpart("/notifications", "es")).toBe("/es/avisos");
+  });
+
+  it("gives the address of a fixed page in a language", () => {
+    expect(pageHref("es", "/notifications")).toBe("/es/avisos");
+    expect(pageHref("en", "/you")).toBe("/you");
+    expect(pageHref("es", "/nowhere")).toBe("/nowhere");
   });
 });
 

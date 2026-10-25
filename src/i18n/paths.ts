@@ -30,6 +30,19 @@ export function shareHref(lang: Lang, ref: string): string {
   return `${lang === "es" ? "/es" : ""}/s/${refForLink(ref)}`;
 }
 
+// The fixed pages and their Spanish twins: [English, Spanish].
+export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
+  ["/you", "/es/tu"],
+  ["/notifications", "/es/avisos"],
+  ["/emails", "/es/correos"],
+];
+
+// The address of a fixed page in a language, from its English path. A page with no twin keeps its path.
+export function pageHref(lang: Lang, en: string): string {
+  if (lang === "en") return en;
+  return PAGE_TWINS.find((twin) => twin[0] === en)?.[1] ?? en;
+}
+
 // The same page in the other language, or the home page of that language when the page has no twin.
 export function counterpart(pathname: string, to: Lang): string {
   return twinPath(pathname, to) ?? homeHref(to);
@@ -53,6 +66,8 @@ export function twinPath(pathname: string, to: Lang): string | null {
   if (share) return `${to === "es" ? "/es" : ""}${share[1]}${tail}`;
   if (path === (from === "es" ? "/es/buscar" : "/search")) return `${searchHref(to)}${tail}`;
   if (path === savedHref(from)) return `${savedHref(to)}${tail}`;
+  const row = PAGE_TWINS.find((twin) => twin[from === "en" ? 0 : 1] === path);
+  if (row) return `${row[to === "en" ? 0 : 1]}${tail}`;
   if (path === homeHref(from)) return homeHref(to);
   if (path === contentsHref(from)) return contentsHref(to);
   return null;
