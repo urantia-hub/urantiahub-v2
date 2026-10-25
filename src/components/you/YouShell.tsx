@@ -1,5 +1,7 @@
 import { partLabel } from "@/account/progress-summary";
-import { PARTS } from "@/content/paper-index";
+import { PARTS, PARTS_BY_LANG } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 
 // The shell of /you: each card in its own shape, with grey bars where its data will be, so the page does
 // not move when the data arrives. Words that do not depend on the reader show as they are.
@@ -8,13 +10,13 @@ const Bone = ({ w }: { w: string }) => <span className="bone" style={{ width: w 
 const Block = ({ w, h }: { w: number; h: number }) => <span className="bone bone-block" style={{ width: w, height: h }} />;
 
 // The reader's name and email, before the session answered.
-export function WhoShell({ account }: { account: React.ReactNode }) {
+export function WhoShell({ account, lang = "en" }: { account: React.ReactNode; lang?: Lang }) {
   return (
     <header className="you-who you-shell">
       <span className="you-face bone-face" aria-hidden="true" />
       <div>
         <h1>
-          <span className="sr-only">Your page</span>
+          <span className="sr-only">{messages(lang).you.title}</span>
           <Bone w="8em" />
         </h1>
         <p>
@@ -26,9 +28,9 @@ export function WhoShell({ account }: { account: React.ReactNode }) {
   );
 }
 
-export function StreakShell() {
+export function StreakShell({ lang = "en" }: { lang?: Lang }) {
   return (
-    <div className="streak-cards" role="status" aria-label="Loading your streak">
+    <div className="streak-cards" role="status" aria-label={messages(lang).you.loadingStreak}>
       <div className="you-card streak-card you-shell" aria-hidden="true">
         <p className="streak-label">
           <Bone w="4em" />
@@ -128,10 +130,11 @@ export function MarksShell({ place }: { place: "stack" | "side" }) {
   );
 }
 
-export function ProgressShell() {
+export function ProgressShell({ lang = "en" }: { lang?: Lang }) {
+  const t = messages(lang);
   return (
-    <div className="progress-page you-shell" role="status" aria-label="Loading your progress">
-      <p className="progress-lead">What you read while you were signed in.</p>
+    <div className="progress-page you-shell" role="status" aria-label={t.you.loadingProgress}>
+      <p className="progress-lead">{t.progress.lead}</p>
       <p className="progress-total">
         <b>
           <Bone w="1.4em" />
@@ -154,8 +157,8 @@ export function ProgressShell() {
         ))}
       </dl>
       <section>
-        <h2>By part</h2>
-        {PARTS.map(partLabel).map((part) => (
+        <h2>{t.progress.byPart}</h2>
+        {(PARTS_BY_LANG[lang] ?? PARTS).map((part) => partLabel(part, lang)).map((part) => (
           <div className="progress-part" key={part.id}>
             <span>
               <b>{part.name}</b> {part.title && <small>{part.title}</small>}
@@ -171,9 +174,9 @@ export function ProgressShell() {
   );
 }
 
-export function SavedShell() {
+export function SavedShell({ lang = "en" }: { lang?: Lang }) {
   return (
-    <div className="you-card you-shell" role="status" aria-label="Loading what you saved">
+    <div className="you-card you-shell" role="status" aria-label={messages(lang).you.loadingSaved}>
       {[0, 1, 2].map((n) => (
         <div className="you-saved" key={n}>
           <small>

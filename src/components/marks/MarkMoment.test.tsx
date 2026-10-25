@@ -101,4 +101,21 @@ describe("the marks card", () => {
     expect(container.querySelectorAll(".marks-got li")).toHaveLength(9);
     expect(screen.getByText("+2")).toBeInTheDocument();
   });
+
+  it("names the marks and the tiers in Spanish on a Spanish page", () => {
+    const { container } = render(<MarksView marks={{ "first-section": "t" }} next={[]} place="stack" lang="es" />);
+    expect(container.querySelector(".marks-head")).toHaveTextContent("Marcas1 de 35");
+    expect(container.querySelector(".marks-got")).toHaveTextContent("Primera sección");
+    expect(screen.getByRole("button", { name: "Ver las 35 marcas" })).toBeInTheDocument();
+    expect([...container.querySelectorAll(".marks-tier-head b")].map((b) => b.textContent)).toEqual(["Cinta", "Seda", "Dorado", "Iluminado"]);
+    expect(container.textContent).toContain("Racha de 7 días");
+  });
+
+  it("shows the moment in Spanish on a Spanish page", async () => {
+    state.moments = ["papers-1"];
+    render(<MarkMoment lang="es" />);
+    expect(await screen.findByRole("dialog", { name: "Una marca nueva: 1 documento" })).toBeInTheDocument();
+    expect(screen.getByText("Cerca de 1 hora de lectura.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument();
+  });
 });

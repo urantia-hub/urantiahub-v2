@@ -7,18 +7,19 @@ import type { StreakCard } from "@/account/streak-data";
 import { Icon } from "@/components/icons";
 import { MarksCard } from "@/components/marks/MarksCard";
 import { StreakShell } from "@/components/you/YouShell";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { changeStreakSettings, loadStreak, openStreakQuestion, serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 
-const LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
-const weekday = (day: string) => LETTERS[new Date(`${day}T12:00:00Z`).getUTCDay()];
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const KIND_WORDS = { met: "goal met", grace: "grace day", missed: "missed", today: "today", none: "no reading" } as const;
+const weekday = (day: string, letters: string) => letters[new Date(`${day}T12:00:00Z`).getUTCDay()];
+const numberIn = (lang: Lang) => (n: number) => n.toLocaleString(lang === "es" ? "es-ES" : "en-US");
 
 type On = Extract<StreakCard, { on: true }>;
 
 // The streak and the whole book, at the top of the progress on /you. A reader with no streak sees one
 // row that opens the question.
-export function StreakCards() {
+export function StreakCards({ lang = "en" }: { lang?: Lang }) {
+  const t = messages(lang).streak;
   const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const key = account.status === "in" ? (account.user?.key ?? null) : null;
@@ -26,15 +27,15 @@ export function StreakCards() {
   useEffect(() => void loadStreak(), [key]);
   if (!streaksOn() || account.status !== "in") return null;
   // The card keeps its room while it loads; a card that failed takes none.
-  if (!view.card) return view.failed ? null : <StreakShell />;
+  if (!view.card) return view.failed ? null : <StreakShell lang={lang} />;
   if (!view.card.on)
     return (
       <div className="you-card streak-off">
         <button type="button" className="you-row" onClick={openStreakQuestion}>
           <Icon name="progress" />
           <span>
-            Keep a streak
-            <small>One section a day, about 5 minutes</small>
+            {t.keep}
+            <small>{t.keepLine}</small>
           </span>
           <Icon name="paperAfter" />
         </button>
@@ -42,47 +43,49 @@ export function StreakCards() {
     );
   return (
     <div className="streak-cards">
-      <StreakCardView card={view.card} />
-      <MarksCard place="stack" />
+      <StreakCardView card={view.card} lang={lang} />
+      <MarksCard place="stack" lang={lang} />
     </div>
   );
 }
 
-export function StreakCardView({ card }: { card: On }) {
+export function StreakCardView({ card, lang = "en" }: { card: On; lang?: Lang }) {
+  const t = messages(lang).streak;
+  const kinds = { met: t.met, grace: t.grace, missed: t.missed, today: t.today, none: t.none };
   const { state, next } = card;
   const [busy, setBusy] = useState(false);
   return (
     <div className="you-card streak-card">
-      <p className="streak-label">Streak</p>
+      <p className="streak-label">{t.label}</p>
       <p className="streak-big">
         <b>{state.current}</b>
-        <span>day streak</span>
-        {state.longest > state.current && <em>longest {state.longest}</em>}
+        <span>{t.dayStreak(state.current)}</span>
+        {state.longest > state.current && <em>{t.longest(state.longest)}</em>}
       </p>
-      <ol className="streak-week" aria-label="The last 7 days">
+      <ol className="streak-week" aria-label={t.week}>
         {state.week.map((cell, i) => (
-          <li key={cell.day} data-kind={cell.kind} data-today={i === state.week.length - 1 ? "" : undefined} aria-label={`${cell.day}: ${KIND_WORDS[cell.kind]}`}>
+          <li key={cell.day} data-kind={cell.kind} data-today={i === state.week.length - 1 ? "" : undefined} aria-label={`${cell.day}: ${kinds[cell.kind]}`}>
             <i />
-            {weekday(cell.day)}
+            {weekday(cell.day, t.letters)}
           </li>
         ))}
       </ol>
       <p className="streak-facts">
-        {state.graceReady ? "1 grace day ready" : `Grace day back in ${plural(state.graceBackIn, "day", "days")}`} · <b>{card.goal}</b> {card.goal === 1 ? "section a day" : "sections a day"}
+        {state.graceReady ? t.graceReady : t.graceBack(state.graceBackIn)} · <b>{card.goal}</b> {t.perDay(card.goal)}
       </p>
       <div className="streak-next">
         <div>
           <b>{next.title}</b>
           <small>
-            {next.paper} · about {next.minutes} min
+            {next.paper} · {t.minutes(next.minutes)}
           </small>
         </div>
-        <Link href={next.href}>Read</Link>
+        <Link href={next.href}>{t.read}</Link>
         <Link className="listen" href={listenHref(next.href)}>
-          Listen
+          {t.listen}
         </Link>
       </div>
-      <BookLine book={card.book} />
+      <BookLine book={card.book} lang={lang} />
       <button
         type="button"
         className="streak-stop"
@@ -93,7 +96,7 @@ export function StreakCardView({ card }: { card: On }) {
           setBusy(false);
         }}
       >
-        Turn off the streak
+        {t.stop}
       </button>
     </div>
   );
@@ -106,13 +109,17 @@ export function listenHref(href: string): string {
 }
 
 // The whole book, as one line at the foot of the streak card. The number never goes down.
-export function BookLine({ book }: { book: On["book"] }) {
+export function BookLine({ book, lang = "en" }: { book: On["book"]; lang?: Lang }) {
+  const t = messages(lang).streak;
+  const count = numberIn(lang);
   return (
     <div className="streak-book">
       <span>
-        The whole book · <b>{book.done.toLocaleString("en-US")}</b> of {book.total.toLocaleString("en-US")} sections
+        {t.book}
+        <b>{count(book.done)}</b>
+        {t.ofSections(count(book.total))}
       </span>
-      <div className="streak-line" role="progressbar" aria-valuemin={0} aria-valuemax={book.total} aria-valuenow={book.done} aria-label="Sections of the whole book">
+      <div className="streak-line" role="progressbar" aria-valuemin={0} aria-valuemax={book.total} aria-valuenow={book.done} aria-label={t.bookLabel}>
         <i style={{ width: `${(book.done / Math.max(1, book.total)) * 100}%` }} />
       </div>
     </div>

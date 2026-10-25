@@ -49,7 +49,7 @@ describe("the sign-out row", () => {
 describe("the account rows in Spanish", () => {
   it("names the rows in Spanish", async () => {
     render(<AccountRows lang="es" />);
-    expect(screen.getByRole("link", { name: /Tu página/ })).toHaveAttribute("href", "/you");
+    expect(screen.getByRole("link", { name: /Tu página/ })).toHaveAttribute("href", "/es/tu");
     expect(screen.getByRole("link", { name: "Guardados" })).toHaveAttribute("href", "/es/guardados");
     await userEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
     expect(screen.getByRole("button", { name: "Cerrando la sesión…" })).toBeDisabled();

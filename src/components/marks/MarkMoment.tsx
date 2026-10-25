@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { track } from "@/analytics";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { markById, MARKS } from "@/marks/list";
+import { markWords } from "@/marks/words";
 import { momentPlayed, serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
 import { MarkSymbol } from "./MarkSymbol";
 
@@ -19,7 +22,9 @@ const PIECES: Record<number, { n: number; kind: "burst" | "fall"; colors: string
 const busyPage = () => document.querySelector(".panel") !== null || [...document.querySelectorAll("audio")].some((audio) => !audio.paused);
 const lessMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 
-export function MarkMoment() {
+export function MarkMoment({ lang = "en" }: { lang?: Lang }) {
+  const t = messages(lang).marks;
+  const words = markWords(lang);
   const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
   const id = view.moments[0] ?? null;
   const [ready, setReady] = useState<string | null>(null);
@@ -57,7 +62,7 @@ export function MarkMoment() {
   const tier = mark.tier;
   const full = tier >= 3;
   return createPortal(
-    <div className={`mark-moment moment-${tier}${lessMotion() ? " still" : ""}`} role="dialog" aria-modal="true" aria-label={`A new mark: ${mark.name}`}>
+    <div className={`mark-moment moment-${tier}${lessMotion() ? " still" : ""}`} role="dialog" aria-modal="true" aria-label={t.newMark(words.name(mark.id))}>
       {!full && <button type="button" className="moment-scrim" aria-hidden="true" tabIndex={-1} onClick={close} />}
       <div className={full ? "moment-full" : "moment-sheet"}>
         {tier === 4 && <div className="moment-glow" />}
@@ -66,11 +71,11 @@ export function MarkMoment() {
           <MarkSymbol tier={tier} symbol={mark.symbol} moment />
         </div>
         <div className="moment-words">
-          {tier === 4 && <p className="moment-kicker">Illuminated</p>}
-          <h2>{mark.name}</h2>
-          <p>{tier === 1 ? `A new mark · ${earned} of ${MARKS.length}` : mark.rule.kind === "streak" ? `${mark.effort[0].toUpperCase()}${mark.effort.slice(1)} of days in a row.` : `${mark.effort[0].toUpperCase()}${mark.effort.slice(1)} of reading.`}</p>
+          {tier === 4 && <p className="moment-kicker">{words.tier(4).name}</p>}
+          <h2>{words.name(mark.id)}</h2>
+          <p>{tier === 1 ? t.newMarkLine(earned, MARKS.length) : mark.rule.kind === "streak" ? t.ofDays(words.effort(mark.id)) : t.ofReading(words.effort(mark.id))}</p>
           <button type="button" className={full ? "moment-button gold" : "moment-button"} onClick={close} autoFocus>
-            Continue
+            {t.continue}
           </button>
         </div>
         {pieces.map((piece, i) => (
