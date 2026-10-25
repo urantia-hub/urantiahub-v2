@@ -255,8 +255,8 @@ test("the Spanish home page is at /es, and the two home pages name each other", 
   await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", /^http:\/\/localhost:3100\/?$/);
   await expect(page.locator(".home").getByRole("link", { name: "Leer los Documentos" })).toHaveAttribute("href", "/es/documentos");
   const about = page.locator(".home").getByRole("link", { name: "¿Qué son los Documentos de Urantia?" });
-  await expect(about).toHaveAttribute("href", "/about");
-  await expect(about).toHaveAttribute("hreflang", "en");
+  await expect(about).toHaveAttribute("href", "/es/acerca-de");
+  await expect(about).not.toHaveAttribute("hreflang");
   // With no place, the page shows "Leer los Documentos" and hides "Todos los documentos", as in English.
   await expect(page.locator(".home a.all-papers")).toHaveAttribute("href", "/es/documentos");
   await page.locator(".home").getByRole("link", { name: "Leer los Documentos" }).click();

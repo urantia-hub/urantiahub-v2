@@ -297,7 +297,7 @@ describe("the language at a sign-in", () => {
 
   it("keeps the page for a page with no twin, and while Spanish is off", async () => {
     vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
-    expect(await back(at("/about"), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/about`);
+    expect(await back(at("/progress"), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/progress`);
     vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
     expect(await back(at("/papers"), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/papers`);
   });

@@ -5,13 +5,15 @@ import type { ReleasePictures } from "@/notices/send/mail";
 
 // `notify`: readers who chose "New releases" get one notice of this entry. Mark a few in a year.
 // `mail`: the email of the notice with pictures; its files stay in `public/email/` after the send.
-// `es`: the Spanish words of a `notify` entry. A Spanish reader hears of an entry only when it has them.
+// `es`: the Spanish words of the entry, for the Spanish page and for a Spanish reader's notice.
 export type Release = { date: string; title: string; changes: string[]; notify?: true; mail?: ReleasePictures; es?: { title: string; changes: string[] } };
+// An entry of this site's list: each one has its Spanish, so the Spanish page never shows an English entry.
+export type Entry = Release & { es: { title: string; changes: string[] } };
 
-export const RELEASES: Release[] = [
+export const RELEASES: Entry[] = [
   {
     date: "2026-10-17",
-    title: "A streak, an assistant, and more",
+    title: "A streak, an assistant, and more", es: { title: "Una racha, un asistente y más", changes: ["Una racha: una sección al día, unos cinco minutos, con marcas por documentos, por partes y por las herramientas de UrantiaHub. Está desactivada hasta que la actives desde tu página.", "Preguntar a un asistente: toca un párrafo, luego Más, y tu pregunta se abre en Claude, ChatGPT, Gemini o Grok.", "La voz sigue sonando con la pantalla apagada, hasta el final del documento.", "Leer sin conexión: guarda los 197 documentos en tu dispositivo.", "Comparte una sola frase: el enlace muestra las palabras exactas.", "Tu página: tu progreso, lo que guardaste y tus avisos en un solo lugar.", "En otras partes de los Documentos: los paralelos de un párrafo en otros documentos van primero.", "En Android, el teclado ya no tapa el campo de una nota."] }, 
     notify: true,
     changes: [
       "A streak: one section a day, about five minutes, with marks for papers, parts, and the tools of the Hub. It is off until you turn it on from your page.",
@@ -41,7 +43,7 @@ export const RELEASES: Release[] = [
   },
   {
     date: "2026-10-11",
-    title: "Notifications",
+    title: "Notifications", es: { title: "Avisos", changes: ["Un pasaje cada día, por correo, en un dispositivo o en ambos, a la hora que elijas en tu zona horaria.", "Un recordatorio de tu lugar después de una semana sin leer.", "Cada uno está desactivado hasta que lo actives: el botón de la persona, luego Avisos.", "Los ajustes y la cuenta están en el encabezado de cada página."] }, 
     changes: [
       "A passage each day, by email, on a device, or both, at the hour that you choose in your time zone.",
       "One reminder of your place after a week with no reading.",
@@ -51,7 +53,7 @@ export const RELEASES: Release[] = [
   },
   {
     date: "2026-10-10",
-    title: "The new UrantiaHub",
+    title: "The new UrantiaHub", es: { title: "El nuevo UrantiaHub", changes: ["Un nuevo lector: una página tranquila para cada documento, con un tema claro y uno oscuro, y varios tamaños de texto.", "Una nueva voz para cada párrafo, y la página la sigue.", "Búsqueda por las palabras exactas y por el sentido.", "Un glosario: los términos de cada párrafo.", "Paralelos: pasajes de los Documentos y de otras nueve obras, cercanos en sentido.", "Guarda un párrafo, escribe notas y conserva tu lugar en cada dispositivo.", "Crea una imagen de un párrafo para compartirla.", "Una página de tu progreso, una página de recursos y esta página.", "No están en esta versión: el chat de IA, la página Explorar y los correos diarios."] }, 
     changes: [
       "A new reader: one quiet page for each paper, with a light and a dark theme and a choice of text sizes.",
       "A new voice for each paragraph, and the page follows it.",
@@ -66,18 +68,18 @@ export const RELEASES: Release[] = [
   },
   {
     date: "2026-10-02",
-    title: "Search, security, and speed",
+    title: "Search, security, and speed", es: { title: "Búsqueda, seguridad y velocidad", changes: ["El sitio se puede instalar en un teléfono.", "Mejores páginas para los buscadores.", "El tema oscuro se mantiene entre visitas."] }, 
     changes: ["The site can be installed on a phone.", "Better pages for search engines.", "The dark theme stays between visits."],
   },
-  { date: "2025-05-16", title: "Community and resources", changes: ["A page of resources of the community."] },
+  { date: "2025-05-16", title: "Community and resources", es: { title: "Comunidad y recursos", changes: ["Una página de recursos de la comunidad."] },  changes: ["A page of resources of the community."] },
   {
     date: "2025-01-25",
-    title: "Notifications and listening",
+    title: "Notifications and listening", es: { title: "Avisos y audio", changes: ["Ajustes de correo: novedades, un recordatorio para continuar y una cita diaria.", "Un enlace para escuchar en Spotify.", "Un botón para copiar el texto de un párrafo."] }, 
     changes: ["Email settings: releases, a reminder to continue, and a daily quote.", "A link to listen on Spotify.", "A button to copy the text of a paragraph."],
   },
   {
     date: "2025-01-18",
-    title: "Launch",
+    title: "Launch", es: { title: "Lanzamiento", changes: ["Un lector con audio.", "Progreso, notas y marcadores.", "Un tema oscuro.", "Búsqueda con consejos y búsquedas recientes."] }, 
     changes: ["A reader with audio.", "Progress, notes, and bookmarks.", "A dark theme.", "Search with tips and recent searches."],
   },
 ];

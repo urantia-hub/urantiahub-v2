@@ -68,10 +68,10 @@ test("the first page of a visit moves after the pull when only the account knows
   const id = randomUUID();
   await context.addCookies([{ name: "e2e_reader", value: id, url: STANDIN }]);
   await context.request.post(`${STANDIN}/__reader/${id}`, { data: { preferences: { "hub.lang": { lang: "es", at: 1 } } } });
-  await page.goto("/about");
+  await page.goto("/privacy");
   await page.getByRole("button", { name: "Account and settings" }).click();
   await page.getByRole("dialog", { name: "Account and settings" }).getByRole("link", { name: /^Sign in/ }).click();
-  await page.waitForURL((url) => url.pathname === "/about");
+  await page.waitForURL((url) => url.pathname === "/privacy");
   await expect(page.getByRole("button", { name: "Account and settings" })).toBeVisible();
 
   // A new visit on a browser that has no choice yet: the script cannot move, the pull does.

@@ -321,6 +321,14 @@ describe("a Spanish reader", () => {
     expect(out.pushes[0].push).toMatchObject({ title: es.mail.releaseSubject("Sin conexión"), body: "Guarda los Documentos en un dispositivo." });
   });
 
+  it("links the Spanish release mail and push to the Spanish releases page", async () => {
+    const { deps, out } = world([wants(A, { lang: "es", devices: [device("one")] })], { now: DAY, news: { ...news, es: { title: "Sin conexión", changes: ["Guarda los Documentos en un dispositivo."] } } });
+    await runNotices(deps);
+    expect(out.mails[0].text).toContain("https://www.urantiahub.com/es/novedades");
+    expect(out.mails[0].text).not.toContain("https://www.urantiahub.com/releases");
+    expect(out.pushes[0].push.path).toBe("/es/novedades");
+  });
+
   it("gets no release with no Spanish words, and an English reader still gets it", async () => {
     const { deps, out } = world([wants(A, { lang: "es" }), wants(B)], { now: DAY, news });
     expect(await runNotices(deps)).toMatchObject({ due: 1, mails: 1, failed: 0 });
