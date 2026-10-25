@@ -9,3 +9,8 @@ export function apiLang(lang: Lang): "eng" | "es" {
 export function spanishOn(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_SPANISH);
 }
+
+// The language that a request names in `?lang=`. Any value other than "es" is English.
+export function langParam(value: string | null): Lang {
+  return value === "es" ? "es" : "en";
+}

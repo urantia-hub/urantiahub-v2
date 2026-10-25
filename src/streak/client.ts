@@ -62,6 +62,9 @@ function ready(): string | null {
   return key;
 }
 
+// The card speaks the language of the page.
+const inLang = (path: string) => (document.documentElement.lang === "es" ? `${path}?lang=es` : path);
+
 async function ask(method: string, path: string, body?: unknown, keepalive = false): Promise<unknown> {
   const key = ready();
   if (!key) return null;
@@ -86,7 +89,7 @@ export function loadStreak(): Promise<void> {
   if (!streaksOn() || !ready()) return Promise.resolve();
   loading ??= (async () => {
     try {
-      const card = (await ask("GET", "/api/me/streak")) as StreakCard | null;
+      const card = (await ask("GET", inLang("/api/me/streak"))) as StreakCard | null;
       if (!card) return;
       show({ ...view, card, failed: false, moments: queueMoments(card.on ? card.fresh : []) });
       restorePending();
@@ -174,7 +177,7 @@ export async function flushSections(keepalive = false): Promise<void> {
   waiting = [];
   const at = epoch;
   try {
-    const answer = (await ask("POST", "/api/me/sections", { rows }, keepalive)) as { ok?: boolean; card?: StreakCard } | null;
+    const answer = (await ask("POST", inLang("/api/me/sections"), { rows }, keepalive)) as { ok?: boolean; card?: StreakCard } | null;
     if (answer?.card) show({ ...view, card: answer.card, moments: queueMoments(answer.card.on ? answer.card.fresh : []) });
   } catch {
     // No connection, or the account refused for now. The rows hold their day, so they can go later.
@@ -198,7 +201,7 @@ async function sendTextPage(key: string, work: string, page: string): Promise<vo
   sendingText = `${work}/${page}`;
   const at = epoch;
   try {
-    const answer = (await ask("POST", "/api/me/texts", { work, page })) as { saved?: boolean; card?: StreakCard } | null;
+    const answer = (await ask("POST", inLang("/api/me/texts"), { work, page })) as { saved?: boolean; card?: StreakCard } | null;
     if (epoch !== at) return;
     // A page that the account refused is not sent again either: only a failed request tries again.
     textPageSent(key, work, page);

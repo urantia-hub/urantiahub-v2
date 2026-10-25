@@ -98,6 +98,15 @@ describe("messages", () => {
   });
 });
 
+describe("the language of a request", () => {
+  it("is Spanish only for es", async () => {
+    const { langParam } = await import("./lang");
+    expect(langParam("es")).toBe("es");
+    expect(langParam("fr")).toBe("en");
+    expect(langParam(null)).toBe("en");
+  });
+});
+
 describe("lang", () => {
   afterEach(() => vi.unstubAllEnvs());
   it("names the language as the API does", () => {

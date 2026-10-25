@@ -1,7 +1,8 @@
 // The streak of a signed-in reader: the settings in `hub.streak`, and the sections that the reader
 // finished on each reading day. A browser sends the values, so each function checks them.
 
-import { paperPath } from "@/content/paper-index";
+import { paperById, paperPath } from "@/content/paper-index";
+import titlesEs from "@/content/section-titles.es.json";
 import { BOOK, minutesOf, nextAfter, orderOf, sectionAt, type SectionEntry, sectionLabel, TOTAL_SECTIONS } from "@/content/section-index";
 import { anchorFor } from "@/lib/paper-url";
 import { isTextPage } from "@/content/text-index";
@@ -9,6 +10,7 @@ import { earnedMarks, mergeMarks, type TextPages } from "@/marks/earn";
 import { TOOL_MARKS } from "@/marks/list";
 import { type NextMark, nextMarks } from "@/marks/next";
 import { addDays, computeStreak, type Goal, type Goals, readingDay, type StreakState } from "@/streak/rules";
+import type { Lang } from "@/i18n/lang";
 import { parsePlace, PLACE_KEY } from "./reader-data";
 
 export const STREAK_KEY = "hub.streak";
@@ -127,26 +129,37 @@ const MAX_ROWS = 50;
 
 // Finished sections from the browser. Only today and yesterday count: a queue that waited in a
 // browser with no connection can still arrive the next morning.
-export async function saveSections(gateway: StreakGateway, accessToken: string, value: unknown, now: Date = new Date()): Promise<{ added: number; card: StreakCard }> {
+export async function saveSections(gateway: StreakGateway, accessToken: string, value: unknown, now: Date = new Date(), lang: Lang = "en"): Promise<{ added: number; card: StreakCard }> {
   const all = await gateway.preferences(accessToken);
   const settings = parseStreak(all[STREAK_KEY]);
   const given = isRecord(value) && Array.isArray(value.rows) ? value.rows.slice(0, MAX_ROWS) : [];
-  if (!settings?.on) return { added: 0, card: await cardFor(gateway, accessToken, all, now) };
+  if (!settings?.on) return { added: 0, card: await cardFor(gateway, accessToken, all, now, lang) };
   const today = readingDay(now, settings.zone);
   const rows = given.map(parseRow).filter((row): row is SectionRow => row !== null && (row.day === today || row.day === addDays(today, -1)));
   if (rows.length > 0) await gateway.addSectionDays(accessToken, rows);
-  return { added: rows.length, card: await cardFor(gateway, accessToken, all, now) };
+  return { added: rows.length, card: await cardFor(gateway, accessToken, all, now, lang) };
 }
 
-export async function readStreak(gateway: StreakGateway, accessToken: string, now: Date = new Date()): Promise<StreakCard> {
-  return cardFor(gateway, accessToken, await gateway.preferences(accessToken), now);
+// `lang`: the language of the page that asks. The next section and the lines of the marks speak it.
+export async function readStreak(gateway: StreakGateway, accessToken: string, now: Date = new Date(), lang: Lang = "en"): Promise<StreakCard> {
+  return cardFor(gateway, accessToken, await gateway.preferences(accessToken), now, lang);
 }
 
-function hrefOf(entry: SectionEntry): string {
-  return `${paperPath(entry.paperId)}${anchorFor({ paperId: entry.paperId, sectionId: entry.id })}`;
+function hrefOf(entry: SectionEntry, lang: Lang): string {
+  return `${paperPath(entry.paperId, lang)}${anchorFor({ paperId: entry.paperId, sectionId: entry.id })}`;
 }
 
-function nextSection(rows: SectionRow[], place: unknown): NextSection {
+const TITLES_ES = titlesEs.papers as Record<string, (string | null)[]>;
+
+// The title of a section and of its paper in a language. A section with no title is the opening of its paper.
+function labelIn(entry: SectionEntry, lang: Lang): { title: string; paper: string } {
+  if (lang === "en") return sectionLabel(entry);
+  const paper = paperById(entry.paperId, "es")?.title ?? "";
+  const title = TITLES_ES[entry.paperId]?.[Number(entry.id)] ?? null;
+  return entry.title && title ? { title, paper } : { title: paper, paper: "El comienzo" };
+}
+
+function nextSection(rows: SectionRow[], place: unknown, lang: Lang): NextSection {
   // The section after the one that the reader finished last: the newest day, and in it the furthest one.
   const last = rows.reduce<SectionRow | null>((best, row) => {
     if (!best || row.day > best.day) return row;
@@ -154,7 +167,7 @@ function nextSection(rows: SectionRow[], place: unknown): NextSection {
   }, null);
   const at = parsePlace(place);
   const entry = last ? nextAfter(last.paperId, last.sectionId) : ((at && sectionAt(at.paperId, at.sectionId)) ?? BOOK[0]);
-  return { paperId: entry.paperId, sectionId: entry.id, ...sectionLabel(entry), minutes: minutesOf(entry.words), href: hrefOf(entry) };
+  return { paperId: entry.paperId, sectionId: entry.id, ...labelIn(entry, lang), minutes: minutesOf(entry.words), href: hrefOf(entry, lang) };
 }
 
 // The stored pages that the index has. A value of another form counts as no pages.
@@ -171,23 +184,23 @@ function parseTexts(value: unknown): Record<string, string[]> {
 
 // A page of a world text that the reader finished, from the browser. Only while the streak is on: the
 // marks belong to it.
-export async function saveTextPage(gateway: StreakGateway, accessToken: string, value: unknown, now: Date = new Date()): Promise<{ saved: boolean; card: StreakCard }> {
+export async function saveTextPage(gateway: StreakGateway, accessToken: string, value: unknown, now: Date = new Date(), lang: Lang = "en"): Promise<{ saved: boolean; card: StreakCard }> {
   const all = await gateway.preferences(accessToken);
   const settings = parseStreak(all[STREAK_KEY]);
   const work = isRecord(value) ? value.work : null;
   const page = isRecord(value) ? value.page : null;
   const valid = typeof work === "string" && typeof page === "string" && isTextPage(work, page);
-  if (!settings?.on || !valid) return { saved: false, card: await cardFor(gateway, accessToken, all, now) };
+  if (!settings?.on || !valid) return { saved: false, card: await cardFor(gateway, accessToken, all, now, lang) };
   const texts = parseTexts(all[TEXTS_KEY]);
   if (!texts[work]?.includes(page)) {
     const next = { ...texts, [work]: [...(texts[work] ?? []), page] };
     await gateway.savePreferences(accessToken, { [TEXTS_KEY]: next });
     all[TEXTS_KEY] = next;
   }
-  return { saved: true, card: await cardFor(gateway, accessToken, all, now) };
+  return { saved: true, card: await cardFor(gateway, accessToken, all, now, lang) };
 }
 
-async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<string, unknown>, now: Date): Promise<StreakCard> {
+async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<string, unknown>, now: Date, lang: Lang = "en"): Promise<StreakCard> {
   const settings = parseStreak(all[STREAK_KEY]);
   if (!settings?.on) return { on: false, asked: settings?.asked ?? false };
   const rows = await gateway.sectionDays(accessToken);
@@ -198,8 +211,8 @@ async function cardFor(gateway: StreakGateway, accessToken: string, all: Record<
   const { marks, fresh } = mergeMarks(settings.marks, earnedMarks(rows, state.longest, texts), now.toISOString());
   if (state.longest > settings.longest || fresh.length > 0) await gateway.savePreferences(accessToken, { [STREAK_KEY]: { ...settings, longest: state.longest, marks } });
   const done = new Set(rows.map((row) => `${row.paperId}:${row.sectionId}`)).size;
-  const next = nextSection(rows, all[PLACE_KEY]);
-  const nextMarksList = nextMarks({ rows, current: state.current, earned: marks, nextMinutes: next.minutes, texts });
+  const next = nextSection(rows, all[PLACE_KEY], lang);
+  const nextMarksList = nextMarks({ rows, current: state.current, earned: marks, nextMinutes: next.minutes, texts }, 3, lang);
   return { on: true, state, goal: settings.goal, hour: settings.hour, zone: settings.zone, book: { done, total: TOTAL_SECTIONS }, next, marks, fresh, nextMarks: nextMarksList };
 }
 
