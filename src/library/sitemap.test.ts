@@ -16,6 +16,10 @@ describe("the Library in the sitemap", () => {
     expect(await libraryPaths(true, async () => ({ works, firstKeys }))).toEqual(["/texts", "/texts/how-it-works", "/texts/dhammapada", "/texts/dhammapada/1", "/texts/rig-veda", "/texts/rig-veda/1-1", "/texts/japji"]);
   });
 
+  it("lists the Spanish twins with the same slugs and keys", async () => {
+    expect(await libraryPaths(true, async () => ({ works, firstKeys }), "es")).toEqual(["/es/textos", "/es/textos/como-funciona", "/es/textos/dhammapada", "/es/textos/dhammapada/1", "/es/textos/rig-veda", "/es/textos/rig-veda/1-1", "/es/textos/japji"]);
+  });
+
   it("lists nothing of the Library when its list does not load, so the sitemap stands", async () => {
     expect(await libraryPaths(true, async () => Promise.reject(new Error("down")))).toEqual([]);
   });

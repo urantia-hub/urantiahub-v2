@@ -13,11 +13,16 @@ function json(status: number, body: string | Buffer) {
 
 // The Library: the list of works, the pages of a work, a page, and the two parallels of a passage. A reference
 // is in the file name with "-" for each space and "." for each colon. Null is a Library address with no record; undefined is not one.
-function libraryFile(path: string): string | null | undefined {
-  if (path === "works") return join(dir, "library", "works.json");
-  if (path === "bible/books") return join(dir, "library", "bible_books.json");
+// A catalog path with lang=es reads the Spanish record beside the English one, or the English one when it has none.
+function libraryFile(path: string, es: boolean): string | null | undefined {
+  const catalog = (name: string) => {
+    const spanish = join(dir, "library", `${name}.es.json`);
+    return es && existsSync(spanish) ? spanish : join(dir, "library", `${name}.json`);
+  };
+  if (path === "works") return catalog("works");
+  if (path === "bible/books") return catalog("bible_books");
   const pages = /^scriptures\/([a-z0-9-]+)$/.exec(path);
-  if (pages) return join(dir, "library", `scriptures_${pages[1]}.json`);
+  if (pages) return catalog(`scriptures_${pages[1]}`);
   const read = /^works\/([a-z0-9-]+)\/([A-Za-z0-9 .:-]+?)(?:\/(urantia-parallels|work-parallels))?$/.exec(path);
   if (!read) return undefined;
   return join(dir, "library", `${read[3] ?? "works"}_${read[1]}_${read[2].replace(/ /g, "-").replace(/:/g, ".")}.json`);
@@ -39,8 +44,8 @@ function answer(url: string) {
     return json(200, existsSync(file) ? readFileSync(file) : JSON.stringify({ data: [], meta: { page: 0, limit: 3, total: 0, totalPages: 0 } }));
   }
   // The list of the texts that the API compares with the Papers.
-  if (path === "scriptures") return json(200, readFileSync(join(dir, "scriptures.json")));
-  const library = libraryFile(path);
+  if (path === "scriptures") return json(200, readFileSync(query.get("lang") === "es" ? join(dir, "library", "scriptures.es.json") : join(dir, "scriptures.json")));
+  const library = libraryFile(path, query.get("lang") === "es");
   if (library !== undefined) return library && existsSync(library) ? json(200, readFileSync(library)) : json(404, JSON.stringify({ error: "not recorded" }));
   if (!/^[a-z]+\/[0-9:.]+$/.test(path)) return json(400, JSON.stringify({ error: "bad path" }));
   // A GET with lang=es reads the Spanish record beside the English one.

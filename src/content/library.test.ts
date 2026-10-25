@@ -13,6 +13,10 @@ const FIXTURES: Record<string, string> = {
   "/scriptures/insights/pairs?corpus=dhammapada&limit=3": "pairs_dhammapada",
   "/works/dhammapada/Dhp%2021-32": "works_dhammapada_Dhp-21-32",
   "/works/rig-veda/RV%2010.129": "works_rig-veda_RV-10.129",
+  "/works?lang=es": "works.es",
+  "/scriptures?lang=es": "scriptures.es",
+  "/scriptures/dhammapada?lang=es": "scriptures_dhammapada.es",
+  "/bible/books?lang=es": "bible_books.es",
 };
 const asked: string[] = [];
 function serve(over: Record<string, unknown> = {}) {
@@ -111,6 +115,51 @@ describe("the pages of a work", () => {
     const page = (await fetchWorkPages(BASE, "rig-veda")).find((p) => p.key === "10-129");
     const passages = await fetchWorkPage(BASE, rv, page as never);
     expect(passages.map((p) => p.number)).toEqual(["10.129.1", "10.129.2", "10.129.3", "10.129.4", "10.129.5", "10.129.6", "10.129.7"]);
+  });
+});
+
+describe("the catalog in Spanish", () => {
+  it("asks for the Spanish catalog and gives its words, with the same slugs and bylines", async () => {
+    serve();
+    const works = await fetchLibrary(BASE, "es");
+    expect(asked.sort()).toEqual(["/scriptures?lang=es", "/works?lang=es"]);
+    expect(works).toHaveLength(22);
+    expect(works[0]).toMatchObject({ slug: "bible", title: "La Biblia (World English Bible)", tradition: "Judío y cristiano", divisionLabel: "libro", unitLabel: "versículo", byline: "World English Bible" });
+    expect(works.find((w) => w.slug === "dhammapada")).toMatchObject({
+      title: "El Dhammapada",
+      tradition: "Budista",
+      divisionLabel: "capítulo",
+      unitLabel: "versículo",
+      byline: "F. Max Muller, 1881",
+      corpusId: "dhammapada-muller-1881",
+    });
+    expect(works.find((w) => w.slug === "dhammapada")?.summary).not.toBe((await fetchLibrary(BASE)).find((w) => w.slug === "dhammapada")?.summary);
+  });
+
+  it("keeps the English keys and references of the pages, with the Spanish titles", async () => {
+    serve();
+    const [en, es] = [await fetchWorkPages(BASE, "dhammapada"), await fetchWorkPages(BASE, "dhammapada", "es")];
+    expect(es.map((p) => [p.key, p.firstRef, p.count])).toEqual(en.map((p) => [p.key, p.firstRef, p.count]));
+    expect(es[0].title).toBe("Los versos gemelos");
+    expect(en[0].title).toBe("The Twin-Verses");
+  });
+
+  it("keeps the English titles when the Spanish pages do not line up", async () => {
+    const english = JSON.parse(readFileSync("e2e/fixtures/library/scriptures_dhammapada.json", "utf8"));
+    const short = JSON.parse(readFileSync("e2e/fixtures/library/scriptures_dhammapada.es.json", "utf8"));
+    short.data.pages = short.data.pages.slice(1);
+    serve({ "/scriptures/dhammapada?lang=es": short });
+    const es = await fetchWorkPages(BASE, "dhammapada", "es");
+    expect(es.map((p) => p.title)).toEqual(english.data.pages.map((p: { title: string }) => p.title));
+  });
+
+  it("keeps the English address of a chapter of the Bible, with the Spanish book and part", async () => {
+    serve();
+    const pages = await fetchWorkPages(BASE, "bible", "es");
+    expect(pages).toHaveLength(1402);
+    const john = pages.find((p) => p.key === "john-3");
+    expect(john).toMatchObject({ readRef: "John 3", firstRef: "John 3:1", part: "Nuevo Testamento", book: { code: "John", name: "Juan" } });
+    expect(pages[0].part).toBe("Antiguo Testamento");
   });
 });
 

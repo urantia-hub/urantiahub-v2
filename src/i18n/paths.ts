@@ -30,6 +30,24 @@ export function shareHref(lang: Lang, ref: string): string {
   return `${lang === "es" ? "/es" : ""}/s/${refForLink(ref)}`;
 }
 
+// World texts, a work, or a page of a work. The slug and the page key are the same in both languages.
+export function textsHref(lang: Lang, slug?: string, key?: string): string {
+  const base = lang === "es" ? "/es/textos" : "/texts";
+  return [base, slug, key].filter(Boolean).join("/");
+}
+
+export function howHref(lang: Lang): string {
+  return lang === "es" ? "/es/textos/como-funciona" : "/texts/how-it-works";
+}
+
+// The page of World texts in the other language: the same work and page, and How it works by its own name.
+function textsTwin(path: string, from: Lang, to: Lang): string | null {
+  const found = (from === "es" ? /^\/es\/textos(\/.*)?$/ : /^\/texts(\/.*)?$/).exec(path);
+  if (!found) return null;
+  if (path === howHref(from)) return howHref(to);
+  return `${textsHref(to)}${found[1] ?? ""}`;
+}
+
 // The fixed pages and their Spanish twins: [English, Spanish].
 export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
   ["/you", "/es/tu"],
@@ -66,6 +84,8 @@ export function twinPath(pathname: string, to: Lang): string | null {
   if (share) return `${to === "es" ? "/es" : ""}${share[1]}${tail}`;
   if (path === (from === "es" ? "/es/buscar" : "/search")) return `${searchHref(to)}${tail}`;
   if (path === savedHref(from)) return `${savedHref(to)}${tail}`;
+  const texts = textsTwin(path, from, to);
+  if (texts) return `${texts}${tail}`;
   const row = PAGE_TWINS.find((twin) => twin[from === "en" ? 0 : 1] === path);
   if (row) return `${row[to === "en" ? 0 : 1]}${tail}`;
   if (path === homeHref(from)) return homeHref(to);

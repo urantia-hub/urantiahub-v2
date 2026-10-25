@@ -104,6 +104,20 @@ describe("handlePassageParallels", () => {
     ...over,
   });
 
+  it("answers the Papers in Spanish on a Spanish page, and marks the other works English", async () => {
+    const paragraph = vi.fn(async (paperId: string, ref: string) => (ref === "131:3.7" ? Promise.reject(new Error("down")) : `Texto ${paperId} ${ref}`));
+    const res = await handlePassageParallels("dhammapada", "Dhp 21", deps({ paragraph }), "es");
+    const body = await res.json();
+    const second = body.papers[1];
+    expect(second.text).toBe(`Texto 131 ${second.ref}`);
+    expect(second.source).toBe("Las religiones del mundo");
+    expect(second.href).toBe(`/es/documentos/documento-131-las-religiones-del-mundo#${second.ref}`);
+    expect(second.english).toBeUndefined();
+    // A paragraph that fails keeps its English text, marked English.
+    expect(body.papers[0]).toMatchObject({ ref: "131:3.7", english: true });
+    expect(body.outside.every((p: { english?: true }) => p.english)).toBe(true);
+  });
+
   it("answers both halves, and lets a shared cache keep them", async () => {
     const res = await handlePassageParallels("dhammapada", "Dhp 21", deps());
     expect(res.status).toBe(200);

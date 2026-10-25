@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Lang } from "@/i18n/lang";
 import { BIBLE, biblePages } from "@/library/bible";
 import { pageKey, pageReadRef, unitNumber } from "@/library/refs";
 import { ContentError } from "./fetchers";
@@ -134,11 +135,14 @@ const byline = (translator: string, year: number | null) => {
 // The API lists no source for the Bible: it is the World English Bible of eBible.org.
 const BIBLE_SOURCE = "https://ebible.org/find/details.php?id=eng-web";
 
+// The catalog in a language: the titles, traditions, summaries, and labels. The text of a work stays English.
+const langQuery = (lang: Lang) => (lang === "es" ? "?lang=es" : "");
+
 /** The works of the Library, in the order of `GET /works`: the Bible first. */
-export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
+export async function fetchLibrary(baseUrl: string, lang: Lang = "en"): Promise<LibraryWork[]> {
   const [works, corpora] = await Promise.all([
-    getJson(baseUrl, "/works", WorksSchema, "The Library"),
-    getJson(baseUrl, "/scriptures", CorporaSchema, "The Library"),
+    getJson(baseUrl, `/works${langQuery(lang)}`, WorksSchema, "The Library"),
+    getJson(baseUrl, `/scriptures${langQuery(lang)}`, CorporaSchema, "The Library"),
   ]);
   const bySlug = new Map(corpora.data.map((c) => [c.slug, c]));
   return works.data.flatMap((w): LibraryWork[] => {
@@ -148,7 +152,7 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
         {
           slug: BIBLE,
           corpusId: BIBLE,
-          title: w.title ?? "The Bible",
+          title: w.title ?? (lang === "es" ? "La Biblia" : "The Bible"),
           tradition: w.tradition,
           kind: "scripture",
           summary: w.summary ?? "",
@@ -157,8 +161,8 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
           byline: byline(translator, w.year ?? null),
           refPrefix: "",
           refLevels: 2,
-          divisionLabel: "book",
-          unitLabel: "verse",
+          divisionLabel: lang === "es" ? "libro" : "book",
+          unitLabel: lang === "es" ? "versículo" : "verse",
           units: w.units ?? null,
           urantiaSection: w.urantiaSection ?? null,
           sourceUrl: BIBLE_SOURCE,
@@ -190,10 +194,24 @@ export async function fetchLibrary(baseUrl: string): Promise<LibraryWork[]> {
   });
 }
 
-/** The reading pages of one work, in order. */
-export async function fetchWorkPages(baseUrl: string, slug: string): Promise<WorkPage[]> {
-  if (slug === BIBLE) return biblePages((await getJson(baseUrl, "/bible/books", BooksSchema, "The books of the Bible")).data);
-  const found = await getJson(baseUrl, `/scriptures/${encodeURIComponent(slug)}`, PagesSchema, `The pages of ${slug}`);
+/** The reading pages of one work, in order. A Spanish page keeps the English key and references, so the
+ * addresses are the same in both languages, and takes the Spanish title of the page at the same place. */
+export async function fetchWorkPages(baseUrl: string, slug: string, lang: Lang = "en"): Promise<WorkPage[]> {
+  if (slug === BIBLE) {
+    const books = (path: string) => getJson(baseUrl, path, BooksSchema, "The books of the Bible").then((found) => found.data);
+    if (lang === "en") return biblePages(await books("/bible/books"));
+    const [english, spanish] = await Promise.all([books("/bible/books"), books("/bible/books?lang=es")]);
+    return biblePages(english, spanish, lang);
+  }
+  const pages = (query: string) => getJson(baseUrl, `/scriptures/${encodeURIComponent(slug)}${query}`, PagesSchema, `The pages of ${slug}`);
+  if (lang === "en") return workPages(await pages(""));
+  const [english, spanish] = await Promise.all([pages(""), pages(langQuery(lang))]);
+  const titles = spanish.data.pages;
+  // A Spanish list that does not line up with the English one at a page gives that page its English title.
+  return workPages(english).map((p, i) => (titles[i]?.division === p.division && titles[i]?.subdivision === p.subdivision ? { ...p, title: titles[i].title } : p));
+}
+
+function workPages(found: z.infer<typeof PagesSchema>): WorkPage[] {
   return found.data.pages.map((p) => ({
     key: pageKey(p.division, p.subdivision),
     division: p.division,

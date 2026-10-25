@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
+import { howHref } from "@/i18n/paths";
 
 // The number of a parallel. A press, or the pointer over it, says what the number is.
 export function Score({ percent, lang = "en" }: { percent: number; lang?: Lang }) {
@@ -19,7 +20,7 @@ export function Score({ percent, lang = "en" }: { percent: number; lang?: Lang }
         // A press on the tip keeps the focus on the number, so the tip stays for its link.
         <span className="score-tip" role="status" onMouseDown={(e) => e.preventDefault()}>
           {t.scoreTip}{" "}
-          <Link href="/texts/how-it-works#number">{t.scoreLink}</Link>
+          <Link href={`${howHref(lang)}#number`}>{t.scoreLink}</Link>
         </span>
       )}
     </span>

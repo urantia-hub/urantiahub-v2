@@ -75,13 +75,14 @@ describe("ContentsView in Spanish", () => {
     expect(within(part).getByText(first.sponsorship!)).toBeInTheDocument();
   });
 
-  it("names the parts in Spanish, and Otras obras goes to the English World texts", () => {
+  it("names the parts in Spanish, and Textos del mundo goes to the Spanish World texts", () => {
     render(<ContentsView lang="es" libraryLinks />);
     const jump = screen.getByRole("navigation", { name: "Partes" });
-    expect(within(jump).getAllByRole("link").map((a) => a.textContent)).toEqual(["Parte I", "Parte II", "Parte III", "Parte IV", "Otras obras"]);
-    expect(within(jump).getByRole("link", { name: "Otras obras" })).toHaveAttribute("href", "/texts");
+    expect(within(jump).getAllByRole("link").map((a) => a.textContent)).toEqual(["Parte I", "Parte II", "Parte III", "Parte IV", "Textos del mundo"]);
+    expect(within(jump).getByRole("link", { name: "Textos del mundo" })).toHaveAttribute("href", "/es/textos");
+    expect(within(jump).getByRole("link", { name: "Textos del mundo" })).not.toHaveAttribute("hreflang");
     const beside = screen.getByRole("region", { name: "Junto a los Documentos" });
-    expect(within(beside).getByRole("heading", { level: 2, name: "Otras obras" })).toBeInTheDocument();
-    expect(within(beside).getByRole("link", { name: "Ver las otras obras" })).toHaveAttribute("href", "/texts");
+    expect(within(beside).getByRole("heading", { level: 2, name: "Textos del mundo" })).toBeInTheDocument();
+    expect(within(beside).getByRole("link", { name: "Ver los textos del mundo" })).toHaveAttribute("href", "/es/textos");
   });
 });

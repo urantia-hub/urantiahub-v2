@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { textsHref } from "@/i18n/paths";
+import { plural } from "@/library/labels";
 import type { BookRow } from "@/library/bible";
 import { useLeave } from "@/lib/use-leave";
 import { useMoreBelow } from "@/lib/use-more-below";
@@ -16,11 +20,14 @@ type Props = {
   unit: string;
   current: { book: string; chapter: number };
   onClose: () => void;
+  lang?: Lang;
 };
 
 // The books of a work (in their parts, for the Bible), and the pages of one book as numbers. It has the frame
 // of the chapters sheet. The list opens at the current book.
-export function BooksSheet({ work, books, label, unit, current, onClose }: Props) {
+export function BooksSheet({ work, books, label, unit, current, onClose, lang = "en" }: Props) {
+  const t = messages(lang).texts;
+  const word = t.unit(unit);
   const scroll = useMoreBelow<HTMLDivElement>();
   const box = scroll.ref;
   const { leaving, leave } = useLeave(onClose);
@@ -55,21 +62,21 @@ export function BooksSheet({ work, books, label, unit, current, onClose }: Props
     <>
       <div className="terms-scrim" data-leaving={leaving ? "" : undefined} onClick={leave} />
       <div className="terms-sheet chapters" role="dialog" aria-label={label} tabIndex={-1} data-leaving={leaving ? "" : undefined} {...scroll}>
-        <button type="button" className="terms-close" aria-label="Close the books" onClick={leave}>
+        <button type="button" className="terms-close" aria-label={t.closeBooks} onClick={leave}>
           <Icon name="close" />
         </button>
         {open ? (
           <>
             <button type="button" className="book-back" onClick={() => setOpen(null)}>
               <Icon name="paperBefore" />
-              All books
+              {t.allBooks}
             </button>
             <h2 className="terms-title">{open.name}</h2>
             {open.title && <p className="parallel-lead">{open.title}</p>}
             <ul className="chapter-grid">
               {open.numbers.map((n) => (
                 <li key={n}>
-                  <Link href={`/texts/${work.slug}/${open.base}${n}`} aria-current={open.code === current.book && n === current.chapter ? "page" : undefined} onClick={onClose}>
+                  <Link href={textsHref(lang, work.slug, `${open.base}${n}`)} aria-current={open.code === current.book && n === current.chapter ? "page" : undefined} onClick={onClose}>
                     {n}
                   </Link>
                 </li>
@@ -99,7 +106,7 @@ export function BooksSheet({ work, books, label, unit, current, onClose }: Props
                         >
                           <span className="t">{b.name}</span>{" "}
                           <small>
-                            {b.numbers.length} {b.numbers.length === 1 ? unit : `${unit}s`}
+                            {b.numbers.length} {b.numbers.length === 1 ? word : plural(word, lang)}
                           </small>
                         </button>
                       </li>
@@ -107,8 +114,8 @@ export function BooksSheet({ work, books, label, unit, current, onClose }: Props
                 </ul>
               </section>
             ))}
-            <Link className="parallel-more" href={`/texts/${work.slug}`} onClick={onClose}>
-              About this work
+            <Link className="parallel-more" href={textsHref(lang, work.slug)} onClick={onClose}>
+              {t.aboutWork}
             </Link>
           </>
         )}

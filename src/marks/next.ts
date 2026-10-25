@@ -2,6 +2,7 @@
 // takes. A streak mark counts each day left as one section a day of 5 minutes (Kelson, 2026-10-17).
 
 import { PARTS, paperById } from "@/content/paper-index";
+import { SHORT_NAMES_ES } from "@/library/header-back";
 import type { Lang } from "@/i18n/lang";
 import { BOOK } from "@/content/section-index";
 import { isTextPage, TEXT_WORKS } from "@/content/text-index";
@@ -15,7 +16,7 @@ const DAY_MINUTES = 5;
 const TOOL_MINUTES: Record<string, number> = { image: 2 };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-// The words of the lines in each language. A world text keeps its English title until the Hub has the catalog.
+// The words of the lines in each language. A world text goes by its title in English and by its short name in Spanish.
 const WORDS = {
   en: {
     tools: {
@@ -35,6 +36,7 @@ const WORDS = {
     works: (n: number) => `${plural(n, "work", "works")} left`,
     pagesLeft: (left: number, pages: number, unit: string) => `${left} of ${pages} ${unit.endsWith("s") ? unit : `${unit}s`} left`,
     paper: (id: string) => `Paper ${id}`,
+    work: (_slug: string, title: string) => title,
   },
   es: {
     tools: {
@@ -54,6 +56,7 @@ const WORDS = {
     works: (n: number) => `${n === 1 ? "Queda" : "Quedan"} ${plural(n, "obra", "obras")}`,
     pagesLeft: (left: number, pages: number, unit: string) => `${left === 1 ? "queda" : "quedan"} ${left} de ${pages} ${UNITS_ES[unit] ?? unit}`,
     paper: (id: string) => `Documento ${id}`,
+    work: (slug: string, title: string) => SHORT_NAMES_ES[slug] ?? title,
   },
 };
 const UNITS_ES: Record<string, string> = { book: "libros", chapter: "capítulos", collection: "colecciones", composition: "composiciones", hymn: "himnos", part: "partes", poem: "poemas", section: "secciones", surah: "suras", upanishad: "upanishads" };
@@ -79,13 +82,13 @@ function minutesLeft(rows: readonly Row[]): Map<string, { minutes: number; secti
 }
 
 // The world texts that the reader did not finish: the minutes and the pages left in each, the shortest first.
-type WorkLeft = { title: string; unit: string; pages: number; left: number; minutes: number };
+type WorkLeft = { slug: string; title: string; unit: string; pages: number; left: number; minutes: number };
 function worksLeft(texts: TextPages): { open: WorkLeft[]; finished: number } {
   const open: WorkLeft[] = [];
   for (const work of TEXT_WORKS) {
     const done = new Set((texts[work.slug] ?? []).filter((key) => isTextPage(work.slug, key)));
     const rest = work.pages.filter((page) => !done.has(page.key));
-    if (rest.length > 0) open.push({ title: work.title, unit: work.unit, pages: work.pages.length, left: rest.length, minutes: rest.reduce((n, page) => n + page.words / 100, 0) });
+    if (rest.length > 0) open.push({ slug: work.slug, title: work.title, unit: work.unit, pages: work.pages.length, left: rest.length, minutes: rest.reduce((n, page) => n + page.words / 100, 0) });
   }
   return { open: open.sort((a, b) => a.minutes - b.minutes), finished: TEXT_WORKS.length - open.length };
 }
@@ -104,7 +107,7 @@ function reachText(rule: { kind: "texts"; count: number | "all" }, texts: TextPa
   if (one) {
     // A work that the reader started names its pages left; a work of one page, or one not started, its time.
     const started = one.left < one.pages;
-    const line = started ? `${one.title} · ${w.pagesLeft(one.left, one.pages, one.unit)} · ${w.time(minutes)}` : `${one.title} · ${w.time(minutes)}`;
+    const line = started ? `${w.work(one.slug, one.title)} · ${w.pagesLeft(one.left, one.pages, one.unit)} · ${w.time(minutes)}` : `${w.work(one.slug, one.title)} · ${w.time(minutes)}`;
     return { minutes, line, progress: target === 1 ? (one.pages - one.left) / one.pages : finished / target };
   }
   return { minutes, line: `${w.works(chosen.length)} · ${w.time(minutes)}`, progress: finished / target };

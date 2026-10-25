@@ -1,29 +1,38 @@
 import Link from "next/link";
 import type { LibraryWork } from "@/content/library";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { howHref, textsHref } from "@/i18n/paths";
 
 // The two groups of the Library. The words of "Classics" are the docs' definition of `kind: classic`.
-const GROUPS = [
-  { kind: "scripture", id: "scriptures", name: "Scriptures", line: "Texts that their traditions read as sacred." },
-  { kind: "classic", id: "classics", name: "Classics", line: "Stories, histories, and teachings of a tradition that are not read as scripture." },
-] as const;
+const groups = (lang: Lang) => {
+  const t = messages(lang).texts;
+  return [
+    { kind: "scripture", id: "scriptures", name: t.scriptures, line: t.scripturesLine },
+    { kind: "classic", id: "classics", name: t.classics, line: t.classicsLine },
+  ] as const;
+};
 
 /** "Annie Besant (and Bhagavan Das)" reads as "Annie Besant": the line beside a title is short. */
 export const shortTranslator = (translator: string) => translator.replace(/\s*\(.*?\)/g, "");
 
-export const libraryLead = (works: readonly { slug: string }[]) =>
-  works.some((w) => w.slug === "bible")
-    ? `The Bible and ${works.length - 1} other texts of the world's religions, each in the US public domain.`
-    : `${works.length} texts of the world's religions, each in the US public domain.`;
+export const libraryLead = (works: readonly { slug: string }[], lang: Lang = "en") =>
+  messages(lang).texts.lead(
+    works.some((w) => w.slug === "bible"),
+    works.length,
+  );
 
-export function LibraryView({ works }: { works: LibraryWork[] }) {
+export function LibraryView({ works, lang = "en" }: { works: LibraryWork[]; lang?: Lang }) {
+  const t = messages(lang).texts;
+  const GROUPS = groups(lang);
   return (
     <div className="toc library">
-      <h1>World texts</h1>
-      <p className="lead">{libraryLead(works)}</p>
-      <Link className="how-link" href="/texts/how-it-works">
-        How these texts are chosen and compared
+      <h1>{t.title}</h1>
+      <p className="lead">{libraryLead(works, lang)}</p>
+      <Link className="how-link" href={howHref(lang)}>
+        {t.howLink}
       </Link>
-      <nav className="jump" aria-label="Groups">
+      <nav className="jump" aria-label={t.groupsLabel}>
         {GROUPS.map((g) => (
           <a key={g.id} href={`#${g.id}`}>
             {g.name}
@@ -39,7 +48,7 @@ export function LibraryView({ works }: { works: LibraryWork[] }) {
               .filter((w) => w.kind === g.kind)
               .map((w) => (
                 <li key={w.slug}>
-                  <Link href={`/texts/${w.slug}`}>
+                  <Link href={textsHref(lang, w.slug)}>
                     <span className="t">{w.title}</span>
                     <span className="m">
                       {w.tradition} · {w.byline}

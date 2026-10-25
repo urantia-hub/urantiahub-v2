@@ -19,10 +19,10 @@ test("the first page of a visit opens in Spanish, and a later English page stays
 
 test("a page with no Spanish twin stays, also after a reload", async ({ page, context }) => {
   await choose(context, "es");
-  await page.goto("/texts");
-  await expect(page).toHaveURL("/texts");
+  await page.goto("/privacy");
+  await expect(page).toHaveURL("/privacy");
   await page.reload();
-  await expect(page).toHaveURL("/texts");
+  await expect(page).toHaveURL("/privacy");
 });
 
 test("English is remembered too: the Spanish home opens in English", async ({ page, context }) => {

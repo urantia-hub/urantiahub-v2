@@ -1,4 +1,5 @@
 import raw from "./section-index.json";
+import titlesEs from "./section-titles.es.json";
 import { paperById } from "./paper-index";
 
 // Each section of the book, for the streak: its title, its count of paragraphs, and its count of words.
@@ -34,6 +35,12 @@ export const orderOf = (paperId: string, sectionId: string): number => place.get
 // The English title of each section of a paper, by its number. A Spanish page keeps the place in English.
 export function titlesOf(paperId: string): Record<string, string | null> {
   return Object.fromEntries((papers[paperId] ?? []).map(([id, title]) => [id, title]));
+}
+
+// The title of a section in a language, or null for the opening of a paper.
+export function sectionTitleIn(paperId: string, sectionId: string, lang: "en" | "es"): string | null {
+  if (lang === "en") return sectionAt(paperId, sectionId)?.title ?? null;
+  return (titlesEs.papers as Record<string, (string | null)[]>)[paperId]?.[Number(sectionId)] ?? null;
 }
 
 // Minutes at a study pace of 100 words a minute.

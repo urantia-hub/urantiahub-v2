@@ -27,6 +27,8 @@ describe("the eyebrow and the title of a page", () => {
   it("names a chapter of the Bible by its book and number, with its part of the Bible above", () => {
     const john = page({ key: "john-3", division: 58, subdivision: 3, firstRef: "John 3:1", lastRef: "John 3:1", count: 0, readRef: "John 3", part: "New Testament", book: { code: "John", name: "John", title: "The Gospel According to John" } });
     expect(pageLabels(work({ title: "The Bible (World English Bible)", refLevels: 2, divisionLabel: "book" }), john, [john])).toEqual({ eyebrow: "The Bible · New Testament", title: "John 3" });
+    const juan = { ...(john as object), part: "Nuevo Testamento", book: { code: "John", name: "Juan", title: "El Evangelio según Juan" } } as never;
+    expect(pageLabels(work({ title: "La Biblia (World English Bible)", refLevels: 2, divisionLabel: "libro" }), juan, [juan])).toEqual({ eyebrow: "La Biblia · Nuevo Testamento", title: "Juan 3" });
   });
 
   it("drops a part in brackets from the title of the work", () => {
@@ -40,6 +42,13 @@ describe("counts and rows", () => {
     expect(unitCount(12, "verse")).toBe("12 verses");
     expect(unitCount(1, "verse")).toBe("1 verse");
     expect(unitCount(88, "lines")).toBe("88 lines");
+  });
+
+  it("counts the units in Spanish", () => {
+    expect(unitCount(12, "versículo", "es")).toBe("12 versículos");
+    expect(unitCount(1, "sección", "es")).toBe("1 sección");
+    expect(unitCount(3, "sección", "es")).toBe("3 secciones");
+    expect(unitCount(88, "versos", "es")).toBe("88 versos");
   });
 
   it("gives a row of the chapters list a number only when its title is not the reference", () => {

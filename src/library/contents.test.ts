@@ -76,4 +76,13 @@ describe("workFacts", () => {
     const japji = work("japji", 1, "composition", "pauri", 40, "Japji");
     expect(workFacts(japji, { kind: "single" })).toEqual(["40 pauris"]);
   });
+
+  it("counts in Spanish, with the Spanish number style", () => {
+    const dhp = work("dhammapada", 1, "capítulo", "versículo", 414, "Dhp");
+    expect(workFacts(dhp, workContents(dhp, pagesOf("dhammapada"), "es"), "es")).toEqual(["26 capítulos", "414 versículos"]);
+    const b = work("bible", 2, "libro", "versículo", 38034);
+    expect(workFacts(b, workContents(b, bible(), "es"), "es")).toEqual(["81 libros", "38,034 versículos"]);
+    const contents = workContents(dhp, pagesOf("dhammapada"), "es");
+    expect(contents.kind === "list" && contents.rows[1].line).toBe("Versículos 21–32");
+  });
 });

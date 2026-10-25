@@ -13,6 +13,17 @@ describe("the books of the Bible", () => {
     expect(books.find((b) => b.code === "DanGr")).toEqual({ code: "DanGr", name: "Daniel (Greek)", title: expect.any(String), part: "Deuterocanon", base: "daniel-greek-", numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] });
     expect(books.map((b) => b.part).filter((p, i, all) => all.indexOf(p) === i)).toEqual(["Old Testament", "Deuterocanon", "New Testament"]);
   });
+
+  it("keeps the English address of each book in Spanish, under the Spanish name", () => {
+    const names = JSON.parse(readFileSync("e2e/fixtures/library/bible_books.es.json", "utf8")).data;
+    const spanish = biblePages(books, names, "es");
+    const rows = bibleBooks(spanish);
+    expect(rows.find((b) => b.code === "John")).toMatchObject({ name: "Juan", base: "john-" });
+    expect(rows.find((b) => b.code === "Gen")).toMatchObject({ name: "Génesis", base: "genesis-" });
+    // Each address of the books sheet is a page of the Bible.
+    const keys = new Set(spanish.map((p) => p.key));
+    for (const b of rows) for (const n of b.numbers) expect(keys.has(`${b.base}${n}`), `${b.base}${n}`).toBe(true);
+  });
 });
 
 describe("the pages of the Bible", () => {

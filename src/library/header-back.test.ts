@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { headerBack, SHORT_NAMES } from "./header-back";
+import { headerBack, SHORT_NAMES, SHORT_NAMES_ES } from "./header-back";
 
 describe("headerBack", () => {
   it("goes from a page of a work up to the work, by its short name", () => {
@@ -20,8 +20,17 @@ describe("headerBack", () => {
     for (const path of ["/texts", "/texts/", "/texts/quran/at/Quran%201.3", "/papers", "/", "/papers/paper-1-the-universal-father"]) expect(headerBack(path)).toBeNull();
   });
 
-  it("has a short name for each work that the API lists", () => {
+  it("has a short name for each work that the API lists, in each language", () => {
     const works: { id: string }[] = JSON.parse(readFileSync("e2e/fixtures/library/works.json", "utf8")).data;
     for (const w of works) expect(SHORT_NAMES[w.id], w.id).toBeTruthy();
+    for (const w of works) expect(SHORT_NAMES_ES[w.id], w.id).toBeTruthy();
+  });
+
+  it("goes up one step in Spanish, by the Spanish short name", () => {
+    expect(headerBack("/es/textos/quran/2")).toEqual({ href: "/es/textos/quran", label: "Corán" });
+    expect(headerBack("/es/textos/bible/john-3")).toEqual({ href: "/es/textos/bible", label: "Biblia" });
+    expect(headerBack("/es/textos/quran")).toEqual({ href: "/es/textos", label: "Textos del mundo" });
+    expect(headerBack("/es/textos/como-funciona")).toEqual({ href: "/es/textos", label: "Textos del mundo" });
+    for (const path of ["/es/textos", "/es/textos/quran/at/Quran%201.3", "/es/documentos"]) expect(headerBack(path)).toBeNull();
   });
 });

@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useLayoutEffect, useSyncExternalStore } from "react";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { textsHref } from "@/i18n/paths";
 import { readTextPlace, subscribeToTextPlaces } from "@/library/text-places";
 
 const none = () => null;
 
 // On the page of a work: the way back to the page that the reader read last, in this browser.
-export function WorkContinue({ slug, start }: { slug: string; start: string }) {
+export function WorkContinue({ slug, start, lang = "en" }: { slug: string; start: string; lang?: Lang }) {
+  const t = messages(lang).texts;
   const place = useSyncExternalStore(subscribeToTextPlaces, () => readTextPlace(slug), none);
   const key = place?.key ?? null;
 
@@ -30,9 +34,9 @@ export function WorkContinue({ slug, start }: { slug: string; start: string }) {
   if (!place) return <div className="work-continue-slot" />;
   return (
     <div className="work-continue-slot">
-      <Link className="work-continue" href={`/texts/${slug}/${place.key}`}>
+      <Link className="work-continue" href={textsHref(lang, slug, place.key)}>
         <span>
-          <small>Continue</small>
+          <small>{t.continue}</small>
           <strong>{place.title}</strong>
           {place.label && <em>{place.label}</em>}
         </span>
@@ -41,7 +45,7 @@ export function WorkContinue({ slug, start }: { slug: string; start: string }) {
         </span>
       </Link>
       <Link className="work-or-start" href={start}>
-        or start at the beginning
+        {t.orStart}
       </Link>
     </div>
   );

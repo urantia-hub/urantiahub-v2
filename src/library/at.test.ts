@@ -24,6 +24,11 @@ describe("the address of one passage in the Library", () => {
     expect(res.headers.get("location")).toBe("/texts/dhammapada/2#Dhp_25");
   });
 
+  it("stays in Spanish on a Spanish address", async () => {
+    expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 25", lang: "es" })).headers.get("location")).toBe("/es/textos/dhammapada/2#Dhp_25");
+    expect((await handleLibraryAt({ work: "japji", ref: "Japji 5", lang: "es" })).headers.get("location")).toBe("/es/textos/japji#Japji_5");
+  });
+
   it("lands on the first passage of a range, and on a passage that holds the number", async () => {
     expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 21-23" })).headers.get("location")).toBe("/texts/dhammapada/2#Dhp_21");
     expect((await handleLibraryAt({ work: "dhammapada", ref: "Dhp 26" })).headers.get("location")).toBe("/texts/dhammapada/2#Dhp_26-27");
