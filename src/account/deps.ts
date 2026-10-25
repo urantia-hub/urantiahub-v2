@@ -2,6 +2,7 @@ import "server-only";
 import { createAuthorizeUrl, exchangeCode, refreshTokens, revokeTokens } from "@urantia/auth/server";
 import { site } from "@/site";
 import { gateway } from "./gateway";
+import { LANG_KEY, parseLang } from "./reader-data";
 import type { Deps } from "./handlers";
 
 // UrantiaHub's own app on the accounts site. It is first-party, so a reader sees no permission screen.
@@ -24,4 +25,5 @@ export const deps: Deps = {
     await revokeTokens({ appId: APP_ID, refreshToken, ...endpoints });
   },
   profileName: gateway.profileName,
+  readerLang: async (accessToken) => parseLang((await gateway.preferences(accessToken))[LANG_KEY]),
 };

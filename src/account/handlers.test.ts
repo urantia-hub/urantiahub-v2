@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { AuthError } from "@urantia/auth/server";
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Refused } from "./call";
 import { cookieNames, type Deps, handleCallback, handleReader, handleSession, handleSignOut, handleStart, readerKey } from "./handlers";
 import { IN_COOKIE, PROBLEM_COOKIE, seal, type Session, unseal, writeStart } from "./session";
@@ -22,6 +22,7 @@ function deps(over: Partial<Deps> = {}): Deps {
     refresh: vi.fn(async () => ({ ...tokens, accessToken: "a2", refreshToken: "r2" })),
     revoke: vi.fn(async () => {}),
     profileName: vi.fn(async () => "Ana"),
+    readerLang: vi.fn(async () => null),
     ...over,
   };
 }
@@ -266,5 +267,45 @@ describe("a request to the API that never answers", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+// The sign-in returns in the language that the reader chose last: in this browser or in the account.
+describe("the language at a sign-in", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const at = (next: string, choice?: { lang: "en" | "es"; at: number }) => ({ [START_COOKIE]: writeStart({ state: "s1", codeVerifier: "v1", next, ...(choice ? { choice } : {}) }) });
+  const back = async (cookies: Record<string, string>, over: Partial<Deps>) =>
+    (await handleCallback(await request("/auth/callback?code=c1&state=s1", { cookies }), deps(over))).headers.get("location");
+
+  it("keeps the choice of this browser in the start", async () => {
+    const response = await handleStart(await request(`/api/auth/start?next=%2Fpapers&lang=es&at=20`), deps());
+    expect(decodeURIComponent(cookieOf(response, START_COOKIE)?.value ?? "")).toContain('"choice":{"lang":"es","at":20}');
+    const bad = await handleStart(await request(`/api/auth/start?next=%2Fpapers&lang=fr&at=20`), deps());
+    expect(decodeURIComponent(cookieOf(bad, START_COOKIE)?.value ?? "")).not.toContain("choice");
+  });
+
+  it("goes to the twin in the language of the account", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    expect(await back(at("/papers"), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/es/documentos`);
+  });
+
+  it("keeps the page when the account has no language, or does not answer", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    expect(await back(at("/papers"), { readerLang: async () => null })).toBe(`${ORIGIN}/papers`);
+    expect(await back(at("/papers"), { readerLang: async () => { throw new Error("down"); } })).toBe(`${ORIGIN}/papers`);
+  });
+
+  it("keeps the page for a page with no twin, and while Spanish is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    expect(await back(at("/texts"), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/texts`);
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+    expect(await back(at("/papers"), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/papers`);
+  });
+
+  // Kelson, 2026-10-24: the last choice wins. A choice in this browser after the one in the account stays.
+  it("keeps the newer choice of this browser over an older one of the account", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    expect(await back(at("/papers", { lang: "en", at: 20 }), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/papers`);
+    expect(await back(at("/papers", { lang: "en", at: 5 }), { readerLang: async () => ({ lang: "es", at: 10 }) })).toBe(`${ORIGIN}/es/documentos`);
   });
 });

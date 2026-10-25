@@ -3,7 +3,10 @@
 
 import type { Tokens } from "@urantia/auth/server";
 import { type NextRequest, NextResponse } from "next/server";
+import { spanishOn } from "@/i18n/lang";
+import { twinPath } from "@/i18n/paths";
 import { callForReader } from "./call";
+import { type LangChoice, newer, parseLang } from "./reader-data";
 import {
   IN_COOKIE,
   isFromThisSite,
@@ -29,6 +32,8 @@ export type Deps = {
   refresh(refreshToken: string): Promise<Tokens>;
   revoke(refreshToken: string): Promise<void>;
   profileName(accessToken: string): Promise<string | null>;
+  // The language in the account (`hub.lang`), or null.
+  readerLang(accessToken: string): Promise<LangChoice | null>;
 };
 
 const enabled = (deps: Deps) => deps.secret.length >= 32;
@@ -90,8 +95,10 @@ const toSession = (tokens: Tokens, name: string | null): Session => ({
 
 // GET /api/auth/start?next=<path>: to the sign-in page of the accounts site.
 export async function handleStart(request: NextRequest, deps: Deps): Promise<NextResponse> {
-  const next = safeNext(request.nextUrl.searchParams.get("next"));
+  const params = request.nextUrl.searchParams;
+  const next = safeNext(params.get("next"));
   if (!enabled(deps)) return redirect(deps, next);
+  const choice = parseLang({ lang: params.get("lang"), at: Number(params.get("at")) });
   let started: Awaited<ReturnType<Deps["authorize"]>>;
   try {
     started = await deps.authorize({ askAccount: request.cookies.get(cookieNames(deps.origin).ask)?.value === "1" });
@@ -99,7 +106,7 @@ export async function handleStart(request: NextRequest, deps: Deps): Promise<Nex
     return redirect(deps, next);
   }
   const response = NextResponse.redirect(started.url, { status: 307, headers: NO_STORE });
-  response.cookies.set(cookieNames(deps.origin).start, writeStart({ state: started.state, codeVerifier: started.codeVerifier, next }), cookie(deps, START_SECONDS));
+  response.cookies.set(cookieNames(deps.origin).start, writeStart({ state: started.state, codeVerifier: started.codeVerifier, next, ...(choice ? { choice } : {}) }), cookie(deps, START_SECONDS));
   return response;
 }
 
@@ -107,8 +114,8 @@ export async function handleStart(request: NextRequest, deps: Deps): Promise<Nex
 // keep the session, and send the reader back to the page where the sign-in started.
 export async function handleCallback(request: NextRequest, deps: Deps): Promise<NextResponse> {
   const start = readStart(request.cookies.get(cookieNames(deps.origin).start)?.value);
-  const back = (problem: boolean) => {
-    const response = redirect(deps, start?.next ?? "/");
+  const back = (problem: boolean, to: string = start?.next ?? "/") => {
+    const response = redirect(deps, to);
     response.cookies.set(cookieNames(deps.origin).start, "", cookie(deps, 0));
     if (problem) response.cookies.set(PROBLEM_COOKIE, "1", cookie(deps, 60, { httpOnly: false }));
     return response;
@@ -125,9 +132,11 @@ export async function handleCallback(request: NextRequest, deps: Deps): Promise<
   } catch {
     return back(true);
   }
-  // The name is for one row of the settings sheet. The sign-in does not wait on it.
-  const name = await deps.profileName(tokens.accessToken).catch(() => null);
-  const response = back(false);
+  // The name is for one row of the settings sheet, and the language for the page to return to. A
+  // failure of either one keeps the sign-in, and the page where it started.
+  const [name, account] = await Promise.all([deps.profileName(tokens.accessToken).catch(() => null), deps.readerLang(tokens.accessToken).catch(() => null)]);
+  const lang = spanishOn() ? newer(start.choice ?? null, account).value?.lang : undefined;
+  const response = back(false, (lang && twinPath(start.next, lang)) || start.next);
   await setSession(response, deps, toSession(tokens, name));
   // The reader signed in again, so the next sign-in can be silent.
   response.cookies.set(cookieNames(deps.origin).ask, "", cookie(deps, 0));

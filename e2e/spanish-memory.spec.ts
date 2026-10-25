@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { expect, test, type BrowserContext } from "@playwright/test";
 
 // The first page of a visit opens in the language that the reader chose last (Kelson, 2026-10-24).
@@ -45,4 +46,17 @@ test("English, then Spanish, then English: the next visit opens in English", asy
   await next.goto("/papers");
   await expect(next).toHaveURL("/papers");
   await expect(next.locator("html")).toHaveAttribute("lang", "en");
+});
+
+// The account holds the language that the reader chose on another device.
+test("a sign-in returns to the page in the language of the account", async ({ page, context }) => {
+  const STANDIN = "http://localhost:4010";
+  const id = randomUUID();
+  await context.addCookies([{ name: "e2e_reader", value: id, url: STANDIN }]);
+  await context.request.post(`${STANDIN}/__reader/${id}`, { data: { preferences: { "hub.lang": { lang: "es", at: 1 } } } });
+  await page.goto("/papers");
+  await page.getByRole("button", { name: "Account and settings" }).click();
+  await page.getByRole("dialog", { name: "Account and settings" }).getByRole("link", { name: /^Sign in/ }).click();
+  await page.waitForURL((url) => url.pathname === "/es/documentos");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("hub:lang"))).toBe("es");
 });
