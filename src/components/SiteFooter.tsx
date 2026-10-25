@@ -2,30 +2,28 @@ import Link from "next/link";
 import { CONTACT_EMAIL } from "@/content/contact";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
+import { pageHref } from "@/i18n/paths";
 
-// The pages of the footer are in English. On a Spanish page the words are Spanish, and each link says so.
+// Each link goes to the page in the language of the page. A page with no twin yet is English, and its link says so.
 export function SiteFooter({ lang = "en" }: { lang?: Lang }) {
   const t = messages(lang);
-  const hrefLang = lang === "en" ? undefined : "en";
+  const link = (en: string, name: string) => {
+    const href = pageHref(lang, en);
+    return (
+      <Link href={href} hrefLang={lang !== "en" && href === en ? "en" : undefined}>
+        {name}
+      </Link>
+    );
+  };
   return (
     <footer className="site-footer">
       <span>{t.footerLine}</span>
       <nav className="links" aria-label={t.footerNav}>
-        <Link href="/about" hrefLang={hrefLang}>
-          {t.about}
-        </Link>
-        <Link href="/resources" hrefLang={hrefLang}>
-          {t.resources}
-        </Link>
-        <Link href="/releases" hrefLang={hrefLang}>
-          {t.releases}
-        </Link>
-        <Link href="/privacy" hrefLang={hrefLang}>
-          {t.privacy}
-        </Link>
-        <Link href="/terms" hrefLang={hrefLang}>
-          {t.terms}
-        </Link>
+        {link("/about", t.about)}
+        {link("/resources", t.resources)}
+        {link("/releases", t.releases)}
+        {link("/privacy", t.privacy)}
+        {link("/terms", t.terms)}
         <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         <span>
           {t.forDevelopers} <a href="https://urantia.dev">urantia.dev</a>

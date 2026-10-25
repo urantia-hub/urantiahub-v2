@@ -5,7 +5,7 @@ import { ReadLink } from "@/components/home/ReadLink";
 import type { Passage } from "@/content";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
-import { contentsHref } from "@/i18n/paths";
+import { contentsHref, pageHref } from "@/i18n/paths";
 import { PLACE_INIT_SCRIPT } from "@/reader/place-script";
 import { JsonLd } from "@/seo/JsonLd";
 import { websiteJsonLd } from "@/seo/metadata";
@@ -26,7 +26,7 @@ export function HomeView({ lang, passages }: { lang: Lang; passages: Passage[] }
         <Link className="text-link all-papers" href={contentsHref(lang)}>
           {t.allPapers}
         </Link>
-        <Link className="text-link" href="/about" hrefLang={lang === "en" ? undefined : "en"}>
+        <Link className="text-link" href={pageHref(lang, "/about")}>
           {t.whatArePapers}
         </Link>
       </div>

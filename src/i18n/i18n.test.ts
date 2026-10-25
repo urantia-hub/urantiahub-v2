@@ -10,7 +10,11 @@ describe("the twin of a page", () => {
     expect(twinPath("/papers", "en")).toBe("/papers");
   });
   it("is null for a page with no twin", () => {
-    expect(twinPath("/about", "es")).toBeNull();
+    expect(twinPath("/progress", "es")).toBeNull();
+  });
+  it("names the twins of the pages about the site", () => {
+    expect(twinPath("/about", "es")).toBe("/es/acerca-de");
+    expect(twinPath("/es/acerca-de", "en")).toBe("/about");
   });
 });
 
