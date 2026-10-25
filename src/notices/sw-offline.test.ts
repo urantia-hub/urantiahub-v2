@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { messages } from "@/i18n/messages";
 
 // Runs the real worker file with a stand-in for the worker scope, a cache, and a network.
 function load(options: { kept: boolean; copies?: Record<string, string> }) {
@@ -110,5 +111,49 @@ describe("a device that keeps the papers", () => {
     expect(await worker.ask("/api/auth/start", "navigate")).toBe("browser");
     expect(await worker.ask("/papers/foreword", "navigate", "POST")).toBe("browser");
     expect(await worker.ask("/papers/foreword?_rsc=1", "cors")).toBe("browser");
+  });
+});
+
+describe("the page of a missing copy", () => {
+  const offlineText = async (path: string) => {
+    const worker = load({ kept: true });
+    worker.net.down = true;
+    return ((await worker.ask(path)) as { text: string }).text;
+  };
+
+  it.each([
+    ["/es", "offlinePageMissing"],
+    ["/es/documentos/documento-1-el-padre-universal", "offlinePaperMissing"],
+    ["/es/s/1.0.1", "offlinePageMissing"],
+    ["/es/buscar", "offlinePageMissing"],
+  ] as const)("speaks Spanish for %s", async (path, line) => {
+    const t = messages("es");
+    const text = await offlineText(path);
+    expect(text).toContain('<html lang="es">');
+    expect(text).toContain(`<h1>${t.offlineTitle}</h1>`);
+    expect(text).toContain(`<p>${t[line]}</p>`);
+    expect(text).toContain(`<a href="/es/documentos">${t.allPapers}</a>`);
+  });
+
+  it.each([
+    ["/", "offlinePageMissing"],
+    ["/search", "offlinePageMissing"],
+    ["/papers/paper-1-the-universal-father", "offlinePaperMissing"],
+    ["/espanol", "offlinePageMissing"],
+  ] as const)("speaks English for %s", async (path, line) => {
+    const t = messages("en");
+    const text = await offlineText(path);
+    expect(text).toContain('<html lang="en">');
+    expect(text).toContain(`<h1>${t.offlineTitle}</h1>`);
+    expect(text).toContain(`<p>${t[line]}</p>`);
+    expect(text).toContain(`<a href="/papers">${t.allPapers}</a>`);
+  });
+
+  it("writes the words of the messages, because the worker cannot import them", () => {
+    const file = readFileSync("public/sw.js", "utf8");
+    for (const lang of ["en", "es"] as const) {
+      const t = messages(lang);
+      for (const words of [t.offlineTitle, t.offlinePaperMissing, t.offlinePageMissing, t.allPapers]) expect(file).toContain(JSON.stringify(words));
+    }
   });
 });

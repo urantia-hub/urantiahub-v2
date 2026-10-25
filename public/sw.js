@@ -17,9 +17,18 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "offline") event.waitUntil(look());
 });
 
-// The page for an address that is not on the device. It takes the theme of the reader.
-function missing(paper) {
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>No connection</title><style>html{background:#fbf8f2;color:#26221c}html[data-theme=dark]{background:#17150f;color:#e6dfd0}body{margin:0;padding:18vh 24px 0;font:17px/1.6 system-ui,sans-serif;text-align:center}h1{font:500 26px/1.2 Georgia,serif;margin:0 0 10px}p{margin:0 0 22px;opacity:.75}a{display:inline-block;padding:11px 20px;border-radius:999px;background:#26221c;color:#fbf8f2;text-decoration:none;font-weight:500;font-size:15px}html[data-theme=dark] a{background:#e6dfd0;color:#17150f}</style><script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script></head><body><h1>No connection</h1><p>${paper ? "This paper is not on this device." : "This page is not on this device."}</p><a href="/papers">All papers</a></body></html>`;
+// The words of src/i18n/messages, which a worker cannot import. A test holds them equal.
+const WORDS = {
+  en: { title: "No connection", paper: "This paper is not on this device.", page: "This page is not on this device.", all: "All papers", contents: "/papers" },
+  es: { title: "Sin conexión", paper: "Este documento no está en este dispositivo.", page: "Esta página no está en este dispositivo.", all: "Todos los documentos", contents: "/es/documentos" },
+};
+
+// The page for an address that is not on the device, in the language of the address. It takes the theme of the reader.
+function missing(path) {
+  const lang = path === "/es" || path.startsWith("/es/") ? "es" : "en";
+  const paper = path.startsWith("/papers/") || path.startsWith("/es/documentos/");
+  const w = WORDS[lang];
+  const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${w.title}</title><style>html{background:#fbf8f2;color:#26221c}html[data-theme=dark]{background:#17150f;color:#e6dfd0}body{margin:0;padding:18vh 24px 0;font:17px/1.6 system-ui,sans-serif;text-align:center}h1{font:500 26px/1.2 Georgia,serif;margin:0 0 10px}p{margin:0 0 22px;opacity:.75}a{display:inline-block;padding:11px 20px;border-radius:999px;background:#26221c;color:#fbf8f2;text-decoration:none;font-weight:500;font-size:15px}html[data-theme=dark] a{background:#e6dfd0;color:#17150f}</style><script>try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script></head><body><h1>${w.title}</h1><p>${paper ? w.paper : w.page}</p><a href="${w.contents}">${w.all}</a></body></html>`;
   return new Response(html, { status: 503, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }
 
@@ -34,7 +43,7 @@ async function page(event) {
     if (copy && response.ok && !response.redirected && response.type === "basic") event.waitUntil(cache.put(path, response.clone()).catch(() => undefined));
     return response;
   });
-  if (!copy) return fromNetwork.catch(() => missing(path.startsWith("/papers/")));
+  if (!copy) return fromNetwork.catch(() => missing(path));
   const slow = new Promise((resolve) => setTimeout(() => resolve(copy), 5000));
   return Promise.race([fromNetwork.catch(() => copy), slow]);
 }
