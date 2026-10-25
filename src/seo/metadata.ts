@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { PaperEntry } from "@/content/paper-index";
 import { type Lang, spanishOn } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
-import { contentsHref, homeHref, paperHref } from "@/i18n/paths";
+import { contentsHref, homeHref, pageHref, paperHref } from "@/i18n/paths";
 import { absoluteUrl, site } from "@/site";
 
 // A page description from exact text: one line, cut at a word.
@@ -54,6 +54,14 @@ export function pageMetadata({
     openGraph: { title, description, url, siteName: site.name, type, locale: lang === "es" ? "es_LA" : "en_US", ...images },
     twitter: { card: "summary_large_image", title, description, ...images },
   };
+}
+
+// A reader's own page: out of each search engine, at each index setting. The two twins name each other
+// while Spanish is on, so the first page of a visit opens in the reader's language. `en`: the English path.
+export function ownPageMetadata(title: string, en: string): Metadata {
+  const robots = { index: false, follow: false };
+  if (!spanishOn()) return { title, robots };
+  return { title, robots, alternates: { languages: { en: absoluteUrl(en), es: absoluteUrl(pageHref("es", en)) } } };
 }
 
 export function paperHeadline(paper: { id: string; title: string }, lang: Lang = "en"): string {

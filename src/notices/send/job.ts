@@ -5,6 +5,7 @@ import { paperById, paperPath, referenceHref } from "@/content/paper-index";
 import { type Device, type Due, dueNotices, passageFor, type Reader } from "@/notices/due";
 import { releaseDate } from "@/content/releases";
 import type { Lang } from "@/i18n/lang";
+import { pageHref } from "@/i18n/paths";
 import { messages } from "@/i18n/messages";
 import { dailyMail, type Mail, opening, type ReleasePictures, releaseMail, reminderMail } from "./mail";
 
@@ -34,7 +35,8 @@ export type JobDeps = {
   sendPush(device: Device, push: Push): Promise<"ok" | "gone" | "failed">;
   readerKey(userId: string): Promise<string>;
   // An email kind: the streak has no email.
-  offUrl(userId: string, kind: MailKind): string;
+  // `lang`: the language of the reader, so the link opens the page in that language.
+  offUrl(userId: string, kind: MailKind, lang?: Lang): string;
   offPost(userId: string, kind: MailKind): string;
 };
 
@@ -70,7 +72,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
     if (!passages.has(key)) passages.set(key, deps.passage(ref, lang).catch(() => null));
     return passages.get(key) as Promise<Passage | null>;
   };
-  const settingsUrl = `${deps.origin}/notifications`;
+  const settingsUrl = (lang: Lang) => `${deps.origin}${pageHref(lang, "/notifications")}`;
   // A streak notice is a push only, so it has no mail.
   async function content(notice: Due): Promise<{ mail: Mail | null; push: Omit<Push, "for"> } | null> {
     // A push only: the text is made with the rules of the streak, in `dueNotices`.
@@ -82,7 +84,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
     const { lang } = notice;
     const t = messages(lang).mail;
     // The off page and the settings page are English until they have Spanish twins.
-    const links = { offUrl: deps.offUrl(notice.userId, notice.kind), settingsUrl };
+    const links = { offUrl: deps.offUrl(notice.userId, notice.kind, notice.lang), settingsUrl: settingsUrl(notice.lang) };
     if (notice.kind === "daily") {
       const passage = await passageOf(notice.key, lang);
       if (!passage || !paperById(passage.paperId, lang)) return null;
@@ -128,7 +130,7 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
       continue;
     }
     if (notice.channel === "email") {
-      if (notice.email && made.mail && notice.kind !== "streak") mails.push({ notice, mail: { ...made.mail, to: notice.email, offUrl: deps.offUrl(notice.userId, notice.kind), offPost: deps.offPost(notice.userId, notice.kind) } });
+      if (notice.email && made.mail && notice.kind !== "streak") mails.push({ notice, mail: { ...made.mail, to: notice.email, offUrl: deps.offUrl(notice.userId, notice.kind, notice.lang), offPost: deps.offPost(notice.userId, notice.kind) } });
       continue;
     }
     // Each push names its reader. The worker of the device shows it only for that reader.
@@ -158,9 +160,9 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
 // before any reader gets one. It claims nothing, so it changes nothing for a reader.
 // `lang`: the language of the emails. A Spanish sample has a release only when the release has Spanish words.
 export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage" | "sendMails" | "offUrl" | "offPost">, to: string, userId: string, longRef: string, sample: News | null = null, lang: Lang = "en"): Promise<{ mails: number; sent: number }> {
-  const settingsUrl = `${deps.origin}/notifications`;
-  const links = (kind: MailKind) => ({ offUrl: deps.offUrl(userId, kind), settingsUrl });
-  const out = (mail: Mail, kind: MailKind): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind), offPost: deps.offPost(userId, kind) });
+  const settingsUrl = `${deps.origin}${pageHref(lang, "/notifications")}`;
+  const links = (kind: MailKind) => ({ offUrl: deps.offUrl(userId, kind, lang), settingsUrl });
+  const out = (mail: Mail, kind: MailKind): OutMail => ({ ...mail, to, offUrl: deps.offUrl(userId, kind, lang), offPost: deps.offPost(userId, kind) });
   const mails: OutMail[] = [];
   // The passage of today, and the longest passage of the list, so a long text can be judged.
   for (const ref of [passageFor(deps.now.toISOString().slice(0, 10)), longRef]) {

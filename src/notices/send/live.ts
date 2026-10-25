@@ -5,6 +5,8 @@ import { readerKey } from "@/account/handlers";
 import { getPassage } from "@/content";
 import { releaseToNotify } from "@/content/releases";
 import type { Device, Reader } from "@/notices/due";
+import type { Lang } from "@/i18n/lang";
+import { pageHref } from "@/i18n/paths";
 import { site } from "@/site";
 import type { Claim, JobDeps, MailKind, OutMail, Push } from "./job";
 import { offToken } from "./token";
@@ -49,9 +51,9 @@ async function api(method: string, path: string, body?: unknown): Promise<unknow
 export const turnOff = (userId: string, kind: string): Promise<unknown> => api("POST", "/off", { userId, kind });
 
 // The list in the header of a mail program, and the link in the email.
-export const offLinks = (secret: string, userId: string, kind: MailKind) => {
+export const offLinks = (secret: string, userId: string, kind: MailKind, lang: Lang = "en") => {
   const token = offToken(secret, userId, kind);
-  return { page: `${site.origin}/emails?off=${token}`, post: `${site.origin}/api/notices/off?token=${token}` };
+  return { page: `${site.origin}${pageHref(lang, "/emails")}?off=${token}`, post: `${site.origin}/api/notices/off?token=${token}` };
 };
 
 async function sendMails(mails: OutMail[]): Promise<boolean[]> {
@@ -125,7 +127,7 @@ export function liveDeps(now: Date = new Date()): JobDeps {
     sendMails,
     sendPush,
     readerKey: (userId) => readerKey(secret, userId),
-    offUrl: (userId, kind) => offLinks(secret, userId, kind).page,
+    offUrl: (userId, kind, lang) => offLinks(secret, userId, kind, lang).page,
     offPost: (userId, kind) => offLinks(secret, userId, kind).post,
   };
 }
