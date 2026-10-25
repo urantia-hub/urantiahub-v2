@@ -7,12 +7,11 @@ import type { StreakCard } from "@/account/streak-data";
 import { Icon } from "@/components/icons";
 import { MarksCard } from "@/components/marks/MarksCard";
 import { StreakShell } from "@/components/you/YouShell";
-import type { Lang } from "@/i18n/lang";
+import { type Lang, numberIn } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { changeStreakSettings, loadStreak, openStreakQuestion, serverStreakView, streakView, streaksOn, subscribeToStreak } from "@/streak/client";
 
 const weekday = (day: string, letters: string) => letters[new Date(`${day}T12:00:00Z`).getUTCDay()];
-const numberIn = (lang: Lang) => (n: number) => n.toLocaleString(lang === "es" ? "es-ES" : "en-US");
 
 type On = Extract<StreakCard, { on: true }>;
 

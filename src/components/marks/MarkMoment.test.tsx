@@ -84,7 +84,7 @@ describe("the marks card", () => {
     fireEvent.click(screen.getByRole("button", { name: "See all 35 marks" }));
     expect(all).toBeVisible();
     expect(screen.getAllByText("✓ earned")).toHaveLength(2);
-    expect(screen.getByText("a year of days")).toBeInTheDocument();
+    expect(screen.getByText("a year")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show less" }));
     expect(all).not.toBeVisible();
   });
@@ -117,5 +117,14 @@ describe("the marks card", () => {
     expect(await screen.findByRole("dialog", { name: "Una marca nueva: 1 documento" })).toBeInTheDocument();
     expect(screen.getByText("Cerca de 1 hora de lectura.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument();
+  });
+
+  it("says a year of days in a row one time, in both languages", async () => {
+    state.moments = ["streak-365"];
+    const { unmount } = render(<MarkMoment />);
+    expect(await screen.findByText("A year of days in a row.")).toBeInTheDocument();
+    unmount();
+    render(<MarkMoment lang="es" />);
+    expect(await screen.findByText("Un año de días seguidos.")).toBeInTheDocument();
   });
 });

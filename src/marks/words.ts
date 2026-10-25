@@ -28,7 +28,7 @@ const EFFORTS_ES: Record<string, string> = {
   "every page of one work": "cada página de una obra",
   "a month": "un mes",
   "3 months": "3 meses",
-  "a year of days": "un año de días",
+  "a year": "un año",
 };
 
 const TIERS_ES: Record<Tier, { name: string; line: string }> = {

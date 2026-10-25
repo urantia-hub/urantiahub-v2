@@ -61,7 +61,7 @@ export const MARKS: readonly Mark[] = [
   streak(100, 3, "3 months"),
   texts(10, 3, "w10", "10 world texts", "from about 18 hours"),
   { id: "book", tier: 4, symbol: "197", name: "The whole book", effort: "all 197 papers · about 181 hours", rule: { kind: "papers", count: 197 } },
-  streak(365, 4, "a year of days"),
+  streak(365, 4, "a year"),
   { id: "texts-all", tier: 4, symbol: "w22", name: "Every world text", effort: "all 22, the Bible too · about 356 hours", rule: { kind: "texts", count: "all" } },
 ];
 

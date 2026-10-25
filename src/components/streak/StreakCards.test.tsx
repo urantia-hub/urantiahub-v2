@@ -59,7 +59,7 @@ describe("the streak card", () => {
     expect(screen.getByText("récord 31")).toBeInTheDocument();
     expect([...container.querySelectorAll(".streak-week li")].map((li) => li.textContent)).toEqual(["D", "L", "M", "X", "J", "V", "S"]);
     expect(container.querySelector(".streak-facts")).toHaveTextContent("El día de gracia vuelve en 3 días · 1 sección al día");
-    expect(container.querySelector(".streak-book")).toHaveTextContent("El libro completo · 1412 de 1626 secciones");
+    expect(container.querySelector(".streak-book")).toHaveTextContent("El libro completo · 1,412 de 1,626 secciones");
     expect(screen.getByRole("link", { name: "Leer" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Desactivar la racha" })).toBeInTheDocument();
   });

@@ -60,7 +60,7 @@ describe("the Progress page", () => {
     state.answer = { counts: { "2": 10 } };
     render(<ProgressView lang="es" />);
     const total = PAPERS.reduce((n, paper) => n + paper.paragraphs, 0);
-    expect(await screen.findByText(`10 de ${total.toLocaleString("es-ES")} párrafos`)).toBeInTheDocument();
+    expect(await screen.findByText(`10 de ${total.toLocaleString("es-MX")} párrafos`)).toBeInTheDocument();
     expect(screen.getByText("sin empezar").previousSibling).toHaveTextContent("196");
     const next = screen.getByRole("region", { name: "Continuar" });
     expect(within(next).getByRole("link", { name: /La naturaleza de Dios/ }).getAttribute("href")).toMatch(/^\/es\/documentos\/documento-2-/);

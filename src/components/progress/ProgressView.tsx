@@ -8,7 +8,7 @@ import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
 import { ProgressShell } from "@/components/you/YouShell";
 import { paperPath, referenceHref } from "@/content/paper-index";
-import type { Lang } from "@/i18n/lang";
+import { type Lang, numberIn } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { contentsHref } from "@/i18n/paths";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
@@ -77,7 +77,6 @@ function Ring({ percent }: { percent: number }) {
   );
 }
 
-export const numberIn = (lang: Lang) => (n: number) => n.toLocaleString(lang === "es" ? "es-ES" : "en-US");
 
 function Shown({ summary, place, lang }: { summary: Summary; place: { paperId: string; sectionId: string } | null; lang: Lang }) {
   const all = messages(lang);

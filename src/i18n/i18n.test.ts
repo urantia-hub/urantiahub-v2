@@ -93,6 +93,14 @@ describe("messages", () => {
   it("has the same keys in Spanish as in English", () => {
     expect(Object.keys(messages("es")).sort()).toEqual(Object.keys(messages("en")).sort());
   });
+  it("words the Spanish notices and streak question as a reader expects", () => {
+    const es = messages("es");
+    expect(es.notices.lead).toContain("hasta que elijas");
+    expect(es.notices.dailyAt).not.toMatch(/a las$/);
+    expect(es.notices.streakAt).not.toMatch(/a las$/);
+    expect(es.streak.askTitle).toBe("¿Quieres llevar una racha?");
+    expect(es.streak.yes).toBe("Sí, quiero llevar una racha");
+  });
   it("words the eyebrow of a paper", () => {
     expect(messages("es").paperEyebrow("I", 1)).toBe("Parte I · Documento 1");
   });
@@ -109,6 +117,12 @@ describe("the language of a request", () => {
 
 describe("lang", () => {
   afterEach(() => vi.unstubAllEnvs());
+  it("writes a Spanish number in one style on each page", async () => {
+    const { numberIn } = await import("./lang");
+    expect(numberIn("es")(14597)).toBe("14,597");
+    expect(numberIn("es")(1412)).toBe("1,412");
+    expect(numberIn("en")(1412)).toBe("1,412");
+  });
   it("names the language as the API does", () => {
     expect(apiLang("en")).toBe("eng");
     expect(apiLang("es")).toBe("es");
