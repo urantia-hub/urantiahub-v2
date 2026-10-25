@@ -592,6 +592,12 @@ export const en = {
     source: "The text on this site comes from",
     sourceAfter: ", an open API for the Papers.",
   },
+  resourcesPage: {
+    metaTitle: "Resources",
+    metaDescription: "Places to study the Urantia Papers and to meet other readers: tools, organizations, study aids, audio and video, and communities.",
+    title: "Resources",
+    lead: "Places to study the Urantia Papers and to meet other readers. UrantiaHub runs only the first group.",
+  },
   mail: {
     dailyLabel: "Your passage for today",
     dailySubject: (ref: string) => `Your passage for today · ${ref}`,

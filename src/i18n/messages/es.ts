@@ -594,6 +594,12 @@ export const es: Messages = {
     source: "El texto de este sitio viene de",
     sourceAfter: ", una API abierta de los Documentos. La traducción al español es automática.",
   },
+  resourcesPage: {
+    metaTitle: "Recursos",
+    metaDescription: "Lugares para estudiar los Documentos de Urantia y para conocer a otros lectores: herramientas, organizaciones, ayudas de estudio, audio y video, y comunidades.",
+    title: "Recursos",
+    lead: "Lugares para estudiar los Documentos de Urantia y para conocer a otros lectores. UrantiaHub gestiona solo el primer grupo. La mayoría de estos sitios están en inglés.",
+  },
   mail: {
     dailyLabel: "Tu pasaje de hoy",
     dailySubject: (ref: string) => `Tu pasaje de hoy · ${ref}`,
