@@ -95,7 +95,7 @@ export function dueNotices(reader: Reader, now: Date, news: { date: string } | n
   }
   // The streak goes as a push only, at its own hour, outside the window of the day.
   if (reader.settings?.push?.streak && reader.devices.length > 0) {
-    const streak = streakNotice({ streak: reader.streak, sectionDays: reader.sectionDays ?? [], lastSection: reader.lastSection ?? null }, now);
+    const streak = streakNotice({ streak: reader.streak, sectionDays: reader.sectionDays ?? [], lastSection: reader.lastSection ?? null }, now, lang);
     if (streak) due.push({ userId: reader.userId, kind: "streak", channel: "push", key: streak.key, email: null, devices: reader.devices, place: null, lang, streak });
   }
   return due;

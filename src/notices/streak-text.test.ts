@@ -68,4 +68,14 @@ describe("the streak push", () => {
     const late = streakNotice(reader({ streak: settings({ hour: 1 }) }), new Date("2026-10-21T06:00:00Z"));
     expect(late?.key).toBe(TODAY);
   });
+
+  it("speaks Spanish to a Spanish reader, with the Spanish title and link", () => {
+    const notice = streakNotice(reader(), NOW, "es");
+    expect(notice?.title).toBe("Mantén tu racha de 12 días 🔥");
+    expect(notice?.body).toMatch(/^Escucha “[^”]+” antes de dormir · unos 7 minutos$/);
+    expect(notice?.body).not.toContain("God’s Limitlessness");
+    expect(notice?.path).toMatch(/^\/es\/documentos\/documento-3-[^#]+#3:4$/);
+    expect(streakNotice(reader({ sectionDays: days("xxxxxxxxxxxx..") }), NOW, "es")?.title).toBe("Tu racha de 12 días terminó");
+    expect(streakNotice(reader({ sectionDays: days("xxxx...") }), NOW, "es")?.title).toBe("Empieza una racha nueva esta noche");
+  });
 });

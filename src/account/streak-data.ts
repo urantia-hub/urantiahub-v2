@@ -152,7 +152,7 @@ function hrefOf(entry: SectionEntry, lang: Lang): string {
 const TITLES_ES = titlesEs.papers as Record<string, (string | null)[]>;
 
 // The title of a section and of its paper in a language. A section with no title is the opening of its paper.
-function labelIn(entry: SectionEntry, lang: Lang): { title: string; paper: string } {
+export function labelIn(entry: SectionEntry, lang: Lang): { title: string; paper: string } {
   if (lang === "en") return sectionLabel(entry);
   const paper = paperById(entry.paperId, "es")?.title ?? "";
   const title = TITLES_ES[entry.paperId]?.[Number(entry.id)] ?? null;

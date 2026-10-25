@@ -2,8 +2,9 @@
 // Each text names the streak and the next section by its title (spec §3.6, mock screen 2).
 
 import { paperPath } from "@/content/paper-index";
-import { BOOK, minutesOf, nextAfter, type SectionEntry, sectionLabel } from "@/content/section-index";
-import { parseStreak } from "@/account/streak-data";
+import { BOOK, minutesOf, nextAfter, type SectionEntry } from "@/content/section-index";
+import { labelIn, parseStreak } from "@/account/streak-data";
+import type { Lang } from "@/i18n/lang";
 import { anchorFor } from "@/lib/paper-url";
 import { addDays, computeStreak, goalOn, readingDay } from "@/streak/rules";
 
@@ -21,9 +22,41 @@ function hourIn(now: Date, zone: string): number {
     return read("UTC");
   }
 }
+const days = (n: number, lang: Lang) => (lang === "es" ? `${n} ${n === 1 ? "día" : "días"}` : `${n}-day`);
+// The words of the push in each language. `from`: the first section of a run of more than one.
+const WORDS = {
+  en: {
+    sections: (n: number) => `${n} sections`,
+    time: (minutes: number) => `about ${minutes} minutes`,
+    from: (what: string, name: string) => `${what} from ${name}`,
+    graceTitle: (n: number) => `Your grace day saved your ${days(n, "en")} streak`,
+    graceBody: (next: string) => `Miss one more day and it ends. Next: ${next}`,
+    keepTitle: (n: number) => `Keep your ${days(n, "en")} streak 🔥`,
+    keepBody: (what: string, from: string) => `Listen to ${what} before you sleep${from ? `, from ${from}` : ""}`,
+    endedTitle: (n: number) => `Your ${days(n, "en")} streak ended`,
+    endedBody: (next: string) => `Start a new one tonight with ${next}`,
+    newTitle: "Start a new streak tonight",
+    newBody: (one: boolean, next: string) => (one ? `${next} is next` : `${next} are next`),
+  },
+  es: {
+    sections: (n: number) => `${n} secciones`,
+    time: (minutes: number) => `unos ${minutes} minutos`,
+    from: (what: string, name: string) => `${what} desde ${name}`,
+    graceTitle: (n: number) => `Tu día de gracia salvó tu racha de ${days(n, "es")}`,
+    graceBody: (next: string) => `Un día más sin leer y termina. Siguiente: ${next}`,
+    keepTitle: (n: number) => `Mantén tu racha de ${days(n, "es")} 🔥`,
+    keepBody: (what: string, from: string) => `Escucha ${what} antes de dormir${from ? `, desde ${from}` : ""}`,
+    endedTitle: (n: number) => `Tu racha de ${days(n, "es")} terminó`,
+    endedBody: (next: string) => `Empieza una nueva esta noche con ${next}`,
+    newTitle: "Empieza una racha nueva esta noche",
+    newBody: (one: boolean, next: string) => (one ? `${next} es la siguiente` : `${next} son las siguientes`),
+  },
+};
 const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
 
-export function streakNotice(reader: StreakReader, now: Date): StreakPush | null {
+// `lang`: the language of the reader. The section is named by its title in that language.
+export function streakNotice(reader: StreakReader, now: Date, lang: Lang = "en"): StreakPush | null {
+  const w = WORDS[lang];
   const settings = parseStreak(reader.streak);
   if (!settings?.on) return null;
   if (hourIn(now, settings.zone) !== settings.hour) return null;
@@ -45,15 +78,15 @@ export function streakNotice(reader: StreakReader, now: Date): StreakPush | null
   const run: SectionEntry[] = [first];
   while (run.length < left) run.push(nextAfter(run.at(-1)!.paperId, run.at(-1)!.id));
   const minutes = run.reduce((sum, entry) => sum + minutesOf(entry.words), 0);
-  const name = `“${sectionLabel(first).title}”`;
-  const what = left === 1 ? name : `${left} sections`;
-  const time = `about ${minutes} minutes`;
-  const path = `${paperPath(first.paperId)}${anchorFor({ paperId: first.paperId, sectionId: first.id })}`;
+  const name = `“${labelIn(first, lang).title}”`;
+  const what = left === 1 ? name : w.sections(left);
+  const next = left === 1 ? name : w.from(what, name);
+  const time = w.time(minutes);
+  const path = `${paperPath(first.paperId, lang)}${anchorFor({ paperId: first.paperId, sectionId: first.id })}`;
 
   const text = (title: string, body: string) => ({ key: today, title, body: `${body} · ${time}`, path });
-  if (state.current > 0 && state.graceUsedOn === yesterday)
-    return text(`Your grace day saved your ${state.current}-day streak`, `Miss one more day and it ends. Next: ${left === 1 ? name : `${what} from ${name}`}`);
-  if (state.current > 0) return text(`Keep your ${state.current}-day streak 🔥`, `Listen to ${what} before you sleep${left === 1 ? "" : `, from ${name}`}`);
-  if (state.endedOn === yesterday) return text(`Your ${state.endedLength}-day streak ended`, `Start a new one tonight with ${left === 1 ? name : `${what} from ${name}`}`);
-  return text("Start a new streak tonight", left === 1 ? `${name} is next` : `${what} from ${name} are next`);
+  if (state.current > 0 && state.graceUsedOn === yesterday) return text(w.graceTitle(state.current), w.graceBody(next));
+  if (state.current > 0) return text(w.keepTitle(state.current), w.keepBody(what, left === 1 ? "" : name));
+  if (state.endedOn === yesterday) return text(w.endedTitle(state.endedLength), w.endedBody(next));
+  return text(w.newTitle, w.newBody(left === 1, next));
 }
