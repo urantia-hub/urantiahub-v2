@@ -8,6 +8,9 @@ import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
 import { ProgressShell } from "@/components/you/YouShell";
 import { paperPath, referenceHref } from "@/content/paper-index";
+import { type Lang, numberIn } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { contentsHref } from "@/i18n/paths";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
 
 type Data = { for: string | null; status: "loading" | "ready" | "failed"; counts: Record<string, number> };
@@ -16,7 +19,8 @@ const none = () => null;
 
 // What the signed-in reader read: the whole text, each part, and the papers that are open.
 // It is a part of the reader's page (`YouView`), which shows it to a signed-in reader only.
-export function ProgressView() {
+export function ProgressView({ lang = "en" }: { lang?: Lang }) {
+  const all = messages(lang);
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const last = useSyncExternalStore(subscribeToLastRead, readLastRead, none);
   const key = account.status === "in" ? (account.user?.key ?? null) : null;
@@ -41,16 +45,16 @@ export function ProgressView() {
   if (account.status !== "in") return null;
   return (
     <div className="progress-page">
-      {data.status === "loading" && <ProgressShell />}
+      {data.status === "loading" && <ProgressShell lang={lang} />}
       {data.status === "failed" && (
         <p className="saved-empty" role="alert">
-          Your progress did not load.{" "}
+          {all.progress.failed}{" "}
           <button type="button" onClick={() => setAttempt((n) => n + 1)}>
-            Try again
+            {all.tryAgain}
           </button>
         </p>
       )}
-      {data.status === "ready" && <Shown summary={summarize(data.counts, last?.paperId ?? null)} place={last} />}
+      {data.status === "ready" && <Shown summary={summarize(data.counts, last?.paperId ?? null, lang)} place={last} lang={lang} />}
     </div>
   );
 }
@@ -73,54 +77,56 @@ function Ring({ percent }: { percent: number }) {
   );
 }
 
-const count = (n: number) => n.toLocaleString("en-US");
 
-function Shown({ summary, place }: { summary: Summary; place: { paperId: string; sectionId: string } | null }) {
+function Shown({ summary, place, lang }: { summary: Summary; place: { paperId: string; sectionId: string } | null; lang: Lang }) {
+  const all = messages(lang);
+  const t = all.progress;
+  const count = numberIn(lang);
   return (
     <>
-      <p className="progress-lead">What you read while you were signed in.</p>
+      <p className="progress-lead">{t.lead}</p>
       <p className="progress-total">
         <b>{summary.percent}%</b>
         <span>
-          {count(summary.read)} of {count(summary.total)} paragraphs
+          {t.ofParagraphs(count(summary.read), count(summary.total))}
         </span>
       </p>
       <Line percent={summary.percent} />
       <dl className="progress-facts">
         <div>
           <dd>{summary.finished}</dd>
-          <dt>{summary.finished === 1 ? "paper finished" : "papers finished"}</dt>
+          <dt>{t.finished(summary.finished)}</dt>
         </div>
         <div>
           <dd>{summary.started}</dd>
-          <dt>in progress</dt>
+          <dt>{t.inProgress}</dt>
         </div>
         <div>
           <dd>{summary.untouched}</dd>
-          <dt>not started</dt>
+          <dt>{t.notStarted}</dt>
         </div>
       </dl>
 
       {summary.read === 0 && (
         <p className="saved-empty">
-          <b>Nothing yet</b>
-          Open a paper and read. A paragraph counts after it stays in view for a moment.
-          <Link className="saved-button" href="/papers">
-            All papers
+          <b>{t.nothingYet}</b>
+          {t.nothingYetLine}
+          <Link className="saved-button" href={contentsHref(lang)}>
+            {all.allPapers}
           </Link>
         </p>
       )}
 
       {summary.next.length > 0 && (
         <section aria-labelledby="progress-next">
-          <h2 id="progress-next">Continue</h2>
+          <h2 id="progress-next">{t.continue}</h2>
           {summary.next.map((paper) => (
-            <Link className="progress-row" key={paper.id} href={place && place.paperId === paper.id ? referenceHref(place) : paperPath(paper.id)}>
+            <Link className="progress-row" key={paper.id} href={place && place.paperId === paper.id ? referenceHref(place, lang) : paperPath(paper.id, lang)}>
               <Ring percent={paper.percent} />
               <span>
                 <b>{paper.title}</b>
                 <small>
-                  {paper.id === "0" ? "" : `Paper ${paper.id} · `}
+                  {paper.id === "0" ? "" : `${all.paperNumber(paper.id)} · `}
                   {paper.percent}%
                 </small>
               </span>
@@ -131,7 +137,7 @@ function Shown({ summary, place }: { summary: Summary; place: { paperId: string;
       )}
 
       <section aria-labelledby="progress-parts">
-        <h2 id="progress-parts">By part</h2>
+        <h2 id="progress-parts">{t.byPart}</h2>
         {summary.parts.map((part) => (
           <div className="progress-part" key={part.id}>
             <span>
@@ -143,7 +149,7 @@ function Shown({ summary, place }: { summary: Summary; place: { paperId: string;
         ))}
       </section>
 
-      {summary.read > 0 && <p className="progress-quiet">A paragraph counts as read after it stays in view for a moment. A paper is finished at nine of ten paragraphs.</p>}
+      {summary.read > 0 && <p className="progress-quiet">{t.quiet}</p>}
     </>
   );
 }

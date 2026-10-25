@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EmailOff } from "@/components/notices/EmailOff";
+import { ownPageMetadata } from "@/seo/metadata";
 
-export const metadata: Metadata = { title: "Emails", robots: { index: false, follow: false } };
+export const metadata: Metadata = ownPageMetadata("Emails", "/emails");
 
 // Where "Turn this email off" goes, and where the "unsubscribe" link of an email of the old Hub goes.
 // Each statement here must be true of the live site: change it in the same change that changes an email.

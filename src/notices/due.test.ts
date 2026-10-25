@@ -161,6 +161,12 @@ describe("the streak notice", () => {
     expect(due[0].streak).toMatchObject({ title: "Keep your 1-day streak 🔥", path: "/papers/paper-3-the-attributes-of-god#3:4" });
   });
 
+  it("speaks the language of the reader", () => {
+    const due = dueNotices(keeper({ lang: "es" }), NIGHT);
+    expect(due[0].streak).toMatchObject({ title: "Mantén tu racha de 1 día 🔥" });
+    expect(due[0].streak?.path).toMatch(/^\/es\/documentos\//);
+  });
+
   it("needs the push setting and a device", () => {
     expect(dueNotices(keeper({ devices: [] }), NIGHT)).toEqual([]);
     expect(dueNotices(keeper({ settings: { email: { ...OFF }, push: { ...OFF }, hour: 7, zone: "America/Chicago" } }), NIGHT)).toEqual([]);

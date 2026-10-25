@@ -4,6 +4,8 @@ import { useState, useSyncExternalStore } from "react";
 import { accountKey } from "@/account/client";
 import { readerCall } from "@/account/reader-call";
 import { Sheet } from "@/components/reader/Sheet";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { answerStreak, closeStreakQuestion, serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
 import { registerDevice } from "@/notices/device-end";
 import { deviceState } from "@/notices/push";
@@ -12,11 +14,12 @@ import type { Goal } from "@/streak/rules";
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
 
 const GOALS: Goal[] = [1, 2, 3];
-const WORDS: Record<Goal, string> = { 1: "one section a day, about 5 minutes", 2: "two sections a day, about 10 minutes", 3: "three sections a day, about 15 minutes" };
 
 // The one question of the streak, after a signed-in reader finishes a first section. The answer is kept
 // in the account, so no other device asks again. Words: wording C (Kelson, 2026-10-17).
-export function StreakQuestion() {
+export function StreakQuestion({ lang = "en" }: { lang?: Lang }) {
+  const t = messages(lang).streak;
+  const words: Record<Goal, string> = { 1: t.goal1, 2: t.goal2, 3: t.goal3 };
   const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
   const [goal, setGoal] = useState<Goal>(1);
   const [busy, setBusy] = useState(false);
@@ -39,25 +42,25 @@ export function StreakQuestion() {
   }
 
   return (
-    <Sheet label="Keep a streak" onClose={closeStreakQuestion} className="notice-question streak-question">
-      <h2>Keep a streak?</h2>
-      <p>Read or listen to {WORDS[goal]}. Collect marks for papers, parts, and the tools of the Hub.</p>
+    <Sheet label={t.keep} onClose={closeStreakQuestion} className="notice-question streak-question">
+      <h2>{t.askTitle}</h2>
+      <p>{t.askBody(words[goal])}</p>
       <p className="streak-goals-label" id="streak-goals-label">
-        Sections a day
+        {t.goalsLabel}
       </p>
       <div className="streak-goals" role="radiogroup" aria-labelledby="streak-goals-label">
         {GOALS.map((g) => (
-          <button key={g} type="button" role="radio" aria-checked={goal === g} aria-label={`${g} ${g === 1 ? "section" : "sections"} a day`} onClick={() => setGoal(g)}>
+          <button key={g} type="button" role="radio" aria-checked={goal === g} aria-label={t.goalName(g)} onClick={() => setGoal(g)}>
             {g}
           </button>
         ))}
       </div>
-      {failed && <p role="alert">That did not save. Try again.</p>}
+      {failed && <p role="alert">{t.askFailed}</p>}
       <button type="button" className="panel-button dark" disabled={busy} onClick={() => void answer(true)}>
-        Yes, keep a streak
+        {t.yes}
       </button>
       <button type="button" className="notice-later" disabled={busy} onClick={() => void answer(false)}>
-        No thanks
+        {t.no}
       </button>
     </Sheet>
   );

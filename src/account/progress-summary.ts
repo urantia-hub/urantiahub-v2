@@ -1,6 +1,8 @@
 // What the Progress page shows, from the count of read paragraphs of each paper.
 
-import { PAPERS, PARTS, partNumeral } from "@/content/paper-index";
+import { PAPERS, PARTS, PARTS_BY_LANG, paperById, partNumeral } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 
 // A paper counts as read at nine of ten paragraphs: the rule for one paragraph needs time in view, and
 // a reader skims a short paragraph now and then. All of them would mean that few papers ever count.
@@ -27,7 +29,8 @@ export function percent(read: number, total: number): number {
   return Math.min(99, Math.max(1, Math.round((read / total) * 100)));
 }
 
-export function summarize(counts: Record<string, number>, placePaper: string | null): Summary {
+// `lang`: the language of the titles.
+export function summarize(counts: Record<string, number>, placePaper: string | null, lang: Lang = "en"): Summary {
   const readOf = (id: string, total: number) => {
     const count = counts[id];
     return typeof count === "number" && count > 0 ? Math.min(Math.floor(count), total) : 0;
@@ -43,7 +46,7 @@ export function summarize(counts: Record<string, number>, placePaper: string | n
   const next = [...open]
     .sort((a, b) => Number(b.id === placePaper) - Number(a.id === placePaper) || share(b) - share(a) || Number(a.id) - Number(b.id))
     .slice(0, NEXT_MAX)
-    .map((paper) => ({ id: paper.id, title: paper.title, percent: percent(readOf(paper.id, paper.paragraphs), paper.paragraphs) }));
+    .map((paper) => ({ id: paper.id, title: paperById(paper.id, lang)?.title ?? paper.title, percent: percent(readOf(paper.id, paper.paragraphs), paper.paragraphs) }));
 
   return {
     ...whole,
@@ -51,16 +54,16 @@ export function summarize(counts: Record<string, number>, placePaper: string | n
     finished,
     started: open.length,
     untouched: PAPERS.length - finished - open.length,
-    parts: PARTS.map((part) => {
+    parts: PARTS.map((part, i) => {
       const of = sum(part.papers);
-      return { ...partLabel(part), percent: percent(of.read, of.total) };
+      return { ...partLabel(PARTS_BY_LANG[lang][i] ?? part, lang), percent: percent(of.read, of.total) };
     }),
     next,
   };
 }
 
 // The name of a part as the progress shows it: "Part I" with its title, or the Foreword by its title.
-export function partLabel(part: { id: string; title: string }): { id: string; name: string; title: string | null } {
+export function partLabel(part: { id: string; title: string }, lang: Lang = "en"): { id: string; name: string; title: string | null } {
   const numeral = partNumeral(part.id);
-  return { id: part.id, name: numeral ? `Part ${numeral}` : part.title, title: numeral ? part.title : null };
+  return { id: part.id, name: numeral ? messages(lang).progress.part(numeral) : part.title, title: numeral ? part.title : null };
 }

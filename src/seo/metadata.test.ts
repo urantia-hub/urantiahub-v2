@@ -85,6 +85,23 @@ describe("pageMetadata in two languages", () => {
   });
 });
 
+describe("a reader's own page", () => {
+  it("stays out of each search engine, and names its twin while Spanish is on", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const { ownPageMetadata } = await load("1");
+    const es = ownPageMetadata("Tu página", "/you");
+    expect(es).toMatchObject({ title: "Tu página", robots: { index: false, follow: false } });
+    expect(es.alternates).toEqual({ languages: { en: "https://next.urantiahub.com/you", es: "https://next.urantiahub.com/es/tu" } });
+    expect(ownPageMetadata("Notifications", "/notifications").alternates).toEqual({ languages: { en: "https://next.urantiahub.com/notifications", es: "https://next.urantiahub.com/es/avisos" } });
+  });
+
+  it("names no twin while Spanish is off", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "");
+    const { ownPageMetadata } = await load("1");
+    expect(ownPageMetadata("Your page", "/you")).toEqual({ title: "Your page", robots: { index: false, follow: false } });
+  });
+});
+
 describe("paperJsonLd", () => {
   it("describes the paper as an article with a breadcrumb", async () => {
     const { paperJsonLd } = await load("");

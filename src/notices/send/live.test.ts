@@ -46,6 +46,13 @@ describe("the links of an email", () => {
     expect(readOffToken("secret", token)).toEqual({ userId: "00000000-0000-4000-8000-0000000000a1", kind: "daily" });
     expect(new URL(links.post).pathname).toBe("/api/notices/off");
     expect(new URL(links.post).searchParams.get("token")).toBe(token);
+    expect(new URL(links.page).pathname).toBe("/emails");
+  });
+
+  it("open the Spanish page for a Spanish reader, with the same proof", () => {
+    const links = offLinks("secret", "00000000-0000-4000-8000-0000000000a1", "daily", "es");
+    expect(new URL(links.page).pathname).toBe("/es/correos");
+    expect(readOffToken("secret", new URL(links.page).searchParams.get("off"))).toEqual({ userId: "00000000-0000-4000-8000-0000000000a1", kind: "daily" });
   });
 });
 

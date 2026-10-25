@@ -54,6 +54,17 @@ const settle = () => new Promise((done) => setTimeout(done, 0));
 const posts = () => world.calls.filter((call) => call.method === "POST");
 
 describe("the streak in the browser", () => {
+  it("asks for the card in Spanish on a Spanish page", async () => {
+    document.documentElement.lang = "es";
+    try {
+      const client = await load();
+      await client.loadStreak();
+      expect(world.calls.map((call) => call.path)).toEqual(["/api/me/streak?lang=es"]);
+    } finally {
+      document.documentElement.lang = "";
+    }
+  });
+
   it("does nothing while the flag is off", async () => {
     const client = await load("off");
     client.noteParagraphs("read", ["3:4.1", "3:4.2"]);

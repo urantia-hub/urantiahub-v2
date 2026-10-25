@@ -3,22 +3,30 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { contentsHref, pageHref } from "@/i18n/paths";
+import { noticeWords } from "./NotificationsView";
 
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
-const NAMES: Record<string, string> = { daily: "A passage each day", reminder: "A reminder of your place", releases: "New releases" };
 type State = { status: "ask" } | { status: "busy" } | { status: "off"; kind: string } | { status: "failed" };
 
 // The page of the link "Turn this email off". The email turns off with one press, not when the page
 // loads: a mail scanner opens each link of an email.
-export function EmailOff() {
+export function EmailOff({ lang = "en" }: { lang?: Lang }) {
+  const all = messages(lang);
+  const t = all.notices;
+  const names: Record<string, { title: string }> = noticeWords(t);
+  const here = pageHref(lang, "/emails");
+  const settingsPage = pageHref(lang, "/notifications");
   const inAddress = useSearchParams().get("off");
   // The proof is kept here, and it leaves the address at once: an address goes to the history of the
   // browser, and to what the page reports about itself.
   const [token] = useState(inAddress);
   const [state, setState] = useState<State>({ status: "ask" });
   useEffect(() => {
-    if (inAddress) window.history.replaceState(window.history.state, "", "/emails");
-  }, [inAddress]);
+    if (inAddress) window.history.replaceState(window.history.state, "", here);
+  }, [inAddress, here]);
 
   async function turnOff() {
     setState({ status: "busy" });
@@ -36,11 +44,11 @@ export function EmailOff() {
     if (!NOTICES_ON) {
       return (
         <>
-          <p>UrantiaHub sends no daily emails at this time. You get none, and you do not need to do anything.</p>
-          <p>The only email from UrantiaHub is the one with your code when you sign in.</p>
+          <p>{t.noEmails}</p>
+          <p>{t.onlyCode}</p>
           <p>
-            <Link className="btn" href="/papers">
-              All papers
+            <Link className="btn" href={contentsHref(lang)}>
+              {all.allPapers}
             </Link>
           </p>
         </>
@@ -48,11 +56,11 @@ export function EmailOff() {
     }
     return (
       <>
-        <p>Each email of UrantiaHub is off until you turn it on.</p>
-        <p>The only other email is the one with your code when you sign in.</p>
+        <p>{t.offByDefault}</p>
+        <p>{t.onlyOther}</p>
         <p>
-          <Link className="btn" href="/notifications">
-            Notification settings
+          <Link className="btn" href={settingsPage}>
+            {t.settings}
           </Link>
         </p>
       </>
@@ -61,10 +69,10 @@ export function EmailOff() {
   if (state.status === "off") {
     return (
       <>
-        <p role="status">The email “{NAMES[state.kind] ?? "This email"}” is off. You get no more of it.</p>
+        <p role="status">{t.isOff(names[state.kind]?.title ?? t.thisEmail)}</p>
         {NOTICES_ON && (
           <p>
-            <Link href="/notifications">All notification settings</Link>
+            <Link href={settingsPage}>{t.allSettings}</Link>
           </p>
         )}
       </>
@@ -72,13 +80,13 @@ export function EmailOff() {
   }
   return (
     <>
-      <p>Press the button to stop this email. You do not need to sign in.</p>
+      <p>{t.pressToStop}</p>
       <p>
         <button type="button" className="btn" disabled={state.status === "busy"} onClick={() => void turnOff()}>
-          Turn this email off
+          {t.turnOff}
         </button>
       </p>
-      {state.status === "failed" && <p role="alert">The email is still on. Try again, or use the link in a newer email.</p>}
+      {state.status === "failed" && <p role="alert">{t.stillOnEmail}</p>}
     </>
   );
 }

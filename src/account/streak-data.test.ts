@@ -111,6 +111,17 @@ describe("the streak card", () => {
     expect(card.on && card.next.minutes).toBeGreaterThan(0);
   });
 
+  it("names the next section in Spanish for a Spanish page, with a Spanish link and Spanish mark lines", async () => {
+    const rows: Row[] = [{ day: "2026-10-16", paperId: "3", sectionId: "4", how: "read" }];
+    const card = await readStreak(gateway(on(), rows), "t", NOW, "es");
+    expect(card.on && card.next.href).toMatch(/^\/es\/documentos\/documento-3-[^#]+#3:5$/);
+    expect(card.on && card.next.title).not.toBe("The Father’s Supreme Rule");
+    expect(card.on && card.next.paper).toBe("Los atributos de Dios");
+    expect(card.on && card.nextMarks.map((mark) => mark.line).join(" ")).not.toMatch(/\b(left|about|Finish|Search)\b/);
+    const opening = await readStreak(gateway(on()), "t", NOW, "es");
+    expect(opening.on && opening.next).toMatchObject({ paper: "El comienzo", href: "/es/documentos/prologo#paper-top" });
+  });
+
   it("starts at the reader's place, else at the Foreword", async () => {
     const atPlace = await readStreak(gateway({ ...on(), "hub.place": { paperId: "5", sectionId: "2", at: 1 } }), "t", NOW);
     expect(atPlace.on && atPlace.next).toMatchObject({ paperId: "5", sectionId: "2" });

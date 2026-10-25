@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiLang, spanishOn } from "./lang";
 import { messages } from "./messages";
-import { contentsHref, counterpart, homeHref, paperHref, searchHref, shareHref, twinPath } from "./paths";
+import { contentsHref, counterpart, homeHref, pageHref, paperHref, searchHref, shareHref, twinPath } from "./paths";
 
 describe("the twin of a page", () => {
   it("is the same page in the other language, with its query", () => {
@@ -12,6 +12,22 @@ describe("the twin of a page", () => {
   it("is null for a page with no twin", () => {
     expect(twinPath("/texts", "es")).toBeNull();
     expect(twinPath("/about", "es")).toBeNull();
+  });
+});
+
+describe("the table of twins", () => {
+  it("pairs each fixed page with its twin, with the query and the paragraph", () => {
+    expect(twinPath("/you", "es")).toBe("/es/tu");
+    expect(twinPath("/es/tu", "en")).toBe("/you");
+    expect(twinPath("/es/avisos", "en")).toBe("/notifications");
+    expect(twinPath("/emails?off=x", "es")).toBe("/es/correos?off=x");
+    expect(counterpart("/notifications", "es")).toBe("/es/avisos");
+  });
+
+  it("gives the address of a fixed page in a language", () => {
+    expect(pageHref("es", "/notifications")).toBe("/es/avisos");
+    expect(pageHref("en", "/you")).toBe("/you");
+    expect(pageHref("es", "/nowhere")).toBe("/nowhere");
   });
 });
 
@@ -77,13 +93,36 @@ describe("messages", () => {
   it("has the same keys in Spanish as in English", () => {
     expect(Object.keys(messages("es")).sort()).toEqual(Object.keys(messages("en")).sort());
   });
+  it("words the Spanish notices and streak question as a reader expects", () => {
+    const es = messages("es");
+    expect(es.notices.lead).toContain("hasta que elijas");
+    expect(es.notices.dailyAt).not.toMatch(/a las$/);
+    expect(es.notices.streakAt).not.toMatch(/a las$/);
+    expect(es.streak.askTitle).toBe("¿Quieres llevar una racha?");
+    expect(es.streak.yes).toBe("Sí, quiero llevar una racha");
+  });
   it("words the eyebrow of a paper", () => {
     expect(messages("es").paperEyebrow("I", 1)).toBe("Parte I · Documento 1");
   });
 });
 
+describe("the language of a request", () => {
+  it("is Spanish only for es", async () => {
+    const { langParam } = await import("./lang");
+    expect(langParam("es")).toBe("es");
+    expect(langParam("fr")).toBe("en");
+    expect(langParam(null)).toBe("en");
+  });
+});
+
 describe("lang", () => {
   afterEach(() => vi.unstubAllEnvs());
+  it("writes a Spanish number in one style on each page", async () => {
+    const { numberIn } = await import("./lang");
+    expect(numberIn("es")(14597)).toBe("14,597");
+    expect(numberIn("es")(1412)).toBe("1,412");
+    expect(numberIn("en")(1412)).toBe("1,412");
+  });
   it("names the language as the API does", () => {
     expect(apiLang("en")).toBe("eng");
     expect(apiLang("es")).toBe("es");

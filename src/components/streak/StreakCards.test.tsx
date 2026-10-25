@@ -52,4 +52,15 @@ describe("the streak card", () => {
     expect(listenHref("/papers/foreword#paper-top")).toBe("/papers/foreword?listen=1#paper-top");
     expect(listenHref("/papers/foreword")).toBe("/papers/foreword?listen=1");
   });
+
+  it("speaks Spanish on a Spanish page", () => {
+    const { container } = render(<StreakCardView card={card({ book: { done: 1412, total: 1626 } })} lang="es" />);
+    expect(screen.getByText("días de racha")).toBeInTheDocument();
+    expect(screen.getByText("récord 31")).toBeInTheDocument();
+    expect([...container.querySelectorAll(".streak-week li")].map((li) => li.textContent)).toEqual(["D", "L", "M", "X", "J", "V", "S"]);
+    expect(container.querySelector(".streak-facts")).toHaveTextContent("El día de gracia vuelve en 3 días · 1 sección al día");
+    expect(container.querySelector(".streak-book")).toHaveTextContent("El libro completo · 1,412 de 1,626 secciones");
+    expect(screen.getByRole("link", { name: "Leer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Desactivar la racha" })).toBeInTheDocument();
+  });
 });

@@ -54,4 +54,16 @@ describe("the Progress page", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Your progress did not load.");
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
+
+  it("speaks Spanish on a Spanish page, with Spanish titles and links", async () => {
+    state.account = { status: "in", user: { key: "k" } };
+    state.answer = { counts: { "2": 10 } };
+    render(<ProgressView lang="es" />);
+    const total = PAPERS.reduce((n, paper) => n + paper.paragraphs, 0);
+    expect(await screen.findByText(`10 de ${total.toLocaleString("es-MX")} párrafos`)).toBeInTheDocument();
+    expect(screen.getByText("sin empezar").previousSibling).toHaveTextContent("196");
+    const next = screen.getByRole("region", { name: "Continuar" });
+    expect(within(next).getByRole("link", { name: /La naturaleza de Dios/ }).getAttribute("href")).toMatch(/^\/es\/documentos\/documento-2-/);
+    expect(within(screen.getByRole("region", { name: "Por parte" })).getByText("Parte IV")).toBeInTheDocument();
+  });
 });

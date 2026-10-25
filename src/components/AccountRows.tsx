@@ -7,7 +7,7 @@ import { Icon } from "@/components/icons";
 import { SignInLink, useSignInLink } from "@/components/SignInLink";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
-import { savedHref } from "@/i18n/paths";
+import { pageHref, savedHref } from "@/i18n/paths";
 
 // Off until the notices can be sent.
 const NOTICES_ON = process.env.NEXT_PUBLIC_NOTICES === "on";
@@ -53,7 +53,7 @@ export function AccountRows({ part, lang = "en" }: { part?: Part; lang?: Lang })
   return (
     <div className="account-rows">
       {has("who") && (
-        <Link className="account-row who" href="/you">
+        <Link className="account-row who" href={pageHref(lang, "/you")}>
           <span className="face" aria-hidden="true">
             {name.trim().charAt(0).toUpperCase()}
           </span>

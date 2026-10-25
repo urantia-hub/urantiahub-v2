@@ -76,4 +76,15 @@ describe("the page of “Turn this email off”", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("The email is still on.");
     expect(screen.getByRole("button", { name: "Turn this email off" })).toBeEnabled();
   });
+
+  it("turns the email off in Spanish, and keeps the Spanish address", async () => {
+    address.off = "TOKEN";
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({ off: true, kind: "daily" })));
+    const replace = vi.spyOn(window.history, "replaceState");
+    render(<EmailOff lang="es" />);
+    expect(replace).toHaveBeenCalledWith(window.history.state, "", "/es/correos");
+    await userEvent.click(screen.getByRole("button", { name: "Desactivar este correo" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("El correo “Un pasaje cada día” está desactivado.");
+    expect(screen.getByRole("link", { name: "Todos los ajustes de los avisos" })).toHaveAttribute("href", "/es/avisos");
+  });
 });

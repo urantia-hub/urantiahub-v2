@@ -42,7 +42,7 @@ function world(readers: Reader[], over: Partial<JobDeps> = {}) {
       return "ok";
     },
     readerKey: async (userId) => `key-of-${userId.slice(-2)}`,
-    offUrl: (userId, kind) => `https://www.urantiahub.com/emails?off=${userId.slice(-2)}-${kind}`,
+    offUrl: (userId, kind, lang = "en") => `https://www.urantiahub.com${lang === "es" ? "/es/correos" : "/emails"}?off=${userId.slice(-2)}-${kind}`,
     offPost: (userId, kind) => `https://www.urantiahub.com/api/notices/off?token=${userId.slice(-2)}-${kind}`,
     ...over,
   };
@@ -281,6 +281,9 @@ describe("a Spanish reader", () => {
     expect(mine.text).toMatch(new RegExp(`${es.mail.readPaper}: https://www\\.urantiahub\\.com/es/documentos/[a-z0-9-]+#${ref.replace(".", "\\.")}`));
     expect(out.pushes[0].push.title).toBe(es.mail.dailyPush);
     expect(out.pushes[0].push.path).toMatch(/^\/es\/documentos\//);
+    expect(mine.offUrl).toBe("https://www.urantiahub.com/es/correos?off=a1-daily");
+    expect(mine.text).toContain(`${es.mail.allSettings}: https://www.urantiahub.com/es/avisos`);
+    expect(theirs.offUrl).toBe("https://www.urantiahub.com/emails?off=b2-daily");
     expect(theirs.subject).toBe(`Your passage for today · ${ref}`);
     expect(theirs.text).toContain("A passage of the Papers.");
   });

@@ -7,22 +7,28 @@ import { NOTICE_KINDS, type NoticeKind, type Notices } from "@/account/notices";
 import { readerCall } from "@/account/reader-call";
 import { Icon } from "@/components/icons";
 import { SignInLink } from "@/components/SignInLink";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { contentsHref } from "@/i18n/paths";
 import { DEVICE_EVENT, registerDevice } from "@/notices/device-end";
 import { currentEndpoint, type DeviceState, deviceState, sha256Hex, unblockSteps } from "@/notices/push";
 import { changeStreakSettings, loadStreak, serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
 
-
-const NOTICES: Record<NoticeKind, { title: string; about: string }> = {
-  daily: { title: "A passage each day", about: "One short passage of the Papers, with a link to its paper." },
-  reminder: { title: "A reminder of your place", about: "One message when you did not read for a week, with a link to where you stopped. Never more than one for each pause." },
-  releases: { title: "New releases", about: "A short note when UrantiaHub gets something new. A few times in a year." },
-  streak: { title: "Streak reminder", about: "One push at night on a day with no section yet, with the next section. Never by email." },
-};
+type Words = ReturnType<typeof messages>["notices"];
+// The name and the line of each notice, in the language of the page.
+export function noticeWords(t: Words): Record<NoticeKind, { title: string; about: string }> {
+  return {
+    daily: { title: t.dailyTitle, about: t.dailyAbout },
+    reminder: { title: t.reminderTitle, about: t.reminderAbout },
+    releases: { title: t.releasesTitle, about: t.releasesAbout },
+    streak: { title: t.streakTitle, about: t.streakAbout },
+  };
+}
 const STREAKS_ON = process.env.NEXT_PUBLIC_STREAKS === "on";
 // The streak row shows while the streak is a feature of the site. It is a push only.
 const KINDS = NOTICE_KINDS.filter((kind) => kind !== "streak" || STREAKS_ON);
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
-export const hourLabel = (hour: number) => `${hour % 12 || 12}:00 ${hour < 12 ? "AM" : "PM"}`;
+export const hourLabel = (hour: number, lang: Lang = "en") => messages(lang).notices.hour(hour);
 const zoneLabel = (zone: string) => zone.replace(/_/g, " ");
 const deviceZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 function zones(current: string): string[] {
@@ -37,7 +43,10 @@ type Channel = "email" | "push";
 
 // The notices of the signed-in reader: each one by email, as a push, both, or not at all.
 // A push goes to each device of the reader where the browser allows notices.
-export function NotificationsView() {
+export function NotificationsView({ lang = "en" }: { lang?: Lang }) {
+  const all = messages(lang);
+  const t = all.notices;
+  const NOTICES = noticeWords(t);
   const account = useSyncExternalStore(subscribeToAccount, accountState, serverAccountState);
   const key = account.status === "in" ? (account.user?.key ?? null) : null;
   const [data, setData] = useState<Data>(NOTHING);
@@ -94,7 +103,7 @@ export function NotificationsView() {
     change(apply);
     const answer = (await readerCall(path, { method, body: JSON.stringify(body) })) as { saved?: unknown; removed?: unknown } | null;
     if (answer?.saved === true || answer?.removed === true) {
-      setLine({ kind: "saved", text: "Saved." });
+      setLine({ kind: "saved", text: t.saved });
       return true;
     }
     change(() => before);
@@ -104,10 +113,10 @@ export function NotificationsView() {
 
   const settings = (patch: Partial<{ hour: number; zone: string }>, apply: (was: Notices) => Notices) =>
     // The first change also keeps the time zone of this device.
-    save("/api/me/notices", "PUT", { zone, ...patch }, apply, "The change was not saved. Try again.");
+    save("/api/me/notices", "PUT", { zone, ...patch }, apply, t.notSaved);
 
   const choose = (channel: Channel, kind: NoticeKind, on: boolean) =>
-    save("/api/me/notices", "PUT", { zone, [channel]: { [kind]: on } }, (was) => ({ ...was, settings: { ...was.settings, zone, [channel]: { ...was.settings[channel], [kind]: on } } }), "The change was not saved. Try again.");
+    save("/api/me/notices", "PUT", { zone, [channel]: { [kind]: on } }, (was) => ({ ...was, settings: { ...was.settings, zone, [channel]: { ...was.settings[channel], [kind]: on } } }), t.notSaved);
 
   async function push(kind: NoticeKind) {
     const mine = accountKey();
@@ -123,7 +132,7 @@ export function NotificationsView() {
       if (accountKey() !== mine) return;
       if (!joined) {
         // A reader who blocked the question sees the steps under "Push on this device".
-        if (deviceState() !== "blocked") setLine({ kind: "problem", text: "This device did not turn on. Try again." });
+        if (deviceState() !== "blocked") setLine({ kind: "problem", text: t.deviceFailed });
         return;
       }
       setHere(true);
@@ -134,9 +143,9 @@ export function NotificationsView() {
   async function allOff() {
     if (!notices) return;
     const none = { daily: false, reminder: false, releases: false, streak: false };
-    const off = await save("/api/me/notices", "PUT", { zone, email: none, push: none }, (was) => ({ ...was, settings: { ...was.settings, email: none, push: none } }), "The notices are still on. Try again.");
+    const off = await save("/api/me/notices", "PUT", { zone, email: none, push: none }, (was) => ({ ...was, settings: { ...was.settings, email: none, push: none } }), t.stillOn);
     if (!off) return;
-    const gone = await save("/api/me/notices/device", "DELETE", { all: true }, (was) => ({ ...was, devices: [] }), "The devices are still on. Try again.");
+    const gone = await save("/api/me/notices/device", "DELETE", { all: true }, (was) => ({ ...was, devices: [] }), t.devicesStillOn);
     if (gone) setHere(false);
   }
 
@@ -146,31 +155,31 @@ export function NotificationsView() {
   return (
     <div className="saved-page notices-page">
       <p className="saved-back">
-        <Link href="/papers">
+        <Link href={contentsHref(lang)}>
           <Icon name="paperBefore" />
-          Papers
+          {all.papersCrumb}
         </Link>
       </p>
-      <h1>Notifications</h1>
+      <h1>{t.title}</h1>
       {signedOut && (
         <div className="saved-empty">
-          <b>A passage each day, and more</b>
-          Sign in to choose what UrantiaHub sends you.
-          {account.status === "out" && <SignInLink className="saved-button" />}
+          <b>{t.signedOutTitle}</b>
+          {t.signedOutLine}
+          {account.status === "out" && <SignInLink className="saved-button" lang={lang} />}
         </div>
       )}
-      {!signedOut && data.status === "loading" && <p className="progress-wait" role="status" aria-label="Loading your notifications" />}
+      {!signedOut && data.status === "loading" && <p className="progress-wait" role="status" aria-label={t.loading} />}
       {!signedOut && data.status === "failed" && (
         <p className="saved-empty" role="alert">
-          Your notifications did not load.{" "}
+          {t.failed}{" "}
           <button type="button" onClick={() => setAttempt((n) => n + 1)}>
-            Try again
+            {all.tryAgain}
           </button>
         </p>
       )}
       {!signedOut && notices && (
         <>
-          <p className="notices-lead">Each one is off until you choose a way to get it. You can choose both.</p>
+          <p className="notices-lead">{t.lead}</p>
           {/* The line has its room from the start, so nothing moves when it shows. */}
           <p className="notices-line" role="status" data-kind={line?.kind}>
             {line?.text}
@@ -186,33 +195,33 @@ export function NotificationsView() {
                 {kind !== "streak" && (
                   <button type="button" className="notice-chip" aria-pressed={notices.settings.email[kind]} onClick={() => void choose("email", kind, !notices.settings.email[kind])}>
                     <Icon name="check" />
-                    Email
+                    {t.email}
                   </button>
                 )}
                 <button type="button" className="notice-chip" aria-pressed={notices.settings.push[kind]} aria-busy={busy || undefined} disabled={busy || (!canPush && !notices.settings.push[kind])} onClick={() => void push(kind)}>
                   <Icon name="check" />
-                  Push
+                  {t.push}
                 </button>
               </div>
             </div>
           ))}
 
-          <h2>When</h2>
+          <h2>{t.when}</h2>
           <label className="notice-set">
-            <span>The daily passage comes at</span>
+            <span>{t.dailyAt}</span>
             <select value={notices.settings.hour} onChange={(event) => { const hour = Number(event.target.value); void settings({ hour }, (was) => ({ ...was, settings: { ...was.settings, zone, hour } })); }}>
               {HOURS.map((hour) => (
                 <option key={hour} value={hour}>
-                  {hourLabel(hour)}
+                  {hourLabel(hour, lang)}
                 </option>
               ))}
             </select>
           </label>
-          {STREAKS_ON && <StreakHour />}
+          {STREAKS_ON && <StreakHour lang={lang} />}
           <label className="notice-set">
             <span>
-              Your time zone
-              <small>From this device. Change it here if you move.</small>
+              {t.zone}
+              <small>{t.zoneLine}</small>
             </span>
             <select value={zone} onChange={(event) => { const next = event.target.value; void settings({ zone: next }, (was) => ({ ...was, settings: { ...was.settings, zone: next } })); }}>
               {zones(zone).map((name) => (
@@ -223,13 +232,14 @@ export function NotificationsView() {
             </select>
           </label>
 
-          <h2>Push</h2>
-          <DeviceLine state={device} here={here} others={others} />
+          <h2>{t.pushHead}</h2>
+          <DeviceLine state={device} here={here} others={others} lang={lang} />
 
           <p className="notices-foot">
-            {account.user?.email ? `Email goes to ${account.user.email}. ` : ""}Your sign-in code always comes by email. These settings do not change that.{" "}
+            {account.user?.email ? t.emailTo(account.user.email) : ""}
+            {t.codeLine}{" "}
             <button type="button" onClick={() => void allOff()}>
-              Turn all off
+              {t.allOff}
             </button>
           </p>
         </>
@@ -238,48 +248,78 @@ export function NotificationsView() {
   );
 }
 
-function DeviceLine({ state, here, others }: { state: DeviceState; here: boolean; others: number }) {
-  const elsewhere = others > 0 ? ` A push also goes to ${others === 1 ? "one other device" : `${others} other devices`} where you turned it on.` : "";
-  if (here) return <p className="notice-device">A push comes to this device, and to each other device where you are signed in and allowed notifications.</p>;
-  if (state === "allowed" || state === "ask") return <p className="notice-device">A push comes to each device where you are signed in and allowed notifications. Turn one on, and this device asks you.{elsewhere}</p>;
+function DeviceLine({ state, here, others, lang }: { state: DeviceState; here: boolean; others: number; lang: Lang }) {
+  const t = messages(lang).notices;
+  const elsewhere = others > 0 ? t.elsewhere(others) : "";
+  if (here) return <p className="notice-device">{t.here}</p>;
+  if (state === "allowed" || state === "ask")
+    return (
+      <p className="notice-device">
+        {t.ask}
+        {elsewhere}
+      </p>
+    );
   if (state === "ios")
     return (
       <div className="notice-device">
-        <p>An iPhone or iPad shows a push of a website only after the site is on the home screen. Apple gives a website no button for that, so these are the steps:{elsewhere}</p>
+        <p>
+          {t.ios}
+          {elsewhere}
+        </p>
         <ol>
-          <li>Press <b>Share</b> in Safari.</li>
-          <li>Press <b>Add to Home Screen</b>.</li>
-          <li>Open UrantiaHub from the home screen, and come back to this page.</li>
+          <li>{bold(t.iosStep1, t.iosShare)}</li>
+          <li>{bold(t.iosStep2, t.iosAdd)}</li>
+          <li>{t.iosStep3}</li>
         </ol>
       </div>
     );
   if (state === "blocked")
     return (
       <div className="notice-device">
-        <p>Notifications are blocked for UrantiaHub in this browser. A website cannot remove a block, so these are the steps:{elsewhere}</p>
+        <p>
+          {t.blocked}
+          {elsewhere}
+        </p>
         <ol>
-          {unblockSteps(navigator.userAgent).map((step) => (
+          {unblockSteps(navigator.userAgent, lang).map((step) => (
             <li key={step}>{step}</li>
           ))}
         </ol>
-        <p>Then load this page again.</p>
+        <p>{t.reload}</p>
       </div>
     );
-  return <p className="notice-device">This browser cannot show a push of UrantiaHub. You can choose Email.{elsewhere}</p>;
+  return (
+    <p className="notice-device">
+      {t.cannot}
+      {elsewhere}
+    </p>
+  );
+}
+
+// A step with one word in bold, in the place that the sentence of its language gives it.
+function bold(step: (b: string) => string, word: string) {
+  const [before, after] = step("\u0000").split("\u0000");
+  return (
+    <>
+      {before}
+      <b>{word}</b>
+      {after}
+    </>
+  );
 }
 
 // The hour of the streak reminder, while the reader keeps a streak. It is a setting of the streak.
-function StreakHour() {
+function StreakHour({ lang }: { lang: Lang }) {
   const view = useSyncExternalStore(subscribeToStreak, streakView, serverStreakView);
   useEffect(() => void loadStreak(), []);
   if (!view.card?.on) return null;
   return (
     <label className="notice-set">
-      <span>The streak reminder comes at</span>
+      <span>{messages(lang).notices.streakAt}</span>
       <select value={view.card.hour} onChange={(event) => void changeStreakSettings({ hour: Number(event.target.value) })}>
         {HOURS.map((hour) => (
           <option key={hour} value={hour}>
-            {hourLabel(hour)}
+            {hourLabel(hour, lang)}
           </option>
         ))}
       </select>

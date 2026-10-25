@@ -3,9 +3,10 @@ import { deps } from "@/account/deps";
 import { gateway } from "@/account/gateway";
 import { handleReader } from "@/account/handlers";
 import { changeStreak, readStreak } from "@/account/streak-data";
+import { langParam } from "@/i18n/lang";
 
 // The reader's streak: the card, and the settings (on, goal, hour, zone).
-export const GET = (request: NextRequest) => handleReader(request, deps, (token) => readStreak(gateway, token));
+export const GET = (request: NextRequest) => handleReader(request, deps, (token) => readStreak(gateway, token, new Date(), langParam(request.nextUrl.searchParams.get("lang"))));
 
 export async function PUT(request: NextRequest) {
   const value: unknown = await request.json().catch(() => null);

@@ -3,9 +3,10 @@ import { deps } from "@/account/deps";
 import { gateway } from "@/account/gateway";
 import { handleReader } from "@/account/handlers";
 import { saveTextPage } from "@/account/streak-data";
+import { langParam } from "@/i18n/lang";
 
 // A page of a world text that the reader finished, for the marks.
 export async function POST(request: NextRequest) {
   const value: unknown = await request.json().catch(() => null);
-  return handleReader(request, deps, (token) => saveTextPage(gateway, token, value));
+  return handleReader(request, deps, (token) => saveTextPage(gateway, token, value, new Date(), langParam(request.nextUrl.searchParams.get("lang"))));
 }

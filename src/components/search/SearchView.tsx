@@ -8,7 +8,7 @@ import { SearchBox } from "@/components/search/SearchBox";
 import { ShownTracker } from "@/components/search/ShownTracker";
 import { searchExact, searchRelated, type SearchHit } from "@/content";
 import { referenceHref } from "@/content/paper-index";
-import type { Lang } from "@/i18n/lang";
+import { type Lang, numberIn } from "@/i18n/lang";
 import { messages, type Messages } from "@/i18n/messages";
 import { contentsHref, searchHref } from "@/i18n/paths";
 import { parseReference } from "@/lib/paper-url";
@@ -24,8 +24,8 @@ const SHOWN = 5;
 const LIST = 20;
 const LAST_PAGE = 50;
 const label = (t: Messages, kind: Kind) => (kind === "exact" ? t.searchMatches : t.searchRelated);
-// The number of matches in the form of the page's language: "1,234" or "1234".
-const count = (lang: Lang, n: number) => n.toLocaleString(lang === "es" ? "es-MX" : "en-US");
+// The number of matches in the form of the page's language.
+const count = (lang: Lang, n: number) => numberIn(lang)(n);
 
 // The search screen of each language: `/search` and `/es/buscar`.
 export function SearchView({ searchParams, lang }: Props) {

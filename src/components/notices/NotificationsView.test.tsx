@@ -204,4 +204,21 @@ describe("the Notifications page", () => {
     render(<NotificationsView />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Your notifications did not load.");
   });
+
+  it("speaks Spanish on a Spanish page", async () => {
+    world.notices = fresh();
+    render(<NotificationsView lang="es" />);
+    expect(await screen.findByRole("heading", { level: 1, name: "Avisos" })).toBeInTheDocument();
+    expect(await chip("Un pasaje cada día", "Correo")).toBeInTheDocument();
+    expect(await chip("Un recordatorio de tu lugar", "Notificación")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Documentos" })).toHaveAttribute("href", "/es/documentos");
+    expect(screen.getByRole("option", { name: "7:00 a. m." })).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/Notifications|Email|When|Turn all off/);
+  });
+
+  it("names an hour in Spanish", () => {
+    expect(hourLabel(13, "es")).toBe("1:00 p. m.");
+    expect(hourLabel(0, "es")).toBe("12:00 a. m.");
+    expect(hourLabel(13)).toBe("1:00 PM");
+  });
 });
