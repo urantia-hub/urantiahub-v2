@@ -25,4 +25,13 @@ describe("the Resources page", () => {
       expect(link).toHaveTextContent("(se abre en otra pestaña)");
     }
   });
+
+  it("gives Spanish names to the places of UrantiaHub's maker that have a name in words, and keeps the other names", () => {
+    render(<ResourcesView lang="es" />);
+    expect(screen.getByRole("link", { name: /^Los Documentos en un asistente de IA/ })).toHaveAttribute("href", "https://docs.urantia.dev/assistants");
+    expect(screen.getByRole("link", { name: /^UrantiaHub en YouTube/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^Los Documentos de Urantia en Spotify/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^Urantiapedia/ })).toBeInTheDocument();
+    expect(screen.queryByText("The Papers in an AI assistant")).toBeNull();
+  });
 });

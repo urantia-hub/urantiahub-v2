@@ -1,8 +1,8 @@
 // The links of the Resources page. Each address must answer, and each line says what the place is,
 // with no claim about the text. `ours`: UrantiaHub's maker runs the place. `es`: the Spanish of the line
-// and of the group title; a name is a proper name and stays as it is.
+// and of the group title. A name stays as it is, but a name of the maker's own that is words, not a proper name, has `es.name`.
 
-export type Resource = { name: string; about: string; url: string; es: { about: string } };
+export type Resource = { name: string; about: string; url: string; es: { about: string; name?: string } };
 export type ResourceGroup = { title: string; es: string; ours?: true; resources: Resource[] };
 
 export const RESOURCE_GROUPS: ResourceGroup[] = [
@@ -11,9 +11,9 @@ export const RESOURCE_GROUPS: ResourceGroup[] = [
     es: "Del creador de UrantiaHub",
     ours: true,
     resources: [
-      { name: "The Papers in an AI assistant", about: "Add the Urantia Papers to Claude, ChatGPT, Grok, or Gemini.", es: { about: "Agrega los Documentos de Urantia a Claude, ChatGPT, Grok o Gemini." }, url: "https://docs.urantia.dev/assistants" },
-      { name: "UrantiaHub on YouTube", about: "A video of each paper: the narration, with the text on the screen.", es: { about: "Un video de cada documento: la narración en inglés, con el texto en la pantalla." }, url: "https://www.youtube.com/@urantiahub" },
-      { name: "The Urantia Papers on Spotify", about: "The narration of each paper, as a podcast.", es: { about: "La narración de cada documento en inglés, como pódcast." }, url: "https://open.spotify.com/show/7IDP6RsZbKtUjfEwLLHtuw" },
+      { name: "The Papers in an AI assistant", about: "Add the Urantia Papers to Claude, ChatGPT, Grok, or Gemini.", es: { name: "Los Documentos en un asistente de IA", about: "Agrega los Documentos de Urantia a Claude, ChatGPT, Grok o Gemini." }, url: "https://docs.urantia.dev/assistants" },
+      { name: "UrantiaHub on YouTube", about: "A video of each paper: the narration, with the text on the screen.", es: { name: "UrantiaHub en YouTube", about: "Un video de cada documento: la narración en inglés, con el texto en la pantalla." }, url: "https://www.youtube.com/@urantiahub" },
+      { name: "The Urantia Papers on Spotify", about: "The narration of each paper, as a podcast.", es: { name: "Los Documentos de Urantia en Spotify", about: "La narración de cada documento en inglés, como pódcast." }, url: "https://open.spotify.com/show/7IDP6RsZbKtUjfEwLLHtuw" },
       { name: "urantia.dev", about: "The open API of the Urantia Papers, for developers and AI tools. No key and no account.", es: { about: "La API abierta de los Documentos de Urantia, para desarrolladores y herramientas de IA. Sin clave y sin cuenta." }, url: "https://urantia.dev" },
       { name: "Dalamatia", about: "An interactive telling of Paper 66 and the city of Dalamatia, with links back to the text.", es: { about: "Un relato interactivo del Documento 66 y de la ciudad de Dalamatia, con enlaces al texto. En inglés." }, url: "https://dalamatia.urantiahub.com" },
     ],
