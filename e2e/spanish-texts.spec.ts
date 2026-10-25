@@ -72,3 +72,13 @@ test("the header goes up one step in Spanish", async ({ page }) => {
   await page.locator("header").getByRole("link", { name: "Textos del mundo" }).click();
   await page.waitForURL("/es/textos");
 });
+
+test("the Spanish Bible opens a chapter from its books sheet at the English address", async ({ page }) => {
+  await page.goto("/es/textos/bible/john-3");
+  await page.getByRole("button", { name: /Abrir los libros/ }).click();
+  const books = page.getByRole("dialog", { name: "Los libros de la Biblia" });
+  await books.getByRole("button", { name: "Juan 21 capítulos" }).click();
+  await books.getByRole("link", { name: "4", exact: true }).click();
+  await page.waitForURL("/es/textos/bible/john-4");
+  await expect(page.getByRole("heading", { level: 1, name: "Juan 4" })).toBeVisible();
+});

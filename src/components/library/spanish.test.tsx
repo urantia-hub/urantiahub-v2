@@ -55,6 +55,9 @@ describe("World texts in Spanish", () => {
     expect(screen.getByRole("heading", { name: "Contenido" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Lo más cercano a los Documentos" })).toBeInTheDocument();
     expect(container.querySelector(".work-pairs a")).toHaveAttribute("href", expect.stringMatching(/^\/es\/textos\/dhammapada\/at\//));
+    // The passage of the work is English; the paragraph of the Papers is Spanish.
+    expect(container.querySelector(".work-pairs a .txt")).toHaveAttribute("lang", "en");
+    expect(container.querySelector(".work-pairs .to .txt")).not.toHaveAttribute("lang");
     expect(container.querySelector(".work-pairs .to")).toHaveAttribute("href", expect.stringMatching(/^\/es\/documentos\//));
     expect(container.querySelector(".work-in-papers")).toHaveAttribute("href", expect.stringMatching(/^\/es\/documentos\/documento-131-/));
     expect(container.querySelector(".work-in-papers")?.textContent).toContain("Budismo");

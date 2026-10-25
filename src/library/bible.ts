@@ -45,7 +45,7 @@ export function biblePages(books: BibleBook[], names: BibleBook[] = [], lang: La
   );
 }
 
-/** Each book once, in order, from the pages of the Bible. */
+/** Each book once, in order, from the pages of the Bible. The address comes from the key, which stays English in each language. */
 export function bibleBooks(pages: WorkPage[]): BookRow[] {
   const rows = new Map<string, BookRow>();
   for (const p of pages) {
@@ -53,7 +53,7 @@ export function bibleBooks(pages: WorkPage[]): BookRow[] {
     const row = rows.get(p.book.code);
     const n = p.subdivision ?? 0;
     if (row) row.numbers.push(n);
-    else rows.set(p.book.code, { code: p.book.code, name: p.book.name, title: p.book.title, part: p.part ?? "", base: `${bookSlug(p.book.name)}-`, numbers: [n] });
+    else rows.set(p.book.code, { code: p.book.code, name: p.book.name, title: p.book.title, part: p.part ?? "", base: p.key.slice(0, p.key.length - String(n).length), numbers: [n] });
   }
   return [...rows.values()];
 }

@@ -138,7 +138,9 @@ export function WorkExtras({ work, pairs, source, lang = "en" }: { work: Library
                     {p.ref}
                     <span>{p.percent}%</span>
                   </span>
-                  <span className="txt">{p.text}</span>
+                  <span className="txt" lang={lang === "en" ? undefined : "en"}>
+                    {p.text}
+                  </span>
                 </a>
                 <Link className="to" href={paragraphHref(p.paragraph.ref, lang)}>
                   <span className="row">

@@ -10,10 +10,9 @@ describe("the pairs of a work in a language", () => {
     expect(pairs[0].text).toBe(dhammapadaPairs()[0].text);
   });
 
-  it("keeps the English paragraph of a pair whose Spanish text fails, and asks nothing in English", async () => {
+  it("fails when a Spanish paragraph fails, so a Spanish page never shows the English Papers, and asks nothing in English", async () => {
     const text = vi.fn(async () => Promise.reject(new Error("down")));
-    expect(await pairsIn(dhammapadaPairs(), "es", text)).toEqual(dhammapadaPairs());
+    await expect(pairsIn(dhammapadaPairs(), "es", text)).rejects.toThrow("down");
     expect(await pairsIn(dhammapadaPairs(), "en", text)).toEqual(dhammapadaPairs());
-    expect(text).toHaveBeenCalledTimes(3);
   });
 });
