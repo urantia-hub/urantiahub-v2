@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Icon } from "@/components/icons";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
+import { textsHref } from "@/i18n/paths";
 import type { BookRow } from "@/library/bible";
 import { BooksSheet } from "./BooksSheet";
 import { NUMBERED } from "@/library/books";
@@ -25,6 +28,7 @@ type Props = {
   books?: { rows: BookRow[]; label: string; unit: string; current: { book: string; chapter: number } };
   previous?: Near;
   next?: Near;
+  lang?: Lang;
 };
 
 // The passages are server HTML. A press on one marks it (`data-picked`, as on a paper page) and opens its parallels.
@@ -36,7 +40,8 @@ function mark(id: string | null) {
 const passageOf = (target: EventTarget | null) => (target instanceof Element ? target.closest<HTMLElement>(".paper.work p.para") : null);
 
 // The controls of a work page: the dock with the previous and next page, the chapters, and the parallels.
-export function WorkNav({ work, pages, current, title, label = null, place = true, books, ...near }: Props) {
+export function WorkNav({ work, pages, current, title, label = null, place = true, books, lang = "en", ...near }: Props) {
+  const t = messages(lang).texts;
   const [picked, setPicked] = useState<{ id: string; ref: string } | null>(null);
   const [chapters, setChapters] = useState(false);
   const at = pages.findIndex((p) => p.key === current);
@@ -98,18 +103,18 @@ export function WorkNav({ work, pages, current, title, label = null, place = tru
         <div className="pill">
           <div className="row read">
             {previous ? (
-              <Link className="arrow" href={`/texts/${work.slug}/${previous.key}`} aria-label={`Previous: ${previous.title}`}>
+              <Link className="arrow" href={textsHref(lang, work.slug, previous.key)} aria-label={t.previousOf(previous.title)}>
                 <Icon name="paperBefore" />
               </Link>
             ) : (
               <span className="arrow" />
             )}
-            <button type="button" className="where" aria-haspopup="dialog" aria-label={`${work.short} ${title}. Open the ${books ? "books" : "chapters"}`} onClick={() => setChapters(true)}>
+            <button type="button" className="where" aria-haspopup="dialog" aria-label={t.openWhere(work.short, title, Boolean(books))} onClick={() => setChapters(true)}>
               <small>{work.short}</small>
               <span>{title}</span>
             </button>
             {next ? (
-              <Link className="arrow" href={`/texts/${work.slug}/${next.key}`} aria-label={`Next: ${next.title}`}>
+              <Link className="arrow" href={textsHref(lang, work.slug, next.key)} aria-label={t.nextOf(next.title)}>
                 <Icon name="paperAfter" />
               </Link>
             ) : (
@@ -118,11 +123,11 @@ export function WorkNav({ work, pages, current, title, label = null, place = tru
           </div>
         </div>
       </div>
-      {chapters && !books && <ChaptersSheet work={work} pages={pages} current={current} grid={NUMBERED.has(work.slug)} onClose={() => setChapters(false)} />}
-      {chapters && books && <BooksSheet work={work} books={books.rows} label={books.label} unit={books.unit} current={books.current} onClose={() => setChapters(false)} />}
+      {chapters && !books && <ChaptersSheet work={work} pages={pages} current={current} grid={NUMBERED.has(work.slug)} onClose={() => setChapters(false)} lang={lang} />}
+      {chapters && books && <BooksSheet work={work} books={books.rows} label={books.label} unit={books.unit} current={books.current} onClose={() => setChapters(false)} lang={lang} />}
       {picked && (
         <Suspense fallback={null}>
-          <ParallelsSheet reference={picked.ref} paperId="" work={work.slug} onClose={() => setPicked(null)} />
+          <ParallelsSheet reference={picked.ref} paperId="" work={work.slug} onClose={() => setPicked(null)} lang={lang} />
         </Suspense>
       )}
     </>
