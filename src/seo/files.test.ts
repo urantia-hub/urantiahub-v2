@@ -44,4 +44,13 @@ describe("sitemap", () => {
     expect(urls).toContain("https://next.urantiahub.com/papers/paper-196-the-faith-of-jesus");
     expect(new Set(urls).size).toBe(204);
   });
+
+  it("lists the Spanish twins of the fixed pages while Spanish is on, and no page that has none", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
+    const { sitemap } = await load("on");
+    const urls = (await sitemap()).map((entry) => entry.url);
+    for (const path of ["/es", "/es/documentos", "/es/acerca-de", "/es/recursos", "/es/novedades"]) expect(urls).toContain(`https://next.urantiahub.com${path}`);
+    expect(urls.filter((url) => url.includes("/es/tu") || url.includes("/es/avisos") || url.includes("/es/paralelos"))).toEqual([]);
+    expect(new Set(urls).size).toBe(urls.length);
+  });
 });
