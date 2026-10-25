@@ -3,6 +3,7 @@
 
 import passages from "@/content/daily-passages.json";
 import { paperById } from "@/content/paper-index";
+import type { Lang } from "@/i18n/lang";
 import { streakNotice, type StreakPush } from "./streak-text";
 
 export type Kind = "daily" | "reminder" | "releases" | "streak";
@@ -33,6 +34,8 @@ export type Due = {
   email: string | null;
   devices: Device[];
   place: { paperId: string; sectionId: string } | null;
+  // The language of the words and the links of the notice.
+  lang: Lang;
   // The text of a streak push, made with the rules of the streak.
   streak?: StreakPush;
 };
@@ -71,8 +74,9 @@ export function dueNotices(reader: Reader, now: Date, news: { date: string } | n
   const zone = reader.settings?.zone ?? "UTC";
   const local = localTime(now, zone);
   const due: Due[] = [];
+  const lang = reader.lang ?? "en";
   const add = (kind: Kind, key: string, place: Due["place"]) => {
-    const base = { userId: reader.userId, kind, key, place };
+    const base = { userId: reader.userId, kind, key, place, lang };
     if (reader.email && reader.settings?.email[kind]) due.push({ ...base, channel: "email", email: reader.email, devices: [] });
     // A push goes to each device of the reader.
     if (reader.settings?.push?.[kind] && reader.devices.length > 0) due.push({ ...base, channel: "push", email: null, devices: reader.devices });
@@ -91,7 +95,7 @@ export function dueNotices(reader: Reader, now: Date, news: { date: string } | n
   // The streak goes as a push only, at its own hour, outside the window of the day.
   if (reader.settings?.push?.streak && reader.devices.length > 0) {
     const streak = streakNotice({ streak: reader.streak, sectionDays: reader.sectionDays ?? [], lastSection: reader.lastSection ?? null }, now);
-    if (streak) due.push({ userId: reader.userId, kind: "streak", channel: "push", key: streak.key, email: null, devices: reader.devices, place: null, streak });
+    if (streak) due.push({ userId: reader.userId, kind: "streak", channel: "push", key: streak.key, email: null, devices: reader.devices, place: null, lang, streak });
   }
   return due;
 }

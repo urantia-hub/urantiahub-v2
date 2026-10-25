@@ -273,7 +273,31 @@ export const en = {
   signInToSave: "Sign in to save this",
   signInToSaveLine: "Your saved paragraphs and notes stay with your account.",
   notNow: "Not now",
+  // The words of the notices: the emails and the pushes.
+  mail: {
+    dailyLabel: "Your passage for today",
+    dailySubject: (ref: string) => `Your passage for today · ${ref}`,
+    dailyPush: "Your passage for today",
+    readPaper: "Read the paper",
+    dailyReason: "You get this email because you chose Email for “A passage each day” in UrantiaHub.",
+    paperName: (id: string, title: string) => `Paper ${id}, ${title}`,
+    reminderLabel: "Your place in the Papers",
+    reminderSubject: "Your place in the Papers",
+    stoppedIn: (paper: string) => `You stopped in ${paper}. Your place is kept.`,
+    whereYouStopped: (paper: string) => `${paper} · where you stopped`,
+    onlyReminder: "This is the only reminder for this place.",
+    continue: "Continue",
+    reminderReason: "You get this email because you chose Email for “A reminder of your place” in UrantiaHub. It comes one time for each place.",
+    placePush: (name: string) => `Your place in ${name}`,
+    placeKept: "Your place is kept.",
+    releaseLabel: "New in UrantiaHub",
+    releaseSubject: (title: string) => `New in UrantiaHub: ${title}`,
+    seeNew: "See what is new",
+    releaseReason: "You get this email because you chose Email for “New releases” in UrantiaHub. It comes a few times in a year.",
+    turnOff: "Turn this email off",
+    allSettings: "All notification settings",
+  },
 } as const;
 
-type Widen<T> = { [K in keyof T]: T[K] extends (...args: infer A) => string ? (...args: A) => string : string };
+type Widen<T> = { [K in keyof T]: T[K] extends (...args: infer A) => string ? (...args: A) => string : T[K] extends object ? Widen<T[K]> : string };
 export type Messages = Widen<typeof en>;

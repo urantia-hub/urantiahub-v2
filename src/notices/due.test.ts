@@ -166,3 +166,11 @@ describe("the streak notice", () => {
     expect(dueNotices(keeper({ settings: { email: { ...OFF }, push: { ...OFF }, hour: 7, zone: "America/Chicago" } }), NIGHT)).toEqual([]);
   });
 });
+
+describe("the language of a notice", () => {
+  it("is the language of the reader, and English for a reader with none", () => {
+    const now = at("2026-10-11T12:05:00Z");
+    expect(dueNotices(reader({ lang: "es" }), now).map((n) => n.lang)).toEqual(["es"]);
+    expect(dueNotices(reader(), now).map((n) => n.lang)).toEqual(["en"]);
+  });
+});

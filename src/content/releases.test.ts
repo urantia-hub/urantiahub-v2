@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { RELEASES, type Release, releaseToNotify } from "./releases";
+import { RELEASES, type Release, releaseDate, releaseToNotify } from "./releases";
 
 const at = (iso: string) => new Date(iso);
 const list: Release[] = [
@@ -31,5 +31,19 @@ describe("the release that readers hear of", () => {
       expect(release.title.length).toBeGreaterThan(0);
       expect(release.changes.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("a release in Spanish", () => {
+  it("each release that readers hear of, after 2026-10-24, has Spanish words for each change", () => {
+    for (const release of RELEASES.filter((r) => r.notify && r.date > "2026-10-24")) {
+      expect(release.es, release.date).toBeDefined();
+      expect(release.es?.changes).toHaveLength(release.changes.length);
+    }
+  });
+
+  it("names the date in Spanish", () => {
+    expect(releaseDate("2026-10-11", "es")).toBe("11 de octubre de 2026");
+    expect(releaseDate("2026-10-11")).toBe("October 11, 2026");
   });
 });

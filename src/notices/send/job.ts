@@ -4,6 +4,8 @@
 import { paperById, paperPath, referenceHref } from "@/content/paper-index";
 import { type Device, type Due, dueNotices, passageFor, type Reader } from "@/notices/due";
 import { releaseDate } from "@/content/releases";
+import type { Lang } from "@/i18n/lang";
+import { messages } from "@/i18n/messages";
 import { dailyMail, type Mail, opening, type ReleasePictures, releaseMail, reminderMail } from "./mail";
 
 export type Claim = { userId: string; kind: Due["kind"]; key: string; channel: Due["channel"] };
@@ -12,7 +14,7 @@ export type Passage = { ref: string; text: string; paperId: string; paperTitle: 
 // `offPost`: the address that a mail program calls for "unsubscribe", with one press and no page.
 export type OutMail = Mail & { to: string; offUrl: string; offPost: string };
 
-export type News = { date: string; title: string; changes: string[]; mail?: ReleasePictures };
+export type News = { date: string; title: string; changes: string[]; mail?: ReleasePictures; es?: { title: string; changes: string[] } };
 
 export type JobDeps = {
   now: Date;
@@ -26,7 +28,7 @@ export type JobDeps = {
   claim(claims: Claim[]): Promise<Claim[]>;
   release(claims: Claim[]): Promise<void>;
   devices(report: { gone: string[]; ok: string[] }): Promise<void>;
-  passage(ref: string): Promise<Passage>;
+  passage(ref: string, lang: Lang): Promise<Passage>;
   // One answer for each mail, in order: true when the mail service took it.
   sendMails(mails: OutMail[]): Promise<boolean[]>;
   sendPush(device: Device, push: Push): Promise<"ok" | "gone" | "failed">;
@@ -48,7 +50,8 @@ const short = (text: string) => (text.length > PUSH_TEXT ? `${text.slice(0, PUSH
 export async function runNotices(deps: JobDeps): Promise<Report> {
   const all = await deps.readers();
   const readers = deps.only ? all.filter((reader) => deps.only?.includes(reader.userId)) : all;
-  const due = readers.flatMap((reader) => dueNotices(reader, deps.now, deps.news ?? null));
+  // A Spanish reader hears of a release only when it has Spanish words.
+  const due = readers.flatMap((reader) => dueNotices(reader, deps.now, deps.news ?? null)).filter((notice) => notice.kind !== "releases" || notice.lang === "en" || deps.news?.es);
   const report: Report = { readers: readers.length, due: due.length, claimed: 0, mails: 0, pushes: 0, failed: 0, gone: 0 };
   if (due.length === 0) return report;
 
@@ -59,12 +62,13 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
   const mine = due.filter((notice) => claimed.some((claim) => same(claim, notice)));
   report.claimed = mine.length;
 
-  // What a notice says. A passage is read one time for each date. Null: it cannot be made now.
+  // What a notice says. A passage is read one time for each date and language. Null: it cannot be made now.
   const passages = new Map<string, Promise<Passage | null>>();
-  const passageOf = (date: string) => {
+  const passageOf = (date: string, lang: Lang) => {
     const ref = passageFor(date);
-    if (!passages.has(ref)) passages.set(ref, deps.passage(ref).catch(() => null));
-    return passages.get(ref) as Promise<Passage | null>;
+    const key = `${ref} ${lang}`;
+    if (!passages.has(key)) passages.set(key, deps.passage(ref, lang).catch(() => null));
+    return passages.get(key) as Promise<Passage | null>;
   };
   const settingsUrl = `${deps.origin}/notifications`;
   // A streak notice is a push only, so it has no mail.
@@ -75,36 +79,39 @@ export async function runNotices(deps: JobDeps): Promise<Report> {
       const { title, body, path } = notice.streak;
       return { mail: null, push: { title, body, path } };
     }
+    const { lang } = notice;
+    const t = messages(lang).mail;
+    // The off page and the settings page are English until they have Spanish twins.
     const links = { offUrl: deps.offUrl(notice.userId, notice.kind), settingsUrl };
     if (notice.kind === "daily") {
-      const passage = await passageOf(notice.key);
-      if (!passage || !paperById(passage.paperId)) return null;
-      const path = `${paperPath(passage.paperId)}#${passage.ref}`;
+      const passage = await passageOf(notice.key, lang);
+      if (!passage || !paperById(passage.paperId, lang)) return null;
+      const path = `${paperPath(passage.paperId, lang)}#${passage.ref}`;
       return {
-        mail: dailyMail({ ...passage, url: `${deps.origin}${path}` }, links),
-        push: { title: "Your passage for today", body: `${short(passage.text)} (${passage.ref})`, path },
+        mail: dailyMail({ ...passage, url: `${deps.origin}${path}` }, links, lang),
+        push: { title: t.dailyPush, body: `${short(passage.text)} (${passage.ref})`, path },
       };
     }
     if (notice.kind === "releases") {
       const news = deps.news;
-      if (!news || news.changes.length === 0) return null;
-      const title = `New in UrantiaHub: ${news.title}`;
+      const words = lang === "es" ? news?.es : news;
+      if (!news || !words || words.changes.length === 0) return null;
       return {
-        mail: releaseMail({ title: news.title, changes: news.changes, date: releaseDate(news.date), url: `${deps.origin}/releases`, origin: deps.origin, mail: news.mail }, links),
-        push: { title, body: short(news.changes[0]), path: "/releases" },
+        mail: releaseMail({ title: words.title, changes: words.changes, date: releaseDate(news.date, lang), url: `${deps.origin}/releases`, origin: deps.origin, mail: news.mail }, links, lang),
+        push: { title: t.releaseSubject(words.title), body: short(words.changes[0]), path: "/releases" },
       };
     }
-    const paper = notice.place ? paperById(notice.place.paperId) : undefined;
+    const paper = notice.place ? paperById(notice.place.paperId, lang) : undefined;
     if (notice.kind !== "reminder" || !notice.place || !paper) return null;
-    const path = referenceHref(notice.place);
-    const name = paper.id === "0" ? paper.title : `Paper ${paper.id}, ${paper.title}`;
+    const path = referenceHref(notice.place, lang);
+    const name = paper.id === "0" ? paper.title : t.paperName(paper.id, paper.title);
     // The first words of the section, so the reader sees where the text goes on. Without them the
     // reminder still goes out, with the name of the paper.
-    const first = await deps.passage(`${paper.id}:${notice.place.sectionId}.1`).catch(() => null);
+    const first = await deps.passage(`${paper.id}:${notice.place.sectionId}.1`, lang).catch(() => null);
     const words = first ? opening(first.text) : null;
     return {
-      mail: reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${path}`, opening: words }, links),
-      push: { title: `Your place in ${name}`, body: words ? `${opening(first?.text ?? "", 110)} …` : "Your place is kept.", path },
+      mail: reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${path}`, opening: words }, links, lang),
+      push: { title: t.placePush(name), body: words ? `${opening(first?.text ?? "", 110)} …` : t.placeKept, path },
     };
   }
 
@@ -156,12 +163,12 @@ export async function runSamples(deps: Pick<JobDeps, "now" | "origin" | "passage
   const mails: OutMail[] = [];
   // The passage of today, and the longest passage of the list, so a long text can be judged.
   for (const ref of [passageFor(deps.now.toISOString().slice(0, 10)), longRef]) {
-    const passage = await deps.passage(ref);
+    const passage = await deps.passage(ref, "en");
     mails.push(out(dailyMail({ ...passage, url: `${deps.origin}${paperPath(passage.paperId)}#${passage.ref}` }, links("daily")), "daily"));
   }
   const paper = paperById("2");
   if (paper) {
-    const first = await deps.passage("2:1.1").catch(() => null);
+    const first = await deps.passage("2:1.1", "en").catch(() => null);
     mails.push(out(reminderMail({ paperId: paper.id, paperTitle: paper.title, url: `${deps.origin}${referenceHref({ paperId: "2", sectionId: "1" })}`, opening: first ? opening(first.text) : null }, links("reminder")), "reminder"));
   }
   if (sample) mails.push(out(releaseMail({ title: sample.title, changes: sample.changes, date: releaseDate(sample.date), url: `${deps.origin}/releases`, origin: deps.origin, mail: sample.mail }, links("releases")), "releases"));
