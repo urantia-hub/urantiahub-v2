@@ -114,10 +114,10 @@ test("the pair page has the header with its way back", async ({ page }) => {
   await page.goto(PAIR);
   await expect(page.locator(".site-header .header-start .hdr-back")).toBeVisible();
   await expect(page.locator(".site-header nav [data-slot]")).toHaveCount(4);
-  // Spanish has no pair page: the pill goes to the Spanish home.
+  // The pill goes to the Spanish pair.
   await page.getByRole("button", { name: "Language: English" }).click();
   await page.getByRole("dialog", { name: "Language" }).getByRole("radio", { name: /^Español/ }).click();
-  await expect(page).toHaveURL(/\/es(\/documentos)?$/);
+  await expect(page).toHaveURL(/\/es\/s\/1\.0\.3\/dhammapada\/21$/);
   await expect(page.getByText("Página no encontrada")).toHaveCount(0);
 });
 

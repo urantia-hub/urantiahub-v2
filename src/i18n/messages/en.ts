@@ -144,6 +144,7 @@ export const en = {
   parOpen: "Open",
   parNewTab: "(opens in a new tab)",
   parEnglish: "in English",
+  parBeside: ", beside this passage",
   scoreLabel: (n: number) => `${n}% near in meaning. What is this number?`,
   scoreTip: "How near in meaning this passage is to the paragraph. A computer measures it.",
   scoreLink: "What this number means",

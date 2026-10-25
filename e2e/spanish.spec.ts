@@ -204,7 +204,6 @@ test.describe("the tools of a Spanish paragraph", () => {
     await expect(sheet.locator(".parallel-lang")).toHaveCount(0);
     await expect(sheet.locator(".parallel-list").first()).toContainText("Y Dios el Padre es la fuente personal");
     await expect(sheet.getByRole("link", { name: /^Abrir 56:9\.10/ })).toHaveAttribute("href", /^\/es\/documentos\/documento-56-[a-z0-9-]+#56:9\.10$/);
-    await expect(sheet.getByRole("link", { name: "Estudiar estos paralelos" })).toHaveCount(0);
   });
 
   test("Preguntar a un asistente asks in Spanish, with the Spanish paragraph and link", async ({ page }) => {

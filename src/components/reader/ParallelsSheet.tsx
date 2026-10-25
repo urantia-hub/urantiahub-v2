@@ -134,12 +134,17 @@ export default function ParallelsSheet({ reference, paperId, work, onClose, onGo
           <div className="parallel-where">
             <Link className="parallel-pair" href={`${p.pairPath}?from=${work ? "text" : "paper"}`} prefetch={false} onClick={opened}>
               <b>{p.ref}</b>
-              <span className="sr-only">, beside this passage</span>
+              <span className="sr-only">{t.parBeside}</span>
             </Link>
-            <small>{p.source}</small>
+            <small>
+              {p.source}
+              {p.english && <span className="parallel-lang">{t.parEnglish}</span>}
+            </small>
             <Score percent={p.percent} lang={lang} />
           </div>
-          <p className={long && !open ? "clamp" : undefined}>{p.text}</p>
+          <p className={long && !open ? "clamp" : undefined} lang={p.english ? "en" : undefined}>
+            {p.text}
+          </p>
           {more && <div className="parallel-acts">{more}</div>}
         </li>
       );

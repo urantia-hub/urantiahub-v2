@@ -146,6 +146,7 @@ export const es: Messages = {
   parOpen: "Abrir",
   parNewTab: "(se abre en otra pestaña)",
   parEnglish: "en inglés",
+  parBeside: ", junto a este pasaje",
   scoreLabel: (n: number) => `${n}% cercano en sentido. ¿Qué es este número?`,
   scoreTip: "Cuán cercano en sentido es este pasaje al párrafo. Lo mide una computadora.",
   scoreLink: "Qué significa este número",
