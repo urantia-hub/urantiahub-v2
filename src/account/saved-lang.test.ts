@@ -32,6 +32,44 @@ describe("the saved list in Spanish", () => {
     expect(es.entries[0].paperTitle).toBe("El Padre Universal");
   });
 
+  // After a deploy no paper is stored, so a long list would ask the API for every paper at once.
+  it("asks for a few papers at a time, and for each paper one time first", async () => {
+    const many: AllSaved = {
+      cut: false,
+      entries: Array.from({ length: 40 }, (_, i) => ({ ref: `${i % 20}:1.${i}`, paperId: String(i % 20), paperTitle: "T", text: "E", savedAt: null, notes: [] })),
+    };
+    let open = 0;
+    let most = 0;
+    const firsts = new Set<string>();
+    const es = await inLanguage(many, "es", async (paperId, ref) => {
+      const first = !firsts.has(paperId);
+      firsts.add(paperId);
+      if (first) {
+        open += 1;
+        most = Math.max(most, open);
+        await new Promise((r) => setTimeout(r, 5));
+        open -= 1;
+      }
+      return `Texto de ${ref}`;
+    });
+    expect(most).toBeLessThanOrEqual(6);
+    expect(es.entries.every((e) => e.text.startsWith("Texto de "))).toBe(true);
+  });
+
+  // The list must come back before the request ends: the Spanish text is extra, the list is not.
+  it("keeps the English text of each paper that is still loading when the time ends", async () => {
+    vi.useFakeTimers();
+    try {
+      const done = inLanguage(ALL, "es", (paperId) => (paperId === "1" ? Promise.resolve("Texto") : new Promise<string>(() => {})), { budgetMs: 100 });
+      await vi.advanceTimersByTimeAsync(100);
+      const es = await done;
+      expect(es.entries.map((e) => e.text)).toEqual(["Texto", "The actuality of God."]);
+      expect(es.entries[1].paperTitle).toBe("La naturaleza de Dios");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("leaves an English list as it is", async () => {
     const load = vi.fn();
     expect(await inLanguage(ALL, "en", load)).toBe(ALL);
