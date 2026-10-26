@@ -1,4 +1,4 @@
-import { ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, LANGUAGE_ITEM, LANGUAGE_UPDATED, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS, VISIT_ITEM } from "@/content/privacy";
+import { ACCOUNT_CORRECTED, ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, ACCOUNT_POSTHOG, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, LANGUAGE_ITEM, LANGUAGE_UPDATED, NOTICE_ITEMS, NOTICE_RESEND, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_OPERATOR, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAK_SUPABASE_RECEIVES, STREAKS_UPDATED, VENDORS, VISIT_ITEM } from "@/content/privacy";
 import { releaseDate } from "@/content/releases";
 import { type Lang, spanishOn } from "@/i18n/lang";
 import { pageMetadata } from "@/seo/metadata";
@@ -21,6 +21,12 @@ export function privacyFlags(): PrivacyFlags {
   // The streak needs an account too. While it is off, the page says nothing of it.
   const streaksOn = accountsOn && process.env.NEXT_PUBLIC_STREAKS === "on";
   return { accountsOn, noticesOn, streaksOn };
+}
+
+// The date of the page: the newest date of the parts that the settings show.
+export function privacyUpdated({ accountsOn, noticesOn, streaksOn }: PrivacyFlags, spanish: boolean): string {
+  const dates = [PRIVACY_UPDATED, accountsOn && ACCOUNT_UPDATED, accountsOn && ACCOUNT_CORRECTED, noticesOn && NOTICES_UPDATED, streaksOn && STREAKS_UPDATED, spanish && LANGUAGE_UPDATED];
+  return dates.filter((d): d is string => Boolean(d)).reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a));
 }
 
 // "October 24, 2026" as "24 de octubre de 2026". The dates of src/content/privacy.ts are in English words.
@@ -52,7 +58,7 @@ function PrivacyEn({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
   return (
     <div className="prose privacy">
       <h1>Privacy</h1>
-      <p className="updated">Last updated: {spanishOn() ? LANGUAGE_UPDATED : streaksOn ? STREAKS_UPDATED : noticesOn ? NOTICES_UPDATED : accountsOn ? ACCOUNT_UPDATED : PRIVACY_UPDATED}</p>
+      <p className="updated">Last updated: {privacyUpdated({ accountsOn, noticesOn, streaksOn }, spanishOn())}</p>
 
       <h2>The short version</h2>
       <ul>
@@ -133,7 +139,8 @@ function PrivacyEn({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
           <p>
             One cookie holds your sign-in. It is encrypted, and a script on the page cannot read it. A second cookie
             says only that you are signed in, so that the page can show the right controls. We use neither one for
-            analytics or advertising. Analytics events have no link to your account.
+            analytics or advertising. While you are signed in, each analytics event carries a code that stands for your
+            account, as the section on page analytics says.
           </p>
           <p>
             A few more cookies serve the sign-in itself: one holds the start of a sign-in{spanishOn() ? " and the language of this browser" : ""} for a few minutes, one
@@ -264,7 +271,7 @@ function PrivacyEn({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
       <h2>Changes to this page</h2>
       <p>
         {accountsOn
-          ? "The site will grow: bookmarks and notes are planned. New on this date: you can sign in with a UrantiaHub account. When this page changes, the date at the top changes, and this page says what is new."
+          ? "New on this date: this page no longer calls saved paragraphs and notes planned, because you can use them now. It also corrects one line about the sign-in cookies: while you are signed in, analytics events carry a code that stands for your account. When this page changes, the date at the top changes, and this page says what is new."
           : "The site will grow: accounts, saved places, and notes are planned. When this page changes, the date at the top changes, and this page says what is new."}
       </p>
 

@@ -1,5 +1,5 @@
-import { ACCOUNT_ITEMS_ES, ACCOUNT_LANGUAGE_ITEM_ES, ACCOUNT_POSTHOG, ACCOUNT_VENDORS, BROWSER_ITEMS, LANGUAGE_ITEM, LANGUAGE_UPDATED, NOTICE_ITEMS_ES, NOTICE_RESEND, PRIVACY_EMAIL, PRIVACY_OPERATOR, STREAK_BROWSER_ITEM, STREAK_ITEMS_ES, STREAK_SUPABASE_RECEIVES_ES, STREAK_TEXT_ITEM, VENDORS, VISIT_ITEM } from "@/content/privacy";
-import { type PrivacyFlags, spanishDate } from "./PrivacyView";
+import { ACCOUNT_ITEMS_ES, ACCOUNT_LANGUAGE_ITEM_ES, ACCOUNT_POSTHOG, ACCOUNT_VENDORS, BROWSER_ITEMS, LANGUAGE_ITEM, NOTICE_ITEMS_ES, NOTICE_RESEND, PRIVACY_EMAIL, PRIVACY_OPERATOR, STREAK_BROWSER_ITEM, STREAK_ITEMS_ES, STREAK_SUPABASE_RECEIVES_ES, STREAK_TEXT_ITEM, VENDORS, VISIT_ITEM } from "@/content/privacy";
+import { type PrivacyFlags, privacyUpdated, spanishDate } from "./PrivacyView";
 
 const Email = () => <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>;
 
@@ -17,7 +17,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
   return (
     <div className="prose privacy">
       <h1>Privacidad</h1>
-      <p className="updated">Última actualización: {spanishDate(LANGUAGE_UPDATED)}</p>
+      <p className="updated">Última actualización: {spanishDate(privacyUpdated({ accountsOn, noticesOn, streaksOn }, true))}</p>
       <p className="binding">
         La traducción al español es automática. Si difiere de la{" "}
         <a href="/privacy" hrefLang="en">
@@ -107,7 +107,8 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
           <p>
             Una cookie guarda tu sesión. Está cifrada, y un script de la página no puede leerla. Una segunda cookie dice
             solo que tienes la sesión iniciada, para que la página muestre los controles correctos. No usamos ninguna de
-            las dos para analítica ni para publicidad. Los eventos de analítica no están vinculados a tu cuenta.
+            las dos para analítica ni para publicidad. Mientras tienes la sesión iniciada, cada evento de analítica lleva
+            un código que representa tu cuenta, como dice la sección de analítica de las páginas.
           </p>
           <p>
             Unas pocas cookies más sirven al inicio de sesión mismo: una guarda el comienzo de un inicio de sesión y el
@@ -240,7 +241,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
       <h2>Cambios en esta página</h2>
       <p>
         {accountsOn
-          ? "El sitio va a crecer: están previstos los marcadores y las notas. Nuevo en esta fecha: puedes iniciar sesión con una cuenta de UrantiaHub. Cuando esta página cambia, cambia la fecha de arriba, y esta página dice qué es nuevo."
+          ? "Nuevo en esta fecha: esta página ya no dice que los párrafos guardados y las notas llegarán más adelante, porque ya puedes usarlos. También corrige una línea sobre las cookies de la sesión: mientras tienes la sesión iniciada, los eventos de analítica llevan un código que representa tu cuenta. Cuando esta página cambia, cambia la fecha de arriba, y esta página dice qué es nuevo."
           : "El sitio va a crecer: están previstas las cuentas, los lugares guardados y las notas. Cuando esta página cambia, cambia la fecha de arriba, y esta página dice qué es nuevo."}
       </p>
 
