@@ -83,7 +83,6 @@ describe("the Spanish Privacy page", () => {
     expect(page).not.toMatch(/relación con/);
     expect(page).toContain("Registra lo que buscan los lectores, sin vínculo con el lector.");
     expect(page).toContain("El registro no está vinculado a ti.");
-    expect(page).toContain("Los eventos de analítica no están vinculados a tu cuenta.");
     expect(page).toContain("el número de días seguidos con una sección terminada");
     expect(page).toContain("conserva su conteo");
     expect(page).not.toContain("sale de ahí");
@@ -102,4 +101,28 @@ describe("a date in Spanish", () => {
     expect(spanishDate("October 24, 2026")).toBe("24 de octubre de 2026");
     expect(spanishDate("January 5, 2027")).toBe("5 de enero de 2027");
   });
+});
+
+// Corrected 2026-10-25: saved paragraphs and notes are live, and a signed-in reader's events carry the account code.
+describe("the facts of an account", () => {
+  for (const combo of COMBOS.filter((c) => on(c, "NEXT_PUBLIC_SIGN_IN"))) {
+    it(`are true of the live site with ${label(combo)}`, () => {
+      set(combo);
+      const en = render(<PrivacyView lang="en" />).container.textContent ?? "";
+      expect(en).not.toContain("bookmarks and notes are planned");
+      expect(en).not.toContain("Analytics events have no link to your account");
+      expect(en).toContain("While you are signed in, each analytics event carries a code that stands for your account, as the section on page analytics says.");
+      expect(en).toContain("Last updated: October 25, 2026");
+    });
+  }
+  for (const combo of SPANISH_COMBOS.filter((c) => on(c, "NEXT_PUBLIC_SIGN_IN"))) {
+    it(`are true of the live site in Spanish with ${label(combo)}`, () => {
+      set(combo);
+      const es = render(<PrivacyView lang="es" />).container.textContent ?? "";
+      expect(es).not.toContain("previst");
+      expect(es).not.toContain("no están vinculados a tu cuenta");
+      expect(es).toContain("Mientras tienes la sesión iniciada, cada evento de analítica lleva un código que representa tu cuenta, como dice la sección de analítica de las páginas.");
+      expect(es).toContain("Última actualización: 25 de octubre de 2026");
+    });
+  }
 });

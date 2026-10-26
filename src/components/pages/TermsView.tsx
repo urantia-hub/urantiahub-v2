@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { PRIVACY_EMAIL, PRIVACY_OPERATOR } from "@/content/privacy";
-import type { Lang } from "@/i18n/lang";
+import { type Lang, spanishOn } from "@/i18n/lang";
 import { pageMetadata } from "@/seo/metadata";
 import { TermsEs } from "./TermsEs";
 
-export const TERMS_UPDATED = "October 10, 2026";
+export const TERMS_UPDATED = "October 25, 2026";
 
 export function termsMetadata(lang: Lang) {
   return lang === "es"
@@ -69,7 +69,7 @@ function TermsEn({ accountsOn }: { accountsOn: boolean }) {
 
       <h2>What is ours, and what is open</h2>
       <p>
-        The English text of the Urantia Papers is in the public domain. The design of this site, its code, and its
+        The English text of the Urantia Papers is in the public domain.{spanishOn() && " The Spanish text on this site is a machine translation that we made, and we release it to the public domain (CC0)."} The design of this site, its code, and its
         audio narration are our work or are licensed to us. You can use the site for your own reading and study, and
         you can share a link, a paragraph, or an image that the site makes for you.
       </p>

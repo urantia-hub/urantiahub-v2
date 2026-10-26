@@ -7,7 +7,7 @@ import ReleasesPage from "@/app/(en)/releases/page";
 import ResourcesPage from "@/app/(en)/resources/page";
 import { RELEASES, releaseDate } from "@/content/releases";
 import { RESOURCE_GROUPS } from "@/content/resources";
-import { ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, LANGUAGE_ITEM, VISIT_ITEM, ACCOUNT_UPDATED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, NOTICES_UPDATED, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, STREAKS_UPDATED, VENDORS } from "@/content/privacy";
+import { ACCOUNT_ITEMS, ACCOUNT_LANGUAGE_ITEM, LANGUAGE_ITEM, VISIT_ITEM, ACCOUNT_CORRECTED, ACCOUNT_VENDORS, BROWSER_ITEMS, NOTICE_ITEMS, PRIVACY_EMAIL, PRIVACY_UPDATED, STREAK_BROWSER_ITEM, STREAK_ITEMS, STREAK_TEXT_ITEM, VENDORS } from "@/content/privacy";
 
 describe("About", () => {
   it("states the facts and the independence of the project", () => {
@@ -46,7 +46,7 @@ describe("Privacy, about accounts", () => {
   it("states what an account holds, the cookies, the companies, and the way to delete it", () => {
     vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
     const page = text();
-    expect(page).toContain(ACCOUNT_UPDATED);
+    expect(page).toContain(ACCOUNT_CORRECTED);
     expect(page).toContain("An account is optional");
     for (const item of ACCOUNT_ITEMS) expect(page).toContain(item);
     for (const vendor of ACCOUNT_VENDORS) expect(page).toContain(vendor.name);
@@ -129,7 +129,7 @@ describe("Privacy, about the streak", () => {
     vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
     vi.stubEnv("NEXT_PUBLIC_STREAKS", "on");
     const page = text();
-    expect(page).toContain(STREAKS_UPDATED);
+    expect(page).toContain(ACCOUNT_CORRECTED);
     for (const item of STREAK_ITEMS) expect(page).toContain(item);
     expect(page).toContain(STREAK_BROWSER_ITEM.name);
     expect(page).toContain(STREAK_TEXT_ITEM.name);
@@ -147,7 +147,7 @@ describe("Privacy, about notices", () => {
     vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
     vi.stubEnv("NEXT_PUBLIC_NOTICES", "");
     expect(text()).not.toMatch(/notice|push service/i);
-    expect(text()).toContain(ACCOUNT_UPDATED);
+    expect(text()).toContain(ACCOUNT_CORRECTED);
     vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "");
     vi.stubEnv("NEXT_PUBLIC_NOTICES", "on");
     expect(text()).not.toMatch(/notice|push service/i);
@@ -157,7 +157,7 @@ describe("Privacy, about notices", () => {
     vi.stubEnv("NEXT_PUBLIC_SIGN_IN", "on");
     vi.stubEnv("NEXT_PUBLIC_NOTICES", "on");
     const page = text();
-    expect(page).toContain(`Last updated: ${NOTICES_UPDATED}`);
+    expect(page).toContain(`Last updated: ${ACCOUNT_CORRECTED}`);
     for (const item of NOTICE_ITEMS) expect(page).toContain(item);
     expect(page).toMatch(/Each one is off until you turn it on/);
     expect(page).toMatch(/loads no picture and has no tracking link/);
