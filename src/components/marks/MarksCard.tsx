@@ -53,24 +53,9 @@ export function MarksView({ marks, next, place, lang = "en" }: { marks: Record<s
         <>
           <p className="marks-sub">{t.next}</p>
           <ul className="marks-next">
-            {next.map((item) => {
-              const mark = markById(item.id);
-              if (!mark) return null;
-              return (
-                <li key={item.id}>
-                  <MarkSymbol tier={mark.tier} symbol={mark.symbol} />
-                  <div>
-                    <b>{words.name(mark.id)}</b>
-                    <small>{item.line}</small>
-                    {item.progress !== null && (
-                      <span className="marks-bar" role="progressbar" aria-label={t.progress(words.name(mark.id))} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}>
-                        <i style={{ width: `${item.progress * 100}%` }} />
-                      </span>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+            {next.map((item) => (
+              <NextMarkRow key={item.id} item={item} lang={lang} />
+            ))}
           </ul>
         </>
       )}
@@ -113,4 +98,26 @@ export function earnedNewestFirst(marks: Record<string, string>): string[] {
   return Object.keys(marks)
     .filter((id) => order.has(id))
     .sort((a, b) => marks[b].localeCompare(marks[a]) || (order.get(b) ?? 0) - (order.get(a) ?? 0));
+}
+
+// One mark that the reader can earn next: its faint symbol, its name, what it takes, and its progress.
+export function NextMarkRow({ item, lang = "en" }: { item: NextMark; lang?: Lang }) {
+  const t = messages(lang).marks;
+  const words = markWords(lang);
+  const mark = markById(item.id);
+  if (!mark) return null;
+  return (
+    <li>
+      <MarkSymbol tier={mark.tier} symbol={mark.symbol} />
+      <div>
+        <b>{words.name(mark.id)}</b>
+        <small>{item.line}</small>
+        {item.progress !== null && (
+          <span className="marks-bar" role="progressbar" aria-label={t.progress(words.name(mark.id))} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}>
+            <i style={{ width: `${item.progress * 100}%` }} />
+          </span>
+        )}
+      </div>
+    </li>
+  );
 }

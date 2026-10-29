@@ -10,6 +10,7 @@ import { type Lang, spanishOn } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { TEXT_SIZE_INIT_SCRIPT } from "@/lib/text-size";
 import { LANG_MOVE_SCRIPT } from "@/reader/lang-move-script";
+import { LAUNCH_SCRIPT } from "@/reader/launch-resume";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "@/app/globals.css";
 
@@ -35,7 +36,7 @@ export function RootShell({ lang, children }: { lang: Lang; children: React.Reac
       <body>
         {/* First: a page that moves to its twin paints nothing before it goes. */}
         {spanishOn() && <script dangerouslySetInnerHTML={{ __html: LANG_MOVE_SCRIPT }} />}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT + TEXT_SIZE_INIT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT + TEXT_SIZE_INIT_SCRIPT + LAUNCH_SCRIPT }} />
         <a className="skip" href="#main">
           {messages(lang).skip}
         </a>

@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 // Review Focus 4: the site must work for a reader with no JavaScript.
 test.use({ javaScriptEnabled: false });
 
-test("a paper is readable and its pager works", async ({ page }) => {
+test("a paper is readable and its end card works", async ({ page }) => {
   await page.goto("/papers/paper-1-the-universal-father");
   await expect(page.locator('[id="1:0.1"]')).toContainText("THE Universal Father");
-  await page.locator(".pager").getByRole("link", { name: /Next/ }).click();
+  await page.locator(".up-next").getByRole("link", { name: "Read" }).click();
   await expect(page).toHaveURL("/papers/paper-2-the-nature-of-god");
 });
 

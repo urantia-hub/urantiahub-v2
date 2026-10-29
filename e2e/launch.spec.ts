@@ -17,6 +17,19 @@ test.describe("the app opens at the reader's place", () => {
     await page.addInitScript((place) => window.localStorage.setItem("hub:last-read", place), PLACE);
     await page.goto("/");
     await expect(page).toHaveURL(`${PAPER}#1:2`);
+    // The still mark goes when the paper is there.
+    await expect(page.locator("html")).not.toHaveAttribute("data-launch");
+  });
+
+  test("the still mark covers the home page from the first paint", async ({ page }) => {
+    await asApp(page);
+    await page.addInitScript((place) => window.localStorage.setItem("hub:last-read", place), PLACE);
+    // The page arrives, but its scripts wait: only the script before the first paint has run.
+    await page.route("**/_next/static/**/*.js", () => {});
+    await page.goto("/", { waitUntil: "commit" });
+    await expect(page.locator("html")).toHaveAttribute("data-launch", "");
+    const cover = await page.evaluate(() => getComputedStyle(document.documentElement, "::before").position);
+    expect(cover).toBe("fixed");
   });
 
   test("a Spanish reader's launch moves to /es first, then to the Spanish paper", async ({ page }) => {

@@ -83,6 +83,34 @@ body {
   }
 }
 
+/* The still mark of an app launch (Kelson, 2026-10-29): the page color with the bookmark in the center,
+   over the home page until the paper is there. On <html>, so it stays across the move. The bookmark
+   path is BOOKMARK_PATH, cut out of the tile. */
+html[data-launch]::before,
+html[data-launch]::after {
+  content: "";
+  position: fixed;
+  z-index: 1000;
+  transition: opacity 0.18s ease-out;
+}
+html[data-launch]::before {
+  inset: 0;
+  background: var(--bg);
+}
+html[data-launch]::after {
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  background: var(--ink);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill-rule='evenodd' d='M13 0h38a13 13 0 0 1 13 13v38a13 13 0 0 1-13 13H13A13 13 0 0 1 0 51V13A13 13 0 0 1 13 0zM21 12h22a2 2 0 0 1 2 2v39.2a1.4 1.4 0 0 1-2.3 1.1L32 44.6 21.3 54.3A1.4 1.4 0 0 1 19 53.2V14a2 2 0 0 1 2-2z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+html[data-launch="leaving"]::before,
+html[data-launch="leaving"]::after {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

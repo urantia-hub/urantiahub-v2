@@ -261,6 +261,24 @@ describe("the voice shows by the strength of the text", () => {
     expect(window.scrollTo).toHaveBeenCalledWith({ top: expect.any(Number), behavior: "auto" });
     expect(window.scrollTo).toHaveBeenCalledTimes(1);
   });
+
+  // A locked phone: the paper ends while the page is hidden, and the reader unlocks after it.
+  it("jumps to the last paragraph when the paper ended while the page was hidden", async () => {
+    await playing();
+    await at(4);
+    Object.defineProperty(document, "hidden", { value: true, configurable: true });
+    await at(40);
+    await act(async () => only().emit("ended"));
+    near("1:1.1");
+    vi.mocked(window.scrollTo).mockClear();
+    Object.defineProperty(document, "hidden", { value: false, configurable: true });
+    await act(async () => document.dispatchEvent(new Event("visibilitychange")));
+    expect(window.scrollTo).toHaveBeenCalledTimes(1);
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: expect.any(Number), behavior: "auto" });
+    // The move is made one time only.
+    await act(async () => document.dispatchEvent(new Event("visibilitychange")));
+    expect(window.scrollTo).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("the reading job", () => {

@@ -37,10 +37,13 @@ test("a Spanish address with an old title goes to the canonical one", async ({ r
   expect(response.headers().location).toBe(ES_PAPER_1);
 });
 
-test("the pager and the navigator speak Spanish", async ({ page }) => {
+test("the end card and the navigator speak Spanish", async ({ page }) => {
   await page.goto(ES_PAPER_1);
-  await expect(page.locator(".pager")).toContainText("Siguiente");
-  await page.locator(".pager").getByRole("link", { name: /Siguiente/ }).click();
+  await expect(page.locator(".paper-end-label")).toHaveText("Fin del Documento 1");
+  await expect(page.locator(".up-next")).toContainText("A continuación");
+  // No voice in Spanish, so no Escuchar.
+  await expect(page.locator(".up-next").getByRole("link")).toHaveCount(1);
+  await page.locator(".up-next").getByRole("link", { name: "Leer" }).click();
   await expect(page).toHaveURL("/es/documentos/documento-2-la-naturaleza-de-dios");
   await page.getByRole("button", { name: /Abrir el navegador/ }).click();
   await expect(page.getByRole("dialog", { name: "Navegador" })).toBeVisible();

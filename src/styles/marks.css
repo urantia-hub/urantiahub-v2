@@ -330,6 +330,15 @@
   font: 600 14px/1.2 var(--font-ui);
   cursor: pointer;
 }
+/* The nearest next mark, under Continue: the row of /you, at the width of the words. */
+.moment-next {
+  width: 100%;
+  max-width: 320px;
+  margin: 26px auto 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+}
 .moment-button.gold {
   background: linear-gradient(135deg, #f3dc8f, #c9a24a);
   color: #26221c;

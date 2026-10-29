@@ -54,18 +54,16 @@ describe("Continue reading on the Spanish home page", () => {
 });
 
 describe("the home page at an app launch", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => document.documentElement.removeAttribute("data-launch"));
 
-  it("goes to the section that the reader left when the app opens from the home screen", () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(display-mode: standalone)" }));
-    vi.spyOn(performance, "getEntriesByType").mockReturnValue([{ name: `${window.location.origin}${window.location.pathname}` } as PerformanceEntry]);
+  it("goes to the section that the reader left while the still mark shows", () => {
+    document.documentElement.setAttribute("data-launch", "");
     saveLastRead({ paperId: "38", sectionId: "1", label: null });
     render(<HomeContinue />);
     expect(replace).toHaveBeenCalledWith("/papers/paper-38-ministering-spirits-of-the-local-universe#38:1");
   });
 
-  it("stays on the home page in a browser tab", () => {
-    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+  it("stays on the home page with no still mark", () => {
     saveLastRead({ paperId: "38", sectionId: "1", label: null });
     render(<HomeContinue />);
     expect(replace).not.toHaveBeenCalled();
