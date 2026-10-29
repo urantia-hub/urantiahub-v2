@@ -1,7 +1,7 @@
 // The facts of the Privacy page, as lists. A new vendor or a new thing in the browser is one entry here.
 // Each entry must be true of the code that is live. Change the date when the page changes.
 // `es` and each `_ES` list: the same fact in Spanish, for /es/privacidad. Change both together.
-export const PRIVACY_UPDATED = "October 19, 2026";
+export const PRIVACY_UPDATED = "October 29, 2026";
 // The date of the page while a reader can sign in. See `accountsOn` in the page.
 export const ACCOUNT_UPDATED = "October 12, 2026";
 // The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
@@ -57,13 +57,14 @@ export const BROWSER_ITEMS: readonly BrowserItem[] = [
   { name: "The last page that you read in each world text", why: "so the page of that work can offer to continue there", es: { name: "La última página que leíste de cada texto del mundo", why: "para que la página de esa obra pueda ofrecerte continuar ahí" } },
   { name: "The papers, if you turn on Read offline", why: "so you can read with no connection; turn it off, and they leave the device", es: { name: "Los documentos, si los descargas para leer sin conexión", why: "para que puedas leer sin conexión; si quitas la descarga, salen del dispositivo" } },
   { name: "The assistant that you chose, if you use Ask an assistant", why: "so the next question opens in the same one", es: { name: "El asistente que elegiste, si usas Preguntar a un asistente", why: "para que la siguiente pregunta se abra en el mismo" } },
+  { name: "If you added the site to your home screen: that it opened in this session", why: "so it opens at your last place only when it starts; the mark goes when the app closes", es: { name: "Si agregaste el sitio a tu pantalla de inicio: que se abrió en esta sesión", why: "para que se abra en tu último lugar solo cuando inicia; la marca se va cuando la app se cierra" } },
   { name: "Your last five searches", why: "so you can run one again; the Clear control on the search page removes them", es: { name: "Tus cinco búsquedas más recientes", why: "para que puedas repetir una; el botón Borrar de la página de búsqueda las quita" } },
 ];
 
 // With Spanish on (NEXT_PUBLIC_SPANISH): the language that the reader chose in the language sheet.
 export const LANGUAGE_UPDATED = "October 24, 2026";
 // The day of two corrections to the facts of an account: saved paragraphs and notes are live, and the
-// analytics events of a signed-in reader carry the account code. It is the newest date while sign-in is on.
+// analytics events of a signed-in reader carry the account code.
 export const ACCOUNT_CORRECTED = "October 25, 2026";
 export const LANGUAGE_ITEM: BrowserItem = { name: "The language that you chose to read in, and when you chose it", why: "so the site does not offer the other language again, and the newest choice wins on each of your devices", es: { name: "El idioma que elegiste para leer, y cuándo lo elegiste", why: "para que el sitio no vuelva a ofrecerte el otro idioma, y para que la elección más reciente valga en cada uno de tus dispositivos" } };
 // With Spanish on: a mark in this tab only (`hub:visit`), gone when the tab closes.

@@ -157,6 +157,7 @@ Spec and plan: kept outside this public repo, in the private `urantia` workspace
 - The place that the reader left shows in three places: the "Continue" card of the contents page, a "Continue" row in the settings (`ContinueRow`; not on the paper of the place itself), and "Continue reading" on the home page (`HomeContinue`), with "All papers" beside it and the place named below.
 - The home page and the contents page run `PLACE_INIT_SCRIPT` (`src/reader/place-script.ts`) before the first paint. Both variants of the home buttons are in the server's HTML and CSS shows one, so nothing moves.
 - The list icon of the header goes to the list of all papers. The mark goes home, in the language of the page (`homeHref`).
+- The app on the home screen opens at the section that the reader left (Kelson, 2026-10-29): `launchResumeHref` in `src/reader/launch-resume.ts`, from `HomeContinue`. Only at a launch (display mode `standalone`, the document loaded at the home page, no `hub:launched` in `sessionStorage`), only from the place in this browser, and never in a browser tab. Home in the app and a reload keep the home page.
 
 ## Shared links (2026-10-10)
 
