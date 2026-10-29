@@ -158,11 +158,59 @@ html:not([data-reader]) .para:target .ref {
   padding: 12px 16px;
   margin: 0 0 2em;
 }
+/* The end of a paper: its label, then the next paper on the yellow of the paragraph in focus. */
+.paper-end {
+  margin-top: 3em;
+  padding-top: 1.4em;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-ui);
+}
+.paper-end-label {
+  margin: 0 0 16px;
+  color: var(--ref);
+  font: 500 13px/1.3 var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.up-next {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--mark);
+}
+.up-next small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ref);
+  font-size: 12.5px;
+}
+.up-next b {
+  display: block;
+  margin-bottom: 14px;
+  font: 500 19px/1.3 var(--font-text);
+}
+.up-next-row {
+  display: flex;
+  gap: 10px;
+}
+.up-next-row .btn {
+  padding: 11px 20px;
+  text-align: center;
+}
+.up-next-row .up-next-read {
+  border: 1px solid var(--ink);
+  background: none;
+  color: var(--ink);
+}
+@media (max-width: 767px) {
+  .up-next-row .btn {
+    flex: 1;
+  }
+}
 .pager {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 4.5em;
+  margin-top: 2em;
   padding-top: 1.6em;
   border-top: 1px solid var(--rule);
   font: 500 14px/1.4 var(--font-ui);

@@ -8,6 +8,7 @@ import { messages } from "@/i18n/messages";
 import { markById, MARKS } from "@/marks/list";
 import { markWords } from "@/marks/words";
 import { momentPlayed, serverStreakView, streakView, subscribeToStreak } from "@/streak/client";
+import { NextMarkRow } from "./MarksCard";
 import { MarkSymbol } from "./MarkSymbol";
 
 // The moment of a new mark: the one place where the Hub moves for reader state (Kelson, 2026-10-17).
@@ -61,6 +62,9 @@ export function MarkMoment({ lang = "en" }: { lang?: Lang }) {
   };
   const tier = mark.tier;
   const full = tier >= 3;
+  // Under Continue on a sheet: the nearest mark that the reader has not earned (Kelson, 2026-10-29).
+  const card = view.card?.on ? view.card : null;
+  const upcoming = full || !card ? undefined : (card.nextMarks ?? []).find((next) => next.id !== mark.id && !card.marks[next.id]);
   return createPortal(
     <div className={`mark-moment moment-${tier}${lessMotion() ? " still" : ""}`} role="dialog" aria-modal="true" aria-label={t.newMark(words.name(mark.id))}>
       {!full && <button type="button" className="moment-scrim" aria-hidden="true" tabIndex={-1} onClick={close} />}
@@ -77,6 +81,14 @@ export function MarkMoment({ lang = "en" }: { lang?: Lang }) {
           <button type="button" className={full ? "moment-button gold" : "moment-button"} onClick={close} autoFocus>
             {t.continue}
           </button>
+          {upcoming && (
+            <div className="moment-next">
+              <p className="marks-sub">{t.next}</p>
+              <ul className="marks-next">
+                <NextMarkRow item={upcoming} lang={lang} />
+              </ul>
+            </div>
+          )}
         </div>
         {pieces.map((piece, i) => (
           <i key={i} className={`moment-piece ${piece.kind}`} style={piece.style} />

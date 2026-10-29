@@ -11,7 +11,7 @@ import { contentsHref } from "@/i18n/paths";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
-import { launchResumeHref } from "@/reader/launch-resume";
+import { launchResumeHref, watchLaunchEnd } from "@/reader/launch-resume";
 import { usePlaceLabel } from "@/reader/place-label";
 
 const none = () => null;
@@ -39,6 +39,7 @@ export function HomeContinue({ lang = "en" }: { lang?: Lang }) {
     const href = launchResumeHref(lang);
     if (!href) return;
     track("app_launch_resumed");
+    watchLaunchEnd(window.location.pathname);
     router.replace(href);
   }, [lang, router]);
   return (

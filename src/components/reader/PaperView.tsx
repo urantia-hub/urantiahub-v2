@@ -61,6 +61,28 @@ export function PaperView({ paper, lang = "en" }: { paper: PaperDoc; lang?: Lang
         </section>
       ))}
 
+      {/* The end of the paper, under its last paragraph: the next paper, to listen to or to read (Kelson, 2026-10-29). */}
+      <footer className="paper-end" id="paper-end">
+        <p className="paper-end-label">{t.paperEnd(paper.id)}</p>
+        {next && (
+          <div className="up-next">
+            <small>{t.upNext}</small>
+            <b>{t.paperNamed(next.id, next.title)}</b>
+            <div className="up-next-row">
+              {/* No voice in Spanish. */}
+              {lang === "en" && (
+                <Link className="btn up-next-listen" href={`${paperPath(next.id, lang)}?listen=1#paper-top`}>
+                  {t.listenNext}
+                </Link>
+              )}
+              <Link className="btn up-next-read" href={paperPath(next.id, lang)}>
+                {t.readNext}
+              </Link>
+            </div>
+          </div>
+        )}
+      </footer>
+
       <nav className="pager" aria-label={t.papersNav}>
         {previous ? (
           <Link href={paperPath(previous.id, lang)}>
@@ -69,12 +91,6 @@ export function PaperView({ paper, lang = "en" }: { paper: PaperDoc; lang?: Lang
           </Link>
         ) : (
           <span />
-        )}
-        {next && (
-          <Link className="next" href={paperPath(next.id, lang)}>
-            <small>{t.next}</small>
-            {t.paperNamed(next.id, next.title)}
-          </Link>
         )}
       </nav>
     </article>

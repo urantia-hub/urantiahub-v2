@@ -146,6 +146,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
 
   // The key of the last item that sounded (a title or a paragraph).
   const lastVoiceRef = useRef<string | null>(null);
+  const owedRef = useRef<string | null>(null);
   // The state of the voice before the newest one: a new sentence is a change from it.
   const latestVoice = useRef<PaperVoiceState>(IDLE);
   // The marked paragraph before the last single click, for a double-click that selects a word.
@@ -231,6 +232,9 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       const ref = isSounding(now.status) ? tracks[now.index].ref : null;
       setPausedAway(now.status === "paused" && now.index >= 0 && !inView(tracks[now.index].ref));
       if (!ref) {
+        // The voice stopped while the page was hidden (a locked phone at the end of the paper): the page
+        // owes the move to the last item that sounded, and makes it when it shows again.
+        if (document.hidden && following.current && lastVoiceRef.current) owedRef.current = lastVoiceRef.current;
         lastVoiceRef.current = null;
         // A move of the page that is under way stops: a scroll down would hide the controls.
         moving.current += 1;
@@ -248,6 +252,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
         // The reader scrolled, but can see the item that just ended: follow again.
         if (!following.current && latest.current.picked === null && inView(itemId(paper.id, lastVoiceRef.current))) follow(true);
         lastVoiceRef.current = key;
+        owedRef.current = null;
         // The page keeps what sounds in the upper part of the screen. A hidden page moves when it shows again.
         if (following.current && !document.hidden) bring(key);
       } else if (wantBack.current && now.sentence !== was.sentence && latest.current.picked === null) {
@@ -353,8 +358,11 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   // A page that was hidden (the screen off) jumps to the voice when it shows again: no long move through the paper.
   useEffect(() => {
     const onShow = () => {
+      if (document.hidden) return;
       const key = lastVoiceRef.current;
-      if (!document.hidden && key && following.current && isSounding(latest.current.status)) bring(key, true);
+      if (key && following.current && isSounding(latest.current.status)) bring(key, true);
+      else if (owedRef.current && following.current) bring(owedRef.current, true);
+      owedRef.current = null;
     };
     document.addEventListener("visibilitychange", onShow);
     return () => document.removeEventListener("visibilitychange", onShow);

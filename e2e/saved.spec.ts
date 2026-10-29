@@ -411,7 +411,7 @@ test.describe("the notes in the margin", () => {
     await page.goto(PAPER);
     await signIn(page);
     await expect(card(page, "1:0.3")).toBeVisible();
-    await page.locator(".pager .next").click();
+    await page.locator(".up-next-read").click();
     await page.waitForURL("**/papers/paper-2-**");
     await expect(card(page, "2:0.1")).toBeVisible();
     await still(page);

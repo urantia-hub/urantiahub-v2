@@ -40,13 +40,22 @@ describe("PaperView", () => {
     expect(container.querySelector('[id="1:1.1"] em')).toHaveTextContent("Second.");
   });
 
-  it("links to the previous and the next paper", () => {
-    render(<PaperView paper={paper} />);
+  it("links to the previous paper, and ends with the next paper to listen to or to read", () => {
+    const { container } = render(<PaperView paper={paper} />);
     expect(screen.getByRole("link", { name: /Previous.*Foreword/ })).toHaveAttribute("href", "/papers/foreword");
-    expect(screen.getByRole("link", { name: /Next.*The Nature of God/ })).toHaveAttribute(
-      "href",
-      "/papers/paper-2-the-nature-of-god",
-    );
+    expect(container.querySelector(".paper-end-label")).toHaveTextContent("End of Paper 1");
+    expect(container.querySelector(".up-next")).toHaveTextContent("Up nextPaper 2 · The Nature of God");
+    expect(screen.getByRole("link", { name: "Listen" })).toHaveAttribute("href", "/papers/paper-2-the-nature-of-god?listen=1#paper-top");
+    expect(screen.getByRole("link", { name: "Read" })).toHaveAttribute("href", "/papers/paper-2-the-nature-of-god");
+  });
+
+  it("names the Foreword at its end, and has no Listen in Spanish", () => {
+    const { container, rerender } = render(<PaperView paper={{ ...paper, id: "0", title: "Foreword", partId: "0" }} />);
+    expect(container.querySelector(".paper-end-label")).toHaveTextContent("End of the Foreword");
+    rerender(<PaperView paper={paper} lang="es" />);
+    expect(container.querySelector(".paper-end-label")).toHaveTextContent("Fin del Documento 1");
+    expect(screen.queryByRole("link", { name: "Escuchar" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Leer" })).toBeInTheDocument();
   });
 
   it("shows no previous link on the Foreword and no next link on Paper 196", () => {
@@ -55,6 +64,7 @@ describe("PaperView", () => {
     expect(screen.getByText("Foreword", { selector: "h1" })).toBeInTheDocument();
     rerender(<PaperView paper={{ ...paper, id: "196", title: "The Faith of Jesus", partId: "4" }} />);
     expect(screen.queryByRole("link", { name: /Next/ })).toBeNull();
+    expect(document.querySelector(".up-next")).toBeNull();
   });
 
   it("adds no number to a section title that has its own", () => {

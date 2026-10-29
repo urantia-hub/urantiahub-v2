@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MarkMoment } from "./MarkMoment";
 import { MarksView } from "./MarksCard";
 
-const state = vi.hoisted(() => ({ moments: [] as string[], played: [] as string[], listeners: new Set<() => void>(), view: null as unknown, of: null as unknown }));
+const state = vi.hoisted(() => ({ moments: [] as string[], played: [] as string[], listeners: new Set<() => void>(), view: null as unknown, of: null as unknown, next: [] as unknown[] }));
 // The store answers the same object until the moments change, as the real store does.
 const viewOf = () => {
   if (state.of !== state.moments) {
     state.of = state.moments;
-    state.view = { card: { on: true, marks: { search: "t" } }, asking: false, moments: state.moments };
+    state.view = { card: { on: true, marks: { search: "t" }, nextMarks: state.next }, asking: false, moments: state.moments };
   }
   return state.view;
 };
@@ -32,6 +32,7 @@ beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   state.moments = [];
   state.played = [];
+  state.next = [];
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -60,6 +61,41 @@ describe("the moment of a new mark", () => {
     document.querySelector(".panel")?.remove();
     await act(() => vi.advanceTimersByTimeAsync(1000));
     expect(screen.getByRole("dialog", { name: "A new mark: Search" })).toBeInTheDocument();
+  });
+});
+
+describe("the next mark in the moment", () => {
+  const NEXT = [
+    { id: "foreword", line: "Finish the Foreword", progress: 1 },
+    { id: "papers-1", line: "Finish Paper 1 · about 50 min", progress: 0 },
+  ];
+
+  it("shows the nearest mark that the reader has not earned under Continue", async () => {
+    state.next = NEXT;
+    state.moments = ["foreword"];
+    render(<MarkMoment />);
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    const dialog = screen.getByRole("dialog", { name: "A new mark: Foreword" });
+    const row = dialog.querySelector(".moment-next")!;
+    expect(row).toHaveTextContent("Next");
+    expect(row).toHaveTextContent("1 paper");
+    expect(row).toHaveTextContent("Finish Paper 1 · about 50 min");
+    expect(row).not.toHaveTextContent("Foreword");
+  });
+
+  it("has no next row on the full screen of a Gilt mark, or with no next mark", async () => {
+    state.next = NEXT;
+    state.moments = ["papers-20"];
+    const view = render(<MarkMoment />);
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    expect(screen.getByRole("dialog", { name: "A new mark: 20 papers" })).toBeInTheDocument();
+    expect(document.querySelector(".moment-next")).toBeNull();
+    view.unmount();
+    state.next = [];
+    state.moments = ["search"];
+    render(<MarkMoment />);
+    await act(() => vi.advanceTimersByTimeAsync(500));
+    expect(document.querySelector(".moment-next")).toBeNull();
   });
 });
 

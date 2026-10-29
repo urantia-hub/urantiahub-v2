@@ -57,9 +57,12 @@ test("the redirect is permanent", async ({ request }) => {
   expect(response.status()).toBe(308);
 });
 
-test("the previous and next links move between papers", async ({ page }) => {
+test("the end card and the previous link move between papers", async ({ page }) => {
   await page.goto(PAPER_1);
-  await page.locator(".pager").getByRole("link", { name: /Next/ }).click();
+  await expect(page.locator(".paper-end-label")).toHaveText("End of Paper 1");
+  await expect(page.locator(".up-next")).toContainText("Paper 2 · The Nature of God");
+  await expect(page.locator(".up-next").getByRole("link", { name: "Listen" })).toHaveAttribute("href", "/papers/paper-2-the-nature-of-god?listen=1#paper-top");
+  await page.locator(".up-next").getByRole("link", { name: "Read" }).click();
   await expect(page).toHaveURL("/papers/paper-2-the-nature-of-god");
   await page.locator(".pager").getByRole("link", { name: /Previous/ }).click();
   await expect(page).toHaveURL(PAPER_1);
