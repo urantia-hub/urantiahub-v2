@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useSyncExternalStore } from "react";
 import { accountState, serverAccountState, subscribeToAccount } from "@/account/client";
 import { accountPlaceKnown, accountPlaceUnknown, subscribeToAccountPlace } from "@/account/sync";
 import { track } from "@/analytics";
@@ -10,6 +11,7 @@ import { contentsHref } from "@/i18n/paths";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { readLastRead, subscribeToLastRead } from "@/reader/last-read";
+import { launchResumeHref } from "@/reader/launch-resume";
 import { usePlaceLabel } from "@/reader/place-label";
 
 const none = () => null;
@@ -32,6 +34,13 @@ export function HomeContinue({ lang = "en" }: { lang?: Lang }) {
     if (place || coming) document.documentElement.dataset.place = "";
     else delete document.documentElement.dataset.place;
   }, [place, coming]);
+  const router = useRouter();
+  useEffect(() => {
+    const href = launchResumeHref(lang);
+    if (!href) return;
+    track("app_launch_resumed");
+    router.replace(href);
+  }, [lang, router]);
   return (
     <Link className="btn home-continue" href={place ? referenceHref({ paperId: place.last.paperId, sectionId: place.last.sectionId }, lang) : contentsHref(lang)} onClick={() => track("home_continue_clicked")}>
       {messages(lang).continueReading}

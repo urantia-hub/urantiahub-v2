@@ -6,6 +6,7 @@ export type AnalyticsEvents = {
   home_passage_shown: { ref: string; position: number };
   home_read_clicked: undefined;
   home_continue_clicked: undefined;
+  app_launch_resumed: undefined;
   paragraph_picked: { paper_id: string };
   // `part`: the link is for some sentences of the paragraph, not for all of it.
   paragraph_shared: { ref: string; method: "sheet" | "copy"; part?: boolean };

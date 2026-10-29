@@ -1,10 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveLastRead } from "@/reader/last-read";
 import { HomeContinue, HomePlace } from "./HomeContinue";
 
+const replace = vi.fn();
 vi.mock("@/analytics", () => ({ track: vi.fn() }));
-beforeEach(() => window.localStorage.clear());
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+beforeEach(() => {
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+  replace.mockClear();
+});
 
 describe("Continue reading on the home page", () => {
   it("goes to the section that the reader left, and the line below names it", () => {
@@ -44,5 +50,24 @@ describe("Continue reading on the Spanish home page", () => {
   it("goes to the Spanish contents for a reader with no place", () => {
     render(<HomeContinue lang="es" />);
     expect(screen.getByRole("link", { name: "Seguir leyendo" })).toHaveAttribute("href", "/es/documentos");
+  });
+});
+
+describe("the home page at an app launch", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("goes to the section that the reader left when the app opens from the home screen", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(display-mode: standalone)" }));
+    vi.spyOn(performance, "getEntriesByType").mockReturnValue([{ name: `${window.location.origin}${window.location.pathname}` } as PerformanceEntry]);
+    saveLastRead({ paperId: "38", sectionId: "1", label: null });
+    render(<HomeContinue />);
+    expect(replace).toHaveBeenCalledWith("/papers/paper-38-ministering-spirits-of-the-local-universe#38:1");
+  });
+
+  it("stays on the home page in a browser tab", () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    saveLastRead({ paperId: "38", sectionId: "1", label: null });
+    render(<HomeContinue />);
+    expect(replace).not.toHaveBeenCalled();
   });
 });
