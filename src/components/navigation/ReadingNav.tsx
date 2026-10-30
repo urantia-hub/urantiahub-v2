@@ -521,6 +521,17 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     engine.current?.playAt(index);
   }
 
+  // From the top of a paper, the voice reads its title first.
+  function startAtTop(from: "bar" | "streak") {
+    const current = engine.current;
+    if (!tracks || !current) return;
+    if (!("playFromTitle" in current)) return start(tracks[0].ref, from);
+    follow(true);
+    setPlaceUsed(true);
+    track("audio_started", { paper_id: paper.id, from });
+    current.playFromTitle();
+  }
+
   // "Listen" on the streak card: `?listen=1` with the section in the address starts the voice there.
   // The press on /you is in this document (a client move), so the browser lets the sound start.
   useEffect(() => {
@@ -535,12 +546,14 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     } catch {
       return;
     }
-    const first = at === "paper-top" || at === "" ? tracks[0] : tracks.find((t) => t.ref.startsWith(`${at}.`));
+    const top = at === "paper-top" || at === "";
+    const first = top ? tracks[0] : tracks.find((t) => t.ref.startsWith(`${at}.`));
     if (!first) return;
     // After the engine of this render is ready, and outside the effect body.
     const timer = window.setTimeout(() => {
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`);
-      start(first.ref, "streak");
+      if (top) startAtTop("streak");
+      else start(first.ref, "streak");
     }, 0);
     return () => window.clearTimeout(timer);
     // Only the first load of the page reads the address.
@@ -561,14 +574,8 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       start(intent.ref, "paragraph");
     } else {
       const first = tracks.find((t) => (document.getElementById(t.ref)?.getBoundingClientRect().bottom ?? 0) > 90) ?? tracks[0];
-      // From the top of a paper, the voice reads its title first.
-      const current = engine.current;
-      if (first === tracks[0] && current && "playFromTitle" in current) {
-        follow(true);
-        setPlaceUsed(true);
-        track("audio_started", { paper_id: paper.id, from: "bar" });
-        current.playFromTitle();
-      } else start(first.ref, "bar");
+      if (first === tracks[0]) startAtTop("bar");
+      else start(first.ref, "bar");
     }
   }
 
