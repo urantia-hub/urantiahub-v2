@@ -10,7 +10,7 @@ export function TermsEs({ accountsOn }: { accountsOn: boolean }) {
       <h1>Términos</h1>
       <p className="updated">Última actualización: {spanishDate(TERMS_UPDATED)}</p>
       <p className="binding">
-        La traducción al español es automática. Si difiere de la{" "}
+        La traducción al español se hizo con IA. Si difiere de la{" "}
         <a href="/terms" hrefLang="en">
           versión en inglés
         </a>
@@ -61,7 +61,7 @@ export function TermsEs({ accountsOn }: { accountsOn: boolean }) {
       <h2>Lo que es nuestro, y lo que es abierto</h2>
       <p>
         El texto en inglés de los Documentos de Urantia es de dominio público. El texto en español de este sitio es una
-        traducción automática que hicimos nosotros, y la liberamos al dominio público (CC0). El diseño de este sitio, su código y su
+        traducción con IA que hicimos nosotros, y la liberamos al dominio público (CC0). El diseño de este sitio, su código y su
         narración en audio son obra nuestra o tenemos licencia para usarlos. Puedes usar el sitio para tu propia lectura
         y estudio, y puedes compartir un enlace, un párrafo o una imagen que el sitio hace para ti.
       </p>

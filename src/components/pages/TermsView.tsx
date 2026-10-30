@@ -69,7 +69,7 @@ function TermsEn({ accountsOn }: { accountsOn: boolean }) {
 
       <h2>What is ours, and what is open</h2>
       <p>
-        The English text of the Urantia Papers is in the public domain.{spanishOn() && " The Spanish text on this site is a machine translation that we made, and we release it to the public domain (CC0)."} The design of this site, its code, and its
+        The English text of the Urantia Papers is in the public domain.{spanishOn() && " The Spanish text on this site is an AI translation that we made, and we release it to the public domain (CC0)."} The design of this site, its code, and its
         audio narration are our work or are licensed to us. You can use the site for your own reading and study, and
         you can share a link, a paragraph, or an image that the site makes for you.
       </p>

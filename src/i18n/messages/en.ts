@@ -45,7 +45,7 @@ export const en = {
   languageOf: "Language: English",
   readIn: "Read in",
   englishLine: "The original text",
-  spanishLine: "Machine translation from English, 2026 · Public domain",
+  spanishLine: "AI translation from English, 2026 · Public domain",
   audio: "Audio",
   sameParagraph: "The same paper and the same paragraph. Nothing to download to read.",
   offline: "Offline",

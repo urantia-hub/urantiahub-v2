@@ -19,7 +19,7 @@ export function PrivacyEs({ accountsOn, noticesOn, streaksOn }: PrivacyFlags) {
       <h1>Privacidad</h1>
       <p className="updated">Última actualización: {spanishDate(privacyUpdated({ accountsOn, noticesOn, streaksOn }, true))}</p>
       <p className="binding">
-        La traducción al español es automática. Si difiere de la{" "}
+        La traducción al español se hizo con IA. Si difiere de la{" "}
         <a href="/privacy" hrefLang="en">
           versión en inglés
         </a>
