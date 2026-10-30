@@ -41,6 +41,29 @@ test("the voice plays one file from the title, and the text shows where it is", 
   expect([...new Set(audio.requested.map((url) => new URL(url).pathname))]).toEqual(["/audio/eng/papers/2.mp3"]);
 });
 
+test("Listen at the end of a paper starts the next paper at its title", async ({ page }) => {
+  await stubAudio(page);
+  // Each place in the file that the page asks for. The title is at 0, and 2:0.1 at 2.
+  await page.addInitScript(() => {
+    const seeks: number[] = ((window as unknown as { seeks: number[] }).seeks = []);
+    const own = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "currentTime")!;
+    Object.defineProperty(HTMLMediaElement.prototype, "currentTime", {
+      get() {
+        return own.get!.call(this);
+      },
+      set(value: number) {
+        seeks.push(value);
+        own.set!.call(this, value);
+      },
+    });
+  });
+  await page.goto("/papers/paper-1-the-universal-father");
+  await page.locator(".up-next").getByRole("link", { name: "Listen" }).click();
+  await expect(page).toHaveURL(`${PAPER_2}#paper-top`, { timeout: 10_000 });
+  await expect.poll(() => page.evaluate(() => (window as unknown as { seeks: number[] }).seeks[0])).toBe(0);
+  await expect(para(page, "2:0.1")).toHaveAttribute("data-voice", "", { timeout: 8000 });
+});
+
 test("the sentence that sounds is at full ink, and the rest of its paragraph is softer", async ({ page }) => {
   await stubAudio(page);
   await page.goto(PAPER_2);
