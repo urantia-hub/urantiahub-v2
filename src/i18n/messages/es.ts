@@ -47,7 +47,7 @@ export const es: Messages = {
   languageOf: "Idioma: español",
   readIn: "Leer en",
   englishLine: "El texto original",
-  spanishLine: "Traducción automática del inglés, 2026 · Dominio público",
+  spanishLine: "Traducción con IA del inglés, 2026 · Dominio público",
   audio: "Audio",
   sameParagraph: "El mismo documento y el mismo párrafo. No hace falta descargar nada para leer.",
   offline: "Sin conexión",
@@ -596,7 +596,7 @@ export const es: Messages = {
     textHeading: "El texto",
     publicDomain: "El texto en inglés de los Documentos es de dominio público en los Estados Unidos (Michael Foundation v. Urantia Foundation, 10th Cir. 2003).",
     source: "El texto de este sitio viene de",
-    sourceAfter: ", una API abierta de los Documentos. La traducción al español es automática.",
+    sourceAfter: ", una API abierta de los Documentos. La traducción al español se hizo con IA.",
   },
   resourcesPage: {
     metaTitle: "Recursos",

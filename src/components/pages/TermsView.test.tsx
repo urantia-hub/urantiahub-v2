@@ -39,19 +39,19 @@ describe("the Spanish Terms page", () => {
     const english = screen.getByRole("link", { name: "versión en inglés" });
     expect(english).toHaveAttribute("href", "/terms");
     expect(english).toHaveAttribute("hreflang", "en");
-    expect(english.closest("p")).toHaveTextContent("La traducción al español es automática. Si difiere de la versión en inglés, prevalece la versión en inglés.");
+    expect(english.closest("p")).toHaveTextContent("La traducción al español se hizo con IA. Si difiere de la versión en inglés, prevalece la versión en inglés.");
   });
 });
 
-// The Spanish text is the machine translation of urantia.dev, released as CC0 (2026-10-25).
+// The Spanish text is the AI translation of urantia.dev, released as CC0 (2026-10-25).
 describe("what the Terms say of the text", () => {
   it("names the Spanish text and its release while Spanish is on", () => {
     vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
     const en = render(<TermsView lang="en" />).container.textContent ?? "";
-    expect(en).toContain("The Spanish text on this site is a machine translation that we made, and we release it to the public domain (CC0).");
+    expect(en).toContain("The Spanish text on this site is an AI translation that we made, and we release it to the public domain (CC0).");
     expect(en).toContain("Last updated: October 25, 2026");
     const es = render(<TermsView lang="es" />).container.textContent ?? "";
-    expect(es).toContain("El texto en español de este sitio es una traducción automática que hicimos nosotros, y la liberamos al dominio público (CC0).");
+    expect(es).toContain("El texto en español de este sitio es una traducción con IA que hicimos nosotros, y la liberamos al dominio público (CC0).");
   });
 
   it("says nothing of a Spanish text while Spanish is off", () => {

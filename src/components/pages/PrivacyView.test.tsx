@@ -72,7 +72,7 @@ describe("the Spanish Privacy page", () => {
     const english = screen.getByRole("link", { name: "versión en inglés" });
     expect(english).toHaveAttribute("href", "/privacy");
     expect(english).toHaveAttribute("hreflang", "en");
-    expect(english.closest("p")).toHaveTextContent("La traducción al español es automática. Si difiere de la versión en inglés, prevalece la versión en inglés.");
+    expect(english.closest("p")).toHaveTextContent("La traducción al español se hizo con IA. Si difiere de la versión en inglés, prevalece la versión en inglés.");
   });
 
   // The judge of the back-check (2026-10-25): "relación" read as "has nothing to do with you", "cuenta" means the
