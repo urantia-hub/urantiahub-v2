@@ -112,7 +112,7 @@ describe("the facts of an account", () => {
       expect(en).not.toContain("bookmarks and notes are planned");
       expect(en).not.toContain("Analytics events have no link to your account");
       expect(en).toContain("While you are signed in, each analytics event carries a code that stands for your account, as the section on page analytics says.");
-      expect(en).toContain("Last updated: October 29, 2026");
+      expect(en).toContain("Last updated: October 30, 2026");
     });
   }
   for (const combo of SPANISH_COMBOS.filter((c) => on(c, "NEXT_PUBLIC_SIGN_IN"))) {
@@ -122,7 +122,7 @@ describe("the facts of an account", () => {
       expect(es).not.toContain("previst");
       expect(es).not.toContain("no están vinculados a tu cuenta");
       expect(es).toContain("Mientras tienes la sesión iniciada, cada evento de analítica lleva un código que representa tu cuenta, como dice la sección de analítica de las páginas.");
-      expect(es).toContain("Última actualización: 29 de octubre de 2026");
+      expect(es).toContain("Última actualización: 30 de octubre de 2026");
     });
   }
 });
