@@ -38,6 +38,27 @@ const day = (offset: number) => {
 
 test.use({ timezoneId: "UTC" });
 
+test.describe("the read marks", () => {
+  test("count a paragraph that the voice played while the page is hidden", async ({ page, context }) => {
+    const reader = await asReader(context);
+    await stubAudio(page);
+    // The paragraphs of the fixture for this paper last under two seconds each in the one file.
+    await page.goto("/papers/paper-2-the-nature-of-god");
+    await signIn(page);
+    await page.keyboard.press("Escape");
+    // A hidden page counts no time in the reading zone, so only the voice can make these marks.
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", { get: () => "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await round(page).click();
+    await expect(page.getByTestId("voice-ref")).toHaveText("2:0.3", { timeout: 15000 });
+    // Each time the page hides, the waiting marks go out.
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect.poll(async () => (await reader.seen()).read).toContain("2:0.1");
+  });
+});
+
 test.describe("the streak", () => {
   test("asks one time after a first finished section, and sends that section after the yes", async ({ page, context }) => {
     const reader = await asReader(context);

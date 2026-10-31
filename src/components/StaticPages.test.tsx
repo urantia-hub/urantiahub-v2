@@ -52,7 +52,7 @@ describe("Privacy, about accounts", () => {
     for (const vendor of ACCOUNT_VENDORS) expect(page).toContain(vendor.name);
     expect(page).toMatch(/One cookie holds your sign-in/);
     // Each thing that the code writes to the account is named, and each thing that it keeps in the browser.
-    expect(page).toContain("Which paragraphs you read");
+    expect(page).toContain("Which paragraphs you read or heard");
     expect(page).toContain("The paragraphs that you saved");
     expect(page).toContain("Your notes");
     expect(page).toMatch(/the place and the paragraphs that you read also go to your account\. The theme and the text size never leave the device/);

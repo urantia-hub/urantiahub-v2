@@ -1,9 +1,9 @@
 // The facts of the Privacy page, as lists. A new vendor or a new thing in the browser is one entry here.
 // Each entry must be true of the code that is live. Change the date when the page changes.
 // `es` and each `_ES` list: the same fact in Spanish, for /es/privacidad. Change both together.
-export const PRIVACY_UPDATED = "October 29, 2026";
+export const PRIVACY_UPDATED = "October 30, 2026";
 // The date of the page while a reader can sign in. See `accountsOn` in the page.
-export const ACCOUNT_UPDATED = "October 12, 2026";
+export const ACCOUNT_UPDATED = "October 30, 2026";
 // The date of the page while a reader can turn on a notice. See `noticesOn` in the page.
 export const NOTICES_UPDATED = "October 12, 2026";
 // The date of the page while a reader can keep a streak. See `streaksOn` in the page.
@@ -78,14 +78,14 @@ export const ACCOUNT_LANGUAGE_ITEM_ES = "El idioma que elegiste para leer, y cu�
 export const ACCOUNT_ITEMS: readonly string[] = [
   "Your email address, and your name if your account has one",
   "The last place that you read",
-  "Which paragraphs you read, and when",
+  "Which paragraphs you read or heard, and when",
   "The paragraphs that you saved",
   "Your notes",
 ];
 export const ACCOUNT_ITEMS_ES: readonly string[] = [
   "Tu correo electrónico, y tu nombre si tu cuenta tiene uno",
   "El último lugar que leíste",
-  "Qué párrafos leíste, y cuándo",
+  "Qué párrafos leíste o escuchaste, y cuándo",
   "Los párrafos que guardaste",
   "Tus notas",
 ];
@@ -104,9 +104,9 @@ export const ACCOUNT_VENDORS: readonly Vendor[] = [
   {
     name: "Supabase",
     purpose: "Holds the accounts, and what an account keeps.",
-    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, which paragraphs you read, the paragraphs that you saved, and your notes.",
+    receives: "Your email address, your name and picture if you sign in with Google, the last place that you read, which paragraphs you read or heard, the paragraphs that you saved, and your notes.",
     policy: "https://supabase.com/privacy",
-    es: { purpose: "Guarda las cuentas y lo que guarda cada cuenta.", receives: "Tu correo electrónico, tu nombre y tu foto si inicias sesión con Google, el último lugar que leíste, qué párrafos leíste, los párrafos que guardaste y tus notas." },
+    es: { purpose: "Guarda las cuentas y lo que guarda cada cuenta.", receives: "Tu correo electrónico, tu nombre y tu foto si inicias sesión con Google, el último lugar que leíste, qué párrafos leíste o escuchaste, los párrafos que guardaste y tus notas." },
   },
   {
     name: "Resend",

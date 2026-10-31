@@ -21,6 +21,7 @@ import { clearSentence, markSentence, sentenceBox, sentenceMove } from "@/reader
 import { clearVoicePlace, readVoicePlace, saveVoicePlace, subscribeToVoicePlace } from "@/reader/voice-place";
 import { createHearing } from "@/streak/heard";
 import { noteParagraphs } from "@/streak/client";
+import { queueRead } from "@/account/sync";
 import { Navigator } from "./Navigator";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
@@ -216,7 +217,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
           onSystemPause,
         });
     engine.current = created;
-    // A paragraph that the voice played to near its end counts for the streak, also with the screen off.
+    // A paragraph that the voice played to near its end counts as read and for the streak, also with the screen off.
     const lengths = new Map(tracks.map((t) => [t.ref, t.duration]));
     const hearing = createHearing((ref) => lengths.get(ref) ?? 0);
     const off = created.subscribe(() => {
@@ -225,7 +226,10 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       const now: PaperVoiceState =
         "item" in state ? (state as PaperVoiceState) : { ...state, item: isSounding(state.status) ? tracks[state.index].ref : null, sentence: 0 };
       const heard = hearing.observe(now.status === "idle" ? null : now.item, now.time);
-      if (heard) noteParagraphs("heard", [heard]);
+      if (heard) {
+        queueRead([heard]);
+        noteParagraphs("heard", [heard]);
+      }
       const was = latestVoice.current;
       latestVoice.current = now;
       setVoice(now);
