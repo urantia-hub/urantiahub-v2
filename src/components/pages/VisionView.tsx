@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- fixed screenshots, already sized as webp */
+import { VisionThemeSwap } from "./VisionThemeSwap";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { pageMetadata } from "@/seo/metadata";
@@ -12,6 +13,12 @@ export function visionMetadata(lang: Lang) {
 type ShotKey = keyof ReturnType<typeof messages>["visionPage"]["shots"];
 
 // A computer screen in a plain window frame. `focus` is the part a phone keeps when it crops the picture.
+// A screen with a light and a dark file. The HTML names the light one; `VisionThemeSwap` shows the dark one for a
+// dark reader, so a reader downloads the pictures of one theme only.
+function Themed({ alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { src: string; alt: string }) {
+  return <img {...props} alt={alt} data-dark={props.src.replace(/\.webp$/, "-dark.webp")} suppressHydrationWarning />;
+}
+
 function Browser({ src, alt, focus, address, children }: { src: string; alt: string; focus?: string; address?: string; children?: React.ReactNode }) {
   return (
     <div className="v-browser">
@@ -21,7 +28,7 @@ function Browser({ src, alt, focus, address, children }: { src: string; alt: str
         <i />
         {address && <span>{address}</span>}
       </div>
-      <img src={src} alt={alt} width={1600} height={900} loading="lazy" data-focus={focus ? "" : undefined} style={focus ? ({ "--focus": focus } as React.CSSProperties) : undefined} />
+      <Themed src={src} alt={alt} width={1600} height={900} loading="lazy" data-focus={focus ? "" : undefined} style={focus ? ({ "--focus": focus } as React.CSSProperties) : undefined} />
       {children}
     </div>
   );
@@ -30,7 +37,7 @@ function Browser({ src, alt, focus, address, children }: { src: string; alt: str
 function Phone({ src, alt, eager = false }: { src: string; alt: string; eager?: boolean }) {
   return (
     <div className="v-phone">
-      <img src={src} alt={alt} width={540} height={960} loading={eager ? "eager" : "lazy"} />
+      <Themed src={src} alt={alt} width={540} height={960} loading={eager ? "eager" : "lazy"} />
     </div>
   );
 }
@@ -81,7 +88,7 @@ export function VisionView({ lang }: { lang: Lang }) {
               <i />
               <span>www.urantiahub.com/papers/2-the-nature-of-god</span>
             </div>
-            <img src="/vision/d-04-listen.webp" alt={t.heroBrowserAlt} width={1600} height={900} />
+            <Themed src="/vision/d-04-listen.webp" alt={t.heroBrowserAlt} width={1600} height={900} />
           </div>
           <Phone src="/vision/p-home.webp" alt={t.heroPhoneAlt} eager />
         </div>
@@ -163,6 +170,7 @@ export function VisionView({ lang }: { lang: Lang }) {
         </span>
         <span>{t.updated}</span>
       </p>
+      <VisionThemeSwap />
     </div>
   );
 }
