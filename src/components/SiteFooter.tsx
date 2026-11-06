@@ -20,6 +20,7 @@ export function SiteFooter({ lang = "en" }: { lang?: Lang }) {
       <span>{t.footerLine}</span>
       <nav className="links" aria-label={t.footerNav}>
         {link("/about", t.about)}
+        {link("/vision", t.vision)}
         {link("/resources", t.resources)}
         {link("/releases", t.releases)}
         {link("/privacy", t.privacy)}

@@ -3,11 +3,14 @@ import { expect, type Page, test } from "@playwright/test";
 const ORIGIN = "http://localhost:3100";
 const TWINS = [
   ["/about", "/es/acerca-de", "Acerca de"],
+  ["/vision", "/es/vision", "Visión"],
   ["/resources", "/es/recursos", "Recursos"],
   ["/releases", "/es/novedades", "Novedades"],
   ["/privacy", "/es/privacidad", "Privacidad"],
   ["/terms", "/es/terminos", "Términos"],
 ] as const;
+// A page whose title is not the name of its footer link.
+const HEADINGS: Record<string, string> = { "/es/vision": "Un lugar tranquilo para leer los Documentos de Urantia." };
 // The Hub words of the English pages that must not be on their Spanish twins. The names of places stay as they are.
 const ENGLISH = ["About", "The Urantia Papers", "See all papers", "listen on Spotify", "independent project", "The text", "public domain", "Resources", "Places to study", "By the maker of UrantiaHub", "Organizations", "Communities", "Listen and watch", "opens in a new tab", "Releases", "What changed", "A streak, an assistant", "The new UrantiaHub", "Launch", "October", "January", "The short version", "Who we are", "What the site collects", "Who handles data", "Your choices", "Last updated", "The agreement", "No warranty", "Limit of liability", "What you must not do", "Changes"];
 
@@ -27,7 +30,7 @@ for (const [en, es, heading] of TWINS) {
     const response = await page.goto(es);
     expect(response?.status()).toBe(200);
     await expect(page.locator("html")).toHaveAttribute("lang", "es");
-    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: HEADINGS[es] ?? heading })).toBeVisible();
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `${ORIGIN}${en}`);
     const text = await hubWords(page);
     for (const words of ENGLISH) expect(text, words).not.toMatch(new RegExp(`\\b${words}\\b`));

@@ -28,13 +28,14 @@ describe("robots", () => {
 });
 
 describe("sitemap", () => {
-  it("lists the seven fixed pages and the 197 papers", async () => {
+  it("lists the eight fixed pages and the 197 papers", async () => {
     const { sitemap } = await load("on");
     const urls = (await sitemap()).map((entry) => entry.url);
-    expect(urls).toHaveLength(204);
+    expect(urls).toHaveLength(205);
     expect(urls).toContain("https://next.urantiahub.com/");
     expect(urls).toContain("https://next.urantiahub.com/papers");
     expect(urls).toContain("https://next.urantiahub.com/about");
+    expect(urls).toContain("https://next.urantiahub.com/vision");
     expect(urls).toContain("https://next.urantiahub.com/resources");
     expect(urls).toContain("https://next.urantiahub.com/releases");
     expect(urls).not.toContain("https://next.urantiahub.com/progress");
@@ -42,14 +43,14 @@ describe("sitemap", () => {
     expect(urls).toContain("https://next.urantiahub.com/terms");
     expect(urls).toContain("https://next.urantiahub.com/papers/foreword");
     expect(urls).toContain("https://next.urantiahub.com/papers/paper-196-the-faith-of-jesus");
-    expect(new Set(urls).size).toBe(204);
+    expect(new Set(urls).size).toBe(205);
   });
 
   it("lists the Spanish twins of the fixed pages while Spanish is on, and no page that has none", async () => {
     vi.stubEnv("NEXT_PUBLIC_SPANISH", "on");
     const { sitemap } = await load("on");
     const urls = (await sitemap()).map((entry) => entry.url);
-    for (const path of ["/es", "/es/documentos", "/es/acerca-de", "/es/recursos", "/es/novedades", "/es/privacidad", "/es/terminos"]) expect(urls).toContain(`https://next.urantiahub.com${path}`);
+    for (const path of ["/es", "/es/documentos", "/es/acerca-de", "/es/vision", "/es/recursos", "/es/novedades", "/es/privacidad", "/es/terminos"]) expect(urls).toContain(`https://next.urantiahub.com${path}`);
     expect(urls.filter((url) => url.includes("/es/tu") || url.includes("/es/avisos") || url.includes("/es/paralelos"))).toEqual([]);
     expect(new Set(urls).size).toBe(urls.length);
   });
