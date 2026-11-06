@@ -18,6 +18,7 @@ const PAGES = [
   "/texts/dhammapada/1",
   "/texts/how-it-works",
   "/about",
+  "/vision",
   PAIR,
   "/es",
   "/es/documentos",

@@ -55,6 +55,7 @@ export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
   ["/emails", "/es/correos"],
   ["/parallels", "/es/paralelos"],
   ["/about", "/es/acerca-de"],
+  ["/vision", "/es/vision"],
   ["/resources", "/es/recursos"],
   ["/releases", "/es/novedades"],
   ["/privacy", "/es/privacidad"],
@@ -62,7 +63,7 @@ export const PAGE_TWINS: readonly (readonly [en: string, es: string])[] = [
 ];
 
 // The fixed pages that search engines list, in a language: in Spanish, only those with a twin.
-const FIXED_PAGES = ["/", "/papers", "/about", "/resources", "/releases", "/privacy", "/terms"];
+const FIXED_PAGES = ["/", "/papers", "/about", "/vision", "/resources", "/releases", "/privacy", "/terms"];
 export function fixedPages(lang: Lang): string[] {
   if (lang === "en") return FIXED_PAGES;
   return [homeHref(lang), contentsHref(lang), ...FIXED_PAGES.map((en) => pageHref(lang, en)).filter((path) => path.startsWith("/es/"))];

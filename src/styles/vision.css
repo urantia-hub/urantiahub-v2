@@ -1,0 +1,385 @@
+/* The vision page: what the Hub does today, what comes next, and the goal (mock 2026-11-06-vision-pages in the workspace). */
+.vision {
+  --v-goal-b: #e3eee6;
+  font-family: var(--font-ui);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px 72px;
+  display: grid;
+  gap: 72px;
+}
+:root[data-theme="dark"] .vision {
+  --v-goal-b: #1d2a22;
+}
+.vision section {
+  scroll-margin-top: 84px;
+}
+
+.v-hero {
+  display: grid;
+  gap: 28px;
+  padding-top: 40px;
+}
+.v-hero-words {
+  text-align: center;
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+.v-hero h1 {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 38px;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 0;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+.v-hero-words > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  max-width: 46ch;
+  line-height: 1.55;
+}
+.v-jump {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 6px;
+}
+.v-jump a {
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 6px 14px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.v-jump a i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: block;
+}
+.v-dot-today {
+  background: var(--voice-line);
+}
+.v-dot-soon {
+  background: var(--accent);
+}
+.v-dot-goal {
+  background: var(--ink);
+}
+
+.v-composite {
+  position: relative;
+}
+.v-composite > .v-browser {
+  display: none;
+}
+.v-composite > .v-phone {
+  width: 72%;
+  margin: 0 auto;
+}
+.v-browser {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--raised);
+  box-shadow:
+    0 1px 0 var(--rule),
+    0 24px 60px -24px var(--shade);
+  border: 1px solid var(--rule);
+}
+.v-dots {
+  height: 30px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.v-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rule);
+  display: block;
+}
+.v-dots span {
+  margin-left: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.v-browser img,
+.v-phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.v-browser img[data-focus] {
+  aspect-ratio: 4 / 3.3;
+  object-fit: cover;
+  object-position: var(--focus);
+}
+.v-phone {
+  border-radius: 26px;
+  overflow: hidden;
+  border: 6px solid var(--ink);
+  background: var(--ink);
+  box-shadow: 0 24px 50px -20px var(--shade);
+}
+
+.v-head {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  max-width: 640px;
+}
+.v-tag {
+  width: max-content;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.v-tag-today {
+  color: var(--voice-line);
+  background: color-mix(in srgb, var(--voice-line) 12%, transparent);
+}
+.v-tag-soon {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.v-tag-goal {
+  color: var(--ink);
+  background: var(--mark);
+}
+.v-head h2 {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 29px;
+  line-height: 1.15;
+  margin: 0;
+  text-wrap: balance;
+}
+.v-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.v-rows {
+  display: grid;
+  gap: 44px;
+  margin-top: 40px;
+}
+.v-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+  align-items: end;
+}
+.v-shot {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+}
+.v-shot .v-phone {
+  max-width: 250px;
+  justify-self: center;
+  width: 100%;
+}
+.v-shot .v-phone img {
+  aspect-ratio: 9 / 13;
+  object-fit: cover;
+  object-position: top;
+}
+.v-cap {
+  display: grid;
+  gap: 3px;
+}
+.v-cap h3 {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 21px;
+  margin: 0;
+}
+.v-cap p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.v-soon {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+  margin-top: 40px;
+}
+.v-ribbon {
+  position: absolute;
+  top: 42px;
+  right: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--raised);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.v-soon ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.v-soon li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.v-soon li svg {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  margin-top: 3px;
+}
+
+.v-goal {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+  margin-top: 40px;
+}
+.v-goal blockquote {
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 24px;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+.v-three {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+}
+.v-three b {
+  display: block;
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 18px;
+}
+.v-three span {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.v-art {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.v-foot {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+  padding-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.v-foot a {
+  color: var(--accent);
+}
+
+@media (min-width: 768px) {
+  .vision {
+    padding: 0 28px 96px;
+    gap: 96px;
+  }
+  .v-hero {
+    padding-top: 72px;
+    gap: 40px;
+  }
+  .v-hero h1 {
+    font-size: 56px;
+  }
+  .v-hero-words > p {
+    font-size: 18px;
+  }
+  .v-composite {
+    padding-right: 9%;
+  }
+  .v-composite > .v-browser {
+    display: block;
+  }
+  .v-composite > .v-phone {
+    position: absolute;
+    right: 0;
+    bottom: -28px;
+    width: 24%;
+    margin: 0;
+  }
+  .v-head h2 {
+    font-size: 38px;
+  }
+  .v-rows {
+    gap: 56px;
+  }
+  .v-row {
+    grid-template-columns: 2fr 1fr;
+    gap: 28px;
+  }
+  .v-row.v-flip {
+    grid-template-columns: 1fr 2fr;
+  }
+  .v-row.v-flip > :first-child {
+    order: 2;
+  }
+  .v-row.v-even {
+    grid-template-columns: 1fr 1fr;
+  }
+  .v-shot .v-phone {
+    max-width: 300px;
+  }
+  .v-browser img[data-focus] {
+    aspect-ratio: auto;
+  }
+  .v-soon {
+    grid-template-columns: 1.6fr 1fr;
+    gap: 40px;
+  }
+  .v-goal {
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+  .v-goal blockquote {
+    font-size: 30px;
+  }
+  .v-three {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}

@@ -303,6 +303,7 @@ for (const [path, title] of [
   ["/", "Read the Urantia Papers online | UrantiaHub"],
   ["/papers", "All 196 Urantia Papers: table of contents | UrantiaHub"],
   ["/about", "What are the Urantia Papers? | UrantiaHub"],
+  ["/vision", "Vision | UrantiaHub"],
   ["/privacy", "Privacy | UrantiaHub"],
   ["/terms", "Terms | UrantiaHub"],
   ["/papers/paper-1-the-universal-father", "Paper 1: The Universal Father | UrantiaHub"],
