@@ -2,6 +2,7 @@
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { pageMetadata } from "@/seo/metadata";
+import "@/styles/vision.css";
 
 export function visionMetadata(lang: Lang) {
   const t = messages(lang).visionPage;
