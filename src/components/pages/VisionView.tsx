@@ -1,16 +1,16 @@
 /* eslint-disable @next/next/no-img-element -- fixed screenshots, already sized as webp */
 import { VisionThemeSwap } from "./VisionThemeSwap";
 import type { Lang } from "@/i18n/lang";
-import { messages } from "@/i18n/messages";
+import { visionWords } from "@/i18n/vision";
 import { pageMetadata } from "@/seo/metadata";
 import "@/styles/vision.css";
 
 export function visionMetadata(lang: Lang) {
-  const t = messages(lang).visionPage;
+  const t = visionWords(lang);
   return pageMetadata({ title: t.metaTitle, description: t.metaDescription, path: lang === "es" ? "/es/vision" : "/vision", lang, twin: lang === "es" ? "/vision" : "/es/vision" });
 }
 
-type ShotKey = keyof ReturnType<typeof messages>["visionPage"]["shots"];
+type ShotKey = keyof ReturnType<typeof visionWords>["shots"];
 
 // A computer screen in a plain window frame. `focus` is the part a phone keeps when it crops the picture.
 // A screen with a light and a dark file. The HTML names the light one; `VisionThemeSwap` shows the dark one for a
@@ -44,7 +44,7 @@ function Phone({ src, alt, eager = false }: { src: string; alt: string; eager?: 
 
 // What the Hub does today, what comes next, and the goal. Pictures are real screens of the English site.
 export function VisionView({ lang }: { lang: Lang }) {
-  const t = messages(lang).visionPage;
+  const t = visionWords(lang);
   const shot = (key: ShotKey, picture: React.ReactNode) => (
     <figure className="v-shot">
       {picture}
