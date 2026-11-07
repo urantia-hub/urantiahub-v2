@@ -597,52 +597,6 @@ export const en = {
     source: "The text on this site comes from",
     sourceAfter: ", an open API for the Papers.",
   },
-  visionPage: {
-    metaTitle: "Vision",
-    metaDescription: "What UrantiaHub does today, what comes next, and where it is going: a quiet place to read, listen to, and study the Urantia Papers.",
-    title: "A quiet place to read the Urantia Papers.",
-    lede: "Read, listen, and study on your own today. Soon, with the people you read with.",
-    onThisPage: "On this page",
-    today: "Today",
-    soon: "Soon",
-    goal: "The goal",
-    heroBrowserAlt: "A paper in the Hub, with one paragraph marked while the voice reads it",
-    heroPhoneAlt: "The Hub home page on a phone, with one passage and a Continue reading button",
-    todayHeading: "What the Hub does now",
-    todayLine: "All of this is live at www.urantiahub.com, on a phone or a computer.",
-    shots: {
-      search: { title: "Search by meaning", line: "Ask in your own words. The closest passages come first.", alt: "Search results for how to find peace of mind" },
-      papers: { title: "All 197 papers", line: "In English and Spanish, on a calm page.", alt: "Paper 2 on a phone" },
-      notes: { title: "Save and write notes", line: "Your notes stay with you on every device.", alt: "A saved paragraph with a note in the margin" },
-      share: { title: "Share one sentence", line: "Or the whole paragraph, as a link or an image.", alt: "The share sheet with one sentence chosen" },
-      parallels: { title: "Parallels in other texts", line: "The Bible and 21 world texts, beside the Papers.", alt: "Parallels for 131:3.2 from the Japji and the Bhagavad Gita" },
-      offline: { title: "Read with no connection", line: "All 197 papers stay on your device.", alt: "A paper on a phone with no connection" },
-      progress: { title: "Keep your place", line: "Your progress, a daily streak, and marks along the way.", alt: "The progress page with a 12 day streak" },
-      ask: { title: "Ask an assistant", line: "Take a paragraph to Claude, ChatGPT, or Grok with one question.", alt: "Ask an assistant about paragraph 2:5.10" },
-    },
-    groupsHeading: "Study groups",
-    groupsLine: "Read a paper with your group, in the room or far apart.",
-    groupsAlt: "A design of shared group notes for a meeting on October 15",
-    design: "Design",
-    groups: [
-      "Start a group in one tap and send one link.",
-      "Plan each meeting and keep shared notes.",
-      "See the group's notes right on the paragraph.",
-      "Get a reminder before you meet.",
-    ],
-    goalHeading: "Where the Hub is going",
-    goalArt: "A page of the Papers with one marked paragraph, the voice under it, and notes from three readers in the margin",
-    goalQuote: "Anyone, in their own language, can open the Papers, understand what they read, and read them with other people.",
-    pillars: [
-      { name: "Read", line: "A calm page that keeps your place." },
-      { name: "Understand", line: "Terms, parallels, and search at hand." },
-      { name: "Together", line: "Groups, shared notes, and talk on a paragraph." },
-    ],
-    source: "UrantiaHub reads from the open",
-    sourceAfter: " API.",
-    pictures: "The pictures show the English pages.",
-    updated: "Updated November 2026",
-  },
   resourcesPage: {
     metaTitle: "Resources",
     metaDescription: "Places to study the Urantia Papers and to meet other readers: tools, organizations, study aids, audio and video, and communities.",
@@ -678,5 +632,5 @@ export const en = {
   },
 } as const;
 
-type Widen<T> = { [K in keyof T]: T[K] extends (...args: infer A) => string ? (...args: A) => string : T[K] extends object ? Widen<T[K]> : string };
+export type Widen<T> = { [K in keyof T]: T[K] extends (...args: infer A) => string ? (...args: A) => string : T[K] extends object ? Widen<T[K]> : string };
 export type Messages = Widen<typeof en>;

@@ -1,0 +1,101 @@
+import type { Lang } from "./lang";
+import type { Widen } from "./messages/en";
+
+// The words of /vision. Kept out of the shared messages, which ship to the browser on every page.
+const en = {
+  metaTitle: "Vision",
+  metaDescription: "What UrantiaHub does today, what comes next, and where it is going: a quiet place to read, listen to, and study the Urantia Papers.",
+  title: "A quiet place to read the Urantia Papers.",
+  lede: "Read, listen, and study on your own today. Soon, with the people you read with.",
+  onThisPage: "On this page",
+  today: "Today",
+  soon: "Soon",
+  goal: "The goal",
+  heroBrowserAlt: "A paper in the Hub, with one paragraph marked while the voice reads it",
+  heroPhoneAlt: "The Hub home page on a phone, with one passage and a Continue reading button",
+  todayHeading: "What the Hub does now",
+  todayLine: "All of this is live at www.urantiahub.com, on a phone or a computer.",
+  shots: {
+    search: { title: "Search by meaning", line: "Ask in your own words. The closest passages come first.", alt: "Search results for how to find peace of mind" },
+    papers: { title: "All 197 papers", line: "In English and Spanish, on a calm page.", alt: "Paper 2 on a phone" },
+    notes: { title: "Save and write notes", line: "Your notes stay with you on every device.", alt: "A saved paragraph with a note in the margin" },
+    share: { title: "Share one sentence", line: "Or the whole paragraph, as a link or an image.", alt: "The share sheet with one sentence chosen" },
+    parallels: { title: "Parallels in other texts", line: "The Bible and 21 world texts, beside the Papers.", alt: "Parallels for 131:3.2 from the Japji and the Bhagavad Gita" },
+    offline: { title: "Read with no connection", line: "All 197 papers stay on your device.", alt: "A paper on a phone with no connection" },
+    progress: { title: "Keep your place", line: "Your progress, a daily streak, and marks along the way.", alt: "The progress page with a 12 day streak" },
+    ask: { title: "Ask an assistant", line: "Take a paragraph to Claude, ChatGPT, or Grok with one question.", alt: "Ask an assistant about paragraph 2:5.10" },
+  },
+  groupsHeading: "Study groups",
+  groupsLine: "Read a paper with your group, in the room or far apart.",
+  groupsAlt: "A design of shared group notes for a meeting on October 15",
+  design: "Design",
+  groups: [
+    "Start a group in one tap and send one link.",
+    "Plan each meeting and keep shared notes.",
+    "See the group's notes right on the paragraph.",
+    "Get a reminder before you meet.",
+  ],
+  goalHeading: "Where the Hub is going",
+  goalArt: "A page of the Papers with one marked paragraph, the voice under it, and notes from three readers in the margin",
+  goalQuote: "Anyone, in their own language, can open the Papers, understand what they read, and read them with other people.",
+  pillars: [
+    { name: "Read", line: "A calm page that keeps your place." },
+    { name: "Understand", line: "Terms, parallels, and search at hand." },
+    { name: "Together", line: "Groups, shared notes, and talk on a paragraph." },
+  ],
+  source: "UrantiaHub reads from the open",
+  sourceAfter: " API.",
+  pictures: "The pictures show the English pages.",
+  updated: "Updated November 2026",
+} as const;
+
+const es: Widen<typeof en> = {
+  metaTitle: "Visión",
+  metaDescription: "Lo que UrantiaHub hace hoy, lo que viene, y hacia dónde va: un lugar tranquilo para leer, escuchar y estudiar los Documentos de Urantia.",
+  title: "Un lugar tranquilo para leer los Documentos de Urantia.",
+  lede: "Lee, escucha y estudia por tu cuenta hoy. Pronto, con las personas con quienes lees.",
+  onThisPage: "En esta página",
+  today: "Hoy",
+  soon: "Pronto",
+  goal: "La meta",
+  heroBrowserAlt: "Un documento en el Hub, con un párrafo marcado mientras la voz lo lee",
+  heroPhoneAlt: "La página de inicio del Hub en un teléfono, con un pasaje y un botón para seguir leyendo",
+  todayHeading: "Lo que el Hub hace ahora",
+  todayLine: "Todo esto ya funciona en www.urantiahub.com, en un teléfono o en una computadora.",
+  shots: {
+    search: { title: "Busca por el sentido", line: "Pregunta con tus propias palabras. Los pasajes más cercanos salen primero.", alt: "Resultados de búsqueda para cómo encontrar paz mental" },
+    papers: { title: "Los 197 documentos", line: "En inglés y en español, en una página tranquila.", alt: "El documento 2 en un teléfono" },
+    notes: { title: "Guarda y escribe notas", line: "Tus notas van contigo en cada dispositivo.", alt: "Un párrafo guardado con una nota en el margen" },
+    share: { title: "Comparte una frase", line: "O el párrafo entero, como enlace o como imagen.", alt: "La hoja para compartir con una frase elegida" },
+    parallels: { title: "Paralelos en otros textos", line: "La Biblia y 21 textos del mundo, junto a los Documentos.", alt: "Paralelos de 131:3.2 en el Japji y el Bhagavad Gita" },
+    offline: { title: "Lee sin conexión", line: "Los 197 documentos se quedan en tu dispositivo.", alt: "Un documento en un teléfono sin conexión" },
+    progress: { title: "No pierdas tu lugar", line: "Tu progreso, una racha diaria y marcas en el camino.", alt: "La página de progreso con una racha de 12 días" },
+    ask: { title: "Pregunta a un asistente", line: "Lleva un párrafo a Claude, ChatGPT o Grok con una pregunta.", alt: "Preguntar a un asistente sobre el párrafo 2:5.10" },
+  },
+  groupsHeading: "Grupos de estudio",
+  groupsLine: "Lee un documento con tu grupo, en la misma sala o a distancia.",
+  groupsAlt: "Un diseño de notas compartidas de un grupo para una reunión del 15 de octubre",
+  design: "Diseño",
+  groups: [
+    "Crea un grupo con un toque y envía un enlace.",
+    "Planea cada reunión y guarda notas compartidas.",
+    "Ve las notas del grupo sobre el mismo párrafo.",
+    "Recibe un aviso antes de reunirse.",
+  ],
+  goalHeading: "Hacia dónde va el Hub",
+  goalArt: "Una página de los Documentos con un párrafo marcado, la voz debajo y notas de tres lectores en el margen",
+  goalQuote: "Cualquier persona, en su propio idioma, puede abrir los Documentos, entender lo que lee y leerlos con otras personas.",
+  pillars: [
+    { name: "Leer", line: "Una página tranquila que guarda tu lugar." },
+    { name: "Entender", line: "Términos, paralelos y búsqueda a la mano." },
+    { name: "Juntos", line: "Grupos, notas compartidas y conversación sobre un párrafo." },
+  ],
+  source: "UrantiaHub lee de la API abierta",
+  sourceAfter: ".",
+  pictures: "Las imágenes muestran las páginas en inglés.",
+  updated: "Actualizado en noviembre de 2026",
+};
+
+export function visionWords(lang: Lang): Widen<typeof en> {
+  return lang === "es" ? es : en;
+}
