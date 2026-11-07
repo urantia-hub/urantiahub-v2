@@ -90,7 +90,7 @@ export function VisionView({ lang }: { lang: Lang }) {
             </div>
             <Themed src="/vision/d-04-listen.webp" alt={t.heroBrowserAlt} width={1600} height={900} />
           </div>
-          <Phone src="/vision/p-home.webp" alt={t.heroPhoneAlt} eager />
+          <Phone src="/vision/p-home-2.webp" alt={t.heroPhoneAlt} eager />
         </div>
       </section>
 
