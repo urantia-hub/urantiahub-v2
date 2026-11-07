@@ -1,4 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { VisionView } from "./VisionView";
 
@@ -18,9 +20,24 @@ describe("the vision page", () => {
     const pictures = [...container.querySelectorAll("img")];
     expect(pictures).toHaveLength(11);
     for (const img of pictures) {
+      const files = [img.getAttribute("src") ?? "", img.getAttribute("data-dark") ?? ""];
       expect(img.getAttribute("alt")).toBeTruthy();
-      expect(img.getAttribute("src")).toMatch(/^\/vision\/[a-z0-9-]+\.webp$/);
+      expect(files[1]).toBe(files[0].replace(/\.webp$/, "-dark.webp"));
+      for (const src of files) {
+        expect(src).toMatch(/^\/vision\/[a-z0-9-]+\.webp$/);
+        expect(existsSync(join(process.cwd(), "public", src))).toBe(true);
+      }
     }
+  });
+
+  it("shows the dark files in the dark theme and the light files again after a change back", async () => {
+    const { container } = render(<VisionView lang="en" />);
+    const img = container.querySelector("img") as HTMLImageElement;
+    const light = img.getAttribute("src");
+    document.documentElement.dataset.theme = "dark";
+    await waitFor(() => expect(img.getAttribute("src")).toBe(light?.replace(/\.webp$/, "-dark.webp")));
+    delete document.documentElement.dataset.theme;
+    await waitFor(() => expect(img.getAttribute("src")).toBe(light));
   });
 
   it("is Spanish on the Spanish page and says the pictures are English", () => {
