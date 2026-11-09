@@ -4,9 +4,9 @@ import { addNote, changeNote, deleteNote, NOTE_MAX, readAllSaved, readSavedForPa
 
 const ID = "3f2b8c1e-0d4a-4b6f-9a7e-1c2d3e4f5a6b";
 type Mark = { ref: string; paperId: string; paperTitle: string; text: string; at: string };
-type Note = Mark & { id: string; note: string };
+type Note = Mark & { id: string; note: string; changedAt: string };
 const mark = (ref: string, at = "2026-10-01T00:00:00.000Z"): Mark => ({ ref, paperId: ref.split(":")[0], paperTitle: `Paper ${ref.split(":")[0]}`, text: `Text of ${ref}`, at });
-const note = (id: string, ref: string, text: string, at = "2026-10-02T00:00:00.000Z"): Note => ({ ...mark(ref, at), id, note: text });
+const note = (id: string, ref: string, text: string, at = "2026-10-02T00:00:00.000Z"): Note => ({ ...mark(ref, at), id, note: text, changedAt: at });
 
 function gateway(bookmarks: Mark[] = [], notes: Note[] = []) {
   const page = <T extends Mark>(all: T[], paperId: string | undefined, n: number) => {
@@ -19,7 +19,7 @@ function gateway(bookmarks: Mark[] = [], notes: Note[] = []) {
     addBookmark: vi.fn(async () => {}),
     removeBookmark: vi.fn(async () => {}),
     addNote: vi.fn(async (_t: string, ref: string, text: string) => note(ID, ref, text)),
-    changeNote: vi.fn(async (_t: string, id: string, text: string): Promise<Note | null> => note(id, "1:0.3", text)),
+    changeNote: vi.fn(async (_t: string, id: string, text: string): Promise<{ status: "updated" | "changed"; note: Note } | null> => ({ status: "updated", note: note(id, "1:0.3", text) })),
     deleteNote: vi.fn(async () => {}),
   } satisfies SavedGateway;
 }
@@ -30,8 +30,8 @@ describe("what the reader saved in one paper", () => {
     expect(await readSavedForPaper(g, "t", "1")).toEqual({
       bookmarks: ["1:0.3"],
       notes: [
-        { id: "a", ref: "1:0.3", text: "first", at: "2026-10-03T00:00:00.000Z" },
-        { id: "b", ref: "1:0.3", text: "second", at: "2026-10-05T00:00:00.000Z" },
+        { id: "a", ref: "1:0.3", text: "first", at: "2026-10-03T00:00:00.000Z", changedAt: "2026-10-03T00:00:00.000Z" },
+        { id: "b", ref: "1:0.3", text: "second", at: "2026-10-05T00:00:00.000Z", changedAt: "2026-10-05T00:00:00.000Z" },
       ],
     });
   });
@@ -56,8 +56,8 @@ describe("all that the reader saved", () => {
     expect(await readAllSaved(g, "t")).toEqual({
       cut: false,
       entries: [
-        { ref: "1:0.3", paperId: "1", paperTitle: "Paper 1", text: "Text of 1:0.3", savedAt: "2026-10-01T00:00:00.000Z", notes: [{ id: "a", ref: "1:0.3", text: "first", at: "2026-10-02T00:00:00.000Z" }] },
-        { ref: "2:0.1", paperId: "2", paperTitle: "Paper 2", text: "Text of 2:0.1", savedAt: null, notes: [{ id: "c", ref: "2:0.1", text: "other", at: "2026-10-02T00:00:00.000Z" }] },
+        { ref: "1:0.3", paperId: "1", paperTitle: "Paper 1", text: "Text of 1:0.3", savedAt: "2026-10-01T00:00:00.000Z", notes: [{ id: "a", ref: "1:0.3", text: "first", at: "2026-10-02T00:00:00.000Z", changedAt: "2026-10-02T00:00:00.000Z" }] },
+        { ref: "2:0.1", paperId: "2", paperTitle: "Paper 2", text: "Text of 2:0.1", savedAt: null, notes: [{ id: "c", ref: "2:0.1", text: "other", at: "2026-10-02T00:00:00.000Z", changedAt: "2026-10-02T00:00:00.000Z" }] },
       ],
     });
   });
@@ -93,7 +93,7 @@ describe("a save and a removal of a paragraph", () => {
 describe("a note", () => {
   it("is added with its text trimmed, and comes back with its id", async () => {
     const g = gateway();
-    expect(await addNote(g, "t", { ref: "1:0.3", text: "  hello  " })).toEqual({ ok: true, note: { id: ID, ref: "1:0.3", text: "hello", at: "2026-10-02T00:00:00.000Z" } });
+    expect(await addNote(g, "t", { ref: "1:0.3", text: "  hello  " })).toEqual({ ok: true, note: { id: ID, ref: "1:0.3", text: "hello", at: "2026-10-02T00:00:00.000Z", changedAt: "2026-10-02T00:00:00.000Z" } });
     expect(g.addNote).toHaveBeenCalledWith("t", "1:0.3", "hello");
   });
 
@@ -107,20 +107,40 @@ describe("a note", () => {
     expect((await addNote(gateway(), "t", { ref: "1:0.3", text: "x".repeat(NOTE_MAX) })).ok).toBe(true);
   });
 
-  it("is changed by its id", async () => {
+  const READ = "2026-10-02T00:00:00.000Z";
+
+  it("is changed by its id, with the time of the change that the page read", async () => {
     const g = gateway();
-    expect(await changeNote(g, "t", ID, { text: "new" })).toEqual({ ok: true, note: { id: ID, ref: "1:0.3", text: "new", at: "2026-10-02T00:00:00.000Z" } });
+    expect(await changeNote(g, "t", ID, { text: "new", changedAt: READ })).toEqual({ ok: true, note: { id: ID, ref: "1:0.3", text: "new", at: READ, changedAt: READ } });
+    expect(g.changeNote).toHaveBeenCalledWith("t", ID, "new", READ);
+  });
+
+  it("gives the note as it is now when it changed in another place", async () => {
+    const g = gateway();
+    g.changeNote.mockResolvedValueOnce({ status: "changed", note: { ...note(ID, "1:0.3", "from another app"), changedAt: "2026-10-03T00:00:00.000Z" } });
+    expect(await changeNote(g, "t", ID, { text: "new", changedAt: READ })).toEqual({
+      ok: false,
+      why: "changed",
+      note: { id: ID, ref: "1:0.3", text: "from another app", at: READ, changedAt: "2026-10-03T00:00:00.000Z" },
+    });
   });
 
   it("says that a note is gone", async () => {
     const g = gateway();
     g.changeNote.mockResolvedValueOnce(null);
-    expect(await changeNote(g, "t", ID, { text: "new" })).toEqual({ ok: false, why: "gone" });
+    expect(await changeNote(g, "t", ID, { text: "new", changedAt: READ })).toEqual({ ok: false, why: "gone" });
+  });
+
+  it("refuses a change with no time of the change that was read, with no call", async () => {
+    const g = gateway();
+    expect(await changeNote(g, "t", ID, { text: "new" })).toEqual({ ok: false, why: "bad" });
+    expect(await changeNote(g, "t", ID, { text: "new", changedAt: "yesterday" })).toEqual({ ok: false, why: "bad" });
+    expect(g.changeNote).not.toHaveBeenCalled();
   });
 
   it("refuses an id that is not an id, with no call", async () => {
     const g = gateway();
-    expect(await changeNote(g, "t", "../bookmarks", { text: "new" })).toEqual({ ok: false, why: "bad" });
+    expect(await changeNote(g, "t", "../bookmarks", { text: "new", changedAt: READ })).toEqual({ ok: false, why: "bad" });
     expect(await deleteNote(g, "t", "x")).toEqual({ ok: false, why: "bad" });
     expect(g.changeNote).not.toHaveBeenCalled();
     expect(g.deleteNote).not.toHaveBeenCalled();

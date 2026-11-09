@@ -76,7 +76,7 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  async function run(work: () => Promise<{ ok: true } | { ok: false; why: "failed" | "gone" }>, failed: () => string, done: () => void) {
+  async function run(work: () => Promise<NoteResult>, failed: () => string, done: () => void) {
     setBusy(true);
     setProblem(null);
     const result = await work();
@@ -86,6 +86,8 @@ export function NoteThread({ reference, notes: every, add, change, remove, last,
       setOpen(null);
       return setProblem(t.noteGone);
     }
+    // The list now shows the newest text. The draft stays open, and a second Save replaces it.
+    if (result.why === "changed") return setProblem(t.noteChanged);
     setProblem(failed());
   }
 

@@ -13,7 +13,7 @@ async function signedIn(other: Other) {
   await startAccount();
   return fetch;
 }
-const saved = (bookmarks: string[] = []) => Response.json({ bookmarks, notes: [{ id: "n1", ref: "1:0.3", text: "A note.", at: "2026-10-02T00:00:00.000Z" }] });
+const saved = (bookmarks: string[] = []) => Response.json({ bookmarks, notes: [{ id: "n1", ref: "1:0.3", text: "A note.", at: "2026-10-02T00:00:00.000Z", changedAt: "2026-10-04T00:00:00.000Z" }] });
 const calls = (fetch: ReturnType<typeof vi.fn>) => fetch.mock.calls.filter(([url]) => String(url).startsWith("/api/me/")).map(([url, init]) => `${(init as RequestInit | undefined)?.method ?? "GET"} ${url}`);
 
 beforeEach(() => {
@@ -167,7 +167,7 @@ describe("a press on Save", () => {
 });
 
 describe("a note", () => {
-  const note = (id: string, text: string, at = "2026-10-05T00:00:00.000Z") => ({ id, ref: "1:0.3", text, at });
+  const note = (id: string, text: string, at = "2026-10-05T00:00:00.000Z") => ({ id, ref: "1:0.3", text, at, changedAt: at });
 
   it("is added at the end when the account took it", async () => {
     const fetch = await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : Response.json({ ok: true, note: note("n2", "Second.") })));
@@ -191,6 +191,16 @@ describe("a note", () => {
     expect(await changeNote("n1", "New text.")).toEqual({ ok: true });
     expect(savedState().notes).toEqual([note("n1", "New text.", "2026-10-02T00:00:00.000Z")]);
     expect(calls(fetch).slice(1)).toEqual(["PUT /api/me/notes/n1"]);
+  });
+
+  it("sends the time of the last change that the page has, and shows the newest text when it changed elsewhere", async () => {
+    const newer = { ...note("n1", "From another app."), changedAt: "2026-10-06T00:00:00.000Z" };
+    const fetch = await signedIn((url) => (url.startsWith("/api/me/saved") ? saved() : Response.json({ ok: false, why: "changed", note: newer })));
+    await loadSaved("1");
+    expect(await changeNote("n1", "Mine.")).toEqual({ ok: false, why: "changed" });
+    const [, init] = fetch.mock.calls.find(([url]) => url === "/api/me/notes/n1")!;
+    expect(JSON.parse(String(init?.body))).toEqual({ text: "Mine.", changedAt: "2026-10-04T00:00:00.000Z" });
+    expect(savedState().notes).toEqual([newer]);
   });
 
   it("leaves the page when the account says that it is gone", async () => {

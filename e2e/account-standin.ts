@@ -24,7 +24,8 @@ type Reader = {
   progress: { paperId: string; readCount: number; totalParagraphs: number }[];
   // The paragraphs that the reader saved, and the reader's notes.
   saved: { ref: string; createdAt: string }[];
-  notes: { id: string; ref: string; text: string; createdAt: string }[];
+  // A seeded note can leave out updatedAt; it is then createdAt.
+  notes: { id: string; ref: string; text: string; createdAt: string; updatedAt?: string }[];
   // The streak settings (`hub.streak`), apart from the other preferences: by default the reader was
   // asked and said no, so no other test meets the question. A streak test sets it.
   streak: unknown;
@@ -153,10 +154,11 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
       r.saved = r.saved.filter((b) => b.ref !== ref);
       return r.saved.length < before ? { status: 204, body: "" } : json(404, { detail: "Bookmark not found." });
     }
-    const noteShape = (n: Reader["notes"][number]) => ({ id: n.id, text: n.text, format: "plain", createdAt: n.createdAt, updatedAt: n.createdAt, paragraph: paragraph(n.ref) });
+    const noteShape = (n: Reader["notes"][number]) => ({ id: n.id, text: n.text, format: "plain", createdAt: n.createdAt, updatedAt: n.updatedAt ?? n.createdAt, paragraph: paragraph(n.ref) });
     if (path === "/me/notes") {
       if (request.method === "POST") {
-        const made = { id: randomUUID(), ref: String(body.ref), text: String(body.text), createdAt: new Date().toISOString() };
+        const now = new Date().toISOString();
+        const made = { id: randomUUID(), ref: String(body.ref), text: String(body.text), createdAt: now, updatedAt: now };
         r.notes.push(made);
         return json(201, { data: noteShape(made) });
       }
@@ -169,7 +171,13 @@ export function account(request: IncomingMessage, url: URL, text: string): Answe
         r.notes = r.notes.filter((n) => n !== found);
         return { status: 204, body: "" };
       }
-      if (request.method === "PUT") found.text = String(body.text);
+      if (request.method === "PUT") {
+        // As the API: a change holds only when the note is unchanged since the updatedAt that was sent.
+        const updatedAt = found.updatedAt ?? found.createdAt;
+        if (body.updatedAt !== updatedAt) return json(409, { detail: "The note changed.", current: noteShape(found) });
+        found.text = String(body.text);
+        found.updatedAt = new Date(Math.max(Date.now(), Date.parse(updatedAt) + 1)).toISOString();
+      }
       return json(200, { data: noteShape(found) });
     }
     if (path === "/me/preferences") {

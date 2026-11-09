@@ -230,6 +230,7 @@ export const es: Messages = {
   notesLoading: "Cargando tus notas",
   notesFailed: "Tus notas no se cargaron.",
   noteGone: "Esta nota ya no existe.",
+  noteChanged: "Esta nota cambió en otro lugar. Se muestra su texto más reciente. Guarda de nuevo para reemplazarlo con el tuyo.",
   noteNotSaved: "La nota no se guardó. Vuelve a intentarlo.",
   noteStillHere: "La nota sigue aquí. Vuelve a intentarlo.",
   seeAllNotes: (n: number) => `Ver las ${n} notas`,

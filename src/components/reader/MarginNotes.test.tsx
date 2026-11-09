@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MarginNotes from "./MarginNotes";
 
-const note = (id: string, ref: string, text: string, day: number) => ({ id, ref, text, at: `2026-10-0${day}T00:00:00.000Z` });
+const note = (id: string, ref: string, text: string, day: number) => ({ id, ref, text, at: `2026-10-0${day}T00:00:00.000Z`, changedAt: `2026-10-0${day}T00:00:00.000Z` });
 const LONG = "This note is long. ".repeat(12).trim();
 
 beforeEach(() => {

@@ -11,7 +11,7 @@ const REF = /^(\d{1,3}):\d{1,3}\.\d{1,3}$/;
 const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type GatewayMark = { ref: string; paperId: string; paperTitle: string; text: string; at: string };
-type GatewayNote = GatewayMark & { id: string; note: string };
+type GatewayNote = GatewayMark & { id: string; note: string; changedAt: string };
 type Query = { paperId?: string; page: number };
 
 export type SavedGateway = {
@@ -20,17 +20,18 @@ export type SavedGateway = {
   addBookmark(accessToken: string, ref: string): Promise<void>;
   removeBookmark(accessToken: string, ref: string): Promise<void>;
   addNote(accessToken: string, ref: string, text: string): Promise<GatewayNote>;
-  // Null when the note is gone.
-  changeNote(accessToken: string, id: string, text: string): Promise<GatewayNote | null>;
+  // Changes the note only if it is unchanged since changedAt. "changed" gives the note as it is now. Null when the note is gone.
+  changeNote(accessToken: string, id: string, text: string, changedAt: string): Promise<{ status: "updated" | "changed"; note: GatewayNote } | null>;
   deleteNote(accessToken: string, id: string): Promise<void>;
 };
 
-export type SavedNote = { id: string; ref: string; text: string; at: string };
+// `changedAt` is the time of the last change, which the next change sends back.
+export type SavedNote = { id: string; ref: string; text: string; at: string; changedAt: string };
 export type PaperSaved = { bookmarks: string[]; notes: SavedNote[] };
 export type SavedEntry = { ref: string; paperId: string; paperTitle: string; text: string; savedAt: string | null; notes: SavedNote[] };
 export type AllSaved = { entries: SavedEntry[]; cut: boolean };
 export type Done = { ok: true } | { ok: false; why: "bad" | "gone" };
-export type NoteDone = { ok: true; note: SavedNote } | { ok: false; why: "bad" | "gone" };
+export type NoteDone = { ok: true; note: SavedNote } | { ok: false; why: "changed"; note: SavedNote } | { ok: false; why: "bad" | "gone" };
 
 const BAD = { ok: false, why: "bad" } as const;
 
@@ -40,7 +41,8 @@ export function isRef(value: unknown): value is string {
   return paper !== undefined && paperById(paper) !== undefined;
 }
 
-const toNote = (n: GatewayNote): SavedNote => ({ id: n.id, ref: n.ref, text: n.note, at: n.at });
+const toNote = (n: GatewayNote): SavedNote => ({ id: n.id, ref: n.ref, text: n.note, at: n.at, changedAt: n.changedAt });
+const TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$/;
 const oldestFirst = (a: SavedNote, b: SavedNote) => a.at.localeCompare(b.at);
 
 // Each page of one list, up to the limit. `cut` says that the list is longer than the limit.
@@ -108,9 +110,11 @@ export async function addNote(gateway: SavedGateway, accessToken: string, value:
 
 export async function changeNote(gateway: SavedGateway, accessToken: string, id: unknown, value: unknown): Promise<NoteDone> {
   const text = noteText(value);
-  if (typeof id !== "string" || !ID.test(id) || text === null) return BAD;
-  const changed = await gateway.changeNote(accessToken, id, text);
-  return changed ? { ok: true, note: toNote(changed) } : { ok: false, why: "gone" };
+  const changedAt = field(value, "changedAt");
+  if (typeof id !== "string" || !ID.test(id) || text === null || typeof changedAt !== "string" || !TIME.test(changedAt)) return BAD;
+  const answer = await gateway.changeNote(accessToken, id, text, changedAt);
+  if (!answer) return { ok: false, why: "gone" };
+  return answer.status === "updated" ? { ok: true, note: toNote(answer.note) } : { ok: false, why: "changed", note: toNote(answer.note) };
 }
 
 export async function deleteNote(gateway: SavedGateway, accessToken: string, id: unknown): Promise<Done> {
