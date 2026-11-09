@@ -62,17 +62,20 @@ export function SavedView({ lang = "en" }: { lang?: Lang }) {
     const answer = (await readerCall(path, init)) as { ok?: unknown; why?: unknown; note?: SavedNote } | null;
     if (!answer) return FAILED;
     const gone = answer.ok === false && answer.why === "gone";
-    if (answer.ok !== true && !gone) return FAILED;
+    const changed = answer.ok === false && answer.why === "changed" && answer.note !== undefined;
+    if (answer.ok !== true && !gone && !changed) return FAILED;
     change(ref, (entry) => ({ ...entry, notes: done(entry.notes, answer.note) }));
+    if (changed) return { ok: false, why: "changed" };
     const paper_id = ref.split(":")[0];
     if (init.method === "DELETE") track("note_deleted", { paper_id });
     else if (!gone) track("note_saved", { paper_id, kind: init.method === "POST" ? "new" : "change" });
     return gone ? { ok: false, why: "gone" } : { ok: true };
   }
+  const changedAtOf = (ref: string, id: string) => data.entries.find((entry) => entry.ref === ref)?.notes.find((n) => n.id === id)?.changedAt;
   const actions = (ref: string) => ({
     add: (reference: string, text: string) => note(ref, "/api/me/notes", { method: "POST", body: JSON.stringify({ ref: reference, text }) }, (notes, made) => (made ? [...notes, made] : notes)),
     change: (id: string, text: string) =>
-      note(ref, `/api/me/notes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ text }) }, (notes, made) => (made ? notes.map((n) => (n.id === id ? made : n)) : notes.filter((n) => n.id !== id))),
+      note(ref, `/api/me/notes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ text, changedAt: changedAtOf(ref, id) }) }, (notes, made) => (made ? notes.map((n) => (n.id === id ? made : n)) : notes.filter((n) => n.id !== id))),
     remove: (id: string) => note(ref, `/api/me/notes/${encodeURIComponent(id)}`, { method: "DELETE" }, (notes) => notes.filter((n) => n.id !== id)),
   });
   const [problem, setProblem] = useState<string | null>(null);

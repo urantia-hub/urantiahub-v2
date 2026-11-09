@@ -149,7 +149,7 @@ export function toggleBookmark(ref: string): Promise<boolean> {
   return run;
 }
 
-export type NoteResult = { ok: true } | { ok: false; why: "failed" | "gone" };
+export type NoteResult = { ok: true } | { ok: false; why: "failed" | "gone" | "changed" };
 const FAILED: NoteResult = { ok: false, why: "failed" };
 type NoteAnswer = { ok?: unknown; why?: unknown; note?: SavedNote } | null;
 
@@ -162,9 +162,11 @@ async function sendNote(path: string, init: RequestInit, done: (answer: NonNulla
   const answer = (await ask(key, path, init)) as NoteAnswer;
   if (life !== at || !answer) return FAILED;
   const gone = answer.ok === false && answer.why === "gone";
-  if (answer.ok !== true && !gone) return FAILED;
+  const changed = answer.ok === false && answer.why === "changed" && answer.note !== undefined;
+  if (answer.ok !== true && !gone && !changed) return FAILED;
   const notes = done(answer);
   if (notes) set({ ...state, notes });
+  if (changed) return { ok: false, why: "changed" };
   return gone ? { ok: false, why: "gone" } : { ok: true };
 }
 
@@ -178,8 +180,10 @@ export function addNote(ref: string, text: string): Promise<NoteResult> {
   });
 }
 
+// Sends the changedAt of the note as this page has it. A note that changed elsewhere comes back as it is now.
 export function changeNote(id: string, text: string): Promise<NoteResult> {
-  return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ text }) }, (answer) => {
+  const changedAt = state.notes.find((note) => note.id === id)?.changedAt;
+  return sendNote(`/api/me/notes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ text, changedAt }) }, (answer) => {
     const next = answer.note ?? null;
     changedNotes.set(id, next);
     // A note that is gone in the account leaves the page too.

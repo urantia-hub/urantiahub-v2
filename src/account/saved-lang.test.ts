@@ -5,7 +5,7 @@ import { inLanguage } from "./saved-lang";
 const ALL: AllSaved = {
   entries: [
     { ref: "1:0.3", paperId: "1", paperTitle: "The Universal Father", text: "The enlightened worlds.", savedAt: "2026-10-01", notes: [] },
-    { ref: "2:3.1", paperId: "2", paperTitle: "The Nature of God", text: "The actuality of God.", savedAt: null, notes: [{ id: "n", ref: "2:3.1", text: "Mi nota.", at: "2026-10-02" }] },
+    { ref: "2:3.1", paperId: "2", paperTitle: "The Nature of God", text: "The actuality of God.", savedAt: null, notes: [{ id: "n", ref: "2:3.1", text: "Mi nota.", at: "2026-10-02", changedAt: "2026-10-02" }] },
   ],
   cut: false,
 };

@@ -411,7 +411,7 @@ test.describe("what the reader saved", () => {
 
     expect((await call(page, "POST", "/api/me/bookmarks", { ref: "1:0.3" })).body).toEqual({ ok: true });
     const added = await call(page, "POST", "/api/me/notes", { ref: "1:0.3", text: " A first note. " });
-    const note = added.body.note as { id: string; text: string };
+    const note = added.body.note as { id: string; text: string; changedAt: string };
     expect(note.text).toBe("A first note.");
     await call(page, "POST", "/api/me/notes", { ref: "2:0.1", text: "On another paper." });
 
@@ -421,9 +421,12 @@ test.describe("what the reader saved", () => {
     const all = (await call(page, "GET", "/api/me/saved")).body as { entries: { ref: string; savedAt: string | null }[]; cut: boolean };
     expect(all.entries.map((entry) => [entry.ref, entry.savedAt !== null])).toEqual([["1:0.3", true], ["2:0.1", false]]);
 
-    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Changed." })).body).toMatchObject({ ok: true, note: { text: "Changed." } });
+    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Changed." })).body).toEqual({ ok: false, why: "bad" });
+    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Changed.", changedAt: note.changedAt })).body).toMatchObject({ ok: true, note: { text: "Changed." } });
+    // A second place that read the note before that change gets the newest text, and nothing changes.
+    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Late.", changedAt: note.changedAt })).body).toMatchObject({ ok: false, why: "changed", note: { text: "Changed." } });
     expect((await call(page, "DELETE", `/api/me/notes/${note.id}`)).body).toEqual({ ok: true });
-    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Too late." })).body).toEqual({ ok: false, why: "gone" });
+    expect((await call(page, "PUT", `/api/me/notes/${note.id}`, { text: "Too late.", changedAt: note.changedAt })).body).toEqual({ ok: false, why: "gone" });
     expect((await call(page, "DELETE", "/api/me/bookmarks?ref=1:0.3")).body).toEqual({ ok: true });
     const seen = await reader.seen();
     expect(seen.saved).toEqual([]);

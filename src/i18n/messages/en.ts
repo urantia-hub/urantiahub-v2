@@ -228,6 +228,7 @@ export const en = {
   notesLoading: "Loading your notes",
   notesFailed: "Your notes did not load.",
   noteGone: "This note is gone.",
+  noteChanged: "This note changed in another place. Its newest text is shown. Save again to replace it with yours.",
   noteNotSaved: "The note did not save. Try again.",
   noteStillHere: "The note is still here. Try again.",
   seeAllNotes: (n: number) => `See all ${n} notes`,

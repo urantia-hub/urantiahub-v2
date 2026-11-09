@@ -33,11 +33,11 @@ async function direct(token: string, method: string, path: string, body?: unknow
   return response.status === 204 ? null : ((await response.json()) as { data?: unknown }).data;
 }
 
-const gone = (error: unknown) => error instanceof Error && /^404\b/.test(error.message);
 
 type Listed = { paragraph: { standardReferenceId: string; paperId: string; paperTitle: string; text: string }; createdAt: string };
 const mark = (of: Listed) => ({ ref: of.paragraph.standardReferenceId, paperId: of.paragraph.paperId, paperTitle: of.paragraph.paperTitle, text: of.paragraph.text, at: of.createdAt });
-const note = (of: Listed & { id: string; text: string }) => ({ ...mark(of), id: of.id, note: of.text });
+type ListedNote = Listed & { id: string; text: string; updatedAt: string };
+const note = (of: ListedNote) => ({ ...mark(of), id: of.id, note: of.text, changedAt: of.updatedAt });
 // The API answers the count as `pagination.total`. The package's type names another field.
 const total = (answer: unknown, fallback: number): number => {
   const count = (answer as { pagination?: { total?: unknown } }).pagination?.total;
@@ -59,13 +59,19 @@ export const gateway: Gateway & SavedGateway & NoticesGateway & StreakGateway & 
   },
   removeBookmark: (token, ref) => asked(api(token).me.bookmarks.delete(ref)),
   addNote: async (token, ref, text) => note((await asked(api(token).me.notes.create({ ref, text, format: "plain" }))).data),
-  changeNote: async (token, id, text) => {
-    try {
-      return note((await asked(api(token).me.notes.update(id, { text }))).data);
-    } catch (error) {
-      if (gone(error)) return null;
-      throw error;
-    }
+  // The API changes the note only if it is unchanged since updatedAt; its 409 carries the note as it is now.
+  changeNote: async (token, id, text, changedAt) => {
+    const response = await fetch(`${BASE}/me/notes/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { authorization: `Bearer ${token}`, accept: "application/json", "content-type": "application/json" },
+      body: JSON.stringify({ text, updatedAt: changedAt }),
+      cache: "no-store",
+    });
+    if (response.status === 401) throw new Refused();
+    if (response.status === 404) return null;
+    if (response.status === 409) return { status: "changed", note: note(((await response.json()) as { current: ListedNote }).current) };
+    if (!response.ok) throw new Error(`${response.status} from PUT /me/notes`);
+    return { status: "updated", note: note(((await response.json()) as { data: ListedNote }).data) };
   },
   deleteNote: (token, id) => asked(api(token).me.notes.delete(id)),
   preferences: async (token) => (await asked(api(token).me.preferences.get())).data ?? {},

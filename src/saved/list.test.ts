@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SavedEntry } from "@/account/saved-data";
 import { groupByPaper, latest, pick, sortEntries } from "./list";
 
-const note = (id: string, ref: string, text: string, at: string) => ({ id, ref, text, at });
+const note = (id: string, ref: string, text: string, at: string) => ({ id, ref, text, at, changedAt: at });
 const entry = (ref: string, over: Partial<SavedEntry> = {}): SavedEntry => ({ ref, paperId: ref.split(":")[0], paperTitle: `Paper ${ref.split(":")[0]} title`, text: `Text of ${ref}.`, savedAt: null, notes: [], ...over });
 
 const A = entry("1:0.3", { savedAt: "2026-10-01T00:00:00.000Z", paperTitle: "The Universal Father", text: "The enlightened worlds all recognize the Universal Father.", notes: [note("n1", "1:0.3", "Compare with Paper 10.", "2026-10-06T00:00:00.000Z")] });

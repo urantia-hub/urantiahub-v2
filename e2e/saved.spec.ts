@@ -535,6 +535,27 @@ test.describe("the Saved page", () => {
     expect(seen.notes.map((n: { text: string }) => n.text)).toEqual(["Changed here."]);
   });
 
+  test("an Edit of a note that changed in another place shows the newest text, and a second Save replaces it", async ({ page, context }) => {
+    const reader = await asReader(context);
+    const first = noteOf("1:0.3", "As this page read it.");
+    await reader.set({ notes: [first] });
+    await page.goto(PAPER);
+    await signIn(page);
+    await page.goto("/saved");
+    await expect(entries(page).first()).toContainText("As this page read it.");
+    // Another app changes the note after this page read it.
+    await reader.set({ notes: [{ ...first, text: "From another app.", updatedAt: "2026-10-03T00:00:00.000Z" }] });
+    await entries(page).first().getByRole("button", { name: "Edit" }).click();
+    await page.getByRole("textbox", { name: "Your note" }).fill("Mine.");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("This note changed in another place.")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Your note" })).toHaveValue("Mine.");
+    expect((await reader.seen()).notes.map((n: { text: string }) => n.text)).toEqual(["From another app."]);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(entries(page).first()).toContainText("Mine.");
+    expect((await reader.seen()).notes.map((n: { text: string }) => n.text)).toEqual(["Mine."]);
+  });
+
   test("a long thread opens on the page of its paragraph, from the sheet and from the margin", async ({ page, context }, testInfo) => {
     const reader = await asReader(context);
     await reader.set({ notes: Array.from({ length: 12 }, (_, i) => noteOf("1:0.3", `Note ${i + 1}.`, `2026-09-${10 + i}T00:00:00.000Z`)) });
