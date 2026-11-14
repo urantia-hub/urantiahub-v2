@@ -12,6 +12,43 @@ export type Entry = Release & { es: { title: string; changes: string[] } };
 
 export const RELEASES: Entry[] = [
   {
+    date: "2026-11-14",
+    title: "Changes since 1955", es: { title: "Cambios desde 1955", changes: ["Cambios desde 1955: en un párrafo que la primera edición de 1955 tenía de otra forma, Más muestra el texto de antes y el de ahora, con la razón de Urantia Foundation. En las páginas en inglés.", "Una página de la visión de UrantiaHub, enlazada desde el pie de cada página."] },
+    changes: [
+      "Changes since 1955: on a paragraph that the first printing of 1955 had in other words, More shows the text then and now, with the reason from Urantia Foundation. On the English pages.",
+      "A page of the vision of the Hub, linked from the footer of each page.",
+    ],
+  },
+  {
+    date: "2026-10-30",
+    title: "The app and the voice", es: { title: "La aplicación y la voz", changes: ["La aplicación de la pantalla de inicio se abre en la sección donde lo dejaste.", "Al final de un documento, el siguiente documento con Escuchar y Leer.", "Los párrafos que escuchas con la voz cuentan como leídos."] },
+    changes: [
+      "The home screen app opens at the section where you stopped.",
+      "At the end of a paper, the next paper with Listen and Read.",
+      "The paragraphs that you hear with the voice count as read.",
+    ],
+  },
+  {
+    date: "2026-10-25",
+    title: "UrantiaHub in Spanish", es: { title: "UrantiaHub en español", changes: ["Los 197 documentos en español, en /es, con la búsqueda, el glosario y las herramientas de un párrafo. La traducción se hizo con IA.", "Todas las páginas del sitio en español, también la página de inicio, Tu página, los avisos y el inicio de sesión.", "El idioma que eliges se mantiene en cada página."] },
+    changes: [
+      "All 197 papers in Spanish, at /es, with search, the glossary, and the tools of a paragraph. The translation is an AI translation.",
+      "Each page of the site in Spanish, also the home page, your page, the notifications, and the sign-in.",
+      "The language that you choose stays on each page.",
+    ],
+  },
+  {
+    date: "2026-10-20",
+    title: "World texts", es: { title: "Textos del mundo", changes: ["Textos del mundo: la Biblia y otras 21 obras de las religiones del mundo, cada una con los pasajes de los Documentos que se le acercan en significado.", "Una página que pone un párrafo de los Documentos al lado de un pasaje de un texto del mundo, para compartirla.", "Marcas para las páginas que terminas en Textos del mundo.", "Comparte una parte de una frase larga.", "La búsqueda marca una coincidencia cercana y pregunta «¿Quisiste decir…?» cuando una palabra está mal escrita."] },
+    changes: [
+      "World texts: the Bible and 21 other texts of the world's religions, each with the passages of the Papers that are near in meaning.",
+      "A page that puts a paragraph of the Papers beside a passage of a world text, to share.",
+      "Marks for the pages that you finish in World texts.",
+      "Share one part of a long sentence.",
+      "Search marks a close match and asks \"Did you mean\" when a word has a typo.",
+    ],
+  },
+  {
     date: "2026-10-17",
     title: "A streak, an assistant, and more", es: { title: "Una racha, un asistente y más", changes: ["Una racha: una sección al día, unos cinco minutos, con marcas por documentos, por partes y por las herramientas de UrantiaHub. Está desactivada hasta que la actives desde tu página.", "Preguntar a un asistente: toca un párrafo, luego Más, y tu pregunta se abre en Claude, ChatGPT, Gemini o Grok.", "La voz sigue sonando con la pantalla apagada, hasta el final del documento.", "Leer sin conexión: guarda los 197 documentos en tu dispositivo.", "Comparte una sola frase: el enlace muestra las palabras exactas.", "Tu página: tu progreso, lo que guardaste y tus avisos en un solo lugar.", "En otras partes de los Documentos: los paralelos de un párrafo en otros documentos van primero.", "En Android, el teclado ya no tapa el campo de una nota."] }, 
     notify: true,
