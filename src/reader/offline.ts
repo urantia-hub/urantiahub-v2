@@ -85,7 +85,7 @@ const writeNote = (cache: Cache, lang: Lang, whole: boolean, files: string[] = [
 
 // The parts of the reader that load at their first use. They load now, so the worker keeps them.
 const laterParts = () =>
-  Promise.all([import("@/components/reader/ShareSheet"), import("@/components/reader/ImageSheet"), import("@/components/reader/NoteSheet"), import("@/components/reader/ParallelsSheet")]).catch(() => undefined);
+  Promise.all([import("@/components/reader/ShareSheet"), import("@/components/reader/ImageSheet"), import("@/components/reader/NoteSheet"), import("@/components/reader/ParallelsSheet"), import("@/components/reader/ChangesSheet")]).catch(() => undefined);
 
 // A page or a file of this site, as it is now. A redirect or an error is not kept.
 async function take(path: string): Promise<Response> {

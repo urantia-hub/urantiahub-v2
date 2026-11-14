@@ -60,6 +60,13 @@ describe("handleRevalidate", () => {
     expect(notify).toHaveBeenCalledWith([]);
   });
 
+  it("refreshes the changes since 1955, and tells no search engine about it", async () => {
+    const { response, revalidate, notify } = await call({ tags: ["editions"] });
+    expect(response.status).toBe(200);
+    expect(revalidate.mock.calls).toEqual([["editions"]]);
+    expect(notify).toHaveBeenCalledWith([]);
+  });
+
   it.each([
     ["no header", null],
     ["a wrong secret", "Bearer wrong"],

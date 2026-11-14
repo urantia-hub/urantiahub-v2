@@ -1,0 +1,36 @@
+{
+    "data": [
+        {
+            "ref": "0:1.24",
+            "year": 2009,
+            "kind": "text",
+            "before": "in all other manifestations.",
+            "after": "in all manifestations.",
+            "applied": true,
+            "source": {
+                "list": "adopted-corrections-1955-text",
+                "report": "summary-report-v8.01"
+            },
+            "page1955": "3.11",
+            "reason": "The word other removed. This phase of perfection exists in only one manifestation\u2014relative perfection."
+        },
+        {
+            "ref": "0:4.3",
+            "year": 2009,
+            "kind": "text",
+            "before": "all of infinite Deity potentials",
+            "after": "all infinite Deity potentials",
+            "applied": true,
+            "source": {
+                "list": "adopted-corrections-1955-text",
+                "report": "summary-report-v8.01"
+            },
+            "page1955": "7.1",
+            "reason": "The 1955 construction is awkward because all of is used to modify potentials without the latter being qualified by a limiting adjective."
+        }
+    ],
+    "meta": {
+        "total": 2,
+        "applied": 2
+    }
+}

@@ -43,6 +43,8 @@ function answer(url: string) {
     const file = join(dir, "library", `pairs_${(query.get("corpus") ?? "").replace(/[^a-z0-9-]/g, "")}.json`);
     return json(200, existsSync(file) ? readFileSync(file) : JSON.stringify({ data: [], meta: { page: 0, limit: 3, total: 0, totalPages: 0 } }));
   }
+  // The changes to the 1955 text: the recorded rows of the Foreword.
+  if (path === "editions/variants") return json(200, readFileSync(join(dir, "editions_variants.json")));
   // The list of the texts that the API compares with the Papers.
   if (path === "scriptures") return json(200, readFileSync(query.get("lang") === "es" ? join(dir, "library", "scriptures.es.json") : join(dir, "scriptures.json")));
   const library = libraryFile(path, query.get("lang") === "es");
