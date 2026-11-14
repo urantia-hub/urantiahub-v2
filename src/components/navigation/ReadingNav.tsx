@@ -23,6 +23,7 @@ import { createHearing } from "@/streak/heard";
 import { noteParagraphs } from "@/streak/client";
 import { queueRead } from "@/account/sync";
 import { Navigator } from "./Navigator";
+import type { TextChange } from "@/editions/changes";
 import type { Lang } from "@/i18n/lang";
 import { messages } from "@/i18n/messages";
 import { EnglishOriginal } from "@/components/reader/EnglishOriginal";
@@ -34,6 +35,7 @@ const NoteSheet = lazy(() => import("@/components/reader/NoteSheet"));
 // The image maker draws on a canvas. A reader who makes no image does not download it.
 const ImageSheet = lazy(() => import("@/components/reader/ImageSheet"));
 const ParallelsSheet = lazy(() => import("@/components/reader/ParallelsSheet"));
+const ChangesSheet = lazy(() => import("@/components/reader/ChangesSheet"));
 const ShareSheet = lazy(() => import("@/components/reader/ShareSheet"));
 const AskSheet = lazy(() => import("@/components/reader/AskSheet"));
 
@@ -50,8 +52,11 @@ type Props = {
   lang?: Lang;
   // On a Spanish page: the English title of each section, for the place. The place stays in English.
   englishTitles?: Record<string, string | null>;
+  // The changes since 1955 of each changed paragraph of this paper (English pages only).
+  changes?: Record<string, TextChange[]>;
 };
 
+const NO_CHANGES: Record<string, TextChange[]> = {};
 const IDLE: PaperVoiceState = { status: "idle", index: -1, time: 0, speed: 1, item: null, sentence: 0 };
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
@@ -88,7 +93,7 @@ function inView(id: string | null): boolean {
 }
 
 // The controls at the bottom of a paper: a round button for the voice, and a pill with three jobs.
-export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice, lang = "en", englishTitles }: Props) {
+export function ReadingNav({ paper, sections, previous, next, tracks, voice: paperVoice, lang = "en", englishTitles, changes = NO_CHANGES }: Props) {
   const t = messages(lang);
   const [current, setCurrent] = useState("0");
   const [progress, setProgress] = useState(0);
@@ -117,6 +122,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   // The paragraph that shows its English original (Spanish pages only).
   const [origFor, setOrigFor] = useState<string | null>(null);
   const [parallelsOpen, setParallelsOpen] = useState(false);
+  const [changesOpen, setChangesOpen] = useState(false);
   const termsOpenRef = useRef(false);
   const panelRef = useRef(false);
   const moreTile = useRef<HTMLButtonElement>(null);
@@ -299,6 +305,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   // The terms belong to the marked paragraph. With no mark, there is no sheet.
   if (termsOpen && !picked) setTermsOpen(false);
   if (parallelsOpen && !picked) setParallelsOpen(false);
+  if (changesOpen && (!picked || !changes[picked])) setChangesOpen(false);
   if (panel && !picked) setPanel(null);
   // The notes belong to one reader. After a sign-out, or with another reader, the sheet goes.
   const readerKey = account.status === "in" ? (account.user?.key ?? null) : null;
@@ -424,6 +431,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
         setHidden(false);
         setTermsOpen(false);
         setParallelsOpen(false);
+        setChangesOpen(false);
         setPanel("notes");
         return;
       }
@@ -585,7 +593,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
 
   useEffect(() => {
     // The terms and the parallels have the same place, and the same right to stay open under the voice.
-    termsOpenRef.current = termsOpen || parallelsOpen;
+    termsOpenRef.current = termsOpen || parallelsOpen || changesOpen;
     panelRef.current = panel !== null;
     latest.current = input;
     onRoundRef.current = onRound;
@@ -674,6 +682,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       setPanel(null);
       setTermsOpen(false);
       setParallelsOpen(false);
+      setChangesOpen(false);
       setPaperAsk(true);
     };
     window.addEventListener(ASK_PAPER_EVENT, onAsk);
@@ -684,6 +693,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
   function closeTerms() {
     setTermsOpen(false);
     setParallelsOpen(false);
+    setChangesOpen(false);
     window.requestAnimationFrame(() => moreTile.current?.focus({ preventScroll: true }));
   }
 
@@ -704,6 +714,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     askedFrom.current = from;
     setTermsOpen(false);
     setParallelsOpen(false);
+    setChangesOpen(false);
     // The sign-in returns to this paragraph, and the row opens again.
     setAskHref(signInHref(`${window.location.pathname}${window.location.search}#${picked}`));
     setPanel("ask");
@@ -722,6 +733,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     if (account.status !== "in") return ask("note");
     setTermsOpen(false);
     setParallelsOpen(false);
+    setChangesOpen(false);
     setPanel((was) => (was === "notes" ? null : "notes"));
   }
 
@@ -742,6 +754,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
     if (!picked) return;
     setTermsOpen(false);
     setParallelsOpen(false);
+    setChangesOpen(false);
     setPanel((was) => (was === "share" ? null : "share"));
   }
 
@@ -872,11 +885,12 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
                   type="button"
                   className="tile"
                   aria-haspopup="dialog"
-                  aria-expanded={panel === "more" || termsOpen || parallelsOpen}
+                  aria-expanded={panel === "more" || termsOpen || parallelsOpen || changesOpen}
                   onClick={() => {
                     setTermsOpen(false);
                     setParallelsOpen(false);
-                    setPanel((was) => (was === "more" || termsOpen || parallelsOpen ? null : "more"));
+                    setChangesOpen(false);
+                    setPanel((was) => (was === "more" || termsOpen || parallelsOpen || changesOpen ? null : "more"));
                   }}
                   ref={moreTile}
                 >
@@ -940,6 +954,23 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
       {panel === "more" && picked && (
         <Sheet label={t.more} onClose={closePanel}>
           {/* The action that a reader uses most is at the end, near the thumb. */}
+          {/* The changes since 1955 show only on a paragraph whose words changed: the least used row is first. */}
+          {changes[picked] && (
+            <button
+              type="button"
+              className="panel-line"
+              onClick={() => {
+                setPanel(null);
+                setTermsOpen(false);
+                setParallelsOpen(false);
+                setChangesOpen(true);
+              }}
+            >
+              <Icon name="history" />
+              {t.changesRow}
+              <small className="panel-count">{changes[picked].length}</small>
+            </button>
+          )}
           <button
             type="button"
             className="panel-line"
@@ -957,6 +988,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             onClick={() => {
               setPanel(null);
               setParallelsOpen(false);
+              setChangesOpen(false);
               setTermsOpen(true);
             }}
           >
@@ -969,6 +1001,7 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             onClick={() => {
               setPanel(null);
               setTermsOpen(false);
+              setChangesOpen(false);
               setParallelsOpen(true);
             }}
           >
@@ -1090,10 +1123,16 @@ export function ReadingNav({ paper, sections, previous, next, tracks, voice: pap
             onGo={(reference) => {
               if (!document.getElementById(reference)) return;
               setParallelsOpen(false);
+              setChangesOpen(false);
               setPicked(reference);
               setHidden(false);
             }}
           />
+        </Suspense>
+      )}
+      {changesOpen && picked && changes[picked] && (
+        <Suspense fallback={null}>
+          <ChangesSheet key={picked} reference={picked} paperId={paper.id} changes={changes[picked]} onClose={closeTerms} />
         </Suspense>
       )}
       <Navigator

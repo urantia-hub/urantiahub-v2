@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import type { Lang } from "@/i18n/lang";
 import { queryKey } from "@/search/query";
 import { fetchLibrary, fetchPassageOthers, fetchPassagePapers, fetchWorkPage, fetchWorkPages, fetchWorkPairs, type LibraryWork, PageNotFound, type RawPassageOthers, type RawPassagePapers, type WorkPage, type WorkPair, type WorkPassage } from "./library";
+import { changesOfPaper, fetchChanges, type PaperChanges } from "./editions";
 import { fetchParallels, fetchWorks, type RawParallels, type RawWork } from "./parallels";
 import { fetchExact, fetchPaper, fetchPassage, fetchRelated, ParagraphNotFound, type PaperDoc, type Passage, type SearchPage } from "./fetchers";
 
@@ -59,6 +60,18 @@ async function cachedParallels(ref: string, lang: Lang = "en"): Promise<RawParal
   cacheLife("weeks");
   cacheTag("parallels");
   return fetchParallels(client, ref, lang);
+}
+
+// The changes to the 1955 text in one paper. The list is kept whole; the tag `editions` refreshes it.
+export async function getChanges(paperId: string): Promise<PaperChanges> {
+  return changesOfPaper(await allChanges(), paperId);
+}
+
+async function allChanges(): Promise<PaperChanges> {
+  "use cache";
+  cacheLife("weeks");
+  cacheTag("editions");
+  return fetchChanges(process.env.URANTIA_API_BASE_URL || "https://api.urantia.dev");
 }
 
 // Each text that the API compares with the Papers. The list changes only when the API gets a new text.

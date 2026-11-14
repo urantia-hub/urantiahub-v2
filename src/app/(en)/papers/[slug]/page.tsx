@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PaperView } from "@/components/reader/PaperView";
 import { voiceTracks } from "@/audio/paper-engine";
 import { paperRefs, paperTracks } from "@/audio/tracks";
-import { getPaper } from "@/content";
+import { getChanges, getPaper } from "@/content";
 import { ReadingNav } from "@/components/navigation/ReadingNav";
 import { ReadMarks } from "@/components/ReadMarks";
 import { SavedMarks } from "@/components/reader/SavedMarks";
@@ -44,7 +44,7 @@ export default async function PaperPage({ params }: Props) {
   // The proxy redirects a slug that is not canonical. A request that reaches here with one is a 404.
   if (!entry || entry.slug !== slug) notFound();
 
-  const paper = await getPaper(entry.id);
+  const [paper, changes] = await Promise.all([getPaper(entry.id), getChanges(entry.id)]);
   const n = Number(entry.id);
   const toNav = (p: (typeof PAPERS)[number] | undefined): NavPaper | null =>
     p ? { id: p.id, title: p.id === "0" ? p.title : `${p.id} · ${p.title}`, href: paperPath(p.id) } : null;
@@ -63,6 +63,7 @@ export default async function PaperPage({ params }: Props) {
         next={toNav(PAPERS[n + 1])}
         tracks={paper.voice ? voiceTracks(paper.voice, paperRefs(paper)) : paperTracks(paper)}
         voice={paper.voice}
+        changes={changes}
       />
     </>
   );
